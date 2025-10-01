@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Invaders 🚀</title>
+<style>
+  body {
+    background: black;
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  h1 { color: #00ffcc; text-shadow: 2px 2px #ff00ff; }
+
+  .pared {
+    margin: 20px auto;
+    width: 250px; min-height: 180px;
+    padding: 10px;
+    background: #222; border: 4px solid #00ffcc;
+    display: flex; flex-wrap: nowrap;
+    justify-content: center; align-items: center;
+    gap: 10px;
+    font-size: 20px; font-weight: bold;
+    transition: box-shadow 0.3s ease;
+    position: relative;
+    z-index: 5;
+  }
+  .pared.glow { animation: glowEfecto 2s ease-in-out infinite; }
+  @keyframes glowEfecto {
+    0% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+    50% { box-shadow: 0 0 50px #00ffcc, 0 0 100px #ff00ff; }
+    100% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+  }
+
+  .nave {
+    font-size: 60px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .nave:hover { transform: scale(1.2); }
+  .laser {
+    width: 8px; height: 0;
+    background: radial-gradient(circle, #ff00ff, transparent);
+    margin: 0 auto;
+    box-shadow: 0 0 25px #ff00ff;
+    transition: height 1s ease-out;
+  }
+
+  .ladrillo {
+    width: 50px; height: 30px; border-radius: 5px;
+    font-weight: bold; color: black;
+    display: flex; justify-content: center; align-items: center;
+    cursor: grab; position: absolute;
+    animation: flotar 4s infinite alternate ease-in-out;
+    z-index: 10;
+  }
+  .paredItem {
+    width: auto; min-width: 40px; height: 30px; border-radius: 5px;
+    font-weight: bold; color: black;
+    display: flex; justify-content: center; align-items: center;
+    padding: 0 8px;
+    background: #ccc;
+  }
+  .multiplicacion {
+    color: #fff;
+    font-size: 22px;
+    margin: 0 4px;
+  }
+  .p2 { background: #00ffcc; }
+  .p3 { background: #ff00ff; }
+  .p5 { background: #ffff00; }
+  .p7 { background: #ff6600; }
+
+  @keyframes flotar {
+    from { transform: translateY(0px) rotate(0deg); }
+    to   { transform: translateY(-30px) rotate(10deg); }
+  }
+
+
+  #mensajeFinal {
+    font-size: 18px;
+    margin-top: 15px;
+    color: #00ffcc;
+    text-shadow: 1px 1px #ff00ff;
+  }
+
+  .paredItem sup {
+    font-size: 0.6em;
+    position: relative;
+    top: -0.6em;
+    margin-left: 1px;
+    color: #000000;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000;
+  }
+
+  /* 🛸 Platillos */
+  .platillo {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0;
+    animation: flotarPlatillo 4s infinite ease-in-out;
+    transition: opacity 1s ease-in-out;
+    z-index: 5;
+  }
+  .platillo.visible { opacity: 1; }
+
+  @keyframes flotarPlatillo {
+    0%   { transform: translateY(0px) rotate(0deg); }
+    50%  { transform: translateY(-15px) rotate(10deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+  }
+
+  /* ✨ Rayos difuminados */
+  .rayo {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 250px solid rgba(0, 255, 255, 0.4);
+    filter: blur(8px);
+    animation: rayoAnim 2s infinite alternate;
+    z-index: -1;
+  }
+  @keyframes rayoAnim {
+    0%   { border-bottom-width: 200px; opacity: 0.3; }
+    50%  { border-bottom-width: 260px; opacity: 0.7; }
+    100% { border-bottom-width: 200px; opacity: 0.3; }
+  }
+
+
+/* 👨‍🚀 Astronauta animado */
+#astronauta {
+  font-size: 60px;
+  opacity: 0;
+  margin-top: 20px;
+  transition: opacity 1s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  animation: flotarAstronauta 3s infinite ease-in-out;
+  z-index: 10;
+}
+#astronauta.visible { opacity: 1; }
+
+@keyframes flotarAstronauta {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+
+.brazo {
+  display: inline-block;
+  transform-origin: bottom right;
+  animation: saludar 1s infinite alternate;
+}
+@keyframes saludar {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(30deg); }
+}
+
+
+#fraseAstronauta {
+  font-size: 24px;       /* Tamaño de letra más pequeño */
+  max-width: 80%;        /* Evita que se extienda demasiado */
+  line-height: 1.4;      /* Mejor espaciado entre líneas */
+  color: #ffffff;        /* Verde-agua para destacar */
+  text-shadow: 1px 1px 2px #000; /* Contraste sobre el fondo */
+  text-align: center;    /* Centrado bajo el astronauta */
+}
+
+
+.cursor {
+  display: inline-block;
+  width: 10px;
+  background: #00ffcc;
+  margin-left: 3px;
+  animation: blink 1.2s infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Bitácora estilo consola */
+#consolaAstronauta {
+  font-size: 18px;
+  max-width: 90%;
+  margin-top: 10px;
+  text-align: left;
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border: 2px solid #00ffcc;
+  border-radius: 8px;
+  height: 150px; /* con scroll si es muy largo */
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: "Press Start 2P", monospace;
+}
+
+.lineaNarracion {
+  margin: 4px 0;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.cursor {
+  display: inline-block;
+  width: 10px;
+  background: #00ffcc;
+  margin-left: 3px;
+  animation: blink 1.2s infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+
+</style>
+</head>
+<body>
+  <h1>🚀 Prime Invaders</h1>
+  <p>Haz clic en la nave para disparar y traer los ladrillos desde el espacio</p>
+
+  <div class="nave" onclick="disparar()">🚀</div>
+  <div class="laser" id="laser"></div>
+  <div class="pared" id="pared">84</div>
+
+  
+  <p id="mensajeFinal"></p>
+
+  <!-- 🛸 Platillos flotando -->
+  <div id="platillos"></div>
+
+
+
+<!-- 👨‍🚀 Astronauta -->
+<div id="astronauta">
+  <div>
+    <span class="brazo">👋</span>
+    <span>👨‍🚀</span>
+  </div>
+  <!-- 📜 Consola de narraciones -->
+  <div id="consolaAstronauta"></div>
+</div>
+
+
+
+  <!-- 🎵 Sonidos -->
+  <audio id="sndLaser" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="sndExplode" src="https://actions.google.com/sounds/v1/explosions/explosion.ogg"></audio>
+  <audio id="sndPlace" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="sndUFO" src="https://actions.google.com/sounds/v1/ambiences/alien_ufo.ogg"></audio>
+  <audio id="sndKey" src="https://actions.google.com/sounds/v1/office/typewriter.ogg"></audio>
+
+<script>
+  let numero = 84;
+  let factores = [];
+  let colocados = {};
+  let instruccionFusionDada = false;
+  let misionCompletada = false;
+  let puedeDisparar = true;
+  let ufoSound;
+
+  function factoresPrimos(n){
+    const f=[]; let d=2;
+    while(n>1){
+      while(n%d===0){ f.push(d); n/=d; }
+      d++;
+    }
+    return f;
+  }
+
+  function disparar(){
+    if(!puedeDisparar) return; 
+    puedeDisparar = false;
+
+    const laser=document.getElementById("laser");
+    const pared=document.getElementById("pared");
+    pared.innerHTML="💥";
+    pared.style.background="#222";
+
+    document.getElementById("sndLaser").play();
+    laser.style.height="180px";
+
+    setTimeout(()=>{
+      document.getElementById("sndExplode").play();
+      laser.style.height="0";
+      factores=factoresPrimos(numero);
+      pared.innerHTML="";
+      colocados={};
+      instruccionFusionDada = false;
+      misionCompletada = false;
+      mostrarInstruccionInicial();
+
+      const rectPared = pared.getBoundingClientRect();
+
+      factores.forEach((f,i)=>{
+        const ladrillo=document.createElement("div");
+        ladrillo.classList.add("ladrillo","p"+f);
+        ladrillo.textContent=f;
+        ladrillo.draggable=true;
+        ladrillo.id="l"+i;
+        ladrillo.ondragstart=arrastrar;
+
+        let x,y;
+        do{
+          x=Math.random()*(window.innerWidth-80);
+          y=Math.random()*(window.innerHeight-150);
+        }while(x>rectPared.left-80 && x<rectPared.right+20 &&
+               y>rectPared.top-80 && y<rectPared.bottom+20);
+
+        ladrillo.style.left=x+"px";
+        ladrillo.style.top=y+"px";
+        document.body.appendChild(ladrillo);
+      });
+      pared.ondrop=soltar;
+      pared.ondragover=permitirDrop;
+    },1000);
+  }
+
+  function mostrarInstruccionInicial(){
+    narrar("Terrícola, arrastra los ladrillos a la pared. Luego deberás fusionar los repetidos para formar potencias.");
+  }
+
+  function arrastrar(ev){ ev.dataTransfer.setData("text",ev.target.id); }
+  function permitirDrop(ev){ ev.preventDefault(); }
+
+  function soltar(ev){
+    if(misionCompletada) return;
+    ev.preventDefault();
+    const data=ev.dataTransfer.getData("text");
+    const ladrillo=document.getElementById(data);
+    if(!ladrillo) return;
+
+    const base=parseInt(ladrillo.textContent);
+    const bloque=document.createElement("div");
+    bloque.classList.add("paredItem","p"+base);
+    bloque.innerHTML = base;
+    bloque.dataset.base=base;
+    bloque.dataset.exp=1;
+    bloque.draggable=true;
+    bloque.id="p"+Date.now();
+    bloque.ondragstart=arrastrar;
+    bloque.ondrop=fusionar;
+    bloque.ondragover=permitirDrop;
+
+    ev.target.appendChild(bloque);
+
+    narrar("Colocaste el número " + base);
+    document.getElementById("sndPlace").play();
+    ladrillo.remove();
+
+    if(!colocados[base]) colocados[base]=0;
+    colocados[base]++;
+
+    verificarFinal();
+  }
+
+  function fusionar(ev){
+    if(misionCompletada) return;
+    ev.preventDefault();
+    const data=ev.dataTransfer.getData("text");
+    const arrastrado=document.getElementById(data);
+    if(!arrastrado) return;
+
+    const base1=parseInt(this.dataset.base);
+    const base2=parseInt(arrastrado.textContent);
+
+    if(base1===base2){
+      this.dataset.exp=parseInt(this.dataset.exp)+1;
+      const exp=this.dataset.exp;
+      this.innerHTML = `<span class="base">${base1}</span>${exp>1? `<sup>${exp}</sup>`:""}`;
+      arrastrado.remove();
+      colocados[base1]=exp;
+      narrarPotencia(base1,exp);
+      ordenarPared();
+      verificarFinal();
+    }
+  }
+
+  function narrarPotencia(base,exp){
+    let texto="";
+    if(exp===0) texto= base+" a la cero es uno";
+    else if(exp===1) texto= base.toString();
+    else if(exp===2) texto= base+" al cuadrado";
+    else if(exp===3) texto= base+" al cubo";
+    else texto= base+" a la "+exp;
+    narrar("Has formado "+texto);
+  }
+
+  function hayRepetidos(){
+    const bloques=[...document.querySelectorAll(".paredItem")];
+    const conteo={};
+    for(let b of bloques){
+      let base=parseInt(b.dataset.base);
+      conteo[base]=(conteo[base]||0)+1;
+      if(conteo[base]>1) return true;
+    }
+    return false;
+  }
+
+  function verificarFinal(){
+    const totalEnPared=document.querySelectorAll(".paredItem").length;
+
+    if(totalEnPared===factores.length && !instruccionFusionDada){
+      narrar("Ahora une o fusiona los factores repetidos.");
+      instruccionFusionDada = true;
+    }
+
+    if(hayRepetidos()) return;
+
+    let producto=1;
+    Object.entries(colocados).forEach(([b,e])=>{
+      producto*=Math.pow(parseInt(b),e);
+    });
+    if(producto===numero){
+      narrarFinal(colocados,numero);
+    }
+  }
+
+  function narrarFinal(colocados,numero){
+    misionCompletada = true;
+    let orden=Object.keys(colocados).map(n=>parseInt(n)).sort((a,b)=>a-b);
+    let texto="¡Misión completada! ";
+    let narracion="Misión completada: ";
+
+    orden.forEach((base,i)=>{
+      const exp=colocados[base];
+      if(i>0){ texto+=" × "; narracion+=" por "; }
+      texto+= base+(exp>1? `<sup>${exp}</sup>`:"");
+      if(exp===0) narracion+= base+" a la cero es uno";
+      else if(exp===1) narracion+= base;
+      else if(exp===2) narracion+= base+" al cuadrado";
+      else if(exp===3) narracion+= base+" al cubo";
+      else narracion+= base+" a la "+exp;
+    });
+    texto+=" = "+numero;
+    narracion+=" es igual a "+numero;
+
+    document.getElementById("mensajeFinal").innerHTML=texto;
+    narrar(narracion);
+    ordenarPared();
+
+   // 🛸 Platillos con rayos difuminados
+const platillosDiv = document.getElementById("platillos");
+const colores = [
+  "rgba(0,255,255,0.4)", 
+  "rgba(255,0,255,0.4)", 
+  "rgba(255,255,0,0.4)", 
+  "rgba(0,255,0,0.4)", 
+  "rgba(255,128,0,0.4)"
+];
+
+// ⚡ Ahora 12 platillos en pantalla
+for (let i = 0; i < 12; i++) {
+  const platillo = document.createElement("div");
+  platillo.textContent = "🛸";
+  platillo.classList.add("platillo", "visible");
+
+  // Distribución más alta (parte superior del canvas)
+  platillo.style.left = (Math.random() * (window.innerWidth - 100)) + "px";
+  platillo.style.top = (Math.random() * (window.innerHeight - 150)) + "px";
+
+
+  // Crear rayo con color cíclico
+  const rayo = document.createElement("div");
+  rayo.classList.add("rayo");
+  rayo.style.borderBottomColor = colores[i % colores.length];
+  platillo.appendChild(rayo);
+
+  platillosDiv.appendChild(platillo);
+}
+
+
+    // 🎵 sonido
+    ufoSound=document.getElementById("sndUFO");
+    ufoSound.loop=true;
+    ufoSound.play();
+
+    setTimeout(()=>{
+      platillosDiv.innerHTML="";
+      ufoSound.pause();
+      ufoSound.currentTime=0;
+    },6000);
+
+    puedeDisparar = true;
+  }
+
+  function ordenarPared(){
+    const pared=document.getElementById("pared");
+    pared.innerHTML="";
+    let items=Object.keys(colocados).map(b=>({ base:parseInt(b), exp:colocados[b] }));
+    items.sort((a,b)=>a.base-b.base);
+
+    items.forEach((item,i)=>{
+      const nuevo=document.createElement("div");
+      nuevo.classList.add("paredItem","p"+item.base);
+      nuevo.dataset.base=item.base;
+      nuevo.dataset.exp=item.exp;
+      nuevo.innerHTML=item.base+(item.exp>1? `<sup>${item.exp}</sup>`:"");
+      pared.appendChild(nuevo);
+      if(i<items.length-1){
+        const x=document.createElement("span");
+        x.classList.add("multiplicacion");
+        x.textContent="×";
+        pared.appendChild(x);
+      }
+    });
+  }
+
+ 
+function narrar(texto){
+  // 🎤 Voz sintetizada
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 0.8;
+  voz.rate = 0.9;
+
+  // ⏳ Duración estimada de la narración en ms
+  const palabrasPorMin = 180 * voz.rate; 
+  const duracionEstim = (texto.split(" ").length / palabrasPorMin) * 60 * 1000;
+
+  // Tiempo por carácter para sincronizar tipeo con voz
+  const tiempoPorChar = Math.max(50, duracionEstim / texto.length);
+
+  // Inicia narración con voz
+  speechSynthesis.speak(voz);
+
+  // 👨‍🚀 Astronauta saluda
+  const astro = document.getElementById("astronauta");
+  astro.classList.add("visible");
+  setTimeout(()=>astro.classList.remove("visible"), duracionEstim + 2000);
+
+  // 📜 Bitácora consola
+  const consola = document.getElementById("consolaAstronauta");
+  const linea = document.createElement("div");
+  linea.classList.add("lineaNarracion");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  // 🎹 Máquina de escribir
+  let i = 0;
+  const sndKey = document.getElementById("sndKey");
+
+  function typeWriter(){
+    if(i < texto.length){
+      linea.innerHTML = texto.substring(0,i+1) + '<span class="cursor"></span>';
+      try { sndKey.currentTime=0; sndKey.play(); } catch(e){}
+      i++;
+      setTimeout(typeWriter, tiempoPorChar); // ⏳ acompasado a voz
+    } else {
+      // ⏳ dejar texto fijo unos segundos con cursor
+      linea.innerHTML = texto + '<span class="cursor"></span>';
+      setTimeout(()=>{
+        linea.innerHTML = texto + ' <span class="cursor"></span>';
+      }, 6000);
+    }
+  }
+  typeWriter();
+}
+
+
+</script>
+</body>
+</html>

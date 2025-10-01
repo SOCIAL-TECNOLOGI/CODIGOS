@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>Constructor Dinámico de Cuestionarios - Exportable</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+ 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin:20px; }
+    .hidden { display:none; }
+    .container { max-width:860px; margin:0 auto 40px; padding-bottom:40px; }
+    button { padding:8px 16px; margin:4px; border:none; border-radius:4px; background:#25447e; color:#fff; cursor:pointer; }
+    button:hover { background:#1e3565; }
+    input:focus, textarea:focus, select:focus { outline:3px solid #3366cc; outline-offset:2px; }
+    .builder-form, .pregunta { border:1px solid #ccc; border-radius:8px; padding:12px; margin:12px 0; background:#f5f5f5; }
+    .metadata { border:1px solid #ccc; padding:10px; border-radius:6px; margin-bottom:12px; background:#eef; }
+    .metadata label { margin-right:6px; }
+    #opciones-container .opcion-builder { margin:6px 0; }
+    #preview-imagen { margin-top:8px; color:#999; font-style:italic; }
+    #preview-imagen i { margin-right:6px; color:#999; }
+    #toast {position: fixed;top: 50%;left: 50%;transform: translate(-50%, -50%);background: #28a745;color: white;padding: 12px 20px;border-radius: 6px;box-shadow: 0 0 10px rgba(0,0,0,0.2);display: none;z-index: 9999;text-align: center; /* opcional, para centrar el texto */}
+   #lista-preguntas button { margin-left:8px; background:#e74c3c; }
+    #lista-preguntas button.btn-editar { background:#f39c12; }
+ .btn-remove-opcion {background: #e74c3c;color: #fff;padding: 4px 8px;/* reduce espacio interior */font-size: 0.85rem;      /* texto más pequeño */border-radius: 5px;line-height: 1;/* evita huecos verticales extra */min-width: auto;         /* que no fuerce ancho grande */height: auto;/* que no fuerce alto grande */}
+/* Nuevo: botón duplicar */
+#lista-preguntas button.btn-duplicar {background: #7c6aa0;color: #fff;}
+#lista-preguntas button.btn-duplicar:hover {background: #1e8449;/* verde oscuro al pasar */}
+.metadata select {font-size: 0.75rem;width: 85px;    /* elige el ancho que mejor te funcione */max-width: 100%; /* para que nunca se desborde */}
+#export-container {border: 1px solid #ccc;border-radius: 6px;background: #eef;padding: 10px;margin-bottom: 12px;}
+#export-container h2 {/* si quieres un tamaño más acorde */font-size: 1.25rem;margin-top: 0;margin-bottom: 0.5em;}
+h1 {text-align: center;}/* Estilos para arrastrar */#lista-preguntas .draggable {cursor: move;user-select: none;} #lista-preguntas .drag-over {border: 2px dashed #3366cc;}
+
+
+/* Clase genérica para ocultar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* Overlay del modal */
+#modal-ponderacion {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;               /* Solo se activa cuando no tiene .hidden */
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+/* Caja interior del modal */
+#modal-ponderacion .modal-contenido {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Tabla */
+#modal-ponderacion table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#modal-ponderacion th {
+  border-bottom: 1px solid #ccc;
+  text-align: left;
+  padding: 4px 0;
+}
+
+#modal-ponderacion th:last-child {
+  text-align: right;
+}
+
+/* Botón “Cerrar” */
+#modal-ponderacion #modal-cerrar {
+  margin-top: 12px;
+  float: right;
+  padding: 6px 12px;
+  background: #25447e;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#modal-ponderacion #modal-cerrar:hover {
+  background: #1e3565;
+}
+
+
+#btn-save-pregunta {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  /* opcional: ajusta tamaño y padding si lo necesitas */
+  padding: 12px 20px;
+  border-radius: 6px;
+}
+
+
+
+  </style>
+</head>
+<body>
+<div class="container">
+    <h1>Constructor Dinámico de Cuestionarios v19</h1>
+    <button id="btn-abrir-builder" type="button">
+      <i class="fas fa-plus" aria-hidden="true"></i> Crear Preguntas
+      <i class="fas fa-question-circle" aria-hidden="true"></i>
+    </button>
+
+    <div id="builder-container" class="builder-form hidden">
+      <h2>Agregar Nueva Pregunta</h2>
+      <div class="metadata">
+        <label>Grado:
+          <select id="sel-grado">
+        <option value="">Seleccionar</option>
+        <option value="Transición">Transición</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+      </select>
+        </label>
+        <label>Área:
+          <select id="sel-area">
+            <option value="">Seleccionar</option>
+            <option>Matemáticas</option>
+            <option>Lectura Crítica</option>
+            <option>Ciencias Sociales</option>
+            <option>Ciencias Naturales</option>
+            <option>Inglés</option>
+          </select>
+        </label>
+        <label>Competencia:
+          <select id="sel-competencia"><option value="">Seleccionar</option></select>
+        </label>
+        <label>Nivel:
+          <select id="sel-nivel"><option value="">Seleccionar</option></select>
+        </label>
+        <label>Descriptor:
+          <select id="sel-descriptor"><option value="">Seleccionar</option></select>
+        </label>
+        <label style="display:block; margin-top:8px;">
+          Propósito:
+          <select id="sel-profundidad">
+            <option value="rapido">Modo General (1× descriptor)</option>
+            <option value="profundo">Modo Profundización (múltiples× descriptor) </option>
+          </select>
+        </label>
+      </div>
+
+      <label>Enunciado:<br>
+        <textarea id="txt-enunciado" rows="3" style="width:100%;"></textarea>
+      </label><br>
+      <label>Imagen:<br>
+        <input type="file" id="file-imagen" accept="image/*">
+      </label>
+      <div id="preview-imagen"><i class="fas fa-camera"></i> Sin imagen</div>
+
+      <label>Explicación:<br>
+        <textarea id="txt-explicacion" rows="2" style="width:100%;"></textarea>
+      </label><br>
+      <label>Link Refuerzo:<br>
+        <input type="url" id="txt-refuerzo" style="width:100%;">
+      </label>
+
+      <div id="opciones-container"><h3>Opciones de Respuesta</h3></div>
+      <button id="btn-add-opcion" type="button">+ Agregar Opción</button>
+      <button id="btn-save-pregunta" type="button">Guardar Pregunta</button>
+
+      <div style="margin:12px 0;">
+        <label>Filtrar Área:
+          <select id="filter-area">
+            <option value="">Todas</option>
+            <option>Matemáticas</option><!-- … -->
+          </select>
+        </label>
+        <label style="margin-left:1em;">Filtrar Nivel:
+          <select id="filter-nivel">
+            <option value="">Todos</option>
+            <option>1</option><!-- … -->
+          </select>
+        </label>
+        <button id="btn-clear-filters" type="button">Limpiar filtros</button>
+      </div>
+
+      <div id="lista-preguntas"></div>
+      <button id="btn-finalizar" class="hidden" type="button">Finalizar y Preparar Exportación</button>
+    
+    <div id="export-container">
+      <h2>Descargar Cuestionario</h2>
+      <label>
+        Nº de versiones:
+        <input id="num-versions" type="number" min="1" value="1" style="width:4em;">
+      </label>
+      <button id="btn-generate-variants" type="button">Generar Versiones</button><hr>
+      <button id="btn-export-word" type="button">
+        <i class="fas fa-file-word"></i> Descargar Word
+      </button>
+      <label style="margin-left:1em;">
+        <input id="chk-clave" type="checkbox"> Incluir clave
+      </label>
+    </div>
+    
+    
+    </div>
+
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+  </div>
+
+
+  <!-- Modal -->
+<div id="modal-ponderacion" class="hidden">
+  <div class="modal-contenido">
+    <h3 id="modal-titulo">Recordatorio</h3>
+    <table id="modal-tabla">
+      <thead>
+        <tr>
+          <th>Competencia</th>
+          <th>%</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="modal-cerrar" type="button">Cerrar</button>
+  </div>
+</div>
+
+
+<script>
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // ── 1. Metadatos de las 5 áreas ─────────────────────────────────────────────────────────
+  const metadata = {
+    "Matemáticas": {
+      competencias: ["Interpretación y representación","Formulación y ejecución","Argumentación"],
+      niveles: ["1","2","3","4"],
+      descriptores: {
+        "1": [
+          "Lee información puntual en tablas con escala explícita relacionadas con situaciones cotidianas.",
+          "Demuestra lectura de datos aislados en gráficas de barras y líneas.",
+          "Identifica e interpreta ejes y escalas numéricas simples."
+        ],
+        "2": [
+          "Compara datos de dos variables en una misma gráfica sin operaciones aritméticas.",
+          "Identifica valores representativos en un contexto y reconoce promedios simples.",
+          "Decide la veracidad de afirmaciones a partir de la lectura directa de la información."
+        ],
+        "3": [
+          "Selecciona y manipula información gráfica compleja, transformando escalas no convencionales.",
+          "Justifica operaciones aritméticas usadas en la interpretación de datos.",
+          "Reconoce errores en transformaciones entre distintos formatos de registro."
+        ],
+        "4": [
+          "Resuelve problemas dependientes que requieren cálculos de porcentajes.",
+          "Modela fenómenos usando lenguaje algebraico a partir de datos presentados.",
+          "Construye representaciones auxiliares (gráficas, fórmulas) para resolver nuevos problemas.",
+          "Aplica permutaciones y principios de conteo en situaciones de probabilidad.",
+          "Argumenta la suficiencia o insuficiencia de información para tomar decisiones."
+        ]
+      }
+    },
+    "Lectura Crítica": {
+      competencias: ["Identificar y ubicar información local","Relacionar e interpretar información","Evaluar y reflexionar sobre forma y contenido"],
+      niveles: ["1","2","3","4"],
+      descriptores: {
+        "1": ["Identifica elementos literales en textos continuos y discontinuos sin establecer relaciones de significado."],
+        "2": [
+          "Identifica información local del texto.",
+          "Identifica la estructura de textos continuos y discontinuos.",
+          "Identifica relaciones básicas entre componentes del texto.",
+          "Identifica fenómenos semánticos básicos: sinónimos y antónimos.",
+          "Reconoce la diferencia entre proposición y párrafo.",
+          "Reconoce el sentido local y global del texto.",
+          "Identifica intenciones comunicativas explícitas.",
+          "Identifica relaciones de contraste, similitud y complementación entre textos."
+        ],
+        "3": [
+          "Jerarquiza la información presente en un texto.",
+          "Infiere información implícita en textos continuos y discontinuos.",
+          "Establece relaciones intertextuales (definición, causa-efecto, oposición, antecedente-consecuente).",
+          "Relaciona marcadores textuales en la interpretación.",
+          "Reconoce la función de figuras literarias.",
+          "Analiza y sintetiza la información.",
+          "Identifica la estructura sintáctica en textos discontinuos.",
+          "Establece la validez de argumentos en un texto."
+        ],
+        "4": [
+          "Reflexiona sobre la visión de mundo del autor (costumbres, creencias, posturas ético-políticas).",
+          "Valora elementos paratextuales significativos.",
+          "Propone soluciones a problemas de interpretación.",
+          "Evalúa estrategias discursivas y argumentativas.",
+          "Relaciona información de dos o más textos para conclusiones.",
+          "Aplica conceptos de análisis literario para caracterizar elementos.",
+          "Asume una postura crítica frente a los planteamientos.",
+          "Plantea hipótesis de lectura a partir de ideas presentes."
+        ]
+      }
+    },
+    "Ciencias Sociales": {
+      competencias: ["Pensamiento social","Interpretación y análisis de perspectivas","Pensamiento reflexivo y sistémico"],
+      niveles: ["1","2","3","4"],
+      descriptores: {
+        "1": [
+          "Reconoce derechos ciudadanos básicos en situaciones sencillas.",
+          "Reconoce factores que generan un conflicto.",
+          "Identifica creencias que explican comportamientos."
+        ],
+        "2": [
+          "Identifica relaciones entre conductas y cosmovisiones.",
+          "Reconoce dimensiones de problemas o soluciones.",
+          "Identifica derechos y deberes del Estado según la Constitución.",
+          "Relaciona conductas con cosmovisiones y efectos de propuestas.",
+          "Identifica contextos o procesos de fuentes o eventos."
+        ],
+        "3": [
+          "Valora y contextualiza la información presentada.",
+          "Reconoce intenciones, prejuicios y argumentos en un contexto.",
+          "Identifica dimensiones económicas, políticas, culturales y ambientales.",
+          "Compara opiniones e intereses y propone soluciones.",
+          "Reconoce conceptos básicos y modelos conceptuales.",
+          "Relaciona contextos históricos/geográficos con fuentes.",
+          "Valora inferencias y alcances de la información."
+        ],
+        "4": [
+          "Conoce procedimientos de reforma constitucional y mecanismos de participación.",
+          "Compara argumentos e intereses de actores sociales.",
+          "Analiza problemáticas a partir de conceptos de ciencias sociales.",
+          "Relaciona modelos conceptuales con decisiones sociales.",
+          "Analiza fuentes primarias y secundarias para valorar intenciones y contexto."
+        ]
+      }
+    },
+    "Ciencias Naturales": {
+      competencias: ["Explicación de fenómenos","Uso comprensivo del conocimiento científico","Indagación"],
+      niveles: ["1","2","3","4"],
+      descriptores: {
+        "1": [
+          "Reconoce información explícita en tablas o gráficas de una variable.",
+          "Interpreta datos presentados con vocabulario cotidiano."
+        ],
+        "2": [
+          "Relaciona datos con conceptos científicos básicos (tiempo, posición, velocidad…).",
+          "Identifica patrones y características en textos, gráficas y tablas.",
+          "Relaciona esquemas con nociones del conocimiento científico.",
+          "Predice a partir de datos con patrones crecientes o decrecientes.",
+          "Ordena datos e información en gráficas y tablas."
+        ],
+        "3": [
+          "Interrelaciona conceptos, leyes y teorías con datos experimentales.",
+          "Establece relaciones de causa-efecto usando principios científicos.",
+          "Interpreta gráficas, tablas y modelos para predicciones.",
+          "Relaciona resultados experimentales con teorías.",
+          "Diferencia evidencias y conclusiones.",
+          "Plantea hipótesis basadas en evidencias.",
+          "Relaciona variables para explicar fenómenos."
+        ],
+        "4": [
+          "Plantea preguntas de investigación desde un contexto determinado.",
+          "Establece conclusiones derivadas de una investigación.",
+          "Contrasta modelos científicos con fenómenos cotidianos.",
+          "Resuelve situaciones-problema aplicando conceptos y teorías.",
+          "Comunica resultados de procesos de investigación científica.",
+          "Analiza fenómenos usando procedimientos de investigación."
+        ]
+      }
+    },
+    "Inglés": {
+      competencias: ["Lingüística","Pragmática","Sociolingüística"],
+      niveles: ["A-","A1","A2","B1","B2"],
+      descriptores: {
+        "A-": [
+          "Comprensión de lectura: reconoce palabras señaladas por imágenes.",
+          "Alcance léxico: no hay descriptor disponible.",
+          "Corrección gramatical: utiliza principios muy básicos de orden de palabras en enunciados cortos."
+        ],
+        "A1": [
+          "Comprensión de lectura: textos muy breves y sencillos, frase a frase.",
+          "Alcance léxico: repertorio básico de palabras y frases para situaciones concretas.",
+          "Corrección gramatical: control limitado de unas pocas estructuras sencillas aprendidas."
+        ],
+        "A2": [
+          "Comprensión de lectura: textos breves y sencillos sobre asuntos cotidianos; buena proporción de internacionalismos.",
+          "Alcance léxico: buen vocabulario de uso frecuente; circunloquios breves.",
+          "Corrección gramatical: usa estructuras sencillas correctamente, aunque con errores sistemáticos básicos."
+        ],
+        "B1": [
+          "Comprensión de lectura: textos sencillos de carácter fáctico sobre temas de interés.",
+          "Alcance léxico: amplio vocabulario relacionado con temas conocidos; circunloquios sobre asuntos cotidianos.",
+          "Corrección gramatical: comunicación razonablemente correcta en situaciones previsibles; errores, pero comprensible."
+        ],
+        "B2": [
+          "Comprensión de lectura: lee con independencia, adapta estilo y usa fuentes de referencia apropiadas de forma selectiva; amplio vocabulario activo.",
+          "Alcance léxico: maneja terminología técnica de su ámbito; varía formulaciones y produce combinaciones léxicas sistemáticas.",
+          "Corrección gramatical: buen control gramatical; solo deslices esporádicos y errores no sistemáticos; maneja estructuras complejas con pequeñas incorrecciones."
+        ]
+      }
+    }
+  };
+
+  // ──> 1b. Ponderaciones para el modal de recordatorio ────────────────────────────────
+  const ponderaciones = {
+    "Matemáticas": {
+      "Interpretación y representación": 34,
+      "Formulación y ejecución":          43,
+      "Argumentación":                    23
+    },
+    "Lectura Crítica": {
+      "Identificar y ubicar información local":      30,
+      "Relacionar e interpretar información":        40,
+      "Evaluar y reflexionar sobre forma y contenido":30
+    },
+    "Ciencias Sociales": {
+      "Pensamiento social":                      30,
+      "Interpretación y análisis de perspectivas":40,
+      "Pensamiento reflexivo y sistémico":       30
+    },
+    "Ciencias Naturales": {
+      "Uso comprensivo del pensamiento científico":30,
+      "Explicación de fenómenos":                   30,
+      "Indagar":                                     40
+    },
+    "Inglés": {
+      "Parte 1": 11, "Parte 2": 11, "Parte 3": 11,
+      "Parte 4": 18, "Parte 5": 16, "Parte 6": 11,
+      "Parte 7": 22
+    }
+  };
+
+  // ──> 1. Blueprint de porcentajes por área ───────────────────────────────────────────
+  const blueprint = {
+    "Matemáticas": {
+      competencias: {
+        "Interpretación y representación": 34,
+        "Formulación y ejecución":          43,
+        "Argumentación":                    23
+      }
+    },
+    "Lectura Crítica": {
+      tiposTexto: {
+        "Continuos–Literario":                24,
+        "Continuos–Informativo filosófico":   30,
+        "Continuos–Informativo no filosófico":30,
+        "Discontinuos–Literario":              8,
+        "Discontinuos–Informativo":            8
+      }
+    },
+    "Ciencias Sociales": {
+      competencias: {
+        "Pensamiento social":                      30,
+        "Interpretación y análisis de perspectivas":40,
+        "Pensamiento reflexivo y sistémico":       30
+      }
+    },
+    "Ciencias Naturales": {
+      competencias: {
+        "Uso comprensivo del pensamiento científico":30,
+        "Explicación de fenómenos":                   30,
+        "Indagar":                                     40
+      }
+    },
+    "Inglés": {
+      partes: {
+        "Parte 1": 11, "Parte 2": 11, "Parte 3": 11,
+        "Parte 4": 18, "Parte 5": 16, "Parte 6": 11,
+        "Parte 7": 22
+      }
+    }
+  };
+
+  // ── 2. Referencias DOM ─────────────────────────────────────────────────────────────
+  const btnAbrir            = document.getElementById('btn-abrir-builder');
+  const editor              = document.getElementById('builder-container');
+  const selGrado            = document.getElementById('sel-grado');
+  const selArea             = document.getElementById('sel-area');
+  const selComp             = document.getElementById('sel-competencia');
+  const selNivel            = document.getElementById('sel-nivel');
+  const selDescriptor       = document.getElementById('sel-descriptor');
+  const txtEnunciado        = document.getElementById('txt-enunciado');
+  const fileImagen          = document.getElementById('file-imagen');
+  const previewImagen       = document.getElementById('preview-imagen');
+  const txtExplicacion      = document.getElementById('txt-explicacion');
+  const txtRefuerzo         = document.getElementById('txt-refuerzo');
+  const opcionesCont        = document.getElementById('opciones-container');
+  const btnAddOpt           = document.getElementById('btn-add-opcion');
+  const btnSave             = document.getElementById('btn-save-pregunta');
+  const filterArea          = document.getElementById('filter-area');
+  const filterNivel         = document.getElementById('filter-nivel');
+  const btnClearFilt        = document.getElementById('btn-clear-filters');
+  const listaPreg           = document.getElementById('lista-preguntas');
+  const exportCont          = document.getElementById('export-container');
+  const btnExportWord       = document.getElementById('btn-export-word');
+  const chkClave            = document.getElementById('chk-clave');
+  const numVersionsInput    = document.getElementById('num-versions');
+  const btnGenerateVariants = document.getElementById('btn-generate-variants');
+  const selProfundidad      = document.getElementById('sel-profundidad');
+  const modal               = document.getElementById('modal-ponderacion');
+  const modalTit            = document.getElementById('modal-titulo');
+  const modalBody           = document.querySelector('#modal-tabla tbody');
+  const btnCerrar           = document.getElementById('modal-cerrar');
+
+  // ── 3. Mostrar/ocultar builder ────────────────────────────────────────────────────
+  btnAbrir.addEventListener('click', () => {
+    editor.classList.toggle('hidden');
+    cancelEdit();
+    refreshListaPreguntas();
+// mostrar/ocultar el flotante
+  btnSave.style.display = editor.classList.contains('hidden') ? 'none' : 'block';
+
+  });
+
+  // ── 4. Al cambiar área: actualizar dropdowns + mostrar modal si Grado 11 ────────
+selArea.addEventListener('change', e => {
+  const area = selArea.value;
+
+  // 1) Actualizar dropdowns de Competencia y Nivel
+  selComp.innerHTML  = '<option value="">Seleccionar</option>';
+  selNivel.innerHTML = '<option value="">Seleccionar</option>';
+  if (metadata[area]) {
+    metadata[area].competencias.forEach(c => selComp.add(new Option(c, c)));
+    metadata[area].niveles.forEach(n => selNivel.add(new Option(n, n)));
+  }
+
+  // 2) Mostrar modal solo si:
+  //    a) fue interacción del usuario (e.isTrusted)
+  //    b) el Grado seleccionado es "11"
+  //    c) existen reglas de ponderaciones para este área
+  if (e.isTrusted && selGrado.value === '11') {
+    const reglas = ponderaciones[area];
+    if (reglas) {
+      modalTit.textContent = `Si en su cuestionario quiere evaluar todas las competencias de  "${area}" debe tener en cuenta las proporciones para cada una según el total de preguntas:`;
+      modalBody.innerHTML = '';
+      Object.entries(reglas).forEach(([comp, pct]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${comp}</td><td style="text-align:right;">${pct}%</td>`;
+        modalBody.appendChild(tr);
+      });
+      modal.classList.remove('hidden');
+    }
+  }
+});
+
+  // ── 5. Al cambiar nivel: descriptores ────────────────────────────────────────────
+  selNivel.addEventListener('change', () => {
+    selDescriptor.innerHTML = '<option value="">Seleccionar</option>';
+    const area = selArea.value, nivel = selNivel.value;
+    if (metadata[area]?.descriptores[nivel]) {
+      metadata[area].descriptores[nivel].forEach(d => selDescriptor.add(new Option(d, d)));
+    }
+  });
+
+  // ── 6. Cerrar modal ───────────────────────────────────────────────────────────────
+  btnCerrar.addEventListener('click', () => modal.classList.add('hidden'));
+
+  // ── 7. Vista previa de imagen ────────────────────────────────────────────────────
+  fileImagen.addEventListener('change', () => {
+    const file = fileImagen.files[0];
+    if (!file) return resetPreview();
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentImgSrc = e.target.result;
+      previewImagen.innerHTML = `
+        <div style="position:relative; display:inline-block;">
+          <img src="${currentImgSrc}" style="max-width:200px; border:1px solid #ccc;">
+          <button id="btn-remove-img">×</button>
+        </div>`;
+      document.getElementById('btn-remove-img').onclick = resetPreview;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ── 8. Helper: reset preview ─────────────────────────────────────────────────────
+  function resetPreview() {
+    currentImgSrc = '';
+    fileImagen.value = '';
+    previewImagen.innerHTML = '<i class="fas fa-camera"></i> Sin imagen seleccionada';
+  }
+
+  // ── 9. Agregar opción ────────────────────────────────────────────────────────────
+  btnAddOpt.addEventListener('click', () => {
+    const idx = opcionesCont.querySelectorAll('.opcion-builder').length;
+    const div = document.createElement('div');
+    div.className = 'opcion-builder';
+    div.innerHTML = `
+      <input type="radio" name="correcta" value="${idx}">
+      <input type="text" placeholder="Texto opción" style="width:70%;">
+      <button class="btn-remove-opcion">❌</button>`;
+    div.querySelector('.btn-remove-opcion').onclick = () => div.remove();
+    opcionesCont.appendChild(div);
+  });
+
+  // ── 10. Persistencia & filtros iniciales ────────────────────────────────────────
+  const STORAGE_KEY  = 'miBancoPreguntas';
+  const FILTER_AREA  = 'filtroArea';
+  const FILTER_LEVEL = 'filtroNivel';
+  let preguntas      = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  filterArea.value  = localStorage.getItem(FILTER_AREA)  || '';
+  filterNivel.value = localStorage.getItem(FILTER_LEVEL) || '';
+  let editingIndex  = null;
+  let currentImgSrc = '';
+  let currentImgDim = { widthPx: 0, heightPx: 0 };
+
+  function persistirPreguntas() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preguntas));
+  }
+  function persistirFiltros() {
+    localStorage.setItem(FILTER_AREA,  filterArea.value);
+    localStorage.setItem(FILTER_LEVEL, filterNivel.value);
+  }
+
+  // ── 11. Helper: errores inline ─────────────────────────────────────────────────
+  function showError(el, msg) {
+    let span = el.parentNode.querySelector('.error-msg');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'error-msg';
+      span.style.color = 'red';
+      span.style.fontSize = '0.85em';
+      el.parentNode.appendChild(span);
+    }
+    span.textContent = msg;
+    el.classList.add('error');
+  }
+  function clearErrors() {
+    document.querySelectorAll('.error-msg').forEach(e => e.remove());
+    document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
+  }
+
+  // ── 12. Guardar/actualizar pregunta ──────────────────────────────────────────────
+  btnSave.addEventListener('click', () => {
+    clearErrors();
+    const grado      = selGrado.value;
+    const area       = selArea.value;
+    const comp       = selComp.value;
+    const nivel      = selNivel.value;
+    const descriptor = selDescriptor.value;
+    const enun       = txtEnunciado.value.trim();
+    let valid        = true;
+
+    if (!grado)      { showError(selGrado,      'Requerido'); valid = false; }
+    if (!area)       { showError(selArea,       'Requerido'); valid = false; }
+    if (!comp)       { showError(selComp,       'Requerido'); valid = false; }
+    if (!nivel)      { showError(selNivel,      'Requerido'); valid = false; }
+    if (!descriptor) { showError(selDescriptor, 'Requerido'); valid = false; }
+    if (!enun)       { showError(txtEnunciado,  'Escribe el enunciado'); valid = false; }
+
+    const opciones = Array.from(opcionesCont.querySelectorAll('.opcion-builder'))
+      .map(d => d.querySelector('input[type="text"]').value.trim())
+      .filter(Boolean);
+    const selCorrecta = opcionesCont.querySelector('input[name="correcta"]:checked');
+    if (opciones.length < 2) showError(btnAddOpt, 'Mínimo 2 opciones'), valid = false;
+    if (!selCorrecta)        showError(opcionesCont, 'Marca la opción correcta'), valid = false;
+    if (!valid) return;
+
+    if (selProfundidad.value === 'rapido') {
+      const yaExiste = preguntas.some((q, idx) =>
+        q.descriptor === descriptor &&
+        (editingIndex === null || idx !== editingIndex)
+      );
+      if (yaExiste) {
+        if (!confirm(
+          '⚠️ Estás en Modo General y ya existe una pregunta con ese descriptor.\n' +
+          '¿Deseas añadir otra para reforzar esta habilidad?'
+        )) {
+          showError(selDescriptor, 'Elige otro descriptor o cambia a Modo Profundización');
+          return;
+        }
+      }
+    }
+
+    const preguntaObj = {
+      grado,
+      area,
+      competencia: comp,
+      nivel,
+      descriptor,
+      enun,
+      exp: txtExplicacion.value.trim(),
+      ref: txtRefuerzo.value.trim(),
+      opts: opciones,
+      correctIdx: +selCorrecta.value,
+      imgSrc: currentImgSrc,
+      imgDim: currentImgDim
+    };
+
+    if (editingIndex === null) preguntas.push(preguntaObj);
+    else                        preguntas[editingIndex] = preguntaObj;
+
+    persistirPreguntas();
+    cancelEdit();
+    refreshListaPreguntas();
+    mostrarToast('✅ Pregunta guardada correctamente');
+  });
+
+  // ── 13. Filtros & refresco ───────────────────────────────────────────────────────
+  filterArea.onchange  = () => { persistirFiltros(); refreshListaPreguntas(); };
+  filterNivel.onchange = () => { persistirFiltros(); refreshListaPreguntas(); };
+  btnClearFilt.onclick = () => {
+    filterArea.value  = '';
+    filterNivel.value = '';
+    localStorage.removeItem(FILTER_AREA);
+    localStorage.removeItem(FILTER_LEVEL);
+    populateFilterOptions();
+    refreshListaPreguntas();
+  };
+
+  // ── 14. Construir <option> dinámicos de filtros ─────────────────────────────────
+  function populateFilterOptions() {
+    const selAreaActual  = filterArea.value;
+    const selNivelActual = filterNivel.value;
+
+    const areas = Array.from(new Set(preguntas.map(q => q.area))).sort();
+    filterArea.innerHTML = '<option value="">Todas</option>';
+    areas.forEach(a => filterArea.add(new Option(a, a)));
+    filterArea.value = areas.includes(selAreaActual) ? selAreaActual : '';
+
+    const niveles = Array.from(new Set(preguntas.map(q => q.nivel))).sort();
+    filterNivel.innerHTML = '<option value="">Todos</option>';
+    niveles.forEach(n => filterNivel.add(new Option(n, n)));
+    filterNivel.value = niveles.includes(selNivelActual) ? selNivelActual : '';
+  }
+
+  // ── 15. Refrescar lista con drag & drop ───────────────────────────────────────────
+  function refreshListaPreguntas() {
+    populateFilterOptions();
+    listaPreg.innerHTML = '';
+    const areaF  = filterArea.value;
+    const nivelF = filterNivel.value;
+
+    preguntas.forEach((q, i) => {
+      if ((!areaF || q.area === areaF) && (!nivelF || q.nivel === nivelF)) {
+        const div = document.createElement('div');
+        div.className    = 'draggable pregunta';
+        div.draggable    = true;
+        div.dataset.index = i;
+        div.innerHTML = `
+          <strong>Pregunta ${i+1}:</strong> ${q.enun.slice(0,50)}...<br>
+          <em>Competencia: ${q.competencia} | Nivel: ${q.nivel} | Descriptor: ${q.descriptor}</em><br>
+          <button data-i="${i}" class="btn-editar">Editar</button>
+          <button data-i="${i}" class="btn-eliminar">Eliminar</button>
+          <button data-i="${i}" class="btn-duplicar">Duplicar</button>
+        `;
+        listaPreg.appendChild(div);
+      }
+    });
+
+    attachQuestionHandlers();
+    enableDragAndDrop();
+  }
+
+  function attachQuestionHandlers() {
+    listaPreg.querySelectorAll('.btn-editar')
+      .forEach(b => b.onclick = () => startEdit(+b.dataset.i));
+    listaPreg.querySelectorAll('.btn-eliminar')
+      .forEach(b => {
+        b.onclick = () => {
+          const i = +b.dataset.i;
+          if (confirm(`¿Eliminar pregunta ${i+1}?`)) {
+            preguntas.splice(i, 1);
+            persistirPreguntas();
+            refreshListaPreguntas();
+            mostrarToast(`✅ Pregunta ${i+1} eliminada`);
+          }
+        };
+      });
+    listaPreg.querySelectorAll('.btn-duplicar')
+      .forEach(b => {
+        b.onclick = () => {
+          const i = +b.dataset.i;
+          if (selProfundidad.value === 'rapido' &&
+              !confirm('⚠️ En Modo General cada descriptor «idealmente» sólo una vez.\n¿Seguro quieres duplicar?')
+          ) return;
+          const copia = JSON.parse(JSON.stringify(preguntas[i]));
+          copia.enun = `Copia de ${copia.enun}`;
+          preguntas.splice(i + 1, 0, copia);
+          persistirPreguntas();
+          refreshListaPreguntas();
+          mostrarToast(`✅ Pregunta ${i+1} duplicada`);
+        };
+      });
+  }
+
+  function enableDragAndDrop() {
+    let dragSrcEl = null;
+    listaPreg.querySelectorAll('.draggable').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        dragSrcEl = el;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      el.addEventListener('dragover', e => e.preventDefault());
+      el.addEventListener('drop', e => {
+        e.stopPropagation();
+        const from = +dragSrcEl.dataset.index;
+        const to   = +el.dataset.index;
+        if (from !== to) {
+          const moved = preguntas.splice(from,1)[0];
+          preguntas.splice(to,0,moved);
+          persistirPreguntas();
+          refreshListaPreguntas();
+        }
+      });
+    });
+  }
+
+  // ── 16. Editar ───────────────────────────────────────────────────────────────────
+  function startEdit(i) {
+    const q = preguntas[i];
+    editingIndex = i;
+
+    selGrado.value      = q.grado;
+    selArea.value       = q.area;
+    selArea.dispatchEvent(new Event('change'));
+    selComp.value       = q.competencia;
+    selNivel.value      = q.nivel;
+    selNivel.dispatchEvent(new Event('change'));
+    selDescriptor.value = q.descriptor;
+    txtEnunciado.value  = q.enun;
+    txtExplicacion.value= q.exp;
+    txtRefuerzo.value   = q.ref;
+
+    currentImgSrc = q.imgSrc;
+    currentImgDim = q.imgDim;
+    if (q.imgSrc) {
+      previewImagen.innerHTML = `
+        <div style="position:relative; display:inline-block;">
+          <img src="${q.imgSrc}" style="max-width:200px; border:1px solid #ccc;">
+          <button id="btn-remove-img" title="Quitar imagen"
+            style="position:absolute; top:2px; right:2px; background:#e74c3c;
+                   color:white; border:none; border-radius:50%; width:24px;
+                   height:24px; cursor:pointer;">×</button>
+        </div>`;
+      document.getElementById('btn-remove-img').onclick = () => {
+        resetPreview();
+      };
+    } else {
+      resetPreview();
+    }
+
+    opcionesCont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+    q.opts.forEach((opt, j) => {
+      const d = document.createElement('div');
+      d.className = 'opcion-builder';
+      d.innerHTML = `
+        <input type="radio" name="correcta" value="${j}" ${j===q.correctIdx?'checked':''}>
+        <input type="text" style="width:70%;" value="${opt}">
+        <button class="btn-remove-opcion">❌</button>`;
+      d.querySelector('.btn-remove-opcion').onclick = () => d.remove();
+      opcionesCont.appendChild(d);
+    });
+
+    btnSave.textContent = 'Actualizar Pregunta';
+  }
+
+  // ── 17. Cancelar edición ─────────────────────────────────────────────────────────
+  function cancelEdit(){
+    editingIndex = null;
+    btnSave.textContent = 'Guardar Pregunta';
+    txtEnunciado.value = '';
+    txtExplicacion.value = '';
+    txtRefuerzo.value = '';
+    resetPreview();
+    selGrado.value = selArea.value = selComp.value = selNivel.value = selDescriptor.value = '';
+    opcionesCont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+    for (let i = 0; i < 4; i++) btnAddOpt.click();
+  }
+
+  // ── 18. Exportar a Word ──────────────────────────────────────────────────────────
+  btnExportWord.onclick = exportToWord;
+  function exportToWord() {
+    if (typeof window.htmlDocx === 'undefined') {
+      return alert('Error: html-docx-js no está cargado.');
+    }
+
+    const cmToPx     = 96 / 2.54;
+    const maxWidthPx = 8 * cmToPx;
+    const maxHeightPx= 4 * cmToPx;
+    let html = '<h1 style="text-align:center;">Cuestionario</h1>';
+
+    preguntas.forEach((q, i) => {
+      html += `
+        <p style="text-align:right; font-size:0.85em; font-style:italic;">
+          Grado: ${q.grado} | Área: ${q.area} | Competencia: ${q.competencia} | Nivel: ${q.nivel} | Descriptor: ${q.descriptor}
+        </p>
+        <h3>${i+1}. ${q.enun}</h3>`;
+      if (q.imgSrc) {
+        let w = q.imgDim.widthPx  || maxWidthPx;
+        let h = q.imgDim.heightPx || maxHeightPx;
+        if (w > maxWidthPx) { const s = maxWidthPx / w; w *= s; h *= s; }
+        if (h > maxHeightPx) { const s = maxHeightPx / h; w *= s; h *= s; }
+        html += `
+          <div style="text-align:center; margin:12px 0;">
+            <img src="${q.imgSrc}" width="${Math.round(w)}" height="${Math.round(h)}">
+          </div>`;
+      }
+      html += '<ul>';
+      q.opts.forEach((opt,j) => {
+        html += `<li>${String.fromCharCode(65+j)}) ${opt}</li>`;
+      });
+      html += '</ul><hr>';
+    });
+
+    if (chkClave.checked) {
+      html += '<h2 style="margin-top:40px;">Clave de Respuestas</h2><ol>';
+      preguntas.forEach((q,i) => {
+        const letra = String.fromCharCode(65 + q.correctIdx);
+        html += `<li>${i+1}. ${letra}</li>`;
+      });
+      html += '</ol>';
+    }
+
+    const blob = htmlDocx.asBlob('\uFEFF' + html);
+    saveAs(blob, 'Cuestionario.docx');
+  }
+
+  // ── 19. Generar variantes ────────────────────────────────────────────────────────
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+  
+ btnGenerateVariants.addEventListener('click', () => {
+  const n = parseInt(numVersionsInput.value, 10);
+  if (isNaN(n) || n < 1) return alert('Indica un número válido de versiones.');
+
+  // Parámetros para convertir cm → px y límites
+  const cmToPx      = 96 / 2.54;
+  const maxWidthPx  = 8 * cmToPx;
+  const maxHeightPx = 4 * cmToPx;
+
+  for (let v = 1; v <= n; v++) {
+    // 1) Copia profunda y barajado de preguntas y opciones
+    const bank = preguntas.map(q => ({
+      ...q,
+      opts: q.opts.slice(),
+      correctIdx: q.correctIdx
+    }));
+    shuffleArray(bank);
+    bank.forEach(q => {
+      const paired = q.opts.map((o, i) => ({ o, i }));
+      shuffleArray(paired);
+      q.opts = paired.map(p => p.o);
+      q.correctIdx = paired.findIndex(p => p.i === q.correctIdx);
+    });
+
+    // 2) Construcción del HTML para la versión v
+    let html = `<h1 style="text-align:center;">Versión ${v}</h1>`;
+
+    bank.forEach((q, i) => {
+      // ——— ENCABEZADO DE METADATOS ———
+      html += `
+        <p style="text-align:right; font-size:0.85em; font-style:italic;">
+          Grado: ${q.grado} |
+          Área: ${q.area} |
+          Competencia: ${q.competencia} |
+          Nivel: ${q.nivel} |
+          Descriptor: ${q.descriptor}
+        </p>
+      `;
+      // ——— FIN ENCABEZADO ———
+
+      html += `<h3>${i+1}. ${q.enun}</h3>`;
+
+      if (q.imgSrc) {
+        let w = q.imgDim.widthPx  || maxWidthPx;
+        let h = q.imgDim.heightPx || maxHeightPx;
+        if (w > maxWidthPx) { const s = maxWidthPx / w; w *= s; h *= s; }
+        if (h > maxHeightPx) { const s = maxHeightPx / h; w *= s; h *= s; }
+
+        html += `
+          <div style="text-align:center; margin:12px 0;">
+            <img src="${q.imgSrc}"
+                 width="${Math.round(w)}"
+                 height="${Math.round(h)}">
+          </div>
+        `;
+      }
+
+      html += '<ul>';
+      q.opts.forEach((opt, j) => {
+        html += `<li>${String.fromCharCode(65 + j)}) ${opt}</li>`;
+      });
+      html += '</ul><hr>';
+    });
+
+    // 3) Sección de clave si está marcada la casilla
+    if (chkClave.checked) {
+      html += '<h2 style="margin-top:40px;">Clave de Respuestas</h2><ol>';
+      bank.forEach((q, i) => {
+        const letra = String.fromCharCode(65 + q.correctIdx);
+        html += `<li>${i+1}. ${letra}</li>`;
+      });
+      html += '</ol>';
+    }
+
+    // 4) Exportar la versión
+    const blob = htmlDocx.asBlob('\uFEFF' + html);
+    saveAs(blob, `Cuestionario_V${v}.docx`);
+  }
+});
+
+  // ── 20. Toast ─────────────────────────────────────────────────────────────────────
+  function mostrarToast(mensaje="Acción realizada correctamente"){
+    const t=document.getElementById('toast');
+    t.textContent=mensaje;
+    t.style.display='block';
+    setTimeout(()=>t.style.display='none',3000);
+  }
+
+  // ── Inicializa la vista ─────────────────────────────────────────────────────────
+  refreshListaPreguntas();
+});  // FIN DOMContentLoaded
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

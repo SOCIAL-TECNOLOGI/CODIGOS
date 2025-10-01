@@ -1,0 +1,359 @@
+<DIV>
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pizarra en Línea</title>
+    <!-- Agrega Font Awesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    
+    <STyle>
+    
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    canvas {
+        border: 1px solid #000;
+    }
+    
+
+/* Estilo del contenedor del lienzo */
+#canvasContainer {
+    position: relative;
+    overflow: hidden;
+    resize: both;
+    user-select: none;
+    border: 1px solid #000;
+    margin: 10px;
+    cursor: grab;
+}
+
+
+
+    /* Estilo del botón "Anterior" */
+    #previousButton {
+        background-color: #117e61;
+    }
+    
+    /* Estilo del botón "Siguiente" */
+    #nextButton {
+        background-color: #117e61;
+    }
+    
+    /* Estilo del botón de carga de imagen */
+    #imageInput {
+        background-color: #117e61;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 12px;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    
+    /* Estilo del botón de carga de imagen en hover */
+    #imageInput:hover {
+        background-color: #2980b9;
+    }
+    
+    /* Estilo de los botones ovalados */
+    button {
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 16px;
+        border-radius: 25px; /* Valor alto para hacer que los botones sean ovalados */
+    }
+    
+    
+    
+    /* Estilo para el rango de tamaño del pincel */
+    #brushSizeInput {
+          width: 10%; /* Modifica el ancho a tu preferencia, por ejemplo, 80% del contenedor */
+        }
+    
+    /* Estilo para el selector de color */
+    #colorPicker {
+          width: 25px; /* Cambia el valor del ancho según tus preferencias */
+        }
+    
+    /* Estilo del botón "Limpiar" */
+    #clearButton {
+        background-color: #bc9a03;
+    }
+    
+    /* Estilo del botón "Guardar" */
+    #saveButton {
+        background-color: #9e07cd;
+    }
+    
+    </STyle>
+    
+    
+    </head>
+    <body>
+        <br>
+    
+        <div id="canvasContainer">
+            <canvas id="whiteboard" width="1330" height="460"></canvas>
+        </div>
+        
+        
+      <button id="fullScreenButton"><i class="fas fa-expand"></i></button>
+        <input type="file" id="imageUpload" accept="image/*" multiple><br>
+        <canvas id="whiteboard" width="1330" height="460"></canvas><br>
+       
+        
+        
+        
+      <div>
+        <input type="color" id="colorPicker">
+        <input type="range" id="lineWidthSlider" min="1" max="10" value="2">
+        
+        <button id="clearButton"><i class="fas fa-eraser"></i></button>
+        <button id="saveButton"><i class="fas fa-save"></i></button>
+        <!-- Botones para navegación de imágenes -->
+        <button id="previousButton"><i class="fas fa-chevron-left"></i></button>
+        <button id="nextButton"><i class="fas fa-chevron-right"></i></button> 
+    
+        
+      </div>
+        
+        
+    
+        <script src="script.js"></script>
+    
+    
+    <script>
+    
+
+
+
+    const canvasContainer = document.getElementById('canvasContainer');
+const canvas = document.getElementById('whiteboard');
+const ctx = canvas.getContext('2d');
+
+// ... (otras variables y funciones)
+
+// Redimensionar el lienzo al tamaño del contenedor
+function resizeCanvas() {
+    canvas.width = canvasContainer.clientWidth;
+    canvas.height = canvasContainer.clientHeight;
+    loadCurrentImage(); // Vuelve a cargar la imagen si es necesario
+}
+
+// Llama a la función de redimensionamiento al cargar la página y cuando cambie el tamaño de la ventana
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('load', resizeCanvas);
+
+
+    
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let image;
+    
+    imageUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                image = new Image();
+                image.src = event.target.result;
+                image.onload = () => {
+                    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    colorPicker.addEventListener('input', (e) => {
+        ctx.strokeStyle = e.target.value;
+    });
+    
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+    
+    canvas.addEventListener('mousemove', draw);
+    
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mouseout', () => drawing = false);
+    
+    function draw(e) {
+        if (!drawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+    
+    // ... (código anterior)
+    
+    const clearButton = document.getElementById('clearButton');
+    
+    clearButton.addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        imageUpload.value = ''; // Limpiar la entrada del selector de archivos
+    });
+    
+    // Resto del código (código de dibujo)
+    // ... (código anterior)
+    
+    const lineWidthSlider = document.getElementById('lineWidthSlider');
+    ctx.lineWidth = lineWidthSlider.value;
+    
+    lineWidthSlider.addEventListener('input', (e) => {
+        ctx.lineWidth = e.target.value;
+    });
+    
+    const saveButton = document.getElementById('saveButton');
+    
+    saveButton.addEventListener('click', () => {
+        const dataURL = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = 'mi_dibujo.png';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+    
+    // Agrega imágenes a este arreglo y lleva un registro del índice actual
+    const images = [];
+    let currentImageIndex = -1;
+    
+    // Función para cargar la imagen actual
+    function loadCurrentImage() {
+        if (currentImageIndex >= 0 && currentImageIndex < images.length) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(images[currentImageIndex], 0, 0, canvas.width, canvas.height);
+        }
+    }
+    
+    // Escuchar la tecla Escape en pantalla completa
+    document.addEventListener('keydown', (event) => {
+        if (event.key === "Escape" && (
+            document.fullscreenElement ||
+            document.mozFullScreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement
+        )) {
+            // Si estamos en pantalla completa y se presiona Escape, salir de ella
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    });
+    
+    // BOTONES ANTERIOR Y SIGUIENTE
+    previousButton.addEventListener('click', () => {
+        if (currentImageIndex > 0) {
+            currentImageIndex--;
+            loadCurrentImage();
+        }
+    });
+    
+    nextButton.addEventListener('click', () => {
+        if (currentImageIndex < images.length - 1) {
+            currentImageIndex++;
+            loadCurrentImage();
+        }
+    });
+    
+    // Resto del código (cargar imágenes en el arreglo 'images')
+    imageUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    images.push(img); // Agregar la imagen al arreglo
+                    currentImageIndex = images.length - 1;
+                    loadCurrentImage();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // PANTALLA COMPLETA
+    const fullScreenButton = document.getElementById('fullScreenButton');
+    
+    fullScreenButton.addEventListener('click', () => {
+        if (document.fullscreenElement || 
+            document.mozFullScreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement) {
+            // Si ya estamos en pantalla completa, salir de ella
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        } else {
+            // Si no estamos en pantalla completa, solicitarla
+            const element = document.documentElement; // El elemento que deseas mostrar en pantalla completa (en este caso, todo el documento)
+    
+            if (element.requestFullscreen) {
+                element.requestFullscreen(); // Método estándar
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen(); // Firefox
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen(); // Chrome, Safari, Opera
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen(); // Internet Explorer
+            }
+        }
+    });
+    
+
+
+
+
+
+
+
+
+
+
+    
+    
+    </script>
+    
+    </body>
+    </html>
+
+
+</DIV>

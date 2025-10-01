@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora Ambiental</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007acc;
+        }
+
+        form {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input {
+            width: 100px;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            background-color: #007acc;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005aa7;
+        }
+
+        #resultado {
+            font-weight: bold;
+            color: #007acc;
+            margin-top: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007acc;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora Ambiental</h1>
+
+    <form id="calculadoraForm">
+        <label for="consumoEnergia">Consumo de energía (kWh):</label>
+        <input type="number" id="consumoEnergia" name="consumoEnergia" step="0.01">
+        <br>
+
+        <label for="consumoAgua">Consumo de agua (litros):</label>
+        <input type="number" id="consumoAgua" name="consumoAgua" step="1">
+        <br>
+
+        <label for="emisionesCO2">Emisiones de CO2 (kg):</label>
+        <input type="number" id="emisionesCO2" name="emisionesCO2" step="0.01">
+        <br>
+
+        <label for="kilometrosCoche">Kilómetros conducidos en coche:</label>
+        <input type="number" id="kilometrosCoche" name="kilometrosCoche" step="0.1">
+        <br>
+
+        <button type="button" onclick="calcularHuella()">Calcular</button>
+        <button type="button" onclick="resetCalculadora()">Reiniciar</button>
+    </form>
+
+    <h2>Tu huella ambiental es:</h2>
+    <p id="resultado"></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Consumo de energía (kWh)</th>
+                <th>Consumo de agua (litros)</th>
+                <th>Emisiones de CO2 (kg)</th>
+                <th>Kilómetros conducidos en coche</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se insertarán los datos desde el archivo Excel -->
+        </tbody>
+    </table>
+
+
+    <script>
+        function calcularHuella() {
+            // Obtener los valores de entrada
+            const consumoEnergia = parseFloat(document.getElementById('consumoEnergia').value) || 0;
+            const consumoAgua = parseFloat(document.getElementById('consumoAgua').value) || 0;
+            const emisionesCO2 = parseFloat(document.getElementById('emisionesCO2').value) || 0;
+            const kilometrosCoche = parseFloat(document.getElementById('kilometrosCoche').value) || 0;
+
+            // Realizar cálculos (ejemplo: suma de valores)
+            const calculoHuella = consumoEnergia + consumoAgua + emisionesCO2 + kilometrosCoche;
+
+            // Mostrar el resultado en el elemento "resultado"
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Tu huella ambiental es: ' + calculoHuella.toFixed(2); // Redondear el resultado a dos decimales.
+        }
+
+        
+        function resetCalculadora() {
+        // Restablecer los campos del formulario a sus valores iniciales
+        document.getElementById('consumoEnergia').value = "";
+        document.getElementById('consumoAgua').value = "";
+        document.getElementById('emisionesCO2').value = "";
+        document.getElementById('kilometrosCoche').value = "";
+        // También, reiniciar el resultado
+        document.getElementById('resultado').textContent = '';
+    }
+        
+    </script>
+</body>
+</html>

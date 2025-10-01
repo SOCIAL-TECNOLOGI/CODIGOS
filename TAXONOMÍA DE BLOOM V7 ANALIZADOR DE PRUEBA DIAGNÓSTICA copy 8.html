@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Taxonomía de Bloom</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9fafb; color: #333; }
+  h1 { color: #1d4ed8; }
+  h2 { margin-top: 30px; color: #059669; }
+  input[type="file"], select, button { margin: 10px 5px; padding: 6px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; }
+  th { background: #1d4ed8; color: #fff; }
+  .ok { background: #d1fae5; }     
+  .error { background: #fee2e2; }  
+  #chartContainer { margin-top: 30px; max-width: 1000px; }
+
+  /* === Nueva fila para los tres gráficos === */
+  #chartsRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  .chartBox {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+  }
+  .chartBox canvas {
+    width: 100% !important;
+    height: 350px !important;
+  }
+
+  #chartComparativo { max-width: 600px; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1>📊 Análisis Diagnóstico - Taxonomía de Bloom</h1>
+<p>Sube el archivo Excel con los resultados de la prueba:</p>
+<input type="file" id="inputExcel" accept=".xlsx,.xls" />
+
+<div id="tablaResultados"></div>
+<button id="btnExcel" style="display:none;">📥 Descargar Excel (Summary Report)</button>
+<button id="btnExcelTodos" style="display:none;">📥 Descargar Consolidado (Todos los Docentes)</button>
+
+<!-- 🎯 Fila con 3 gráficos en columnas -->
+<div id="chartsRow">
+  <div class="chartBox"><canvas id="chartDistribucion"></canvas></div>
+  <div class="chartBox"><canvas id="chartTopMedia"></canvas></div>
+  <div class="chartBox"><canvas id="chartTopVar"></canvas></div>
+</div>
+
+<div id="chartContainer"><canvas id="chartVerbos"></canvas></div>
+<div id="tablaResponses"></div>
+
+<h2>📌 Informe Individual</h2>
+<select id="docenteSelect"><option value="">-- Selecciona un docente --</option></select>
+<div id="informeDocente"></div>
+<canvas id="chartComparativo"></canvas>
+<br>
+<button id="btnPDF" style="display:none;">📥 Descargar Informe en PDF</button>
+<button id="btnExcelDocente" style="display:none;">📥 Descargar Informe en Excel</button>
+
+<script>
+// ================== DATA COMPLETA ==================
+const DATA = {
+  saber: {
+    4: ["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3: ["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2: ["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1: ["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4: ["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3: ["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2: ["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1: ["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser: {
+    4: ["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3: ["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2: ["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1: ["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+// 🔹 Función auxiliar para poner Inicial Mayúscula en cada palabra
+function toTitleCase(str) {
+  return str
+    ? str.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+    : "";
+}
+
+// Diccionario de niveles correctos
+let nivelesCorrectos = {};
+for (let dim in DATA) {
+  for (let nivel in DATA[dim]) {
+    DATA[dim][nivel].forEach(v => {
+      nivelesCorrectos[v.toUpperCase()] = parseInt(nivel);
+    });
+  }
+}
+
+let docentes = [];
+let verbosGlobal = [];
+let chartComparativo = null;
+let indicesVerbos = [];
+let nombresVerbos = [];
+let resumenExport = [];
+let docenteActual = null;
+let correctosGlobal = [];
+let erradosGlobal = [];
+
+// ⬇️ Nuevas variables de gráficos
+let chartDistribucion = null, chartTopMedia = null, chartTopVar = null;
+
+document.getElementById('inputExcel').addEventListener('change', handleFile, false);
+document.getElementById('docenteSelect').addEventListener('change', mostrarInforme);
+document.getElementById('btnExcel').addEventListener('click', exportarExcel);
+document.getElementById('btnExcelDocente').addEventListener('click', exportarExcelDocente);
+document.getElementById('btnExcelTodos').addEventListener('click', exportarExcelTodos);
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const data = new Uint8Array(evt.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+
+    // ---------- SUMMARY REPORT ----------
+    const sheetSummary = workbook.Sheets["Summary Report"];
+    const jsonSummary = XLSX.utils.sheet_to_json(sheetSummary, {header:1});
+    verbosGlobal = [];
+    resumenExport = [];
+    let porcentajes = {1:[], 2:[], 3:[], 4:[]}, nivelPredominante = [];
+
+    // Para top medias / variabilidad calculadas desde p1..p4
+    let statsVerbos = []; // {verbo, mean, std}
+
+    for (let i = 4; i < jsonSummary.length; i++) {
+      const row = jsonSummary[i];
+      if (row && row[1]) {
+        let verbo = row[1].toString().trim().toUpperCase();
+        if (nivelesCorrectos[verbo]) {
+          verbosGlobal.push(verbo);
+
+          // p1..p4 vienen como proporciones (0-1) en el Excel
+          let p1 = parseFloat(row[2] || 0), p2 = parseFloat(row[4] || 0),
+              p3 = parseFloat(row[6] || 0), p4 = parseFloat(row[8] || 0);
+
+          // Para la tabla visual (en %)
+          porcentajes[1].push((p1*100).toFixed(1));
+          porcentajes[2].push((p2*100).toFixed(1));
+          porcentajes[3].push((p3*100).toFixed(1));
+          porcentajes[4].push((p4*100).toFixed(1));
+
+          const niveles = [p1,p2,p3,p4];
+          const pred = niveles.indexOf(Math.max(...niveles)) + 1;
+          nivelPredominante.push(pred);
+
+          // Para exportación
+          resumenExport.push({
+            Verbo: verbo,
+            "Nivel Correcto": "Nivel " + nivelesCorrectos[verbo],
+            "%N1": (p1*100).toFixed(1) + "%",
+            "%N2": (p2*100).toFixed(1) + "%",
+            "%N3": (p3*100).toFixed(1) + "%",
+            "%N4": (p4*100).toFixed(1) + "%",
+            Predominante: "Nivel " + pred
+          });
+
+          // === Cálculo de media y desviación (para Top 10) ===
+          const mean = 1*p1 + 2*p2 + 3*p3 + 4*p4;
+          const variance =
+            p1*Math.pow(1-mean,2) +
+            p2*Math.pow(2-mean,2) +
+            p3*Math.pow(3-mean,2) +
+            p4*Math.pow(4-mean,2);
+          const std = Math.sqrt(variance);
+          statsVerbos.push({ verbo, mean, std });
+        }
+      }
+    }
+
+    // Renderizar tabla Summary
+    let html = "<h2>📑 Resultados por Verbo (Summary Report)</h2>";
+    html += "<table><tr><th>Verbo</th><th>Nivel Correcto</th><th>%N1</th><th>%N2</th><th>%N3</th><th>%N4</th><th>Predominante</th></tr>";
+    for (let i = 0; i < verbosGlobal.length; i++) {
+      const correcto = nivelesCorrectos[verbosGlobal[i]] || "-";
+      const pred = nivelPredominante[i];
+      const clase = (pred === correcto) ? "ok" : "error";
+      html += `<tr class="${clase}"><td>${verbosGlobal[i]}</td><td>Nivel ${correcto}</td>
+        <td>${porcentajes[1][i]}%</td><td>${porcentajes[2][i]}%</td>
+        <td>${porcentajes[3][i]}%</td><td>${porcentajes[4][i]}%</td><td>Nivel ${pred}</td></tr>`;
+    }
+    html += "</table>";
+    document.getElementById("tablaResultados").innerHTML = html;
+
+    // Gráfico de barras (N1..N4 por verbo)
+    const ctxSummary = document.getElementById("chartVerbos").getContext("2d");
+    new Chart(ctxSummary, {
+      type: "bar",
+      data: {
+        labels: verbosGlobal,
+        datasets: [
+          {label: "Nivel 1", data: porcentajes[1], backgroundColor: "#b91c1c"},
+          {label: "Nivel 2", data: porcentajes[2], backgroundColor: "#d97706"},
+          {label: "Nivel 3", data: porcentajes[3], backgroundColor: "#eab308"},
+          {label: "Nivel 4", data: porcentajes[4], backgroundColor: "#65a30d"}
+        ]
+      },
+      options: { responsive: true, scales: { y: {beginAtZero:true, max:100} } }
+    });
+
+    // ---------- RESPONSES ----------
+    const sheetResponses = workbook.Sheets["Responses"];
+    const jsonResponses = XLSX.utils.sheet_to_json(sheetResponses, {header:1});
+    const headers = jsonResponses[0];
+
+    indicesVerbos = [];
+    nombresVerbos = [];
+    headers.forEach((h, idx) => {
+      if (h && h.toString().includes("Dimensión:")) {
+        const match = h.match(/\[(.*?)\]/);
+        const verbo = match ? match[1].trim().toUpperCase() : h;
+        if (nivelesCorrectos[verbo]) { 
+          indicesVerbos.push(idx);
+          nombresVerbos.push(verbo);
+        }
+      }
+    });
+
+    docentes = [];
+    for (let i = 1; i < jsonResponses.length; i++) {
+      const row = jsonResponses[i];
+      if (row && row[6]) {
+        docentes.push({
+          nombre: toTitleCase(row[6]),
+          apellidos: toTitleCase(row[7]),
+          telefono: row[8],
+          correo: row[9],
+          respuestas: row,
+          puntaje: row[headers.length - 1]
+        });
+      }
+    }
+
+    // Tabla de docentes
+    let htmlResp = "<h2>👩‍🏫 Docentes (Responses)</h2><table><tr><th>Nombre</th><th>Apellidos</th><th>Teléfono</th><th>Correo</th><th>Puntaje</th></tr>";
+    docentes.forEach(d => {
+      const clase = (parseFloat(d.puntaje) >= 40) ? "ok" : "error";
+      htmlResp += `<tr class="${clase}"><td>${d.nombre}</td><td>${d.apellidos}</td><td>${d.telefono}</td><td>${d.correo}</td><td>${d.puntaje}</td></tr>`;
+    });
+    htmlResp += "</table>";
+    document.getElementById("tablaResponses").innerHTML = htmlResp;
+
+    // Llenar select
+    const select = document.getElementById("docenteSelect");
+    select.innerHTML = "<option value=''>-- Selecciona un docente --</option>";
+    docentes.forEach((d,i)=> select.innerHTML += `<option value="${i}">${d.nombre} ${d.apellidos}</option>`);
+
+    // === NUEVO: dibujar los 3 gráficos en columnas ===
+    const puntajes = docentes
+      .map(d => parseFloat(d.puntaje))
+      .filter(v => !isNaN(v));
+
+    renderTresGraficos(puntajes, statsVerbos);
+
+    // Mostrar botones
+    document.getElementById("btnExcel").style.display = "inline-block";
+    document.getElementById("btnExcelTodos").style.display = "inline-block";
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ===== Utilidades y gráficos nuevos ===== */
+
+// Histograma: agrupar puntajes por bins
+function buildHistogramData(values, binSize = 5) {
+  if (!values.length) return {labels:[], counts:[]};
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const start = Math.floor(min/binSize)*binSize;
+  const end = Math.ceil(max/binSize)*binSize;
+  const bins = [];
+  for (let b = start; b < end; b += binSize) bins.push([b, b+binSize]);
+
+  const counts = new Array(bins.length).fill(0);
+  values.forEach(v => {
+    const idx = Math.min(Math.floor((v - start)/binSize), bins.length - 1);
+    counts[idx] += 1;
+  });
+
+  const labels = bins.map(([a,b]) => `${a}-${b}`);
+  return {labels, counts};
+}
+
+function renderTresGraficos(puntajes, statsVerbos) {
+  // 1) Distribución de puntajes
+  const hist = buildHistogramData(puntajes, 5);
+  const meanScore = puntajes.length ? (puntajes.reduce((a,b)=>a+b,0)/puntajes.length) : 0;
+
+  if (chartDistribucion) chartDistribucion.destroy();
+  chartDistribucion = new Chart(document.getElementById("chartDistribucion").getContext("2d"), {
+    type: "bar",
+    data: { labels: hist.labels, datasets: [{label: "Docentes", data: hist.counts, backgroundColor: "rgba(29,78,216,0.7)"}]},
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, annotation: { } },
+      scales: { x: { title: {display:true, text:"Puntaje Total (sobre 70)"} },
+               y: { title: {display:true, text:"Número de Docentes"}, beginAtZero:true } }
+    }
+  });
+
+  // 2) Top 10 por media (a partir de Summary Report)
+  const topMedia = statsVerbos.slice().sort((a,b)=>b.mean - a.mean).slice(0,10);
+  if (chartTopMedia) chartTopMedia.destroy();
+  chartTopMedia = new Chart(document.getElementById("chartTopMedia").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: topMedia.map(x => x.verbo),
+      datasets: [{label: "Media de nivel", data: topMedia.map(x => x.mean), backgroundColor: "#65a30d"}]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      scales: { x: { min: 0, max: 4, title: {display:true, text:"Media"} } },
+      plugins: { legend: { display:false }, title: { display:true, text:"Top 10 Verbos (Media)" } }
+    }
+  });
+
+  // 3) Top 10 por desviación estándar (variabilidad)
+  const topVar = statsVerbos.slice().sort((a,b)=>b.std - a.std).slice(0,10);
+  if (chartTopVar) chartTopVar.destroy();
+  chartTopVar = new Chart(document.getElementById("chartTopVar").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: topVar.map(x => x.verbo),
+      datasets: [{label: "Desviación estándar", data: topVar.map(x => x.std), backgroundColor: "#d97706"}]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      scales: { x: { beginAtZero:true, title: {display:true, text:"DE"} } },
+      plugins: { legend: { display:false }, title: { display:true, text:"Top 10 Verbos (Variabilidad)" } }
+    }
+  });
+}
+
+// ------------------ INFORME INDIVIDUAL ------------------
+function mostrarInforme() {
+  const idx = document.getElementById("docenteSelect").value;
+  if (idx === "") return;
+  docenteActual = docentes[idx];
+
+  const promedio = (docentes.reduce((a,b)=>a+parseFloat(b.puntaje||0),0)/docentes.length).toFixed(1);
+
+  // ==========================
+  // Preparar agrupación por dimensión
+  // ==========================
+  const resultadosDim = { SABER: {aciertos:0, total:0, errores:[]},
+                          HACER: {aciertos:0, total:0, errores:[]},
+                          SER:   {aciertos:0, total:0, errores:[]} };
+
+  let correctos = [], errados = [], erroresGraves = [];
+
+  for (let i = 0; i < nombresVerbos.length; i++) {
+    const verbo = nombresVerbos[i];
+    const colIdx = indicesVerbos[i];
+    let valorCrudo = docenteActual.respuestas[colIdx];
+    let respuesta = null;
+    if (valorCrudo !== undefined && valorCrudo !== null) {
+      let limpio = valorCrudo.toString().trim().replace(/[^0-9]/g, "");
+      respuesta = limpio ? parseInt(limpio) : null;
+    }
+    const correcto = nivelesCorrectos[verbo];
+
+    // Identificar dimensión del verbo
+    let dim = null;
+    for (let d in DATA) {
+      for (let nivel in DATA[d]) {
+        if (DATA[d][nivel].map(v=>v.toUpperCase()).includes(verbo)) {
+          dim = d.toUpperCase();
+        }
+      }
+    }
+
+    if (respuesta === correcto) {
+      resultadosDim[dim].aciertos++;
+      resultadosDim[dim].total++;
+      correctos.push(`${verbo} (Nivel ${correcto})`);
+    } else if (respuesta !== null) {
+      resultadosDim[dim].total++;
+      resultadosDim[dim].errores.push(`${verbo} (marcó Nivel ${respuesta}, correcto Nivel ${correcto})`);
+      errados.push(`${verbo} (marcó Nivel ${respuesta}, correcto Nivel ${correcto})`);
+      erroresGraves.push({verbo, dim, correcto, respuesta, dist: Math.abs(respuesta-correcto)});
+    }
+  }
+
+  // Ordenar errores graves por distancia
+  erroresGraves.sort((a,b)=>b.dist - a.dist);
+
+  // ==========================
+  // Construir HTML del informe
+  // ==========================
+  let html = `<h3>Informe de ${docenteActual.nombre} ${docenteActual.apellidos}</h3>
+  <p><b>Correo:</b> ${docenteActual.correo} | <b>Tel:</b> ${docenteActual.telefono}</p>
+  <p><b>Puntaje:</b> ${docenteActual.puntaje} / 70 (Promedio grupal: ${promedio})</p>`;
+
+  html += `<h4>📊 Resultados por dimensión</h4><ul>`;
+  for (let d in resultadosDim) {
+    const r = resultadosDim[d];
+    const pct = r.total ? ((r.aciertos/r.total)*100).toFixed(1) : 0;
+    html += `<li><b>${d}:</b> ${r.aciertos}/${r.total} → ${pct}%</li>`;
+  }
+  html += `</ul>`;
+
+  html += `<h4>✅ Principales aciertos</h4><ul>`;
+  correctos.slice(0,10).forEach(v => html += `<li>${v}</li>`);
+  html += `</ul>`;
+
+  html += `<h4>❌ Errores más graves</h4><ul>`;
+  erroresGraves.slice(0,10).forEach(e => {
+    html += `<li>${e.verbo} [${e.dim}] → marcó Nivel ${e.respuesta}, correcto Nivel ${e.correcto} (distancia ${e.dist})</li>`;
+  });
+  html += `</ul>`;
+
+  html += `<h4>📌 Lectura pedagógica</h4>
+  <p>El docente muestra fortalezas en la dimensión <b>SABER</b>, pero se evidencian brechas en <b>HACER</b> y <b>SER</b>, 
+  especialmente en los verbos de autonomía e innovación. 
+  Se recomienda reforzar primero los niveles básicos (1–2), luego escalar a los de autonomía (3) y finalmente a los de innovación (4).</p>`;
+
+  document.getElementById("informeDocente").innerHTML = html;
+
+  // ==========================
+  // Gráfico comparativo
+  // ==========================
+  const ctx = document.getElementById("chartComparativo").getContext("2d");
+  if (chartComparativo) chartComparativo.destroy();
+  chartComparativo = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Aciertos", "Errores"],
+      datasets: [
+        {label: "Docente", data: [correctos.length, errados.length], backgroundColor: ["#22c55e","#ef4444"]},
+        {label: "Promedio Grupo", data: [(promedio/70)*nombresVerbos.length, nombresVerbos.length - (promedio/70)*nombresVerbos.length], backgroundColor: ["#93c5fd","#fca5a5"]}
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+  });
+}
+
+// ------------------ EXPORTACIONES ------------------
+function exportarExcel() {
+  const ws = XLSX.utils.json_to_sheet(resumenExport);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Summary Report");
+  XLSX.writeFile(wb, "Summary_Report.xlsx");
+}
+
+function exportarExcelDocente() {
+  if (!docenteActual) return;
+  const data = [
+    {Categoria: "Correo", Valor: docenteActual.correo},
+    {Categoria: "Teléfono", Valor: docenteActual.telefono},
+    {Categoria: "Puntaje", Valor: docenteActual.puntaje}
+  ];
+  data.push({Categoria: "✅ Verbos Correctos", Valor: correctosGlobal.length});
+  correctosGlobal.forEach(v => data.push({Categoria: "Correcto", Valor: v}));
+  data.push({Categoria: "❌ Verbos Errados", Valor: erradosGlobal.length});
+  erradosGlobal.forEach(v => data.push({Categoria: "Errado", Valor: v}));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Informe Docente");
+  XLSX.writeFile(wb, `Informe_${docenteActual.nombre}_${docenteActual.apellidos}.xlsx`);
+}
+
+function exportarExcelTodos() {
+  if (!docentes.length) return;
+  const wb = XLSX.utils.book_new();
+
+  docentes.forEach((d, i) => {
+    let correctos = [];
+    let errados = [];
+
+    nombresVerbos.forEach((v, j) => {
+      const respuesta = parseInt(d.respuestas[indicesVerbos[j]]);
+      const correcto = nivelesCorrectos[v];
+      if (respuesta === correcto) {
+        correctos.push(`${v} (Nivel ${correcto})`);
+      } else {
+        errados.push(`${v} (marcó Nivel ${respuesta}, correcto Nivel ${correcto})`);
+      }
+    });
+
+    const data = [
+      {Categoria: "Correo", Valor: d.correo},
+      {Categoria: "Teléfono", Valor: d.telefono},
+      {Categoria: "Puntaje", Valor: d.puntaje},
+      {Categoria: "✅ Verbos Correctos", Valor: correctos.length}
+    ];
+    correctos.forEach(v => data.push({Categoria: "Correcto", Valor: v}));
+    data.push({Categoria: "❌ Verbos Errados", Valor: errados.length});
+    errados.forEach(v => data.push({Categoria: "Errado", Valor: v}));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // 📌 Nombre con inicial mayúscula
+    let nombreCompleto = toTitleCase(d.nombre + " " + d.apellidos);
+    let nombreHoja = nombreCompleto.substring(0, 25);
+
+    // Evitar duplicados
+    let contador = 1;
+    while (wb.SheetNames.includes(nombreHoja)) {
+      nombreHoja = nombreCompleto.substring(0, 20) + "_" + contador;
+      contador++;
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+  });
+
+  XLSX.writeFile(wb, "Consolidado_Docentes.xlsx");
+}
+</script>
+
+</body>
+</html>

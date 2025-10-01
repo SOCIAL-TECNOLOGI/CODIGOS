@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Calculadora de Huella de Carbono Evitada</title>
+ <link rel="stylesheet" href="estilos.css">
+
+<style>
+body {
+ font-family: Arial, sans-serif;
+ margin: 20px;
+}
+
+#calculadora {
+ width: 50%;
+ margin: 0 auto;
+ padding: 20px;
+ border: 1px solid #ccc;
+ border-radius: 10px;
+ box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+ display: block;
+ margin-bottom: 10px;
+}
+
+input[type="number"] {
+ width: 100%;
+ height: 30px;
+ margin-bottom: 20px;
+ padding: 10px;
+ border: 1px solid #ccc;
+}
+
+button {
+ background-color: #4CAF50;
+ color: #fff;
+ padding: 10px 20px;
+ border: none;
+ border-radius: 5px;
+ cursor: pointer;
+}
+
+button:hover {
+ background-color: #3e8e41;
+}
+
+#resultado {
+ font-size: 24px;
+ font-weight: bold;
+ margin-top: 20px;
+}
+
+
+
+
+</style>
+
+
+
+</head>
+<body>
+ <h1>Calculadora de Huella de Carbono Evitada</h1>
+ <form id="calculadora">
+ <div>
+ <label for="cuadernos">Número de cuadernos reciclados:</label>
+ <input type="number" id="cuadernos" value="0">
+ </div>
+ <div>
+ <label for="botellas">Número de botellas plásticas recicladas:</label>
+ <input type="number" id="botellas" value="0">
+ </div>
+ <div>
+ <label for="latas">Número de latas de aluminio recicladas:</label>
+ <input type="number" id="latas" value="0">
+ </div>
+ <button id="calcular">Calcular Huella de Carbono Evitada</button>
+ </form>
+ <div id="resultado"></div>
+
+ <script src="script.js"></script>
+
+<script>
+
+const calculadora = document.getElementById('calculadora');
+const resultado = document.getElementById('resultado');
+
+calculadora.addEventListener('submit', (e) => {
+ e.preventDefault();
+
+ const cuadernos = parseFloat(document.getElementById('cuadernos').value);
+ const botellas = parseFloat(document.getElementById('botellas').value);
+ const latas = parseFloat(document.getElementById('latas').value);
+
+ // Factors de conversión (aproximados)
+ const cuadernosFactor = 1.43; // kg CO2/cuaderno
+ const botellasFactor = 0.15; // kg CO2/botella
+ const latasFactor = 0.93; // kg CO2/lata
+
+ // Cálculo de la huella de carbono evitada
+ const huellaCarbonoEvitada = (
+ cuadernos * cuadernosFactor +
+ botellas * botellasFactor +
+ latas * latasFactor
+ );
+
+ resultado.textContent = `Al reciclar, evitas ${huellaCarbonoEvitada.toFixed(2)} kg CO2`;
+});
+
+
+
+
+</script>
+
+</body>
+</html>

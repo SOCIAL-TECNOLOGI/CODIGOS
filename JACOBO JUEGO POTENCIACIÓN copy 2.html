@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nivel 3 – Producto de Potencias</title>
+<style>
+  body {
+    background:#0f172a; color:white;
+    font-family:Arial, sans-serif; text-align:center;
+    padding:20px;
+  }
+  h1 { color:#22d3ee; }
+  .potencias { font-size:32px; margin:20px; }
+  .area {
+    border:2px dashed #22d3ee;
+    padding:20px; margin:20px auto;
+    width:300px; min-height:60px;
+  }
+  .ficha {
+    display:inline-block;
+    padding:10px 20px; margin:5px;
+    background:#3b82f6; color:white;
+    border-radius:8px; font-size:20px;
+    cursor:grab; user-select:none;
+  }
+  .resultado {
+    margin-top:20px; font-size:24px;
+    color:#facc15;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 Nivel 3 – Producto de Potencias</h1>
+<p>Arrastra los exponentes al área para sumarlos.</p>
+
+<div class="potencias" id="expresion"></div>
+
+<div class="fichas" id="fichas"></div>
+
+<div class="area" id="dropZone">Arrastra aquí los exponentes</div>
+
+<div class="resultado" id="resultado"></div>
+
+<button onclick="nuevaOperacion()">🔄 Nueva operación</button>
+
+<script>
+let base, exp1, exp2;
+
+function nuevaOperacion(){
+  base = Math.floor(Math.random()*5)+2; // base 2–6
+  exp1 = Math.floor(Math.random()*4)+2; // exponente 2–5
+  exp2 = Math.floor(Math.random()*4)+2;
+
+  document.getElementById("expresion").innerHTML = `${base}<sup>${exp1}</sup> × ${base}<sup>${exp2}</sup>`;
+  document.getElementById("fichas").innerHTML = `
+    <div class="ficha" draggable="true" data-exp="${exp1}">${exp1}</div>
+    <div class="ficha" draggable="true" data-exp="${exp2}">${exp2}</div>
+  `;
+  document.getElementById("dropZone").innerHTML = "Arrastra aquí los exponentes";
+  document.getElementById("resultado").innerHTML = "";
+
+  addDragEvents();
+}
+
+function addDragEvents(){
+  document.querySelectorAll('.ficha').forEach(f=>{
+    f.addEventListener("dragstart", e=>{
+      e.dataTransfer.setData("text/plain", f.dataset.exp);
+    });
+  });
+
+  const dropZone = document.getElementById("dropZone");
+  dropZone.addEventListener("dragover", e=>e.preventDefault());
+  dropZone.addEventListener("drop", e=>{
+    e.preventDefault();
+    const exp = e.dataTransfer.getData("text/plain");
+    dropZone.innerHTML += ` ${exp}`;
+    validar(dropZone.innerText.trim().split(" "));
+  });
+}
+
+function validar(exps){
+  if(exps.length===2){
+    const suma = parseInt(exps[0])+parseInt(exps[1]);
+    const potencia = Math.pow(base, suma);
+    document.getElementById("resultado").innerHTML =
+      `Correcto 🎉: ${base}<sup>${exp1}</sup> × ${base}<sup>${exp2}</sup> = ${base}<sup>${suma}</sup> = ${potencia}`;
+  }
+}
+
+nuevaOperacion();
+</script>
+</body>
+</html>

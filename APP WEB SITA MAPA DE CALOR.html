@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Dashboard SITA</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; }
+    h1 { color: #2c3e50; text-align: center; }
+    .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .climate { display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 1.1em; }
+    .cold { color: #3498db; font-weight: bold; }
+    .warm { color: #e67e22; font-weight: bold; }
+    .hot { color: #e74c3c; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>📊 Dashboard SITA – Migración por Competencias</h1>
+
+  <div class="dashboard">
+    <!-- Gráfico de migración N1-N4 -->
+    <div class="card">
+      <h3>Migración de niveles (Simulacro 1 vs Simulacro 2)</h3>
+      <canvas id="migrationChart"></canvas>
+    </div>
+
+    <!-- Clima pedagógico -->
+    <div class="card">
+      <h3>Clima Pedagógico</h3>
+      <div class="climate cold">❄️ Frío: Muchos estudiantes en N1</div>
+      <div class="climate warm">🌤️ Templado: Mayoría en N2–N3</div>
+      <div class="climate hot">🔥 Cálido: Migración fuerte hacia N3–N4</div>
+      <p>El sistema ajusta el "vestuario" pedagógico: genera ítems, rúbricas y actividades según el clima del aprendizaje.</p>
+    </div>
+
+    <!-- Competencias críticas -->
+    <div class="card">
+      <h3>Competencias con más dificultad</h3>
+      <canvas id="competenceChart"></canvas>
+    </div>
+
+    <!-- Informe de progreso -->
+    <div class="card">
+      <h3>Informe de progreso</h3>
+      <ul>
+        <li>📌 Lenguaje: 40% en N1 → 15% tras segundo simulacro.</li>
+        <li>📌 Matemáticas: 50% en N2 → 65% tras segundo simulacro.</li>
+        <li>📌 Ciencias: 20% en N3–N4 → 45% tras segundo simulacro.</li>
+      </ul>
+      <p><strong>Conclusión:</strong> La institución migró un 30% de estudiantes de niveles bajos a altos en un semestre.</p>
+    </div>
+  </div>
+
+  <script>
+    // Gráfico migración N1-N4
+    const ctx = document.getElementById('migrationChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['N1', 'N2', 'N3', 'N4'],
+        datasets: [
+          { label: 'Simulacro 1', data: [40, 35, 20, 5], backgroundColor: '#3498db' },
+          { label: 'Simulacro 2', data: [15, 40, 35, 10], backgroundColor: '#2ecc71' }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Gráfico de competencias críticas
+    const ctx2 = document.getElementById('competenceChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Lectura Crítica', 'Razonamiento Matemático', 'Ciencias Naturales', 'Competencias Ciudadanas'],
+        datasets: [{
+          data: [35, 40, 15, 10],
+          backgroundColor: ['#e74c3c', '#f1c40f', '#3498db', '#9b59b6']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  </script>
+</body>
+</html>

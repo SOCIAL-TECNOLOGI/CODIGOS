@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <title>BOTELLAS OK</title>
+
+    <style>
+
+
+
+/* Estilos básicos para el acordeón */
+.acordeon {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.acordeon-item {
+    border-top: 1px solid #ccc;
+}
+
+.acordeon-titulo {
+    background-color: #f9f9f9;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.acordeon-contenido {
+    padding: 10px;
+    display: none; /* Ocultar el contenido por defecto */
+}
+
+/* Estilos mejorados para el acordeón */
+.acordeon {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.acordeon-item {
+    border-top: 1px solid #ddd;
+    transition: background-color 0.3s;
+}
+
+.acordeon-titulo {
+    background-color: #f9f9f9;
+    padding: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none; /* Evita la selección de texto */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.acordeon-contenido {
+    padding: 15px;
+    display: none;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.acordeon-contenido p {
+    margin: 0;
+}
+
+.acordeon-titulo.active::after {
+  content: "\25BC"; /* Flecha hacia abajo */
+}
+
+
+/* Estilo cuando el título está activo (abierto) */
+.acordeon-titulo.active {
+    background-color: #007acc;
+    color: #fff;
+}
+
+/* Estilo de flecha para indicar estado (abierto/cerrado) */
+.acordeon-titulo .flecha {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.3s;
+}
+
+.acordeon-titulo.active .flecha {
+    transform: rotate(180deg);
+}
+
+/* Estilo de transición suave al abrir y cerrar */
+.acordeon-contenido.open {
+    max-height: 1000px; /* Establece una altura máxima para controlar la animación */
+    transition: max-height 0.3s ease-in;
+}
+
+/* Estilos generales del acordeón */
+.acordeon {
+  width: 35%;
+}
+
+/* Estilos de los elementos del acordeón */
+.acordeon-item {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+}
+
+.acordeon-titulo {
+  background: #333;
+  color: #fff;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.acordeon-contenido {
+  padding: 10px;
+  display: none;
+}
+
+
+   /* Estilos para ocultar elementos */
+   .hidden {
+  display: block;
+}
+
+/* Estilos generales del cuerpo */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
+
+/* Contenedor principal */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 2px solid #ccc;
+}
+
+
+/* Estilos para el encabezado principal */
+h1 {
+  text-align: center;
+  background-color: #0674a3;
+  color: white;
+  padding: 20px;
+  margin: 0;
+}
+
+/* Estilos para etiquetas */
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Estilos para campos de entrada numérica CONTEO RECICLAJE */
+input[type="number"] {
+  width: 35%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 18px;
+  margin-left: 33%;
+  font-weight: bold; /* Texto en negrita */   
+
+}
+
+
+/* BOTONES  */
+button {
+  display: block;
+  width: 30%; /* Ancho BOTONES */
+  background-color: #7e9f7e;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: rgb(65, 106, 143);
+}
+
+
+/* Estilos para títulos secundarios */
+h2 {
+  text-align: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  margin: 10px 0;
+}
+  
+/* ESTILOS PARA ENCABEZADOS DE LA TABLA DE IMPACTO AMBIENTAL */
+
+table, th, td {
+          border: 1px solid rgb(169, 169, 169);
+      }
+        th, td {
+          padding: 8px;
+          text-align: center;
+      }
+  
+      th {
+          background-color: rgb(172, 245, 209);
+      }
+  
+      td.gramos {
+          font-weight: bold;
+          background-color: #f5f5f5;
+      }
+    
+
+/* Estilos para los resultados de la calculadora */
+#resultado_hectareas {
+  font-size: 20px; /* Tamaño de fuente aumentado */
+  color: #4CAF50; /* Color de texto verde */
+  font-weight: bold; /* Texto en negrita */
+  margin-top: 15px; /* Espacio superior */
+  padding: 10px; /* Espaciado interno */
+  background-color: #e0f2e9; /* Fondo ligeramente coloreado */
+  border: 1px solid #4CAF50; /* Borde delgado */
+  border-radius: 5px; /* Borde redondeado */
+  text-align: center; /* Alineación al centro */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.boton {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #050771;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold; /* Peso de la fuente */
+    font-size: 16px; /* Tamaño de fuente */
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    font-weight: bold;
+    
+}
+
+.boton:hover {
+    background-color: #046b49;
+}
+
+  .BOTONES{display: flex; justify-content: center}
+
+/* Estilos para centrar el botón
+/* .centrar-boton {
+    display: flex;
+    justify-content: center; /* Centrar horizontalmente */
+    /* align-items: center; /* Centrar verticalmente */
+    /* height: 100vh; /* Asegura que el contenedor ocupe toda la altura de la ventana */
+  /* } 
+     */ */
+
+/* Estilos para los elementos <strong> dentro del párrafo HUELLA ECOLÓGICA */
+  .titulo-strong {
+    font-weight: bold;
+    color: #0066cc; /* Color azul (puedes cambiarlo al color que desees) #0c63bb #0066cc*/
+    font-size: 1.15em; /* Tamaño de fuente */
+}
+
+/* Estilos para el elemento <span> dentro del párrafo HUELLA ECOLÓGICA */
+.resultado-span {
+    font-weight: bold;
+    color: #0e5086; /* Color verde (puedes cambiarlo al color que desees)   #00cc00 */
+    font-size: 1.4em; /* Tamaño de fuente */
+    margin: 0 5px; /* Espacio entre el número y "Hectáreas Globales" */
+}
+
+/* Estilos generales para el párrafo #huella_ecologica */
+#huella_ecologica {
+    text-align: center; /* Centrar el contenido del párrafo */
+    margin: 5px; /* Márgenes exteriores del párrafo */
+    margin-bottom: 10px; /* Puedes ajustar la cantidad de margen según tus preferencias */
+    font-size: 19px; /* Establece el tamaño de texto en píxeles (ajusta el valor según tus preferencias) */
+}
+
+
+#resultado_hectareas {
+    font-size: 19px; /* Establece el tamaño de texto en píxeles (ajusta el valor según tus preferencias) */
+}
+
+/*BARRA DE DESPLAZAMIENTO*/
+body {
+  scrollbar-width: thin; /* Establece el ancho de la barra de desplazamiento a "thin" */
+  scrollbar-color: transparent transparent; /* Establece el color de la barra de desplazamiento en transparente */
+  -ms-overflow-style: none; /* Para Internet Explorer */
+}
+
+/* Estilos de la barra de desplazamiento en Webkit (Chrome, Safari, etc.) */
+body::-webkit-scrollbar {
+  width: 8px; /* Establece el ancho de la barra de desplazamiento */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: transparent; /* Establece el color de la barra de desplazamiento en transparente */
+}
+
+body::-webkit-scrollbar-track {
+  background-color: transparent; /* Establece el color del fondo de la barra de desplazamiento en transparente */
+}
+
+
+.container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 1;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .column img {
+            width: 100%;
+            height: auto;
+        }
+/* TEXTO ESTE  ES TU IMPACTO */
+        .text-container {
+            text-align: center;
+            background-color: rgb(240, 240, 240);
+            padding: 0px;
+            color: #047816;
+            font-size: 18px;
+        }
+
+       
+     
+/* 
+Centrar el contenedor de los botones */
+/* .clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+} */
+
+/* .contenido-ancho-total botones {
+    width: 50%;
+    text-align: center;
+}  */
+
+
+/* Cambia el color del texto "kWh"
+td strong span#total_energia::after {
+    content: " kWh"; /* Agrega " kWh" después del contenido del span */
+    /* color: #ff00d4; /* Cambia el color de " kWh" según tus preferencias */
+/* } */ */ */
+
+/* Cambia el color del texto "litros" */
+/* td strong span#total_agua::after { */
+    /* content: " litros"; Agrega " kWh" después del contenido del span */
+    /* color: rgb(4, 97, 155); /* Cambia el color de " kWh" según tus preferencias */
+/* } */ */
+
+
+/* Cambia el color del texto "kg" */
+/* td strong span#total_co2::after {
+    content: " Kg"; Agrega " kWh" después del contenido del span */
+    /* color: #ff0000; /* Cambia el color de " kWh" según tus preferencias */
+/* } */ */
+
+
+
+
+/* Aplicar estilos a la tabla */
+table {
+  width: 100%; /* Establecer el ancho al 100% del contenedor */
+  border-collapse: collapse; /* Fusionar los bordes de las celdas */
+  margin-bottom: 0px; /* Agregar un margen inferior opcional */
+}
+
+/* Estilos para todas las celdas (tanto encabezado como datos) */
+table th, table td {
+  padding: 5px; /* Espaciado interno en todas las celdas */
+  width: 25%; /* Dividir el ancho en 4 para distribuir uniformemente */
+  text-align: center; /* Centrar el texto en todas las celdas */
+}
+
+/* Estilos para los números en negrita */
+table strong {
+  font-weight: bold;
+}
+
+table strong p {
+  text-align: center; /* Centrar el texto en el ancho disponible */
+  color: #0077b6; /* Cambiar el color del texto, puedes reemplazar el código de color (#0077b6) por el que desees */
+}
+
+table {
+  width: 100%; /* Ocupar todo el ancho disponible */
+  text-align: center; /* Centrar el contenido horizontalmente */
+}
+
+
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+
+<div class="acordeon">
+       
+        <div class="acordeon-item">
+            <div class="acordeon-titulo"> ▼ CALCULA TU HUELLA ECOLÓGICA AQUÍ  </div>
+            <div class="acordeon-contenido">
+                <p>
+
+                    <h2 class="hidden">Impacto de tu reciclaje:</h2>
+                    
+                    <div class="hidden">
+        <div class="container">
+
+
+        <div class="column">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyWggOejQ39UhGciKwdzdqdlqsH-E6SNu8fw&usqp=CAU" alt="Imagen 1" style="width: 250px; height: 150px;"> <!-- Ajusta el tamaño de la imagen 1 -->
+                        
+
+            
+
+              <div class="clearfix"></div>
+            </div>
+
+
+            <div class="clearfix"></div>
+            <div class="contenido-ancho-total">
+                <p><div class="container-below">
+                        <!-- BOTONES DE CALCULAR Y REINICIAR -->
+    <span class="BOTONES">
+
+      <p style='font-size: 16px;   margin-top: 6px; margin-bottom: 12px;text-align: center;'><strong>Ingrese cantidad</strong></p>
+    <input
+      type="number"
+      id="cantidad_botellas"
+      placeholder="0"
+      style="display: block; margin: 0 auto; font-size: 16px;"><br><br>
+
+      <button style="font-size: 16px;" onclick="calcularImpacto()"><strong>Calcular</strong></button>
+      <button style="font-size: 16px;" onclick="reiniciarCalculadora()"><strong>Reiniciar</strong></button><br>
+      
+
+    </span><br>
+
+
+    
+                     
+                          <table>
+                            <tr>
+                              <th class="total_energia">Ahorro de Energía</th>
+                              <th class="total_agua">Ahorro de Agua</th>
+                              <th class="total_co2">CO2 No Emitido</th>
+                              <th class="peso_total">Peso Total</th>
+                            </tr>
+                            <tr>
+                              <td><strong style="color: rgb(220, 148, 3);"><span id="total_energia">0.00</span> kWh</strong></td>
+                              <td><strong style="color: rgb(0, 13, 255);"><span id="total_agua">0.00</span> L</strong></td>
+                              <td><strong style="color: rgb(12, 127, 2);"><span id="total_co2">0.00</span> Kg</strong></td>
+                              <td id="peso_botellas"><strong style="color: rgba(158, 3, 185, 0.781);"><span id="peso_total">0.00</span> g</strong></td>
+
+
+                            </tr>
+                          </table>  <br>
+
+                            </div>
+
+         <div class="text-container"><br>
+        
+
+                        <p id="huella_ecologica">
+                        <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                        <span id="resultado_hectareas" class="resultado-span">0.00</span>
+                        
+                    <strong class="titulo-strong">Hectáreas Globales</strong><br><br>
+
+        </div>
+
+
+<script>
+  function calcularImpacto() {
+    var cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+
+    if (!isNaN(cantidad_botellas) && cantidad_botellas >= 0) {
+      // Calcular el impacto de las latas
+      var botella_energia = cantidad_botellas * 0.06; // Consumo de energía en kWh por botella
+      var botella_agua = cantidad_botellas * 0.43; // Consumo de agua en litros por botella
+      var botella_co2 = cantidad_botellas * 0.03; // Emisiones de CO2 en kg por botella
+
+
+      // CALCULO DE LA TABLA DE PESOS
+      const pesoBotellas = cantidad_botellas * 11; // Peso promedio de botella
+      const pesoTotal = pesoBotellas;
+
+      // Mostrar los resultados en el HTML
+      document.getElementById("total_energia").textContent = botella_energia.toFixed(2);
+      document.getElementById("total_agua").textContent = botella_agua.toFixed(2);
+      document.getElementById("total_co2").textContent = botella_co2.toFixed(2); 
+      document.getElementById("peso_total").textContent = pesoTotal.toFixed(2);
+
+      // Calcular la huella ecológica en hectáreas globales
+      var hectareas_globales = botella_co2 / 2.7; // Valor de conversión (ajusta según sea necesario)
+      document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+
+      // Aplicar etiquetas <strong> y estilo de color azul al resultado
+      const pesoTotalElement = document.getElementById("peso_total");
+      pesoTotalElement.innerHTML = "<strong style='color:  rgb(168, 3, 197);'>" + pesoTotal;
+
+      // Ocultar la tabla de recomendaciones si no se cumplen las condiciones
+      document.querySelector(".recomendaciones").style.display = "none";
+    }
+  }
+
+
+
+
+  // Obtener todos los elementos del acordeón
+  const acordeonItems = document.querySelectorAll('.acordeon-item');
+
+  // Agregar un evento de clic a cada título del acordeón
+  acordeonItems.forEach((item) => {
+    const titulo = item.querySelector('.acordeon-titulo');
+    const contenido = item.querySelector('.acordeon-contenido');
+
+    titulo.addEventListener('click', () => {
+      if (contenido.style.display === 'block') {
+        contenido.style.display = 'none';
+      } else {
+        contenido.style.display = 'block';
+      }
+    });
+  });
+
+
+function reiniciarCalculadora() {
+  // Restablecer el valor de cantidad_latas a 0
+  document.getElementById("cantidad_botellas").value = "0";
+
+  // Restablecer las variables a 0
+  document.getElementById("total_energia").textContent = "0.00";
+  document.getElementById("total_agua").textContent = "0.00";
+  document.getElementById("total_co2").textContent = "0.00";
+  document.getElementById("resultado_hectareas").textContent = "0.00";
+ 
+  document.getElementById("peso_total").textContent = "0.00";
+
+  // Restablecer la variable pesoTotal a 0
+  var pesoTotal = 0;
+
+  // Mostrar la tabla de recomendaciones
+  document.querySelector(".recomendaciones").style.display = "block";
+
+  // Aplicar etiquetas <strong> y estilo de color azul al resultado
+  const pesoTotalElement = document.getElementById("peso_total");
+  pesoTotalElement.innerHTML = "<strong style='color: blue;'>0 g</strong>";
+
+  // ... Más código de reinicio ...
+}
+
+
+
+
+</script>
+
+
+
+
+    </body>
+    </html>

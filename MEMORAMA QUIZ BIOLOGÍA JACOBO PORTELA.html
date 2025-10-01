@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memorama – Planetas del Sistema Solar (Orden 1–8)</title>
+<style>
+  :root{
+    --bg:#0b1022; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+    --p0:#22d3ee; --p1:#a78bfa; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed;
+    color:var(--txt);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+  }
+  header{padding:20px clamp(16px,4vw,40px)}
+  h1{margin:0 0 6px;font-size:clamp(22px,3.6vw,34px)}
+  .sub{margin:0;color:var(--muted);font-size:clamp(12px,2.4vw,14px)}
+
+  .wrap{display:grid;gap:clamp(14px,2.5vw,22px);grid-template-columns:1fr; padding:0 clamp(16px,4vw,40px) 40px}
+  @media(min-width:1000px){.wrap{grid-template-columns:1fr minmax(320px,420px)}}
+
+  .panel{background:rgba(17,24,39,.6);border:1px solid var(--borde);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--borde);flex-wrap:wrap}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input{background:#0c1428;border:1px solid var(--borde);color:var(--txt);padding:8px 10px;border-radius:10px;font-weight:600}
+  .numin{width:110px;text-align:center}
+  button{border:1px solid var(--borde);background:#0b1224;color:var(--txt);cursor:pointer;padding:8px 12px;border-radius:10px;font-weight:700;font-size:14px}
+  button:hover{border-color:#334155;box-shadow:0 6px 16px rgba(34,211,238,.15),inset 0 1px 0 rgba(255,255,255,.04)}
+
+  .players{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tag{padding:6px 10px;border-radius:999px;border:1px solid var(--borde);display:flex;align-items:center;gap:8px;background:#0b1224;font-weight:800}
+  .dot{width:10px;height:10px;border-radius:999px}
+  .p0{color:var(--p0)} .p0 .dot{background:var(--p0)}
+  .p1{color:var(--p1)} .p1 .dot{background:var(--p1)}
+  .turn{border-color:#334155;box-shadow:0 0 0 2px rgba(255,255,255,.05) inset,0 0 0 4px rgba(34,211,238,.12)}
+
+  /* Tablero */
+  .board{padding:16px}
+  .grid{--cols:4;display:grid;grid-template-columns:repeat(var(--cols),minmax(110px,1fr));gap:14px;max-width:900px;margin:0 auto}
+  @media(min-width:780px){.grid{--cols:4}}
+  @media(max-width:640px){.grid{--cols:3}}
+  @media(max-width:460px){.grid{--cols:2}}
+
+  .card{position:relative;height:150px;perspective:900px}
+  .inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s ease;border-radius:14px}
+  .card.flipped .inner{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.18);backface-visibility:hidden;outline:0.5px solid rgba(255,255,255,.04)}
+  .front{
+    background:linear-gradient(180deg,rgba(31,41,55,.9),rgba(17,24,39,.9));
+    border:1px solid #202a3a;
+  }
+  .back{
+    transform:rotateY(180deg);
+    background-image: radial-gradient(60% 80% at 50% 20%, rgba(255,255,255,.12), transparent 60%), linear-gradient(180deg, var(--c,#0b1224), #090f20);
+    border:1px solid color-mix(in oklab, var(--c,#334155) 70%, #000 30%);
+  }
+
+  /* Contenido de la carta */
+  .badge-num{
+    position:absolute;top:8px;left:8px;
+    width:28px;height:28px;border-radius:8px;
+    display:grid;place-items:center;
+    font-weight:900;font-size:14px;color:#0b1224;
+    background:var(--c,#22d3ee); border:1px solid color-mix(in oklab, var(--c,#fff) 50%, #000 50%);
+    box-shadow:0 3px 8px rgba(0,0,0,.35);
+  }
+  .title{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:.03em;text-align:center}
+  .desc{font-size:13px;line-height:1.25;text-align:center;color:#e6edf7}
+  .type-chip{
+    position:absolute;bottom:8px;right:8px;
+    font-size:10px;padding:3px 6px;border-radius:999px;border:1px solid #334155;background:#0b1224;color:#cbd5e1;opacity:.9
+  }
+
+  /* Al hacer match: marco según jugador */
+  .match.owner0 .back{box-shadow:0 0 0 2px var(--p0) inset, 0 0 0 4px rgba(34,211,238,.24) inset}
+  .match.owner1 .back{box-shadow:0 0 0 2px var(--p1) inset, 0 0 0 4px rgba(167,139,250,.24) inset}
+  .disabled{pointer-events:none;opacity:.6}
+
+  /* Lateral */
+  .side{position:sticky;top:16px}
+  .side .list{padding:14px 16px;border-bottom:1px solid var(--borde)}
+  .side h2{margin:0 0 8px;font-size:16px}
+  .legend{display:grid;gap:8px}
+  .item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .swatch{width:18px;height:18px;border-radius:5px;border:1px solid #334155;outline:0.5px solid rgba(255,255,255,.04)}
+
+  /* HUD */
+  .hud{position:fixed;top:12px;right:12px;z-index:1000;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--borde);background:rgba(17,24,39,.8);backdrop-filter:blur(6px)}
+  .hud .ind{font-size:13px;color:var(--muted)}
+  .alert{color:var(--warn);font-weight:800}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Memorama – Planetas del Sistema Solar</h1>
+    <p class="sub">Empareja <strong>Nombre del planeta</strong> con su <strong>característica clave</strong>. Cada carta muestra su <strong>número de orden (1–8)</strong> desde el Sol.</p>
+  </header>
+
+  <div class="wrap">
+    <!-- Juego -->
+    <section class="panel">
+      <div class="top">
+        <div class="players">
+          <span class="tag p0" id="t0"><span class="dot"></span><span id="n0">Jugador 1</span> · <span id="s0">0</span></span>
+          <span class="tag p1" id="t1"><span class="dot"></span><span id="n1">Jugador 2</span> · <span id="s1">0</span></span>
+        </div>
+        <div class="controls">
+          <input id="i0" placeholder="Jugador 1" value="JACOBO PORTELA" />
+          <input id="i1" placeholder="Jugador 2" value="PROFE MARIO" />
+          <input id="itime" class="numin" type="number" min="5" max="120" value="20" title="Segundos por turno" />
+          <button id="start">▶ Iniciar</button>
+          <button id="pause">⏸ Pausa</button>
+          <button id="reset">↻ Reiniciar</button>
+        </div>
+      </div>
+      <div class="board"><div id="grid" class="grid"></div></div>
+    </section>
+
+    <!-- Lateral -->
+    <aside class="panel side">
+      <div class="list">
+        <h2>Orden oficial (1–8)</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="list">
+        <h2>Cómo jugar</h2>
+        <div class="legend">
+          <div class="item">• Voltea dos cartas. Si coinciden (Nombre ↔ Característica), te llevas el par y <strong>mantienes</strong> el turno.</div>
+          <div class="item">• Si fallas o se acaba el tiempo, cambia el turno.</div>
+          <div class="item">• Gana quien tiene más pares al final.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <span class="ind" id="pairs">Pares: 0 / 0</span>
+    <span class="ind">Turno: <strong id="turn">Jugador 1</strong></span>
+    <span class="ind">Tiempo: <strong id="timer">00:20</strong></span>
+  </div>
+
+<script>
+/* ================== Datos: 8 planetas, orden 1–8 ================== */
+const planets = [
+  { n:1, name:'MERCURIO',   color:'#a3b3c2', desc:'El más cercano al Sol y el más pequeño.' },
+  { n:2, name:'VENUS',      color:'#e3b067', desc:'Atmósfera densa y efecto invernadero extremo.' },
+  { n:3, name:'TIERRA',     color:'#5ac7a6', desc:'Agua líquida abundante y vida conocida.' },
+  { n:4, name:'MARTE',      color:'#d46b5b', desc:'“Planeta rojo” por su óxido de hierro.' },
+  { n:5, name:'JÚPITER',    color:'#d7c49e', desc:'El más grande; posee la Gran Mancha Roja.' },
+  { n:6, name:'SATURNO',    color:'#f2d38f', desc:'Sus espectaculares anillos son los más visibles.' },
+  { n:7, name:'URANO',      color:'#7fd3e4', desc:'Rotación “de lado”; eje muy inclinado.' },
+  { n:8, name:'NEPTUNO',    color:'#6788e3', desc:'Vientos más rápidos del Sistema Solar.' }
+];
+
+/* ===== Utilidades ===== */
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const pad = n => String(n).padStart(2,'0');
+const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+
+/* ===== Estado ===== */
+let names  = ['Jugador 1','Jugador 2'];
+let scores = [0,0];
+let turn   = 0;
+let totalPairs = 0, foundPairs = 0;
+let flipped = []; // [{el,id,kind}]
+let locked  = false;
+
+// timer por turno
+let TURN_TIME = 20, left = TURN_TIME, timerId = null, paused = false;
+
+/* ===== DOM ===== */
+const grid = $('#grid'), legend = $('#legend');
+const pairsLbl = $('#pairs'), turnLbl = $('#turn'), timerLbl = $('#timer');
+const n0=$('#n0'), n1=$('#n1'), s0=$('#s0'), s1=$('#s1'), t0=$('#t0'), t1=$('#t1');
+const i0=$('#i0'), i1=$('#i1'), itime=$('#itime');
+const startBtn=$('#start'), resetBtn=$('#reset'), pauseBtn=$('#pause');
+
+/* ===== Construir mazo (Nombre + Característica) ===== */
+function buildDeck(){
+  const deck = [];
+  planets.forEach((p,idx)=>{
+    const id = idx; // 0..7
+    deck.push({ id, kind:'name', color:p.color, num:p.n, title:p.name, text:p.name, chip:'NOMBRE' });
+    deck.push({ id, kind:'fact', color:p.color, num:p.n, title:`CARACTERÍSTICA`, text:p.desc, chip:'CARACTERÍSTICA' });
+  });
+  return shuffle(deck);
+}
+
+/* ===== Render lateral (orden) ===== */
+function renderLegend(){
+  legend.innerHTML = planets.map(p => `
+    <div class="item">
+      <span class="swatch" style="background:${p.color}"></span>
+      <span><strong>${p.n}.</strong> ${p.name}</span>
+    </div>`).join('');
+}
+
+/* ===== Render tablero ===== */
+function renderBoard(){
+  const deck = buildDeck();
+  totalPairs = planets.length; foundPairs = 0; updatePairs();
+  grid.innerHTML = '';
+  deck.forEach(card=>{
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.dataset.id   = card.id;
+    el.dataset.kind = card.kind;
+    el.innerHTML = `
+      <div class="inner">
+        <div class="face front">
+          <div class="badge-num" style="background:${card.color}">${card.num}</div>
+          <div class="title">SISTEMA SOLAR</div>
+          <div class="type-chip">CARTA</div>
+        </div>
+        <div class="face back" style="--c:${card.color}">
+          <div class="badge-num" style="background:${card.color}">${card.num}</div>
+          <div>
+            <div class="title">${card.title}</div>
+            <div class="desc">${card.text}</div>
+          </div>
+          <div class="type-chip">${card.chip}</div>
+        </div>
+      </div>`;
+    el.addEventListener('click', ()=> onFlip(el));
+    grid.appendChild(el);
+  });
+}
+
+/* ===== HUD / helpers ===== */
+function updateHUD(){
+  n0.textContent = names[0]; n1.textContent = names[1];
+  s0.textContent = String(scores[0]); s1.textContent = String(scores[1]);
+  turnLbl.textContent = names[turn];
+  t0.classList.toggle('turn', turn===0);
+  t1.classList.toggle('turn', turn===1);
+}
+function updatePairs(){ pairsLbl.textContent = `Pares: ${foundPairs} / ${totalPairs}`; }
+
+/* ===== Lógica de volteo ===== */
+function onFlip(el){
+  if(locked) return;
+  if(el.classList.contains('flipped')) return;
+  el.classList.add('flipped');
+  const card = { el, id:+el.dataset.id, kind:el.dataset.kind };
+  flipped.push(card);
+  if(flipped.length===2){
+    locked = true;
+    checkMatch();
+  }
+}
+
+function checkMatch(){
+  const [a,b] = flipped;
+  const isMatch = a.id===b.id && a.kind!==b.kind;
+  setTimeout(()=>{
+    if(isMatch){
+      a.el.classList.add('match', `owner${turn}`);
+      b.el.classList.add('match', `owner${turn}`);
+      a.el.classList.add('disabled'); b.el.classList.add('disabled');
+      a.el.style.pointerEvents = b.el.style.pointerEvents = 'none';
+      scores[turn] += 1;
+      foundPairs += 1; updatePairs(); updateHUD();
+      restartTurnTimer(); // mantiene turno
+      if(foundPairs===totalPairs) endGame();
+    }else{
+      a.el.classList.remove('flipped');
+      b.el.classList.remove('flipped');
+      changeTurn();
+    }
+    flipped = []; locked = false;
+  }, 650);
+}
+
+function endGame(){
+  stopTimer();
+  let msg;
+  if(scores[0]===scores[1]) msg = `¡Empate ${scores[0]} - ${scores[1]}!`;
+  else{ const g = scores[0] > scores[1] ? 0 : 1; msg = `🎉 Ganador: ${names[g]} (${scores[g]} pares)`; }
+  setTimeout(()=>alert(msg), 100);
+}
+
+function changeTurn(){ turn = 1 - turn; updateHUD(); restartTurnTimer(); }
+
+/* ===== Cronómetro ===== */
+function updateTimerLabel(){ timerLbl.textContent = `${pad(Math.floor(left/60))}:${pad(left%60)}`; timerLbl.classList.toggle('alert', left<=5); }
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+function startTimer(){ stopTimer(); timerId = setInterval(()=>{ left-=1; updateTimerLabel(); if(left<=0){ stopTimer(); changeTurn(); } },1000); }
+function restartTurnTimer(){ left = TURN_TIME; updateTimerLabel(); if(!paused) startTimer(); }
+
+/* ===== Controles ===== */
+function newGame(resetNames=true){
+  if(resetNames){
+    names = [i0.value?.trim()||'Jugador 1', i1.value?.trim()||'Jugador 2'];
+    TURN_TIME = Math.max(5, Math.min(120, +itime.value||20));
+  }
+  scores=[0,0]; turn=0; paused=false; pauseBtn.textContent='⏸ Pausa';
+  updateHUD(); renderBoard(); renderLegend(); restartTurnTimer();
+}
+
+startBtn.addEventListener('click', ()=> newGame(true));
+resetBtn.addEventListener('click', ()=> newGame(false));
+pauseBtn.addEventListener('click', ()=>{
+  paused = !paused;
+  if(paused){ stopTimer(); pauseBtn.textContent='▶ Reanudar'; }
+  else { pauseBtn.textContent='⏸ Pausa'; startTimer(); }
+});
+
+/* ===== Arranque ===== */
+(function init(){ renderLegend(); newGame(true); })();
+</script>
+</body>
+</html>

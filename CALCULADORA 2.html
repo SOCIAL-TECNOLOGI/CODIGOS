@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora Ambiental</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007acc;
+        }
+
+        form {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input {
+            width: 100px;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            background-color: #007acc;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005aa7;
+        }
+
+        #resultado {
+            font-weight: bold;
+            color: #007acc;
+            margin-top: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007acc;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora Ambiental</h1>
+
+    <form id="calculadoraForm">
+        <label for="consumoEnergia">Consumo de energía (kWh):</label>
+        <input type="number" id="consumoEnergia" name="consumoEnergia" step="0.01">
+        <br>
+
+        <label for="consumoAgua">Consumo de agua (litros):</label>
+        <input type="number" id="consumoAgua" name="consumoAgua" step="1">
+        <br>
+
+        <label for="emisionesCO2">Emisiones de CO2 (kg):</label>
+        <input type="number" id="emisionesCO2" name="emisionesCO2" step="0.01">
+        <br>
+
+        <label for="kilometrosCoche">Kilómetros conducidos en coche:</label>
+        <input type="number" id="kilometrosCoche" name="kilometrosCoche" step="0.1">
+        <br>
+
+        <button type="button" onclick="calcularHuella()">Calcular</button>
+        <button type="button" onclick="resetCalculadora()">Reiniciar</button>
+    </form>
+
+    <h2>Tu huella ambiental es:</h2>
+    <p id="resultado"></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Consumo de energía (kWh)</th>
+                <th>Consumo de agua (litros)</th>
+                <th>Emisiones de CO2 (kg)</th>
+                <th>Kilómetros conducidos en coche</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se insertarán los datos desde el archivo Excel -->
+        </tbody>
+    </table>
+
+    <script>
+        // Factores de equivalencia (ejemplo)
+        const factorEnergia = 0.2; // Ejemplo: 1 kWh = 0.2 hectáreas globales
+        const factorAgua = 0.5;   // Ejemplo: 1 litro = 0.5 hectáreas globales
+        const factorCO2 = 2;      // Ejemplo: 1 kg de CO2 = 2 hectáreas globales
+        const factorCoche = 1;    // Ejemplo: 1 kilómetro en coche = 1 hectárea global
+
+        function calcularHuella() {
+            // Obtener los valores de entrada
+            const consumoEnergia = parseFloat(document.getElementById('consumoEnergia').value) || 0;
+            const consumoAgua = parseFloat(document.getElementById('consumoAgua').value) || 0;
+            const emisionesCO2 = parseFloat(document.getElementById('emisionesCO2').value) || 0;
+            const kilometrosCoche = parseFloat(document.getElementById('kilometrosCoche').value) || 0;
+
+            // Calcular la huella ecológica utilizando factores de equivalencia
+            const huellaEnergia = consumoEnergia * factorEnergia;
+            const huellaAgua = consumoAgua * factorAgua;
+            const huellaCO2 = emisionesCO2 * factorCO2;
+            const huellaCoche = kilometrosCoche * factorCoche;
+
+            // Sumar todas las huellas
+            const calculoHuella = huellaEnergia + huellaAgua + huellaCO2 + huellaCoche;
+
+            // Mostrar el resultado en el elemento "resultado"
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Tu huella ambiental es: ' + calculoHuella.toFixed(2) + ' hectáreas globales'; // Redondear el resultado a dos decimales y mostrar la unidad.
+        }
+
+        function resetCalculadora() {
+        // Restablecer los campos del formulario a sus valores iniciales
+        document.getElementById('consumoEnergia').value = "";
+        document.getElementById('consumoAgua').value = "";
+        document.getElementById('emisionesCO2').value = "";
+        document.getElementById('kilometrosCoche').value = "";
+        // También, reiniciar el resultado
+        document.getElementById('resultado').textContent = '';
+    }
+
+    // Función para cargar y mostrar datos desde el archivo CSV
+function cargarDatosDesdeCSV() {
+  // Ruta al archivo CSV
+  const archivoCSV = 'datos.csv';
+
+  // Obtener la tabla
+  const tabla = document.querySelector('table tbody');
+
+  // Crear una instancia del objeto XMLHttpRequest
+  const xhr = new XMLHttpRequest();
+
+  // Configurar la solicitud GET para el archivo CSV
+  xhr.open('GET', archivoCSV, true);
+
+  // Definir el manejador de eventos para la carga exitosa de datos
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const filas = xhr.responseText.trim().split('\n');
+      
+      // Recorrer las filas y agregar datos a la tabla
+      for (const fila of filas) {
+        const datos = fila.split(',');
+        if (datos.length === 4) {
+          const tr = document.createElement('tr');
+          for (const dato of datos) {
+            const td = document.createElement('td');
+            td.textContent = dato;
+            tr.appendChild(td);
+          }
+          tabla.appendChild(tr);
+        }
+      }
+    } else {
+      console.error('Error al cargar el archivo CSV.');
+    }
+  };
+
+  // Enviar la solicitud
+  xhr.send();
+}
+
+// Llama a la función para cargar datos desde el archivo CSV
+cargarDatosDesdeCSV();
+
+
+function calcularHuella() {
+    // Obtener los valores de entrada
+    const consumoEnergia = parseFloat(document.getElementById('consumoEnergia').value) || 0;
+    const consumoAgua = parseFloat(document.getElementById('consumoAgua').value) || 0;
+    const emisionesCO2 = parseFloat(document.getElementById('emisionesCO2').value) || 0;
+    const kilometrosCoche = parseFloat(document.getElementById('kilometrosCoche').value) || 0;
+
+    // Calcular la huella ecológica utilizando factores de equivalencia
+    const huellaEnergia = consumoEnergia * factorEnergia;
+    const huellaAgua = consumoAgua * factorAgua;
+    const huellaCO2 = emisionesCO2 * factorCO2;
+    const huellaCoche = kilometrosCoche * factorCoche;
+
+    // Sumar todas las huellas
+    const calculoHuella = huellaEnergia + huellaAgua + huellaCO2 + huellaCoche;
+
+    // Mostrar el resultado en el elemento "resultado"
+    const resultado = document.getElementById('resultado');
+    resultado.textContent = 'Tu huella ambiental es: ' + calculoHuella.toFixed(2) + ' hectáreas globales'; // Redondear el resultado a dos decimales y mostrar la unidad.
+
+    // Agregar una fila a la tabla con los datos ingresados
+    const tabla = document.querySelector('table tbody');
+    const tr = document.createElement('tr');
+    const td1 = document.createElement('td');
+    const td2 = document.createElement('td');
+    const td3 = document.createElement('td');
+    const td4 = document.createElement('td');
+    
+    td1.textContent = consumoEnergia;
+    td2.textContent = consumoAgua;
+    td3.textContent = emisionesCO2;
+    td4.textContent = kilometrosCoche;
+    
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    
+    tabla.appendChild(tr);
+}
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Resultados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            text-align: center;
+        }
+        #dataArea {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            padding: 10px;
+            font-family: monospace;
+            resize: none;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Informe de Resultados de Examen</h1>
+    <textarea id="dataArea" placeholder="Pega aquí los resultados..."></textarea>
+    <br>
+    <button onclick="generateReport()">Generar Informe</button>
+
+    <div id="results"></div>
+    <canvas id="resultsChart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function generateReport() {
+            const dataText = document.getElementById('dataArea').value.trim();
+            const rows = dataText.split('\n').filter(row => row.trim() !== '');
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
+            const students = [];
+            const scores = [];
+
+            rows.forEach(row => {
+                const columns = row.split(/\s+/); // Split by whitespace
+                const name = columns.slice(0, 3).join(' '); // First three columns are the name
+                const score = parseInt(columns[columns.length - 3]); // Score is the third from last column
+                const percentage = columns[columns.length - 2]; // Percentage is the second from last column
+
+                students.push(name);
+                scores.push(score);
+
+                // Display individual student result
+                resultsContainer.innerHTML += `<p><strong>${name}</strong>: Puntuación ${score} (${percentage})</p>`;
+            });
+
+            // Generate chart
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: students,
+                    datasets: [{
+                        label: 'Puntuación',
+                        data: scores,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Foro de Comentarios</title>
+
+
+<STYle>
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.header {
+    background-color: #3498db;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.comment-box {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 10px;
+}
+
+.comment {
+    background-color: #f4f4f4;
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+}
+
+.comment p {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.comment-inputs {
+    display: flex;
+    flex-direction: column;
+}
+
+#name-input {
+    width: 96%;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+#comment-input {
+    width: 96%;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#name-input:focus, #comment-input:focus {
+    outline: none;
+    border-color: #5a9983;
+    border-width: 5px; /* Puedes ajustar el ancho del borde según tus preferencias */
+    transition: border-color 0.3s ease-in-out, border-width 0.3s ease-in-out; /* Agregar transición para el ancho del borde */
+}
+
+#submit-button {
+    background-color: #5a9983;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+#submit-button:hover {
+    background-color: #2186c9;
+}
+
+
+
+
+
+</STYle>
+
+
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Foro de Comentarios</h1>
+        </div>
+        <div class="comments" id="comments"> <br>
+        </div>
+        <form id="comment-form">
+            <div class="comment-inputs">
+                <input type="text" id="name-input" placeholder="Tu nombre">
+                <textarea id="comment-input" placeholder="Escribe tu comentario"></textarea>
+            </div>
+            <button type="submit" id="submit-button">Comentar</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+
+
+<SCRipt>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const commentForm = document.getElementById("comment-form");
+    const nameInput = document.getElementById("name-input");
+    const commentInput = document.getElementById("comment-input");
+    const commentsContainer = document.getElementById("comments");
+
+    commentForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const name = nameInput.value;
+        const commentText = commentInput.value;
+
+        if (name.trim() !== "" && commentText.trim() !== "") {
+            const commentDiv = document.createElement("div");
+            commentDiv.classList.add("comment");
+
+            const commentContent = document.createElement("p");
+            commentContent.innerHTML = `<strong>${name}:</strong> ${commentText}`;
+
+            commentDiv.appendChild(commentContent);
+            commentsContainer.appendChild(commentDiv);
+
+            nameInput.value = "";
+            commentInput.value = "";
+        }
+    });
+});
+
+
+
+
+
+</SCRipt>
+
+
+
+
+</body>
+</html>

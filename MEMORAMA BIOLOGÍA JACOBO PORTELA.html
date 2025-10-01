@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Memorama – Origen de la Vida (2 Jugadores)</title>
+  <style>
+    :root{
+      --bg:#0b1022; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+      --p0:#22d3ee; --p1:#a78bfa; --good:#34d399; --warn:#f59e0b; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed;
+      color:var(--txt);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial
+    }
+    header{padding:20px clamp(16px,4vw,40px)}
+    h1{margin:0 0 6px;font-size:clamp(22px,3.6vw,34px)}
+    .sub{margin:0;color:var(--muted);font-size:clamp(12px,2.4vw,14px)}
+
+    .wrap{display:grid;gap:clamp(14px,2.5vw,22px);grid-template-columns:1fr; padding:0 clamp(16px,4vw,40px) 40px}
+    @media(min-width:1000px){.wrap{grid-template-columns:1fr minmax(320px,420px)}}
+
+    .panel{background:rgba(17,24,39,.6);border:1px solid var(--borde);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--borde);flex-wrap:wrap}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    input{background:#0c1428;border:1px solid var(--borde);color:var(--txt);padding:8px 10px;border-radius:10px;font-weight:600}
+    .num{width:110px;text-align:center}
+    button{border:1px solid var(--borde);background:#0b1224;color:var(--txt);cursor:pointer;padding:8px 12px;border-radius:10px;font-weight:700;font-size:14px}
+    button:hover{border-color:#334155;box-shadow:0 6px 16px rgba(34,211,238,.15),inset 0 1px 0 rgba(255,255,255,.04)}
+
+    .players{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .tag{padding:6px 10px;border-radius:999px;border:1px solid var(--borde);display:flex;align-items:center;gap:8px;background:#0b1224;font-weight:800}
+    .dot{width:10px;height:10px;border-radius:999px}
+    .p0{color:var(--p0)} .p0 .dot{background:var(--p0)}
+    .p1{color:var(--p1)} .p1 .dot{background:var(--p1)}
+    .turn{border-color:#334155;box-shadow:0 0 0 2px rgba(255,255,255,.05) inset,0 0 0 4px rgba(34,211,238,.12)}
+
+    .toggle{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--borde);border-radius:10px;background:#0b1224;font-weight:700}
+    .toggle input{accent-color:#22d3ee}
+
+    /* Board */
+    .board{padding:16px}
+    .grid{--cols:6;display:grid;grid-template-columns:repeat(var(--cols),minmax(80px,1fr));gap:12px;max-width:1100px;margin:0 auto}
+    @media(max-width:920px){.grid{--cols:5}}
+    @media(max-width:680px){.grid{--cols:4}}
+    @media(max-width:520px){.grid{--cols:3}}
+
+    .card{position:relative;height:120px;perspective:900px}
+    .inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .4s ease;border-radius:12px}
+    .card.flipped .inner{transform:rotateY(180deg)}
+    .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.18);backface-visibility:hidden;outline:0.5px solid rgba(255,255,255,.04)}
+    .front{background:linear-gradient(180deg,rgba(31,41,55,.85),rgba(17,24,39,.85));
+      border:1px solid color-mix(in oklab, var(--c, #334155) 40%, #000 60%)}
+    .back{
+      transform:rotateY(180deg);
+      /* Por defecto: solo color */
+      background-image: linear-gradient(180deg, var(--c, #0b1224), rgba(0,0,0,.15));
+      border:1px solid color-mix(in oklab, var(--c, #334155) 70%, #000 30%);
+    }
+    /* Modo daltónico activo: añade patrón por par encima del color */
+    .cb-on .back{
+      background-image: var(--pat, none), linear-gradient(180deg, var(--c, #0b1224), rgba(0,0,0,.15));
+      background-blend-mode: multiply, normal;
+    }
+
+    .text{font-size:13px;line-height:1.25;color:var(--txt);text-align:center}
+    .badge{position:absolute;top:8px;right:8px;font-size:10px;padding:3px 6px;border-radius:999px;border:1px solid #334155;background:#0b1224}
+    .match.owner0 .back{box-shadow:0 0 0 2px var(--p0) inset, 0 0 0 4px color-mix(in oklab, var(--c, #fff) 35%, transparent) inset}
+    .match.owner1 .back{box-shadow:0 0 0 2px var(--p1) inset, 0 0 0 4px color-mix(in oklab, var(--c, #fff) 35%, transparent) inset}
+    .disabled{pointer-events:none;opacity:.6}
+
+    /* Sidebar */
+    .side{position:sticky;top:16px}
+    .side .list{padding:14px 16px;border-bottom:1px solid var(--borde)}
+    .side h2{margin:0 0 8px;font-size:16px}
+    .kv{display:grid;gap:8px}
+    .row{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+    .legend{display:grid;gap:8px}
+    .legend .item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+    .swatch{width:16px;height:16px;border-radius:4px;border:1px solid #334155;outline:0.5px solid rgba(255,255,255,.04)}
+
+    /* HUD */
+    .hud{position:fixed;top:12px;right:12px;z-index:1000;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--borde);background:rgba(17,24,39,.8);backdrop-filter:blur(6px)}
+    .hud .ind{font-size:13px;color:var(--muted)}
+    .alert{color:var(--warn);font-weight:800}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Memorama – Origen de la Vida</h1>
+    <p class="sub">Empareja <strong>término</strong> con su <strong>definición</strong>. Modo <strong>2 jugadores</strong> con puntaje, cronómetro y pausa. Activa <strong>Modo daltónico</strong> para patrones.</p>
+  </header>
+
+  <div class="wrap">
+    <!-- LEFT: game -->
+    <section class="panel">
+      <div class="top">
+        <div class="players">
+          <span class="tag p0" id="t0"><span class="dot"></span><span id="n0">Jugador 1</span> · <span id="s0">0</span></span>
+          <span class="tag p1" id="t1"><span class="dot"></span><span id="n1">Jugador 2</span> · <span id="s1">0</span></span>
+        </div>
+        <div class="controls">
+          <input id="i0" placeholder="Jugador 1" value="JACOBO PORTELA" />
+          <input id="i1" placeholder="Jugador 2" value="PROFE MARIO" />
+          <input id="itime" class="num" type="number" min="5" max="120" value="20" title="Segundos por turno" />
+          <label class="toggle" title="Añade patrones por par">
+            <input type="checkbox" id="cbToggle" />
+            ♿ Modo daltónico
+          </label>
+          <button id="start">▶ Iniciar</button>
+          <button id="pause">⏸ Pausa</button>
+          <button id="reset">↻ Reiniciar</button>
+        </div>
+      </div>
+      <div class="board"><div id="grid" class="grid"></div></div>
+    </section>
+
+    <!-- RIGHT: info -->
+    <aside class="panel side">
+      <div class="list">
+        <h2>Cómo jugar</h2>
+        <div class="kv">
+          <div class="row">• Toca dos cartas: si coinciden (término ↔ definición), te llevas el par y <strong>mantienes</strong> el turno.</div>
+          <div class="row">• Si fallas o se acaba el tiempo, el turno pasa al otro jugador.</div>
+          <div class="row">• Gana quien tenga más pares al final.</div>
+        </div>
+      </div>
+      <div class="list">
+        <h2>Temas incluidos</h2>
+        <div class="legend" id="topics"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <span class="ind" id="pairs">Pares: 0 / 0</span>
+    <span class="ind">Turno: <strong id="turn">Jugador 1</strong></span>
+    <span class="ind">Tiempo: <strong id="timer">00:20</strong></span>
+  </div>
+
+  <script>
+  // ===== Dataset: términos y definiciones =====
+  const data = [
+    { t:'BIG BANG', d:'Modelo cosmológico que explica el origen y expansión del universo desde una singularidad.' },
+    { t:'INFLACIONARIA', d:'Fase de expansión acelerada que habría ocurrido instantes después del Big Bang.' },
+    { t:'ESTADO ESTACIONARIO', d:'Teoría (ya descartada) que sostenía un universo eterno y sin inicio.' },
+    { t:'OSCILANTE', d:'Modelo de universo con ciclos de expansión y contracción (Big Bounce).' },
+    { t:'MULTIVERSO', d:'Hipótesis de múltiples universos con distintas condiciones físicas.' },
+    { t:'ABIOGÉNESIS', d:'Origen de la vida a partir de materia no viva mediante procesos naturales.' },
+    { t:'BIOGÉNESIS', d:'Principio de que la vida procede de vida preexistente.' },
+    { t:'SOPA PRIMORDIAL', d:'Mezcla acuosa rica en orgánicos propuesta por Oparin y Haldane.' },
+    { t:'PANSPERMIA', d:'Hipótesis de que la vida o sus componentes llegaron del espacio.' },
+    { t:'COACERVADOS', d:'Microgotas que concentran moléculas, posibles precursores de células.' },
+    { t:'MUNDO ARN', d:'Escenario donde el ARN actuó como material genético y catalizador antes del ADN.' },
+    { t:'AMINOÁCIDOS', d:'Bloques de construcción de proteínas; pueden formarse abióticamente.' },
+    { t:'NUCLEÓTIDOS', d:'Unidades químicas de ARN/ADN: base, azúcar y fosfato.' },
+    { t:'PROCARIOTAS', d:'Organismos unicelulares sin núcleo; los primeros seres vivos.' },
+    { t:'EUCARIOTAS', d:'Células con núcleo y orgánulos; surgieron por endosimbiosis.' },
+    { t:'METABOLISMO', d:'Conjunto de reacciones químicas que sustentan la vida.' },
+    { t:'HOMEOSTASIS', d:'Mantenimiento de condiciones internas estables.' },
+    { t:'SELECCIÓN NATURAL', d:'Rasgos ventajosos se propagan con el tiempo.' },
+    { t:'EVOLUCIÓN', d:'Cambio de las poblaciones a lo largo del tiempo.' }
+  ];
+
+  // ===== Colores por par (visualmente distintos) =====
+  const pairColors = (()=> {
+    const n = data.length, arr = [];
+    for(let i=0;i<n;i++){ const h = Math.round((360/n)*i); arr.push(`hsl(${h} 70% 55%)`); }
+    return arr;
+  })();
+
+  // ===== Patrones por par (para modo daltónico) =====
+  // Cada entrada es un CSS background-image válido (repeating-linear/radial/…)
+  const pairPatterns = [
+    'repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0 6px, rgba(0,0,0,0) 6px 12px)',
+    'repeating-linear-gradient(135deg, rgba(255,255,255,.55) 0 8px, rgba(0,0,0,0) 8px 16px)',
+    'repeating-linear-gradient(0deg, rgba(255,255,255,.55) 0 5px, rgba(0,0,0,0) 5px 10px)',
+    'repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 5px, rgba(0,0,0,0) 5px 10px)',
+    'repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0 2px, rgba(0,0,0,0) 2px 8px)',
+    'repeating-linear-gradient(135deg, rgba(255,255,255,.55) 0 3px, rgba(0,0,0,0) 3px 9px)',
+    'radial-gradient(circle at 10px 10px, rgba(255,255,255,.6) 2px, transparent 3px), radial-gradient(circle at 30px 30px, rgba(255,255,255,.6) 2px, transparent 3px)',
+    'radial-gradient(circle at 20px 20px, rgba(255,255,255,.6) 3px, transparent 4px)',
+    'repeating-linear-gradient(45deg, rgba(255,255,255,.55) 0 10px, rgba(0,0,0,0) 10px 20px)',
+    'repeating-linear-gradient(135deg, rgba(255,255,255,.55) 0 10px, rgba(0,0,0,0) 10px 20px)',
+    'repeating-linear-gradient(0deg, rgba(255,255,255,.55) 0 2px, rgba(0,0,0,0) 2px 6px)',
+    'repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 2px, rgba(0,0,0,0) 2px 6px)'
+  ];
+
+  // ===== Shortcuts =====
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+  const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  const pad = n => String(n).padStart(2,'0');
+
+  // ===== State =====
+  let names = ['Jugador 1','Jugador 2'];
+  let scores = [0,0];
+  let turn = 0; // 0 or 1
+  let totalPairs = 0; let foundPairs = 0;
+  let flipped = []; // [{el, id, kind}]
+  let locked = false; // lock board while checking
+
+  // timer
+  let TURN_TIME = 20; let left = TURN_TIME; let timerId = null; let paused = false;
+
+  // DOM refs
+  const grid = $('#grid');
+  const pairsLbl = $('#pairs');
+  const turnLbl = $('#turn');
+  const timerLbl = $('#timer');
+  const n0=$('#n0'), n1=$('#n1'), s0=$('#s0'), s1=$('#s1');
+  const t0=$('#t0'), t1=$('#t1');
+  const i0=$('#i0'), i1=$('#i1'), itime=$('#itime');
+  const startBtn=$('#start'), resetBtn=$('#reset'), pauseBtn=$('#pause');
+  const cbToggle = $('#cbToggle');
+  const topics = $('#topics');
+
+  // ===== Build deck (term + def pairs) =====
+  function buildDeck(){
+    const deck = [];
+    data.forEach((item,idx)=>{
+      const color = pairColors[idx];
+      const pat = pairPatterns[idx % pairPatterns.length];
+      deck.push({ id:idx, kind:'t', text:item.t, color, pat });
+      deck.push({ id:idx, kind:'d', text:item.d, color, pat });
+    });
+    return shuffle(deck);
+  }
+
+  function renderTopics(){
+    topics.innerHTML = data.map((x,i)=>{
+      const color = pairColors[i];
+      const pat = pairPatterns[i % pairPatterns.length];
+      // Swatch con color de base + patrón encima (siempre visible en la leyenda)
+      return `<div class="item">
+        <span class="swatch" style="background-image:${pat},linear-gradient(180deg,${color},${color}); background-blend-mode:multiply,normal;"></span>
+        <strong>${x.t}</strong>
+      </div>`;
+    }).join('');
+  }
+
+  function renderBoard(){
+    const deck = buildDeck();
+    totalPairs = data.length; foundPairs = 0; updatePairs();
+    grid.innerHTML = '';
+    deck.forEach(card=>{
+      const el = document.createElement('div');
+      el.className = 'card'; el.dataset.id = card.id; el.dataset.kind = card.kind;
+      el.innerHTML = `
+        <div class="inner" style="--c:${card.color}; --pat:${card.pat}">
+          <div class="face front"><span class="badge">?</span></div>
+          <div class="face back"><div class="text">${card.text}</div></div>
+        </div>`;
+      el.addEventListener('click', ()=> onFlip(el));
+      grid.appendChild(el);
+    });
+  }
+
+  // ===== Game flow =====
+  function updateHUD(){
+    n0.textContent = names[0]; n1.textContent = names[1];
+    s0.textContent = String(scores[0]); s1.textContent = String(scores[1]);
+    turnLbl.textContent = names[turn];
+    t0.classList.toggle('turn', turn===0); t1.classList.toggle('turn', turn===1);
+  }
+  function updatePairs(){ pairsLbl.textContent = `Pares: ${foundPairs} / ${totalPairs}`; }
+
+  function onFlip(el){
+    if(locked) return;
+    if(el.classList.contains('flipped')) return;
+    el.classList.add('flipped');
+    const card = { el, id: +el.dataset.id, kind: el.dataset.kind };
+    flipped.push(card);
+    if(flipped.length===2){
+      locked = true;
+      checkMatch();
+    }
+  }
+
+  function checkMatch(){
+    const [a,b] = flipped;
+    const isMatch = a.id===b.id && a.kind!==b.kind;
+    setTimeout(()=>{
+      if(isMatch){
+        a.el.classList.add('match', `owner${turn}`);
+        b.el.classList.add('match', `owner${turn}`);
+        a.el.classList.add('disabled'); b.el.classList.add('disabled');
+        a.el.style.pointerEvents = b.el.style.pointerEvents = 'none';
+        scores[turn] += 1; // 1 punto por par
+        foundPairs += 1; updatePairs(); updateHUD();
+        // mantiene turno; reinicia tiempo
+        restartTurnTimer();
+        // fin?
+        if(foundPairs===totalPairs){ endGame(); }
+      } else {
+        // fallo: voltear y cambiar turno
+        a.el.classList.remove('flipped');
+        b.el.classList.remove('flipped');
+        changeTurn();
+      }
+      flipped = []; locked = false;
+    }, 600);
+  }
+
+  function endGame(){
+    stopTimer();
+    let msg;
+    if(scores[0]===scores[1]) msg = `¡Empate ${scores[0]} - ${scores[1]}!`;
+    else { const g = scores[0]>scores[1]?0:1; msg = `🎉 Ganador: ${names[g]} (${scores[g]} pares)`; }
+    setTimeout(()=>alert(msg), 80);
+  }
+
+  function changeTurn(){
+    turn = 1 - turn; updateHUD();
+    restartTurnTimer();
+  }
+
+  // ===== Timer =====
+  function updateTimerLabel(){ timerLbl.textContent = `${pad(Math.floor(left/60))}:${pad(left%60)}`; timerLbl.classList.toggle('alert', left<=5); }
+  function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+  function startTimer(){ stopTimer(); timerId = setInterval(()=>{ left-=1; updateTimerLabel(); if(left<=0){ stopTimer(); changeTurn(); } },1000); }
+  function restartTurnTimer(){ left = TURN_TIME; updateTimerLabel(); if(!paused) startTimer(); }
+
+  // ===== Controls =====
+  function newGame(resetNames=true){
+    if(resetNames){ names = [i0.value?.trim()||'Jugador 1', i1.value?.trim()||'Jugador 2']; TURN_TIME = Math.max(5, Math.min(120, +itime.value||20)); }
+    scores=[0,0]; turn=0; paused=false; pauseBtn.textContent='⏸ Pausa';
+    updateHUD(); renderBoard(); renderTopics(); restartTurnTimer();
+  }
+
+  startBtn.addEventListener('click', ()=> newGame(true));
+  resetBtn.addEventListener('click', ()=> newGame(false));
+  pauseBtn.addEventListener('click', ()=>{
+    paused = !paused;
+    if(paused){ stopTimer(); pauseBtn.textContent='▶ Reanudar'; }
+    else { pauseBtn.textContent='⏸ Pausa'; startTimer(); }
+  });
+
+  cbToggle.addEventListener('change', ()=>{
+    document.body.classList.toggle('cb-on', cbToggle.checked);
+  });
+
+  // boot
+  (function init(){ renderTopics(); newGame(true); })();
+  </script>
+</body>
+</html>

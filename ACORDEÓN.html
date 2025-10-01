@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora Ambiental</title>
+
+
+
+    <style>
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+  
+      table, th, td {
+          border: 1px solid black;
+      }
+  
+      th, td {
+          padding: 8px;
+          text-align: center;
+      }
+  
+      th {
+          background-color: #ccc;
+      }
+  
+      td.gramos {
+          font-weight: bold;
+          background-color: #f5f5f5;
+      }
+
+/* Estilos básicos para el acordeón */
+.acordeon {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.acordeon-item {
+    border-top: 1px solid #ccc;
+}
+
+.acordeon-titulo {
+    background-color: #f9f9f9;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.acordeon-contenido {
+    padding: 10px;
+    display: none; /* Ocultar el contenido por defecto */
+}
+
+/* Estilos mejorados para el acordeón */
+.acordeon {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.acordeon-item {
+    border-top: 1px solid #ddd;
+    transition: background-color 0.3s;
+}
+
+.acordeon-titulo {
+    background-color: #f9f9f9;
+    padding: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none; /* Evita la selección de texto */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.acordeon-contenido {
+    padding: 15px;
+    display: none;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.acordeon-contenido p {
+    margin: 0;
+}
+
+/* Estilo cuando el título está activo (abierto) */
+.acordeon-titulo.active {
+    background-color: #007acc;
+    color: #fff;
+}
+
+/* Estilo de flecha para indicar estado (abierto/cerrado) */
+.acordeon-titulo .flecha {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.3s;
+}
+
+.acordeon-titulo.active .flecha {
+    transform: rotate(180deg);
+}
+
+/* Estilo de transición suave al abrir y cerrar */
+.acordeon-contenido.open {
+    max-height: 1000px; /* Establece una altura máxima para controlar la animación */
+    transition: max-height 0.3s ease-in;
+}
+
+
+
+  </style>
+  
+</head>
+<body>
+
+    
+
+    <div class="acordeon">
+        <div class="acordeon-item">
+            <div class="acordeon-titulo">Título del Primer Elemento</div>
+            <div class="acordeon-contenido">
+                <p>
+                    <h1>CALCULADORA AMBIENTAL</h1>
+
+                    <label for="cantidad_latas">Cantidad de latas de aluminio:</label>
+                    <input type="number" id="cantidad_latas" placeholder="0"><br><br>
+                
+                    <label for="cantidad_cuadernos">Cantidad de cuadernos:</label>
+                    <input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+                
+                    <label for="cantidad_botellas">Cantidad de botellas plásticas:</label>
+                    <input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+                
+                    <button onclick="calcularImpacto()">Calcular Impacto</button>
+                
+                    <table>
+                        <tr>
+                            <th>Tipo de Material Reciclable</th>
+                            <th>Peso Promedio (gramos)</th>
+                            <th>Peso Total (gramos)</th>
+                        </tr>
+                        <tr>
+                            <td>Cuaderno de 100 hojas</td>
+                            <td>160</td>
+                            <td id="peso_cuadernos">0</td>
+                        </tr>
+                        <tr>
+                            <td>Lata de aluminio</td>
+                            <td>12</td>
+                            <td id="peso_latas">0</td>
+                        </tr>
+                        <tr>
+                            <td>Botella plástica de 500 mL</td>
+                            <td>20</td>
+                            <td id="peso_botellas">0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Peso Total del Material Reciclado</strong></td>
+                            <td></td>
+                            <td id="peso_total"><strong>0</strong></td>
+                        </tr>
+                
+                
+                    </table><br><br>
+                </p>
+            </div>
+        </div>
+        <div class="acordeon-item">
+            <div class="acordeon-titulo">Título del Segundo Elemento</div>
+            <div class="acordeon-contenido">
+                <p>Contenido del segundo elemento del acordeón.</p>
+            </div>
+        </div>
+        <!-- Agrega más elementos del acordeón según sea necesario -->
+    </div>
+
+    <script>
+
+// Calcula la suma total y la coloca en la celda de "Peso Total (gramos)"
+function calcularImpacto() {
+            const cantidadLatas = parseInt(document.getElementById("cantidad_latas").value);
+            const cantidadCuadernos = parseInt(document.getElementById("cantidad_cuadernos").value);
+            const cantidadBotellas = parseInt(document.getElementById("cantidad_botellas").value);
+
+
+            const pesoLatas = cantidadLatas * 12; // Peso promedio de lata de aluminio
+            const pesoCuadernos = cantidadCuadernos * 160; // Peso promedio de cuaderno
+            const pesoBotellas = cantidadBotellas * 20; // Peso promedio de botella plástica
+            const pesoTotal = pesoLatas + pesoCuadernos + pesoBotellas;
+
+            document.getElementById("peso_latas").textContent = pesoLatas;
+            document.getElementById("peso_cuadernos").textContent = pesoCuadernos;
+            document.getElementById("peso_botellas").textContent = pesoBotellas;
+
+// Aplicar la etiqueta <strong> al resultado y establecer el contenido HTML
+    const pesoTotalElement = document.getElementById("peso_total");
+    pesoTotalElement.innerHTML = "<strong>" + pesoTotal + "</strong>";
+
+}
+
+        
+// Obtener todos los elementos del acordeón
+const acordeonItems = document.querySelectorAll('.acordeon-item');
+
+// Agregar un evento de clic a cada título del acordeón
+acordeonItems.forEach((item) => {
+    const titulo = item.querySelector('.acordeon-titulo');
+    const contenido = item.querySelector('.acordeon-contenido');
+
+    titulo.addEventListener('click', () => {
+        if (contenido.style.display === 'block') {
+            contenido.style.display = 'none';
+        } else {
+            contenido.style.display = 'block';
+        }
+    });
+});
+
+
+    </script>
+</body>
+</html>

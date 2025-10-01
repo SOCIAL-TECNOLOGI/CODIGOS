@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potencias – Dinámico</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 { color: #38bdf8; }
+
+  .tablero {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .carta {
+    background: #1e293b;
+    border: 2px solid #38bdf8;
+    border-radius: 10px;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+  }
+  .carta:hover { transform: scale(1.1); background: #334155; }
+
+  .factores, .explicacion {
+    margin-top: 25px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #facc15;
+  }
+  .explicacion { color: #93c5fd; font-size: 18px; }
+
+  button {
+    margin-top: 30px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #38bdf8;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #0f172a;
+    transition: background 0.3s;
+  }
+  button:hover { background: #0ea5e9; }
+</style>
+</head>
+<body>
+
+<h1>Juego de Potencias</h1>
+<p>Haz clic en la potencia para descomponerla en sumas de <b>base¹</b> y luego ver su multiplicación.</p>
+
+<div class="tablero">
+  <div class="carta" id="potencia"></div>
+</div>
+
+<div class="factores" id="factores">—</div>
+<div class="explicacion" id="explicacion">Pulsa la potencia para comenzar.</div>
+
+<button id="btnNueva">🔄 Nueva Potencia</button>
+
+<script>
+let base, exponente, restantes, sumaPot1, factores;
+
+const potenciaEl = document.getElementById("potencia");
+const factoresEl = document.getElementById("factores");
+const explicacionEl = document.getElementById("explicacion");
+const btnNueva = document.getElementById("btnNueva");
+
+function nuevaPotencia(){
+  // Generamos aleatorio entre 2 y 5 de base, y exponente entre 2 y 5
+  base = Math.floor(Math.random()*4)+2; 
+  exponente = Math.floor(Math.random()*4)+2; 
+  restantes = exponente;
+  sumaPot1 = [];
+  factores = [];
+
+  potenciaEl.textContent = base + "^" + exponente;
+  potenciaEl.style.background = "#1e293b";
+  factoresEl.textContent = "—";
+  explicacionEl.textContent = "Haz clic en " + base + "^" + exponente + " para descomponerlo.";
+}
+
+potenciaEl.addEventListener("click", ()=>{
+  if(restantes > 0){
+    sumaPot1.push(base + "¹");
+    factores.push(base);
+    restantes--;
+
+    explicacionEl.textContent = sumaPot1.join(" + ");
+    factoresEl.textContent = factores.join(" × ");
+
+    if(restantes === 0){
+      setTimeout(()=>{
+        factoresEl.textContent += " = " + Math.pow(base, exponente);
+        explicacionEl.textContent = base + "^" + exponente + 
+          " = " + sumaPot1.join(" + ") + 
+          " → " + factores.join(" × ") + 
+          " = " + Math.pow(base, exponente);
+        potenciaEl.style.background = "#16a34a";
+      }, 600);
+    }
+  }
+});
+
+btnNueva.addEventListener("click", nuevaPotencia);
+
+// Iniciar con una potencia
+nuevaPotencia();
+</script>
+
+</body>
+</html>

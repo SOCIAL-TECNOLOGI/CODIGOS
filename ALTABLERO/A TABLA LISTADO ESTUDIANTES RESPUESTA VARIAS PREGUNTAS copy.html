@@ -1,0 +1,276 @@
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Análisis de Respuestas</title>  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>  
+
+    <style>  
+        body {  
+            font-family: sans-serif;  
+        }  
+        table {  
+            border-collapse: collapse;  
+            width: 100%;  
+            margin-bottom: 20px;  
+        }  
+        th, td {  
+            border: 1px solid #ddd;  
+            padding: 8px;  
+            text-align: left;  
+        }  
+        th {  
+            background-color: #f2f2f2;  
+        }  
+        .tab {  
+            overflow: hidden;  
+            border: 1px solid #ccc;  
+            background-color: #f1f1f1;  
+        }  
+        .tab button {  
+            background-color: inherit;  
+            float: left;  
+            border: none;  
+            outline: none;  
+            cursor: pointer;  
+            padding: 14px 16px;  
+            transition: 0.3s;  
+        }  
+        .tab button:hover {  
+            background-color: #ddd;  
+        }  
+        .tab button.active {  
+            background-color: #ccc;  
+            font-weight: bold;  
+        }  
+        .tabcontent {  
+            display: none;  
+            padding: 6px 12px;  
+            border: 1px solid #ccc;  
+            border-top: none;  
+        }  
+        #dataInputContainer {  
+            margin-top: 10px;  
+        }  
+        textarea {  
+            width: 100%;  
+            height: 150px;  
+            padding: 10px;  
+            border: 1px solid #ccc;  
+            border-radius: 4px;  
+            resize: vertical;  
+        }  
+        .chart-container {  
+            position: relative;  
+            margin-bottom: 20px;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <h1>Análisis de Respuestas</h1>  
+    
+    <button id="toggleTextArea">Mostrar/Ocultar Área de Texto</button>  
+    <div id="dataInputContainer" style="display: none;">  
+        <textarea id="dataInput" rows="10" placeholder="Ingresa los datos aquí..."></textarea>  
+    </div>  
+    
+    <br>  
+    <label for="respuestaCorrecta">Respuestas Correctas (separadas por comas):</label>  
+    <input type="text" id="respuestaCorrecta" placeholder="Ej: A,B,C,D" />  
+    <br>  
+    <label for="urlRefuerzo">URLs de Refuerzo (separadas por comas):</label>  
+    <input type="text" id="urlRefuerzo" placeholder="Ej: https://www.ejemplo.com/refuerzo1,https://www.ejemplo.com/refuerzo2" />  
+    <br>  
+    <button id="analyzeButton">Analizar Datos</button>  
+    <div id="results"></div>  
+    
+    <div id="responseChartContainer"></div> 
+
+    <script>  
+    document.getElementById('analyzeButton').addEventListener('click', function() {  
+    const data = document.getElementById('dataInput').value;  
+    const lines = data.trim().split('\n');  
+    const results = {};  
+    const estudiantesRegistrados = {};  
+    const respuestasCorrectas = document.getElementById('respuestaCorrecta').value.split(',').map(res => res.toUpperCase().trim());  
+    
+    processLines(lines, results, estudiantesRegistrados, respuestasCorrectas);  
+    generateResultsHTML(results, respuestasCorrectas);  
+    generateCharts(results);  
+});  
+
+function processLines(lines, results, estudiantesRegistrados, respuestasCorrectas) {  
+    lines.slice(1).forEach(line => {  
+        const parts = line.split('\t');  
+        if (parts.length > 3) {  
+            const sede = parts[0].trim();  
+            const nombres = parts[1].trim();  
+            const apellidos = parts[2].trim();  
+            const nombreCompleto = (nombres + ' ' + apellidos).toUpperCase();  
+
+            if (!results[sede]) {  
+                results[sede] = {};  
+                estudiantesRegistrados[sede] = {};  
+            }  
+
+            for (let i = 0; i < respuestasCorrectas.length; i++) {  
+                const respuesta = parts[i + 3]?.trim().toUpperCase();   
+
+                if (!estudiantesRegistrados[sede][nombreCompleto]) {  
+                    if (!results[sede][i]) {  
+                        results[sede][i] = { correctas: {}, incorrectas: {}, total: 0 };  
+                    }  
+
+                    const esCorrecta = respuesta === respuestasCorrectas[i];  
+                    if (esCorrecta) {  
+                        if (!results[sede][i].correctas[respuesta]) {  
+                            results[sede][i].correctas[respuesta] = [];  
+                        }  
+                        results[sede][i].correctas[respuesta].push(nombreCompleto);  
+                    } else {  
+                        if (!results[sede][i].incorrectas[respuesta]) {  
+                            results[sede][i].incorrectas[respuesta] = [];  
+                        }  
+                        results[sede][i].incorrectas[respuesta].push(nombreCompleto);  
+                    }  
+                    results[sede][i].total++;  
+                    estudiantesRegistrados[sede][nombreCompleto] = true;   
+                }  
+            }  
+        }  
+    });  
+}  
+
+function generateResultsHTML(results, respuestasCorrectas) {  
+    let html = '';  
+
+    for (const sede in results) {  
+        html += `<h2>${sede}</h2>`;  
+        html += `<div class="tab">`;  
+
+        for (let preguntaIndex in results[sede]) {  
+            html += `<button class="tablinks" onclick="openTab(event, '${sede}-pregunta${preguntaIndex}')">Pregunta ${parseInt(preguntaIndex) + 1}</button>`;  
+        }  
+        html += `</div>`;  
+
+        for (let preguntaIndex in results[sede]) {  
+            html += `<div id="${sede}-pregunta${preguntaIndex}" class="tabcontent" style="display: none;">`;  
+            html += `<table><thead><tr><th>Respuesta Correcta</th><th>Nombres</th></tr></thead><tbody>`;  
+
+            for (const respuesta in results[sede][preguntaIndex].correctas) {  
+                results[sede][preguntaIndex].correctas[respuesta].forEach(name => {  
+                    html += `<tr><td>${respuesta}</td><td>${name}</td></tr>`;  
+                });  
+            }  
+            html += '</tbody></table></div>';  
+        }  
+    }  
+
+    document.getElementById('results').innerHTML = html;  
+    const firstTab = document.querySelector('.tablinks');  
+    if (firstTab) {  
+        firstTab.click(); // Activar la primera pestaña por defecto  
+    }  
+}  
+
+function generateCharts(results) {  
+    const ctxContainer = document.getElementById('responseChartContainer');  
+    ctxContainer.innerHTML = ''; // Limpiar gráficos anteriores  
+
+    for (const sede in results) {  
+        for (let preguntaIndex in results[sede]) {  
+            const correctas = results[sede][preguntaIndex].correctas;  
+            const total = results[sede][preguntaIndex].total;  
+
+            // Contar respuestas para A, B, C, D  
+            const counts = ['A', 'B', 'C', 'D'].map(option => (correctas[option] || []).length);  
+            const percentages = counts.map(count => total > 0 ? ((count / total) * 100).toFixed(2) : 0);  
+
+            // Crear contenedor para el gráfico  
+            const chartContainer = document.createElement('div');  
+            chartContainer.className = 'chart-container';  
+
+            const canvas = document.createElement('canvas');  
+            chartContainer.appendChild(canvas);  
+            ctxContainer.appendChild(chartContainer);  
+
+            const ctx = canvas.getContext('2d');  
+
+            new Chart(ctx, {  
+                type: 'bar',  
+                data: {  
+                    labels: ['A', 'B', 'C', 'D'],  
+                    datasets: [{  
+                        label: 'Porcentaje de respuestas',  
+                        data: percentages,  
+                        backgroundColor: [  
+                            'rgba(135, 206, 250, 0.5)', // Azul cielo   
+                            'rgba(255, 206, 86, 0.5)',   // Amarillo claro  
+                            'rgba(144, 238, 144, 0.5)',  // Verde claro   
+                            'rgba(153, 102, 255, 0.5)'   // Morado claro   
+                        ],  
+                        borderColor: [  
+                            'rgba(0, 102, 204, 1)',     
+                            'rgba(255, 206, 86, 1)',    
+                            'rgba(144, 238, 144, 1)',    
+                            'rgba(153, 102, 255, 1)'    
+                        ],  
+                        borderWidth: 1  
+                    }]  
+                },  
+                options: {  
+                    scales: {  
+                        y: {  
+                            beginAtZero: true  
+                        }  
+                    },  
+                    plugins: {  
+                        tooltip: {  
+                            callbacks: {  
+                                label: function(context) {  
+                                    const label = context.label;  
+                                    const value = context.parsed.y;  
+                                    const count = counts[context.dataIndex];  
+                                    return `${label}: ${value}% (${count} respuestas)`;  
+                                }  
+                            }  
+                        },  
+                        legend: {  
+                            display: true  
+                        }  
+                    }  
+                }  
+            });  
+        }  
+    }  
+}  
+
+function openTab(event, tabName) {  
+    var i, tabcontent, tablinks;  
+    tabcontent = document.getElementsByClassName("tabcontent");  
+    for (i = 0; i < tabcontent.length; i++) {  
+        tabcontent[i].style.display = "none"; // Ocultar todas las pestañas  
+    }  
+
+    tablinks = document.getElementsByClassName("tablinks");  
+    for (i = 0; i < tablinks.length; i++) {  
+        tablinks[i].className = tablinks[i].className.replace(" active", "");  
+    }  
+
+    document.getElementById(tabName).style.display = "block"; // Mostrar la pestaña actual  
+    event.currentTarget.className += " active"; // Agregar clase "active" al botón que lo abrió  
+}  
+
+document.getElementById('toggleTextArea').addEventListener('click', function() {  
+    const dataInputContainer = document.getElementById('dataInputContainer');  
+    if (dataInputContainer.style.display === 'none' || dataInputContainer.style.display === '') {  
+        dataInputContainer.style.display = 'block'; // Mostrar el área de texto  
+    } else {  
+        dataInputContainer.style.display = 'none'; // Ocultar el área de texto  
+    }  
+});  
+    </script>  
+</body>  
+</html>  

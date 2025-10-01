@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        .maze {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        .wall {
+            position: absolute;
+            background-color: #3498db;
+        }
+
+        #pacman {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #f5f500;
+            border-radius: 50%;
+            transition: transform 0.1s linear;
+        }
+
+        .ghost {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            animation: moveGhost 1s infinite alternate;
+        }
+
+        @keyframes moveGhost {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="maze">
+        <!-- Laberinto -->
+        <div class="wall" style="width: 20px; height: 200px; top: 0; left: 0;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 0; left: 100px;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 0; left: 300px;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 200px; left: 100px;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 0; left: 400px;"></div>
+        <div class="wall" style="width: 200px; height: 20px; top: 200px; left: 200px;"></div>
+        <div class="wall" style="width: 200px; height: 20px; top: 400px; left: 0;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 200px; left: 400px;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 400px; left: 100px;"></div>
+        <div class="wall" style="width: 20px; height: 200px; top: 400px; left: 300px;"></div>
+        <!-- Pac-Man -->
+        <div id="pacman"></div>
+        <!-- Fantasma -->
+        <div class="ghost" style="top: 200px; left: 0;"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const pacman = document.getElementById("pacman");
+            const maze = document.querySelector(".maze");
+            const walls = document.querySelectorAll(".wall");
+
+            document.addEventListener("keydown", function (event) {
+                movePacman(event.key);
+            });
+
+            function movePacman(direction) {
+                const pacmanStyle = getComputedStyle(pacman);
+                const pacmanTop = parseInt(pacmanStyle.top);
+                const pacmanLeft = parseInt(pacmanStyle.left);
+
+                const step = 20;
+
+                switch (direction) {
+                    case "ArrowUp":
+                        if (!checkCollision(pacmanTop - step, pacmanLeft)) {
+                            pacman.style.transform = "rotate(-90deg)";
+                            pacman.style.top = Math.max(pacmanTop - step, 0) + "px";
+                        }
+                        break;
+                    case "ArrowDown":
+                        if (!checkCollision(pacmanTop + step, pacmanLeft)) {
+                            pacman.style.transform = "rotate(90deg)";
+                            pacman.style.top = Math.min(pacmanTop + step, maze.offsetHeight - pacman.offsetHeight) + "px";
+                        }
+                        break;
+                    case "ArrowLeft":
+                        if (!checkCollision(pacmanTop, pacmanLeft - step)) {
+                            pacman.style.transform = "rotate(180deg)";
+                            pacman.style.left = Math.max(pacmanLeft - step, 0) + "px";
+                        }
+                        break;
+                    case "ArrowRight":
+                        if (!checkCollision(pacmanTop, pacmanLeft + step)) {
+                            pacman.style.transform = "rotate(0deg)";
+                            pacman.style.left = Math.min(pacmanLeft + step, maze.offsetWidth - pacman.offsetWidth) + "px";
+                        }
+                        break;
+                }
+            }
+
+            function checkCollision(top, left) {
+                // Verifica si hay colisión con las paredes
+                for (const wall of walls) {
+                    const wallTop = wall.offsetTop;
+                    const wallLeft = wall.offsetLeft;
+                    const wallBottom = wallTop + wall.offsetHeight;
+                    const wallRight = wallLeft + wall.offsetWidth;
+
+                    const pacmanTop = top;
+                    const pacmanLeft = left;
+                    const pacmanBottom = top + pacman.offsetHeight;
+                    const pacmanRight = left + pacman.offsetWidth;
+
+                    if (
+                        pacmanBottom > wallTop &&
+                        pacmanTop < wallBottom &&
+                        pacmanRight > wallLeft &&
+                        pacmanLeft < wallRight
+                    ) {
+                        return true; // Hay colisión
+                    }
+                }
+
+                return false; // No hay colisión
+            }
+        });
+    </script>
+</body>
+</html>

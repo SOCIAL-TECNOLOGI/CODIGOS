@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador Dihíbrido</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f4f4f4;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .selectors {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    select {
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+
+    .responsive-table {
+      overflow-x: auto;
+      margin: 20px auto;
+      max-width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+      min-width: 600px;
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    td, th {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    .btn {
+      background: #27ae60;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .btn:hover {
+      background: #219150;
+    }
+
+    .fenotipo-label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #chartBarContainer {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    #graficoBarras,
+    #graficoFenotipos,
+    #graficoGenotipos {
+      width: 430px !important;
+      height: 430px !important;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .leyenda {
+      text-align: center;
+      font-style: italic;
+      margin-top: 20px;
+    }
+
+    .preguntas-educativas,
+    .respuestas-estudiante {
+      max-width: 70% !important;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .preguntas-educativas h3,
+    .respuestas-estudiante h3 {
+      color: #2c3e50;
+    }
+
+    .preguntas-educativas ul {
+      padding-left: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .btn-flotante {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #34495e;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 999;
+    }
+
+    .btn-flotante:hover {
+      background: #2c3e50;
+    }
+
+    #cuadro {
+      display: flex;
+      justify-content: center;
+    }
+
+    #cuadro table {
+      margin: 0 auto;
+    }
+
+    body.dark-mode th {
+      background-color: #333;
+      color: #f4f4f4;
+    }
+
+    body.dark-mode .leyenda {
+      color: #ffffff;
+    }
+
+    body.dark-mode .btn {
+      background: #2ecc71;
+      color: #ffffff;
+    }
+
+    body.dark-mode .leyenda {
+      color: #ffffff;
+    }
+
+    /* NUEVAS CLASES ANIMACIÓN */
+    .fade-in {
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<button class="btn-flotante" onclick="toggleDarkMode()">🌓</button>
+
+<div id="contenedorExportable">
+  <h1>🐰 Simulador Dihíbrido</h1>
+
+  <div class="header">
+    <h2>🧬 Información de los Progenitores</h2>
+    <p><strong>Progenitor 1:</strong> Selecciona el genotipo del primer progenitor y observa su fenotipo.</p>
+    <p><strong>Progenitor 2:</strong> Selecciona el genotipo del segundo progenitor y observa su fenotipo.</p>
+    <p>Luego de identificar los fenotipos, se procede a realizar el <strong>cruce genético dihíbrido</strong> para determinar la descendencia probable.</p>
+  </div>
+
+  <div class="leyenda">
+    <p><strong>Nota:</strong> B = pelaje negro (dominante), b = pelaje blanco (recesivo); E = orejas grandes (dominante), e = orejas pequeñas (recesivo).</p>
+  </div>
+
+  <div class="selectors">
+    <label title="Selecciona el genotipo del primer progenitor">
+      Progenitor 1:
+      <select id="gen1" onchange="actualizarFenotipos()">
+        <option value="BBEE" title="Pelaje negro, orejas grandes">BBEE</option>
+        <option value="BBEe" title="Pelaje negro, orejas grandes">BBEe</option>
+        <option value="BbEE" title="Pelaje negro, orejas grandes">BbEE</option>
+        <option value="BbEe" title="Pelaje negro, orejas grandes" selected>BbEe</option>
+        <option value="BBee" title="Pelaje negro, orejas pequeñas">BBee</option>
+        <option value="bbEE" title="Pelaje blanco, orejas grandes">bbEE</option>
+        <option value="Bbee" title="Pelaje negro, orejas pequeñas">Bbee</option>
+        <option value="bbee" title="Pelaje blanco, orejas pequeñas">bbee</option>
+        <option value="bbEe" title="Pelaje blanco, orejas grandes">bbEe</option>
+      </select>
+    </label>
+
+    <span style="font-size: 24px;">&times;</span>
+
+    <label title="Selecciona el genotipo del segundo progenitor">
+      Progenitor 2:
+      <select id="gen2" onchange="actualizarFenotipos()">
+        <option value="BBEE" title="Pelaje negro, orejas grandes">BBEE</option>
+        <option value="BBEe" title="Pelaje negro, orejas grandes">BBEe</option>
+        <option value="BbEE" title="Pelaje negro, orejas grandes">BbEE</option>
+        <option value="BbEe" title="Pelaje negro, orejas grandes">BbEe</option>
+        <option value="BBee" title="Pelaje negro, orejas pequeñas">BBee</option>
+        <option value="bbEE" title="Pelaje blanco, orejas grandes">bbEE</option>
+        <option value="Bbee" title="Pelaje negro, orejas pequeñas">Bbee</option>
+        <option value="bbee" title="Pelaje blanco, orejas pequeñas" selected>bbee</option>
+        <option value="bbEe" title="Pelaje blanco, orejas grandes">bbEe</option>
+      </select>
+    </label>
+
+    <button class="btn" onclick="generarCuadro()">🧪 Generar Cruce</button>
+    <label>
+
+    <button class="btn" onclick="reiniciarSimulador()">🔄 Reiniciar</button>
+  </div>
+
+  <div class="selectors">
+    <div id="fenotipo1" class="fenotipo-label">Fenotipo: -</div>
+    <div style="width: 40px;"></div>
+    <div id="fenotipo2" class="fenotipo-label">Fenotipo: -</div>
+  </div>
+
+  <div class="responsive-table fade-in">
+    <div id="cuadro"></div>
+  </div>
+
+  <canvas id="graficoFenotipos" class="fade-in"></canvas>
+  <div id="proporcionTexto" class="leyenda fade-in"></div>
+
+  <canvas id="graficoBarras" class="fade-in"></canvas>
+  <canvas id="graficoGenotipos" class="fade-in"></canvas>
+  <button class="btn" onclick="exportarResultado()">📸 Descargar Resultado</button>
+
+  <h3>🧪 Preguntas para Reflexionar</h3>
+  <ul>
+    <li>¿Cuál fue el fenotipo más frecuente?</li>
+    <li>¿Este cruce refleja una proporción esperada?</li>
+    <li>¿Cómo cambiarían los resultados si un progenitor fuera homocigoto recesivo?</li>
+  </ul>
+
+  <h3>✍️ Tus Respuestas</h3>
+  <textarea placeholder="Escribe tu análisis sobre el fenotipo más frecuente..."></textarea>
+  <textarea placeholder="Escribe tu interpretación sobre la proporción fenotípica obtenida..."></textarea>
+  <textarea placeholder="¿Qué observas si uno de los progenitores es homocigoto recesivo?..."></textarea>
+</div>
+  <script>
+    let chart, chartBar, chartGen;
+    let ultimaFrecuencia = {}, ultimoGenotipo = {};
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      if (chart || chartBar || chartGen) {
+        if (chart) chart.destroy();
+        if (chartBar) chartBar.destroy();
+        if (chartGen) chartGen.destroy();
+        generarGrafico(ultimaFrecuencia, ultimoGenotipo);
+      }
+    }
+
+    function obtenerFenotipo(genotipo) {
+      const B = genotipo.includes('B');
+      const E = genotipo.includes('E');
+      let color = B ? 'Negro' : 'Blanco';
+      let orejas = E ? 'Orejas grandes' : 'Orejas pequeñas';
+      return `${color} con ${orejas}`;
+    }
+
+    function obtenerGametas(genotipo) {
+      const alelo1 = [genotipo[0], genotipo[1]];
+      const alelo2 = [genotipo[2], genotipo[3]];
+      const gametas = [];
+      for (let a1 of alelo1) {
+        for (let a2 of alelo2) {
+          gametas.push(a1 + a2);
+        }
+      }
+      return gametas;
+    }
+
+    function ordenarAlelos(genes) {
+      const ordenar = (a, b) => {
+        const mayusculas = [a, b].filter(l => l === l.toUpperCase()).sort();
+        const minusculas = [a, b].filter(l => l === l.toLowerCase()).sort();
+        return [...mayusculas, ...minusculas].join('');
+      };
+      return ordenar(genes[0], genes[1]) + ordenar(genes[2], genes[3]);
+    }
+
+    function asignarColor(fenotipo) {
+      const colores = {
+        "Negro con Orejas grandes": "#A3E4D7",
+        "Negro con Orejas pequeñas": "#F7DC6F",
+        "Blanco con Orejas grandes": "#AED6F1",
+        "Blanco con Orejas pequeñas": "#F5B7B1"
+      };
+      return colores[fenotipo] || "#ffffff";
+    }
+
+    function detectarProporcionClasica(frecuencias) {
+      const valores = Object.values(frecuencias).sort((a, b) => b - a);
+      const total = valores.reduce((a, b) => a + b, 0);
+      const proporciones = valores.map(v => Math.round((v / total) * 16));
+      const texto = proporciones.join(':');
+      return texto === "9:3:3:1" ? texto + " (Mendeliana clásica)" : texto;
+    }
+
+    function generarGrafico(frecuencias, genotipos) {
+  ultimaFrecuencia = frecuencias;
+  ultimoGenotipo = genotipos;
+
+  const ctx = document.getElementById('graficoFenotipos').getContext('2d');
+  const ctxBar = document.getElementById('graficoBarras').getContext('2d');
+  const ctxGen = document.getElementById('graficoGenotipos').getContext('2d');
+
+  if (chart) chart.destroy();
+  if (chartBar) chartBar.destroy();
+  if (chartGen) chartGen.destroy();
+
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(frecuencias),
+      datasets: [{
+        data: Object.values(frecuencias),
+        backgroundColor: Object.keys(frecuencias).map(f => asignarColor(f))
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+          }
+        },
+        datalabels: {
+          color: '#000',
+          font: { weight: 'bold', size: 14 },
+          formatter: (value, context) => {
+            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(2);
+            return `${value} (${percentage}%)`;
+          }
+        }
+      },
+      responsive: true
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  chartBar = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(frecuencias),
+      datasets: [{
+        label: 'Frecuencia',
+        data: Object.values(frecuencias),
+        backgroundColor: Object.keys(frecuencias).map(f => asignarColor(f))
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+          }
+        }
+      }
+    }
+  });
+
+
+  // Reinicia animaciones fade-in
+['graficoFenotipos', 'graficoBarras', 'graficoGenotipos'].forEach(id => {
+  const el = document.getElementById(id);
+  el.classList.remove('fade-in');        // quita la clase por si ya estaba
+  void el.offsetWidth;                   // fuerza reflujo (reinicia la animación)
+  el.classList.add('fade-in');           // la vuelve a aplicar
+});
+
+
+  function generarColoresPastel(cantidad) {
+    const colores = [];
+    const hueStep = 360 / cantidad;
+    for (let i = 0; i < cantidad; i++) {
+      const hue = i * hueStep;
+      colores.push(`hsl(${hue}, 60%, 75%)`);
+    }
+    return colores;
+  }
+
+  const genotipoLabels = Object.keys(genotipos);
+  const genotipoData = Object.values(genotipos);
+  const genotipoColores = generarColoresPastel(genotipoLabels.length);
+
+  chartGen = new Chart(ctxGen, {
+    type: 'bar',
+    data: {
+      labels: genotipoLabels,
+      datasets: [{
+        label: 'Genotipos',
+        data: genotipoData,
+        backgroundColor: genotipoColores
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333',
+          font: { weight: 'bold' }
+        }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      hover: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  const proporcion = Object.entries(frecuencias)
+    .map(([fenotipo, valor]) => `${valor} ${fenotipo}`)
+    .join(', ');
+  const proporcionCl = detectarProporcionClasica(frecuencias);
+  document.getElementById("proporcionTexto").innerHTML = `<strong>Proporción fenotípica obtenida:</strong> ${proporcion}.<br><strong>Proporción clásica aproximada:</strong> ${proporcionCl}`;
+}
+
+    function cruzar(g1, g2) {
+      const gam1 = obtenerGametas(g1);
+      const gam2 = obtenerGametas(g2);
+
+      let html = '<table><tr><th></th>';
+      gam2.forEach(g => html += `<th>${g}</th>`);
+      html += '</tr>';
+
+      let frec = {}, genotipos = {}, combinaciones = [];
+
+      gam1.forEach(gm1 => {
+        gam2.forEach(gm2 => {
+          const genes = ordenarAlelos([gm1[0], gm2[0], gm1[1], gm2[1]]);
+          const fenotipo = obtenerFenotipo(genes);
+          frec[fenotipo] = (frec[fenotipo] || 0) + 1;
+          genotipos[genes] = (genotipos[genes] || 0) + 1;
+          combinaciones.push({ gm1, gm2, genes, fenotipo });
+        });
+      });
+
+      const maxFenotipo = Object.entries(frec).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+
+      for (let i = 0; i < gam1.length; i++) {
+        html += `<tr><th>${gam1[i]}</th>`;
+        for (let j = 0; j < gam2.length; j++) {
+          const { genes, fenotipo } = combinaciones[i * 4 + j];
+          const color = asignarColor(fenotipo);
+          const extraStyle = fenotipo === maxFenotipo ? 'border: 3px solid #000;' : '';
+          html += `<td style="background-color:${color};${extraStyle}">
+                    <strong>${genes}</strong><br>${fenotipo}</td>`;
+        }
+        html += '</tr>';
+      }
+
+      generarGrafico(frec, genotipos);
+      return html;
+    }
+
+    function generarCuadro() {
+      const gen1 = document.getElementById("gen1").value;
+      const gen2 = document.getElementById("gen2").value;
+      const f1 = obtenerFenotipo(gen1);
+      const f2 = obtenerFenotipo(gen2);
+
+      document.getElementById("fenotipo1").innerHTML = `🧬 <strong>${f1}</strong>`;
+      document.getElementById("fenotipo2").innerHTML = `🧬 <strong>${f2}</strong>`;
+      document.getElementById("cuadro").innerHTML = cruzar(gen1, gen2);
+    }
+
+    function actualizarFenotipos() {
+      const gen1 = document.getElementById("gen1").value;
+      const gen2 = document.getElementById("gen2").value;
+      document.getElementById("fenotipo1").innerHTML = `🧬 <strong>${obtenerFenotipo(gen1)}</strong>`;
+      document.getElementById("fenotipo2").innerHTML = `🧬 <strong>${obtenerFenotipo(gen2)}</strong>`;
+    }
+
+    function exportarResultado() {
+      const contenedor = document.getElementById('contenedorExportable');
+      html2canvas(contenedor, { backgroundColor: "#ffffff", scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'resultado_dihibrido.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function reiniciarSimulador() {
+      document.getElementById("gen1").selectedIndex = 3;
+      document.getElementById("gen2").selectedIndex = 7;
+      document.getElementById("cuadro").innerHTML = "";
+      document.getElementById("fenotipo1").innerText = "Fenotipo: -";
+      document.getElementById("fenotipo2").innerText = "Fenotipo: -";
+      document.getElementById("proporcionTexto").innerHTML = "";
+      if (chart) chart.destroy();
+      if (chartBar) chartBar.destroy();
+      if (chartGen) chartGen.destroy();
+      actualizarFenotipos();
+    }
+
+    window.onload = () => actualizarFenotipos();
+  </script>
+</body>
+</html>

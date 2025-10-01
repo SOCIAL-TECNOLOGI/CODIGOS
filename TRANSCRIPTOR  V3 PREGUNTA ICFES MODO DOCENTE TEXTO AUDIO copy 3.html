@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Evaluación Inclusiva ICFES - Docente</title>
+  <style>
+    body{font-family:Arial, sans-serif;background:#f4f4f9;padding:20px;}
+    h2{text-align:center;}
+    .pregunta{background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.1);margin-bottom:30px;max-width:850px;}
+    img.preview{max-width:120px;margin-top:8px;border:2px solid #ccc;border-radius:6px;display:none;}
+    textarea{width:100%;min-height:80px;margin-top:10px;padding:8px;font-size:14px;border-radius:6px;border:1px solid #bbb;}
+
+    button,input,select,label.subir{margin:5px;padding:8px 15px;font-size:14px;border:none;border-radius:6px;cursor:pointer;}
+    .btn-escuchar{background:#2196f3;color:#fff;}
+    .btn-pausar{background:#ff9800;color:#fff;}
+    .btn-reanudar{background:#3f51b5;color:#fff;}
+    .btn-stop{background:#e53935;color:#fff;}
+    .btn-procesar{background:#2196f3;color:#fff;}
+    .btn-agregar{background:#673ab7;color:#fff;}
+    .btn-guardar{background:#009688;color:#fff;}
+
+    .opcion{border:1px solid #ddd;padding:10px;margin-top:8px;border-radius:6px;}
+    .subir{display:inline-block;background:#eee;border:2px dashed #bbb;padding:10px;cursor:pointer;text-align:center;width:120px;}
+    .subir:hover{background:#ddd;}
+    .subir span{font-size:20px;color:#666;}
+    input[type="file"].oculto{position:absolute;left:-9999px;opacity:0;width:1px;height:1px;}
+  </style>
+</head>
+<body>
+  <h2>👨‍🏫 MODO DOCENTE - Crear Banco de Preguntas</h2>
+
+  <div id="contenedorPreguntas"></div>
+
+  <button id="btnAgregar" class="btn-agregar">➕ Agregar Pregunta</button>
+  <button id="btnExportarJSON" class="btn-guardar">💾 Exportar Banco (JSON)</button>
+
+  <!-- OCR con Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script>
+let contadorPreguntas = 0;
+let bancoPreguntas = [];
+
+// ================================
+// Controlador de Voz Centralizado
+// ================================
+
+function createSpeechController(){
+  let utter = null;
+  let currentText = '';
+  let currentBtnSet = {}; 
+  let lastIndex = 0;
+  let state = 'idle'; // idle | playing | paused
+
+  function startFrom(index){
+    if(!currentText) return;
+    while(index>0 && currentText[index] !== ' ') index--; // evitar cortar palabra
+    const slice = currentText.slice(index);
+    if(!slice) return;
+
+    speechSynthesis.cancel();
+    utter = new SpeechSynthesisUtterance(slice);
+    utter.lang = "es-ES";
+    utter.rate = 1;
+
+    utter.onboundary = e=>{
+      if(typeof e.charIndex === "number"){
+        lastIndex = index + e.charIndex;
+      }
+    };
+
+    utter.onend = ()=>{
+      if(state!=="paused"){
+        resetBtns();
+        state = "idle";
+        lastIndex = 0;
+      }
+    };
+
+    speechSynthesis.speak(utter);
+    state="playing";
+  }
+
+  function resetBtns(){
+    if(currentBtnSet.btnEscuchar) currentBtnSet.btnEscuchar.disabled=false;
+    if(currentBtnSet.btnPausar) currentBtnSet.btnPausar.disabled=true;
+    if(currentBtnSet.btnReanudar) currentBtnSet.btnReanudar.disabled=true;
+  }
+
+  return {
+    init(text, btns){
+      currentText = text;
+      currentBtnSet = btns;
+      lastIndex = 0;
+      state="idle";
+      resetBtns();
+    },
+    play(){
+      if(state==="idle"){
+        startFrom(0);
+        currentBtnSet.btnEscuchar.disabled=true;
+        currentBtnSet.btnPausar.disabled=false;
+        currentBtnSet.btnReanudar.disabled=true;
+      }
+    },
+    pause(){
+      if(state==="playing" && speechSynthesis.speaking){
+        speechSynthesis.pause();   // ⏸️ pausa nativa
+        state="paused";
+        currentBtnSet.btnPausar.disabled=true;
+        currentBtnSet.btnReanudar.disabled=false;
+      }
+    },
+    resume(){
+      if(state==="paused"){
+        speechSynthesis.resume();  // ▶️ reanudar nativo
+
+        // Fallback: si no reanuda en 200ms, relanzar desde lastIndex
+        setTimeout(()=>{
+          if(!speechSynthesis.speaking){
+            startFrom(lastIndex || 0);
+          }
+        },200);
+
+        state="playing";
+        currentBtnSet.btnPausar.disabled=false;
+        currentBtnSet.btnReanudar.disabled=true;
+      }
+    },
+    stop(){
+      speechSynthesis.cancel();
+      state="idle";
+      lastIndex=0;
+      resetBtns();
+    }
+  };
+}
+
+
+
+const speechController = createSpeechController();
+
+// ================================
+// Construcción de preguntas
+// ================================
+function crearPregunta(datos=null){
+  contadorPreguntas++;
+  const qid=contadorPreguntas;
+
+  const div=document.createElement("div");
+  div.classList.add("pregunta");
+  div.id="pregunta"+qid;
+
+  div.innerHTML=`
+    <h3>Pregunta ${qid}</h3>
+    <textarea id="textoPregunta${qid}" placeholder="✍️ Escribe la pregunta">${(datos && datos.texto)?datos.texto:""}</textarea>
+    <label class="subir" for="inputImagen${qid}">📷 <span>Pregunta</span></label>
+    <input class="oculto" type="file" id="inputImagen${qid}" accept="image/*"/>
+    <img id="preview${qid}" class="preview"><br>
+    <button id="btnOCR${qid}" class="btn-procesar">🔍 Procesar Imagen</button>
+    <div>
+      <button id="btnEscuchar${qid}" class="btn-escuchar">🔊 Escuchar</button>
+      <button id="btnPausar${qid}" class="btn-pausar" disabled>⏸️ Pausar</button>
+      <button id="btnReanudar${qid}" class="btn-reanudar" disabled>▶️ Reanudar</button>
+      <button id="btnDetener${qid}" class="btn-stop">⏹️ Detener</button>
+    </div>
+  `;
+
+  document.getElementById("contenedorPreguntas").appendChild(div);
+
+  const textarea=document.getElementById(`textoPregunta${qid}`);
+  const btnEscuchar=document.getElementById(`btnEscuchar${qid}`);
+  const btnPausar=document.getElementById(`btnPausar${qid}`);
+  const btnReanudar=document.getElementById(`btnReanudar${qid}`);
+  const btnDetener=document.getElementById(`btnDetener${qid}`);
+  const preview=document.getElementById(`preview${qid}`);
+  const inputImg=document.getElementById(`inputImagen${qid}`);
+  const btnOCR=document.getElementById(`btnOCR${qid}`);
+
+  // Imagen de pregunta
+  inputImg.addEventListener("change", e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{ preview.src=ev.target.result; preview.style.display="block"; };
+    reader.readAsDataURL(f);
+  });
+
+  // OCR
+  btnOCR.addEventListener("click", async()=>{
+    if(!preview.src){alert("Sube una imagen primero.");return;}
+    btnOCR.textContent="⏳ Procesando...";
+    try{
+      const {data:{text}}=await Tesseract.recognize(preview.src,"spa");
+      textarea.value=(text||"").trim();
+      alert("✅ Pregunta transcrita.");
+    }catch(err){console.error(err);alert("❌ Error en OCR.");}
+    btnOCR.textContent="🔍 Procesar Imagen";
+  });
+
+  // Botones de lectura
+  btnEscuchar.addEventListener("click", ()=>{
+    const txt=textarea.value.trim();
+    if(!txt){alert("No hay texto para leer.");return;}
+    speechController.init(txt,{btnEscuchar,btnPausar,btnReanudar});
+    speechController.play();
+  });
+  btnPausar.addEventListener("click", ()=>speechController.pause());
+  btnReanudar.addEventListener("click", ()=>speechController.resume());
+  btnDetener.addEventListener("click", ()=>speechController.stop());
+}
+
+// Primera pregunta
+crearPregunta();
+document.getElementById("btnAgregar").addEventListener("click", ()=>crearPregunta());
+
+document.getElementById("btnExportarJSON").addEventListener("click", ()=>{
+  const dataStr="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(bancoPreguntas,null,2));
+  const a=document.createElement("a");
+  a.href=dataStr;
+  a.download="banco_preguntas.json";
+  a.click();
+});
+</script>
+
+
+</body>
+</html>

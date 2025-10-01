@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora Ambiental</title>
+</head>
+<body>
+    <h1>Impacto Ambiental</h1>
+
+    <label for="cantidad_latas">Cantidad de latas de aluminio:</label>
+    <input type="number" id="cantidad_latas" placeholder="0"><br><br>
+
+    <label for="cantidad_cuadernos">Cantidad de cuadernos:</label>
+    <input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+
+    <label for "cantidad_botellas">Cantidad de botellas plásticas:</label>
+    <input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+
+    <button onclick="calcularImpacto()">Calcular Impacto</button>
+
+    <h1>Impacto Ambiental Total:</h1>
+    <p id="resultado"></p>
+
+
+
+
+
+    <h2>Calculadora Ambiental</h2>
+
+    <form id="calculadoraForm">
+        <label for="consumoEnergia">Consumo de energía (kWh):</label>
+        <input type="number" id="consumoEnergia" name="consumoEnergia" step="0.01">
+        <br>
+
+        <label for="consumoAgua">Consumo de agua (litros):</label>
+        <input type="number" id="consumoAgua" name="consumoAgua" step="1">
+        <br>
+
+        <label for="emisionesCO2">Emisiones de CO2 (kg):</label>
+        <input type="number" id="emisionesCO2" name="emisionesCO2" step="0.01">
+        <br>
+
+        <label for="kilometrosCoche">Kilómetros conducidos en coche:</label>
+        <input type="number" id="kilometrosCoche" name="kilometrosCoche" step="0.1">
+        <br>
+
+        <button type="button" onclick="calcularHuella()">Calcular</button>
+        <button type="button" onclick="resetCalculadora()">Reiniciar</button>
+    </form>
+
+   
+
+    <script>
+        function calcularImpacto() {
+            const cantidad_latas = parseFloat(document.getElementById("cantidad_latas").value);
+            const cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value);
+            const cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+
+            const datos = {
+                "Lata de Aluminio": { Energia_kWh: 15, Agua_litros: 1.5, CO2_kg: 2.7 },
+                "Cuaderno (100 hojas)": { Energia_kWh: 2, Agua_litros: 10, CO2_kg: 1.5 },
+                "Botella Plástica": { Energia_kWh: 1.9, Agua_litros: 3, CO2_kg: 0.9 }
+            };
+
+            let impactoTotal = { Energia_kWh: 0, Agua_litros: 0, CO2_kg: 0 };
+
+            for (const producto in datos) {
+                if (datos.hasOwnProperty(producto)) {
+                    const cantidad = producto === "Lata de Aluminio" ? cantidad_latas :
+                                     producto === "Cuaderno (100 hojas)" ? cantidad_cuadernos : cantidad_botellas;
+                    impactoTotal.Energia_kWh += datos[producto].Energia_kWh * cantidad;
+                    impactoTotal.Agua_litros += datos[producto].Agua_litros * cantidad;
+                    impactoTotal.CO2_kg += datos[producto].CO2_kg * cantidad;
+                }
+            }
+
+            document.getElementById("resultado").innerHTML = `Energía (kWh): ${impactoTotal.Energia_kWh.toFixed(2)}<br>Agua (litros): ${impactoTotal.Agua_litros.toFixed(2)}<br>Emisiones de CO2 (kg): ${impactoTotal.CO2_kg.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>

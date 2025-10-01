@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Gráficos y Tablas de Asistencia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generador de Gráficos y Tablas de Asistencia</h1>
+    <h3>Ingrese los totales de estudiantes:</h3>
+    <textarea id="totalData" placeholder="Ejemplo: TOTAL ESTUDIANTES: 21, MUJERES: 12, HOMBRES: 9"></textarea>
+    <h3>Ingrese los datos de asistencia:</h3>
+    <textarea id="inputData" placeholder="Pega tus datos aquí en el formato proporcionado..."></textarea>
+    <button onclick="processData()">Generar</button>
+    <canvas id="attendanceChart" width="800" height="400"></canvas>
+    <div id="tableContainer"></div>
+    <canvas id="percentageChart" width="800" height="400"></canvas> <!-- Nuevo canvas para el gráfico de porcentajes -->
+
+    <script>
+        function processData() {
+            const totalData = document.getElementById('totalData').value.trim();
+            const totalMatch = totalData.match(/TOTAL ESTUDIANTES:\s*(\d+),\s*MUJERES:\s*(\d+),\s*HOMBRES:\s*(\d+)/i);
+
+            if (!totalMatch) {
+                alert("Formato incorrecto en los totales. Ejemplo válido: TOTAL ESTUDIANTES: 21, MUJERES: 12, HOMBRES: 9");
+                return;
+            }
+
+            const totalStudents = parseInt(totalMatch[1]);
+            const totalWomen = parseInt(totalMatch[2]);
+            const totalMen = parseInt(totalMatch[3]);
+
+            const inputData = document.getElementById('inputData').value.trim();
+            const lines = inputData.split("\n").filter(line => line.trim() !== "");
+
+            if (lines.length < 3) {
+                alert("Formato incorrecto. Asegúrate de incluir fechas, etiquetas M/H y datos.");
+                return;
+            }
+
+            const dates = lines[0].split("\t").map(d => d.trim()).filter(d => d !== "");
+            const attendanceData = lines[2].split("\t").map(value => parseInt(value.trim(), 10));
+
+            const womenData = [];
+            const menData = [];
+            for (let i = 0; i < attendanceData.length; i += 2) {
+                womenData.push(attendanceData[i]);
+                menData.push(attendanceData[i + 1]);
+            }
+
+            const totalAttendance = [];
+            const percentageAttendance = [];
+            const percentageWomen = [];
+            const percentageMen = [];
+
+            for (let i = 0; i < dates.length; i++) {
+                const total = womenData[i] + menData[i];
+                totalAttendance.push(total);
+                percentageAttendance.push((total / totalStudents) * 100);
+                percentageWomen.push((womenData[i] / totalWomen) * 100);
+                percentageMen.push((menData[i] / totalMen) * 100);
+            }
+
+            generateTable(dates, womenData, menData, percentageWomen, percentageMen, totalAttendance, percentageAttendance);
+            generateChart(dates, womenData, menData);
+            generatePercentageChart(dates, percentageWomen, percentageMen); // Nuevo gráfico
+        }
+
+        function generateTable(dates, women, men, percentageWomen, percentageMen, totalAttendance, percentageAttendance) {
+            const container = document.getElementById('tableContainer');
+            container.innerHTML = "";
+
+            const table = document.createElement('table');
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `
+                <th>Fecha</th>
+                <th>Mujeres</th>
+                <th>% Asistencia Mujeres</th>
+                <th>Hombres</th>
+                <th>% Asistencia Hombres</th>
+                <th>Total Asistencia</th>
+                <th>% Asistencia</th>
+            `;
+            table.appendChild(headerRow);
+
+            for (let i = 0; i < dates.length; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${dates[i]}</td>
+                    <td>${women[i]}</td>
+                    <td>${percentageWomen[i].toFixed(2)}%</td>
+                    <td>${men[i]}</td>
+                    <td>${percentageMen[i].toFixed(2)}%</td>
+                    <td>${totalAttendance[i]}</td>
+                    <td>${percentageAttendance[i].toFixed(2)}%</td>
+                `;
+                table.appendChild(row);
+            }
+
+            container.appendChild(table);
+        }
+
+        function generateChart(dates, womenData, menData) {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+
+            if (window.attendanceChartInstance) {
+                window.attendanceChartInstance.destroy();
+            }
+
+            window.attendanceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Mujeres',
+                            data: womenData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Hombres',
+                            data: menData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Estudiantes'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generatePercentageChart(dates, percentageWomen, percentageMen) {
+            const ctx = document.getElementById('percentageChart').getContext('2d');
+
+            if (window.percentageChartInstance) {
+                window.percentageChartInstance.destroy();
+            }
+
+            window.percentageChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: '% Mujeres',
+                            data: percentageWomen,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '% Hombres',
+                            data: percentageMen,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Porcentaje de Asistencia'
+                            },
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudiante - Encuesta</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2 { text-align: center; }
+    button { padding: 10px 20px; margin: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .question, .results { margin-bottom: 20px; }
+    .option { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Encuesta para Estudiantes</h1>
+  
+  <!-- Login de Firebase -->
+  <div id="login-container">
+    <button id="login-btn">Iniciar sesión</button>
+    <button id="logout-btn" style="display:none;">Cerrar sesión</button>
+  </div>
+
+  <div id="survey-container" style="display:none;">
+    <h2>Encuesta</h2>
+    <div id="questions"></div>
+    <button id="submit-votes-btn">Enviar Voto</button>
+  </div>
+
+  <div id="results" style="display:none;">
+    <h2>Resultados de la Encuesta</h2>
+  </div>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      databaseURL: "TU_DATABASE_URL",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Variables
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const surveyContainer = document.getElementById('survey-container');
+    const questionsDiv = document.getElementById('questions');
+    const submitVotesBtn = document.getElementById('submit-votes-btn');
+    const resultsDiv = document.getElementById('results');
+    let surveyData = [];
+    let userVotes = {};
+
+    // Función para iniciar sesión
+    loginBtn.addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = 'inline-block';
+          surveyContainer.style.display = 'block';
+          loadSurvey();
+        })
+        .catch((error) => {
+          alert('Error de inicio de sesión: ' + error.message);
+        });
+    });
+
+    // Función para cerrar sesión
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut()
+        .then(() => {
+          loginBtn.style.display = 'inline-block';
+          logoutBtn.style.display = 'none';
+          surveyContainer.style.display = 'none';
+          resultsDiv.style.display = 'none';
+        })
+        .catch((error) => {
+          alert('Error al cerrar sesión: ' + error.message);
+        });
+    });
+
+    // Cargar encuesta desde Firebase
+    function loadSurvey() {
+      firebase.database().ref('survey').on('value', (snapshot) => {
+        const survey = snapshot.val();
+        if (survey) {
+          surveyData = survey;
+          displaySurveyQuestions();
+        }
+      });
+    }
+
+    // Mostrar preguntas de la encuesta
+    function displaySurveyQuestions() {
+      questionsDiv.innerHTML = '';
+      surveyData.forEach((question, questionIndex) => {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'question';
+        questionDiv.innerHTML = `<h3>${question.text}</h3>`;
+        
+        question.options.forEach((option, optionIndex) => {
+          const optionInput = document.createElement('input');
+          optionInput.type = 'radio';
+          optionInput.name = `question${questionIndex}`;
+          optionInput.value = optionIndex;
+          optionInput.id = `q${questionIndex}o${optionIndex}`;
+          
+          const optionLabel = document.createElement('label');
+          optionLabel.setAttribute('for', `q${questionIndex}o${optionIndex}`);
+          optionLabel.innerText = option.text;
+
+          questionDiv.appendChild(optionInput);
+          questionDiv.appendChild(optionLabel);
+          questionDiv.appendChild(document.createElement('br'));
+        });
+
+        questionsDiv.appendChild(questionDiv);
+      });
+    }
+
+    // Enviar votos
+    submitVotesBtn.addEventListener('click', () => {
+      if (auth.currentUser) {
+        const userId = auth.currentUser.uid;
+        surveyData.forEach((question, questionIndex) => {
+          const selectedOption = document.querySelector(`input[name="question${questionIndex}"]:checked`);
+          if (selectedOption) {
+            const optionIndex = selectedOption.value;
+            userVotes[userId] = userVotes[userId] || {};
+            userVotes[userId][questionIndex] = optionIndex;
+          }
+        });
+
+        // Guardar votos en Firebase
+        firebase.database().ref('votes').child(auth.currentUser.uid).set(userVotes[userId]);
+
+        alert('Voto enviado con éxito');
+        loadResults();
+      }
+    });
+
+    // Mostrar resultados de la encuesta
+    function loadResults() {
+      resultsDiv.style.display = 'block';
+      firebase.database().ref('survey').on('value', (snapshot) => {
+        const survey = snapshot.val();
+        if (survey) {
+          resultsDiv.innerHTML = '<h2>Resultados en tiempo real</h2>';
+          survey.forEach((question, index) => {
+            const questionResults = document.createElement('div');
+            questionResults.innerHTML = `<h3>${question.text}</h3>`;
+            question.options.forEach((option, optionIndex) => {
+              const votes = surveyData[index].options[optionIndex].votes || 0;
+              questionResults.innerHTML += `<p>Opción ${option.text}: ${votes} votos</p>`;
+            });
+            resultsDiv.appendChild(questionResults);
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

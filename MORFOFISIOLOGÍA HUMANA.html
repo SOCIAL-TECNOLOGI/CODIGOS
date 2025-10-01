@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego Dinámico de Arterias</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f4f8;
+  }
+  h1 { color: #b30000; }
+  .contenedor {
+    display: flex;
+    justify-content: space-around;
+  }
+  .imagen {
+    position: relative;
+    display: inline-block;
+  }
+  .imagen img {
+    width: 600px;
+    border: 3px solid #333;
+    border-radius: 10px;
+  }
+  .dropzone {
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 2px dashed #aaa;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.6);
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .correcto { background: rgba(0,255,0,0.6); border: 2px solid green; }
+  .incorrecto { background: rgba(255,0,0,0.6); border: 2px solid red; }
+  .etiquetas { max-width: 300px; padding: 10px; }
+  .item {
+    background: #fff;
+    margin: 8px;
+    padding: 8px;
+    border: 2px solid #444;
+    border-radius: 6px;
+    cursor: grab;
+  }
+</style>
+</head>
+<body>
+
+<h1>Juego de Arterias – Arrastra al número en la imagen</h1>
+
+<div class="contenedor">
+  <div class="imagen">
+    <img src="https://lh3.googleusercontent.com/uHnmxniPiT-1iX0GBkDffcdLFDNmWhkp6MRWEDK9bz1ZP5vZ86S8ORT3MSuKeMpDDrBkDxH5eVpgUShmP48m14t2TbCnM1Lt7OLg3EH0mrub63_ho-_2joGdfYJVpyDhVwT8GE4r5Sb4rN7NYKwbiP0sMkjms9TfExXSBhKlfU8nTA9-6fS6iQ=w1280">
+
+    <!-- Dropzones ubicados manualmente -->
+    <div class="dropzone" style="top: 50px; left: 280px;" data-respuesta="1. Facial">1</div>
+    <div class="dropzone" style="top: 150px; left: 260px;" data-respuesta="2. Carótida primitiva derecha">2</div>
+    <div class="dropzone" style="top: 250px; left: 300px;" data-respuesta="3. Tronco braquiocefálico">3</div>
+  </div>
+
+  <div class="etiquetas">
+    <div class="item" draggable="true">1. Facial</div>
+    <div class="item" draggable="true">2. Carótida primitiva derecha</div>
+    <div class="item" draggable="true">3. Tronco braquiocefálico</div>
+  </div>
+</div>
+
+<script>
+  const items = document.querySelectorAll('.item');
+  const dropzones = document.querySelectorAll('.dropzone');
+  let draggedItem = null;
+
+  items.forEach(item => {
+    item.addEventListener('dragstart', () => draggedItem = item);
+    item.addEventListener('dragend', () => draggedItem = null);
+  });
+
+  dropzones.forEach(zone => {
+    zone.addEventListener('dragover', e => e.preventDefault());
+    zone.addEventListener('drop', () => {
+      if (!zone.classList.contains('correcto')) {
+        if (draggedItem.innerText === zone.dataset.respuesta) {
+          zone.textContent = "✔";
+          zone.classList.add('correcto');
+          draggedItem.remove();
+        } else {
+          zone.classList.add('incorrecto');
+          setTimeout(() => zone.classList.remove('incorrecto'), 800);
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

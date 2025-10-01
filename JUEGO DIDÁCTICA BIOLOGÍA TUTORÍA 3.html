@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Caza Mutaciones 🎮</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: "Press Start 2P", cursive;
+      color: white;
+      text-align: center;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #111;
+      border: 3px solid #0f0;
+    }
+    #info {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    #objetivo {
+      margin-top: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #gameOverMenu {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      border: 3px solid #0f0;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    #gameOverMenu button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      background: #0f0;
+      border: none;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #gameOverMenu button:hover {
+      background: #aaffaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧬 Caza Mutaciones</h1>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <div id="info">
+    ❤️ Vidas: <span id="vidas">3</span> | ⭐ Puntos: <span id="puntos">0</span> | 💎 Vidas Extra: <span id="vidasExtra">2</span>
+    <br>
+    Nivel: <span id="nivel">1</span>
+    <br>
+    ⚡ SHIFT = Turbo | 🔫 ESPACIO = Disparar (Nivel 2)
+    <div id="objetivo">🎯 Atrapa solo heterocigotos: <b>Aa, Bb</b></div>
+  </div>
+
+  <div id="gameOverMenu">
+    <h2>💀 GAME OVER 💀</h2>
+    <p>¿Qué quieres hacer?</p>
+    <button onclick="usarVidaExtra()">❤️ Usar 1 vida extra</button>
+    <button onclick="reiniciarJuego()">🔄 Reiniciar</button>
+  </div>
+
+  <!-- sonidos -->
+  <audio id="soundOk" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+  <audio id="soundFail" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="soundLife" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+  <audio id="soundStar" src="https://actions.google.com/sounds/v1/cartoon/descending_whistle.ogg"></audio>
+  <audio id="soundShoot" src="https://actions.google.com/sounds/v1/foley/metal_wobble.ogg"></audio>
+  <audio id="soundExplosion" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // jugador inicial
+    const player = { x: 250, y: 360, w: 100, h: 20, speed: 8 };
+    const nave = { x: 250, y: 330, w: 40, h: 60, speed: 6 };
+
+    // estado
+    let objetos = [];
+    let disparos = [];
+    let puntos = 0;
+    let vidas = 3;
+    let nivel = 1;
+    let gameOver = false;
+    let vidasExtra = 2;
+    let turboActivo = false;
+
+    // HUD dinámico
+    const objetivoTexto = document.getElementById("objetivo");
+    function actualizarObjetivo() {
+      if (nivel === 1) {
+        objetivoTexto.innerHTML = "🎯 Atrapa solo heterocigotos: <b>Aa, Bb</b>";
+        objetivoTexto.style.color = "#00ff00";
+      } else if (nivel === 2) {
+        objetivoTexto.innerHTML = "🎯 Dispara a homocigotos: <b>AA, aa</b>";
+        objetivoTexto.style.color = "#ff4444";
+      }
+    }
+
+    // funciones auxiliares
+    function genotipoAleatorio() {
+      const opciones = ["AA","Aa","aa","BB","Bb","bb"];
+      return opciones[Math.floor(Math.random() * opciones.length)];
+    }
+    function esHetero(g) { return g === "Aa" || g === "Bb"; }
+    function esMaloNivel2(g) { return g === "AA" || g === "aa"; }
+
+    // colores según genotipo
+    function colorGenotipo(g) {
+      if (g === "Aa" || g === "Bb") return "#2ecc71"; // verde
+      if (g === "AA" || g === "BB") return "#3498db"; // azul
+      if (g === "aa" || g === "bb") return "#e74c3c"; // rojo
+      return "#7f8c8d";
+    }
+
+    // dibujar nave arcade
+    function dibujarNave(x, y, w, h) {
+      ctx.fillStyle = "#888";
+      ctx.fillRect(x + w*0.3, y, w*0.4, h);
+      ctx.fillStyle = "#555";
+      ctx.fillRect(x, y + h*0.3, w*0.3, h*0.4);
+      ctx.fillRect(x + w*0.7, y + h*0.3, w*0.3, h*0.4);
+      ctx.fillStyle = "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(x + w/2, y + h*0.3, w*0.2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = "#ff4500";
+      ctx.beginPath();
+      ctx.moveTo(x + w*0.3, y + h);
+      ctx.lineTo(x + w/2, y + h + 15 + Math.random()*5);
+      ctx.lineTo(x + w*0.7, y + h);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // generación de objetos
+    setInterval(() => {
+      if (gameOver) return;
+      // 20% power-up
+      if (Math.random() < 0.2) {
+        const tipos = ["corazon","estrella","rayo","diamante"];
+        const tipo = tipos[Math.floor(Math.random()*tipos.length)];
+        objetos.push({
+          x: Math.random() * (canvas.width - 50),
+          y: 0,
+          tipo: tipo,
+          w: 50, h: 50,
+          speed: 2 + Math.random()*2
+        });
+      } else {
+        objetos.push({
+          x: Math.random() * (canvas.width - 50),
+          y: 0,
+          text: genotipoAleatorio(),
+          w: 50, h: 40,
+          speed: 2 + Math.random()*2
+        });
+      }
+    }, 1200);
+
+    // controles
+    let keys = {};
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+      if (nivel === 2 && e.key === " ") {
+        disparos.push({ x: nave.x + nave.w/2 - 2, y: nave.y, w: 4, h: 10, speed: 6 });
+        document.getElementById("soundShoot").play();
+      }
+    });
+    document.addEventListener("keyup", (e) => keys[e.key] = false);
+
+    // loop
+    function update() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      if (nivel === 1) {
+        let currentSpeed = turboActivo ? player.speed*2 : player.speed;
+        if (keys["Shift"]) currentSpeed *= 2;
+        if (keys["ArrowLeft"] && player.x > 0) player.x -= currentSpeed;
+        if (keys["ArrowRight"] && player.x + player.w < canvas.width) player.x += currentSpeed;
+        ctx.fillStyle = "lime";
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+      } else if (nivel === 2) {
+        if (keys["ArrowLeft"] && nave.x > 0) nave.x -= nave.speed;
+        if (keys["ArrowRight"] && nave.x + nave.w < canvas.width) nave.x += nave.speed;
+        dibujarNave(nave.x, nave.y, nave.w, nave.h);
+        ctx.fillStyle = "yellow";
+        disparos.forEach((d,i) => {
+          ctx.fillRect(d.x, d.y, d.w, d.h);
+          d.y -= d.speed;
+          if (d.y < 0) disparos.splice(i,1);
+        });
+      }
+
+      // dibujar objetos
+      for (let i=0; i<objetos.length; i++) {
+        const o = objetos[i];
+        if (o.tipo) {
+          ctx.fillStyle = "#444";
+          ctx.fillRect(o.x, o.y, o.w, o.h);
+          ctx.fillStyle = "white";
+          ctx.font = "28px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const icono = o.tipo==="corazon"?"❤️":o.tipo==="estrella"?"⭐":o.tipo==="rayo"?"⚡":"💎";
+          ctx.fillText(icono, o.x+o.w/2, o.y+o.h/2);
+        } else {
+          ctx.fillStyle = colorGenotipo(o.text);
+          ctx.fillRect(o.x, o.y, o.w, o.h);
+          ctx.strokeStyle = "#fff";
+          ctx.strokeRect(o.x, o.y, o.w, o.h);
+          ctx.fillStyle = "white";
+          ctx.font = "16px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(o.text, o.x+o.w/2, o.y+o.h/2);
+        }
+        o.y += o.speed;
+
+        // colisiones
+        if (nivel === 1) {
+          if (o.y+o.h >= player.y && o.x+o.w > player.x && o.x < player.x+player.w) {
+            if (o.tipo==="corazon"){ if (vidas<5) vidas++; document.getElementById("soundLife").play();}
+            else if (o.tipo==="estrella"){ puntos+=3; document.getElementById("soundStar").play();}
+            else if (o.tipo==="rayo"){ turboActivo=true; setTimeout(()=>turboActivo=false,5000);}
+            else if (o.tipo==="diamante"){ vidasExtra++; document.getElementById("soundLife").play();}
+            else if (esHetero(o.text)){ puntos++; document.getElementById("soundOk").play();}
+            else { vidas--; document.getElementById("soundFail").play();}
+            objetos.splice(i,1); i--;
+          }
+        } else if (nivel===2) {
+          for (let j=0;j<disparos.length;j++){
+            const d=disparos[j];
+            if(d.x<o.x+o.w && d.x+d.w>o.x && d.y<o.y+o.h && d.y+d.h>o.y){
+              if (o.tipo==="corazon"){ if (vidas<5) vidas++; document.getElementById("soundLife").play();}
+              else if (o.tipo==="estrella"){ puntos+=3; document.getElementById("soundStar").play();}
+              else if (o.tipo==="rayo"){ turboActivo=true; setTimeout(()=>turboActivo=false,5000);}
+              else if (o.tipo==="diamante"){ vidasExtra++; document.getElementById("soundLife").play();}
+              else if (esMaloNivel2(o.text)){ puntos+=2; document.getElementById("soundExplosion").play();}
+              else { vidas--; document.getElementById("soundFail").play();}
+              objetos.splice(i,1); disparos.splice(j,1); i--; break;
+            }
+          }
+        }
+
+        if (o.y > canvas.height){ objetos.splice(i,1); i--; }
+      }
+
+      // HUD
+      document.getElementById("puntos").innerText=puntos;
+      document.getElementById("vidas").innerText=vidas;
+      document.getElementById("nivel").innerText=nivel;
+      document.getElementById("vidasExtra").innerText=vidasExtra;
+      actualizarObjetivo();
+
+      // cambio de nivel
+      if (nivel===1 && puntos>=10){
+        nivel=2; objetos=[]; canvas.height=600; nave.y=540;
+        alert("🚀 Nivel 2: Usa la nave y dispara con ESPACIO ⚡");
+      }
+
+      // fin
+      if (vidas<=0){ gameOver=true; document.getElementById("gameOverMenu").style.display="block"; }
+      if (!gameOver) requestAnimationFrame(update);
+    }
+    update();
+
+    // menú
+    function usarVidaExtra(){
+      if(vidasExtra>0){
+        vidasExtra--; vidas=1; gameOver=false;
+        document.getElementById("gameOverMenu").style.display="none"; update();
+      }
+    }
+    function reiniciarJuego(){ location.reload(); }
+  </script>
+</body>
+</html>

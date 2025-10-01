@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; background-color: #e8f0fe; }
+        h1 { text-align: center; margin-bottom: 20px; color: #333; }
+        #calculadora { max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: transform 0.3s; }
+        #calculadora:hover { transform: scale(1.02); }
+        label { font-weight: bold; margin-bottom: 8px; display: block; color: #333; }
+        input[type="number"] { width: calc(100% - 22px); height: 40px; padding: 10px; border: 2px solid #4CAF50; border-radius: 5px; margin-bottom: 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        input[type="number"]:focus { border-color: #3e8e41; outline: none; }
+        .botones { display: flex; justify-content: space-between; margin-top: 20px; }
+        button { background-color: #437244; color: #ffffff; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s, transform 0.3s; display: flex; align-items: center; }
+        button:hover { background-color: #4b7090; transform: scale(1.05); }
+
+        /* Estilos para el botón de modal */
+        .modal-button {
+            background-color: #013A51;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px 16px;
+            border: 1px solid #FFFFFF;
+            outline: none;
+            border-radius: 15px;
+            margin: 0 auto;
+            display: block;
+            transition: background-color 0.1s, color 0.1s;
+        }
+        .modal-button:hover {
+            background-color: #342287;
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</h1>
+
+    <!-- Botón de ventana emergente -->
+    <button class="modal-button" onclick="openModal('https://www.ejemplo.com')">Más Información</button>
+
+    <form id="calculadora">
+        <!-- Contenido del formulario de la calculadora -->
+    </form>
+
+    <!-- JavaScript para el modal -->
+    <script>
+        function openModal(url) {
+            const windowWidth = 800;
+            const windowHeight = 600;
+            const windowFeatures = `toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=${windowWidth},height=${windowHeight}`;
+            const windowLeft = (window.screen.width - windowWidth) / 2;
+            const windowTop = (window.screen.height - windowHeight) / 2;
+            window.open(url, "_blank", `${windowFeatures},left=${windowLeft},top=${windowTop}`);
+        }
+    </script>
+</body>
+</html>

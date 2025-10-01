@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Datos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+            margin: 20px 0;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            canvas {
+                height: 300px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            canvas {
+                height: 200px !important;
+            }
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Analizador de Datos</h1>
+        <textarea id="dataInput" placeholder="Pega tus datos aquí..." aria-label="Entrada de datos"></textarea>
+        <button onclick="processData()">Procesar Datos</button>
+        <button onclick="resetData()">Reiniciar</button>
+        <div id="results">
+            <canvas id="genderBarChart"></canvas>
+        </div>
+        <div>
+            <h2>Resumen de Rendimiento Promedio por Género</h2>
+            <div class="table-title">Promedio de Respuestas Correctas en Simulacros de Matemáticas</div>
+            <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Género</th>
+                        <th>Simulacro 1</th>
+                        <th>Simulacro 2</th>
+                        <th>Simulacro 3</th>
+                        <th>Promedio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hombres</td>
+                        <td id="maleAvg1">-</td>
+                        <td id="maleAvg2">-</td>
+                        <td id="maleAvg3">-</td>
+                        <td id="maleAvgTotal">-</td>
+                    </tr>
+                    <tr>
+                        <td>Mujeres</td>
+                        <td id="femaleAvg1">-</td>
+                        <td id="femaleAvg2">-</td>
+                        <td id="femaleAvg3">-</td>
+                        <td id="femaleAvgTotal">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function processData() {
+            const input = document.getElementById('dataInput').value;
+            const lines = input.split('\n').filter(line => line.trim() !== '');
+
+            if (lines.length < 2) {
+                alert('Por favor, ingresa más datos.');
+                return;
+            }
+
+            const headers = lines[0].split('\t').map(header => header.trim());
+
+            const names = {
+                male: [],
+                female: []
+            };
+            const scores = {
+                male: {
+                    sim1: [],
+                    sim2: [],
+                    sim3: [],
+                    average: []
+                },
+                female: {
+                    sim1: [],
+                    sim2: [],
+                    sim3: [],
+                    average: []
+                }
+            };
+
+            for (let i = 1; i < lines.length; i++) {
+                const columns = lines[i].split('\t').map(col => col.trim());
+
+                if (columns.length < 5) continue;
+
+                const gender = columns[3];
+                const target = gender === 'M' ? 'male' : 'female';
+                
+                names[target].push(`${columns[1]} ${columns[2]}`);
+                scores[target].sim1.push(parseInt(columns[4]) || 0);
+                scores[target].sim2.push(parseInt(columns[6]) || 0);
+                scores[target].sim3.push(parseInt(columns[8]) || 0);
+                scores[target].average.push(parseFloat(columns[10]) || 0);
+            }
+
+            createCharts(names, scores);
+            updateSummaryTable(scores);
+        }
+
+        function createCharts(names, scores) {
+            const ctxGenderBar = document.getElementById('genderBarChart').getContext('2d');
+
+            new Chart(ctxGenderBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Simulacro 1', 'Simulacro 2', 'Simulacro 3', 'Promedio'],
+                    datasets: [
+                        {
+                            label: 'Hombres',
+                            data: [
+                                scores.male.sim1.reduce((a, b) => a + b, 0) / scores.male.sim1.length,
+                                scores.male.sim2.reduce((a, b) => a + b, 0) / scores.male.sim2.length,
+                                scores.male.sim3.reduce((a, b) => a + b, 0) / scores.male.sim3.length,
+                                scores.male.average.reduce((a, b) => a + b, 0) / scores.male.average.length
+                            ],
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Mujeres',
+                            data: [
+                                scores.female.sim1.reduce((a, b) => a + b, 0) / scores.female.sim1.length,
+                                scores.female.sim2.reduce((a, b) => a + b, 0) / scores.female.sim2.length,
+                                scores.female.sim3.reduce((a, b) => a + b, 0) / scores.female.sim3.length,
+                                scores.female.average.reduce((a, b) => a + b, 0) / scores.female.average.length
+                            ],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Carlos Holguín Mallarino - Rendimiento Promedio por Género en Matemáticas',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    if (label) {
+                                        return `${label}: ${context.raw.toFixed(2)}`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                autoSkip: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSummaryTable(scores) {
+            document.getElementById('maleAvg1').textContent = Math.round(scores.male.sim1.reduce((a, b) => a + b, 0) / scores.male.sim1.length);
+            document.getElementById('maleAvg2').textContent = Math.round(scores.male.sim2.reduce((a, b) => a + b, 0) / scores.male.sim2.length);
+            document.getElementById('maleAvg3').textContent = Math.round(scores.male.sim3.reduce((a, b) => a + b, 0) / scores.male.sim3.length);
+            document.getElementById('maleAvgTotal').textContent = Math.round(scores.male.average.reduce((a, b) => a + b, 0) / scores.male.average.length);
+
+            document.getElementById('femaleAvg1').textContent = Math.round(scores.female.sim1.reduce((a, b) => a + b, 0) / scores.female.sim1.length);
+            document.getElementById('femaleAvg2').textContent = Math.round(scores.female.sim2.reduce((a, b) => a + b, 0) / scores.female.sim2.length);
+            document.getElementById('femaleAvg3').textContent = Math.round(scores.female.sim3.reduce((a, b) => a + b, 0) / scores.female.sim3.length);
+            document.getElementById('femaleAvgTotal').textContent = Math.round(scores.female.average.reduce((a, b) => a + b, 0) / scores.female.average.length);
+        }
+
+        function resetData() {
+            document.getElementById('dataInput').value = '';
+            document.getElementById('results').innerHTML = '<canvas id="genderBarChart"></canvas>';
+            updateSummaryTable({
+                male: { sim1: [], sim2: [], sim3: [], average: [] },
+                female: { sim1: [], sim2: [], sim3: [], average: [] }
+            });
+        }
+    </script>
+</body>
+</html>

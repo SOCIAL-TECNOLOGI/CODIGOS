@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Imágenes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+       #lienzo {
+            border: 1px solid #000;
+            background-color: #fff;
+            cursor: crosshair;
+        }
+
+        #tools {
+            margin-top: 10px;
+        }
+
+        #imageContainer {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+
+        #floatingMenu {
+            position: fixed;
+            top: 290px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            border: 1px solid #000;
+            padding: 10px;
+            z-index: 2;
+        }
+
+        #floatingMenu button {
+            margin-bottom: 5px;
+        }
+
+
+
+        #iconColorMenu {
+        /* Estilo del menú de cambio de color del ícono (inicialmente oculto) */
+        display: none;
+        flex-direction: row; /* Alinea los elementos en fila (horizontalmente) */
+    }
+
+    .colorSquare {
+        width: 30px;
+        height: 30px;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+
+    .colorDroplet {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 30px solid; /* Altura del cuadro-gota de agua */
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+
+    </style>
+</head>
+<body>
+
+  
+
+    <div id="tools">
+        <label for="colorPicker">Color:</label>
+        <input type="color" id="colorPicker" value="#000000">
+
+        <label for="thickness">Grosor:</label>
+        <input type="range" id="thickness" min="1" max="150" value="2">
+        <button onclick="activarBorrador()">Borrador</button>
+        <button onclick="limpiarLienzo()">Limpiar</button>
+        <button onclick="deshacerTrazo()">Deshacer</button>
+    </div>
+
+    
+    <div id="imageAndCanvasContainer">
+        <!-- Canvas y contenedor de imágenes -->
+        <canvas id="lienzo" width="5000" height="2500"></canvas>
+        <div id="imageContainer">
+            <!-- Tu entrada de imagen y botones existentes aquí -->
+            <input type="file" id="imageInput" accept="image/*" onchange="cargarImagen(event)" multiple>
+            <button onclick="imagenAnterior()">Anterior</button>
+            <button onclick="imagenSiguiente()">Siguiente</button>
+            <img id="imagenActual" src="" alt="Imagen Actual">
+        </div>
+
+        <!-- Botón de pantalla completa -->
+        <button onclick="toggleFullScreen()">Fullscreen</button>
+    </div>
+  
+  
+
+
+
+
+
+
+    <script>
+
+//FUNCIÓN LÁPIZ
+
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        let isErasing = false;
+
+        let images = [];
+        let currentImageIndex = -1;
+
+        let drawing = false;
+        let points = [];
+
+        // Historial de trazos
+        let trazos = [];
+        let indiceTrazo = -1;
+
+        function activarBorrador() {
+    isErasing = !isErasing;
+    if (isErasing) {
+        ctx.globalCompositeOperation = 'destination-out';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+    }
+}
+        // Historial de trazos
+
+        function dibujar(e) {
+    if (isErasing) return;
+
+    const color = document.getElementById('colorPicker').value;
+    const thickness = document.getElementById('thickness').value;
+
+    points.push({ x: e.clientX, y: e.clientY, color, thickness });
+
+    if (points.length > 1) {
+        for (let i = 1; i < points.length; i++) {
+            dibujarSegmento(points[i - 1], points[i]);
+        }
+    }
+}
+
+
+function dibujarTrazos() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i <= indiceTrazo; i++) {
+        const trazo = trazos[i];
+
+        if (trazo.length > 1) {
+            for (let j = 1; j < trazo.length; j++) {
+                const start = trazo[j - 1];
+                const end = trazo[j];
+
+                dibujarSegmento(start, end);
+            }
+        }
+    }
+}
+
+
+function dibujarSegmento(start, end) {
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.lineWidth = end.thickness;
+    ctx.strokeStyle = end.color;
+
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+}
+
+function borrar(e) {
+    if (!isErasing) return;
+
+    const thickness = document.getElementById('thickness').value;
+    ctx.clearRect(e.clientX - thickness / 2, e.clientY - thickness / 2, thickness, thickness);
+}
+
+    
+function handleStart(e) {
+    e.preventDefault();
+    drawing = true;
+    points = [];
+    if (e.touches.length === 1) {
+        dibujar(e.touches[0]);
+        borrar(e.touches[0]);
+    }
+}
+
+function handleMove(e) {
+    e.preventDefault();
+    if (drawing && e.touches.length === 1) {
+        dibujar(e.touches[0]);
+        borrar(e.touches[0]);
+    }
+}
+
+function handleEnd() {
+    drawing = false;
+
+    // Almacenar el trazo actual en el historial
+    if (points.length > 0) {
+        trazos.push([...points]);
+        indiceTrazo = trazos.length - 1;
+    }
+}
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                handleStart(e);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (e.buttons === 1) {
+                handleMove(e);
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            handleEnd();
+        });
+
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchmove', handleMove);
+        canvas.addEventListener('touchend', handleEnd);
+
+        // Actualizar grosor para el trazo y el borrador
+        document.getElementById('thickness').addEventListener('input', () => {
+            const thickness = document.getElementById('thickness').value;
+            ctx.lineWidth = thickness;
+        });
+
+    
+
+        function deshacerTrazo() {
+    if (indiceTrazo >= 0) {
+        // Limpiar y redibujar los trazos antes de deshacer el último
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        trazos.pop();
+        indiceTrazo--;
+
+        // Restaurar el color y grosor actual
+        const colorActual = document.getElementById('colorPicker').value;
+        const grosorActual = document.getElementById('thickness').value;
+        points.push({ x: 0, y: 0, color: colorActual, thickness: grosorActual });
+
+        // Redibujar los trazos restantes
+        dibujarTrazos();
+    }
+}
+
+
+
+
+
+//.......FUNCIÓN REHACER ............
+
+//......FUNCIÓN REHACER.........
+
+
+
+
+//..............FUNCIÓN IMÁGENES..........................
+
+        function cargarImagen(event) {
+            const input = event.target;
+            const files = input.files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                if (file.type.startsWith('image')) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        const img = new Image();
+                        img.src = e.target.result;
+
+                        images.push(img);
+
+                        // Mostrar la primera imagen al cargar
+                        if (currentImageIndex === -1) {
+                            currentImageIndex = 0;
+                            mostrarImagen();
+                        }
+                    };
+
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function mostrarImagen() {
+            if (images.length > 0) {
+                const imagenActual = document.getElementById('imagenActual');
+                imagenActual.src = images[currentImageIndex].src;
+                document.getElementById('imageContainer').style.display = 'block';
+
+                // Habilitar o deshabilitar botones según la cantidad de imágenes
+                document.getElementById('anteriorBtn').disabled = currentImageIndex === 0;
+                document.getElementById('siguienteBtn').disabled = currentImageIndex === images.length - 1;
+            }
+        }
+
+        function imagenAnterior() {
+            if (images.length > 1) {
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                mostrarImagen();
+            }
+        }
+
+        function imagenSiguiente() {
+            if (images.length > 1) {
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                mostrarImagen();
+            }
+        }
+
+        function limpiarLienzo() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Limpiar historial de trazos al limpiar el lienzo
+            trazos = [];
+            indiceTrazo = -1;
+        }
+
+        // Navegación con teclado
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && images.length > 1) {
+                imagenAnterior();
+            } else if (e.key === 'ArrowRight' && images.length > 1) {
+                imagenSiguiente();
+            }
+        });
+
+//...........................................................
+
+
+
+//LÁPIZ Y BORRADOR SOBRE IMÁGENES
+
+
+
+//..........................................................................
+
+// FULL SCREEN
+// ... (Tu código existente)
+
+// Función para cambiar al modo de pantalla completa
+function toggleFullScreen() {
+    const canvasContainer = document.getElementById('imageAndCanvasContainer');
+
+    if (!document.fullscreenElement) {
+        canvasContainer.requestFullscreen().catch(err => {
+            alert(`Error al intentar activar el modo de pantalla completa: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+}
+
+// ... (Más código existente)
+
+
+// ...................................
+
+// ... FUNCIÓN CONTENEDOR FLOTANTE
+// Definir variables para los menús
+let colorMenuVisible = false;
+let thicknessMenuVisible = false;
+let canvasColorMenuVisible = false;
+
+// Funciones para mostrar/ocultar menús
+function toggleColorPicker() {
+    const colorMenu = document.getElementById('colorMenu'); // Asegúrate de tener un elemento con el ID 'colorMenu'
+    
+    // Mostrar u ocultar el menú horizontal correspondiente
+    if (!colorMenuVisible) {
+        colorMenu.style.display = 'block';
+    } else {
+        colorMenu.style.display = 'none';
+    }
+
+    colorMenuVisible = !colorMenuVisible; // Invertir el estado de visibilidad
+}
+
+function toggleThicknessMenu() {
+    const thicknessMenu = document.getElementById('thicknessMenu'); // Asegúrate de tener un elemento con el ID 'thicknessMenu'
+    
+    // Mostrar u ocultar el menú horizontal correspondiente
+    if (!thicknessMenuVisible) {
+        thicknessMenu.style.display = 'block';
+    } else {
+        thicknessMenu.style.display = 'none';
+    }
+
+    thicknessMenuVisible = !thicknessMenuVisible; // Invertir el estado de visibilidad
+}
+
+function toggleCanvasColorPicker() {
+    const canvasColorMenu = document.getElementById('canvasColorMenu'); // Asegúrate de tener un elemento con el ID 'canvasColorMenu'
+    
+    // Mostrar u ocultar el menú horizontal correspondiente
+    if (!canvasColorMenuVisible) {
+        canvasColorMenu.style.display = 'block';
+    } else {
+        canvasColorMenu.style.display = 'none';
+    }
+
+    canvasColorMenuVisible = !canvasColorMenuVisible; // Invertir el estado de visibilidad
+}
+
+function cambiarColorFondo(color) {
+    const canvas = document.getElementById('lienzo'); // Asegúrate de tener un elemento con el ID 'lienzo'
+    const ctx = canvas.getContext('2d');
+
+    // Cambiar el color de fondo del lienzo
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+
+function cambiarColorIcono(color) {
+    const icono = document.querySelector('.fa-paint-brush'); // Selecciona el ícono utilizando una clase específica
+    icono.style.color = color;
+}
+
+function cambiarColorFondo(color) { //está es funcional y activa
+    // Crea un nuevo lienzo temporal
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempContext = tempCanvas.getContext('2d');
+
+    // Dibuja la imagen actual en el lienzo temporal
+    tempContext.drawImage(canvas, 0, 0);
+
+    // Cambia el color de fondo del lienzo original
+    canvas.style.backgroundColor = color;
+
+    // Dibuja la imagen del lienzo temporal en el lienzo original
+    ctx.drawImage(tempCanvas, 0, 0);
+}
+
+
+
+// Función para mostrar/ocultar el menú de cambio de color del ícono
+let iconColorMenuVisible = false;
+
+function toggleIconColorMenu() {
+    const iconColorMenu = document.getElementById('iconColorMenu');
+
+    if (!iconColorMenuVisible) {
+        iconColorMenu.style.display = 'flex';
+    } else {
+        iconColorMenu.style.display = 'none';
+    }
+
+    iconColorMenuVisible = !iconColorMenuVisible;
+}
+
+
+
+function handleScroll() {
+    // Ajustar la posición del contenedor flotante según el desplazamiento vertical u horizontal
+    const floatingMenu = document.getElementById('floatingMenu');
+    const imageAndCanvasContainer = document.getElementById('imageAndCanvasContainer');
+
+    floatingMenu.style.top = `${10 + imageAndCanvasContainer.scrollTop}px`;
+    floatingMenu.style.left = `${10 + imageAndCanvasContainer.scrollLeft}px`;
+}
+
+
+
+
+
+// ...................................
+
+
+
+
+
+    </script>
+</body>
+</html>

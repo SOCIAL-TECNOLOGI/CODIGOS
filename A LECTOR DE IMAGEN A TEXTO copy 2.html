@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escaneo de Hoja de Respuestas</title>
+    <link rel="stylesheet" href="styles.css">
+
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+}
+
+#result {
+    margin-top: 20px;
+}
+
+
+
+
+</style>
+
+</head>
+<body>
+    <input type="file" id="inputImage" accept="image/*">
+    <button onclick="processImage()">Procesar Imagen</button>
+    <div id="result"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.rawgit.com/naptha/tesseract.js/1.0.10/dist/tesseract.js"></script>
+    <script src="script.js"></script>
+
+
+
+<script>
+
+
+
+function processImage() {
+    var input = document.getElementById('inputImage');
+    var resultDiv = document.getElementById('result');
+
+    var file = input.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = function () {
+            var base64Image = reader.result.split(',')[1];
+
+            // Aquí deberías implementar la lógica para procesar la imagen, extraer texto y analizar las respuestas.
+            // Puedes utilizar bibliotecas como Tesseract.js para OCR.
+
+            // Ejemplo:
+            Tesseract.recognize(
+                base64Image,
+                'eng',
+                { logger: info => console.log(info) }
+            ).then(({ data: { text } }) => {
+                // Aquí deberías analizar el texto extraído y determinar las respuestas.
+                var examResult = analyzeAnswers(text);
+
+                // Mostrar el resultado en el div.
+                resultDiv.innerHTML = 'Resultado del examen: ' + examResult;
+            });
+        };
+    } else {
+        resultDiv.innerHTML = 'Por favor, selecciona una imagen.';
+    }
+}
+
+function analyzeAnswers(text) {
+    // Aquí implementarías la lógica para analizar las respuestas del examen.
+    // Puedes usar patrones de búsqueda en el texto extraído para identificar las respuestas.
+
+    // Ejemplo simple: contar la cantidad de veces que aparece cada opción.
+    var optionsCount = {
+        'A': countOccurrences(text, 'A'),
+        'B': countOccurrences(text, 'B'),
+        'C': countOccurrences(text, 'C'),
+        'D': countOccurrences(text, 'D')
+    };
+
+    // Aquí puedes implementar una lógica más avanzada para determinar la respuesta final.
+
+    return optionsCount;
+}
+
+function countOccurrences(text, option) {
+    // Función de ejemplo para contar la cantidad de veces que aparece una opción en el texto.
+    var regex = new RegExp(option, 'gi');
+    var matches = text.match(regex);
+    return matches ? matches.length : 0;
+}
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

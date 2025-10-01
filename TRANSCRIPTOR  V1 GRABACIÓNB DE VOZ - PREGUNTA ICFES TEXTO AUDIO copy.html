@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR + Texto a Voz + Grabación</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 30px;
+      text-align: center;
+    }
+    .contenedor {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      max-width: 650px;
+      margin: auto;
+    }
+    input, button, select {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #25d366;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #128c7e; }
+    .btn-detener { background: #e53935; }
+    .btn-detener:hover { background: #b71c1c; }
+    .btn-grabar { background: #3f51b5; }
+    .btn-grabar:hover { background: #1a237e; }
+    .btn-guardar { background: #ff9800; }
+    .btn-guardar:hover { background: #e65100; }
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1f1f1;
+      border-radius: 6px;
+      text-align: left;
+      min-height: 100px;
+    }
+    audio {
+      margin-top: 15px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>📷 Pregunta en Imagen → 📝 Texto → 🔊 Audio / 🎙️ Grabación Humana</h2>
+
+    <!-- OCR -->
+    <input type="file" id="inputImagen" accept="image/*"><br>
+    <img id="preview" style="display:none;"><br>
+
+    <button id="btnOCR">🔍 Transcribir Imagen</button>
+    <div id="resultado">Aquí aparecerá el texto transcrito...</div>
+
+    <hr>
+
+    <!-- Texto a voz -->
+    <button id="btnLeer">🔊 Leer Texto (voz sintética)</button>
+    <button id="btnDetener" class="btn-detener">⏹️ Detener Lectura</button>
+
+    <hr>
+
+    <!-- Grabación humana -->
+    <h3>🎙️ Grabar lectura humana</h3>
+    <button id="btnGrabar" class="btn-grabar">⏺️ Iniciar Grabación</button>
+    <button id="btnDetenerGrabacion" class="btn-detener" disabled>⏹️ Detener Grabación</button>
+    <br>
+    <label for="formato">Formato: </label>
+    <select id="formato">
+      <option value="webm">WEBM</option>
+      <option value="mp3">MP3</option>
+      <option value="opus">OPUS</option>
+    </select>
+    <button id="btnGuardar" class="btn-guardar" disabled>💾 Descargar Audio</button>
+
+    <audio id="audioPreview" controls></audio>
+  </div>
+
+  <!-- OCR con Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- ffmpeg.js para conversión -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.min.js"></script>
+
+ <script>
+  const inputImagen = document.getElementById("inputImagen");
+  const preview = document.getElementById("preview");
+  const btnOCR = document.getElementById("btnOCR");
+  const resultado = document.getElementById("resultado");
+
+  const btnLeer = document.getElementById("btnLeer");
+  const btnDetener = document.getElementById("btnDetener");
+
+  const btnGrabar = document.getElementById("btnGrabar");
+  const btnDetenerGrabacion = document.getElementById("btnDetenerGrabacion");
+  const btnGuardar = document.getElementById("btnGuardar");
+  const audioPreview = document.getElementById("audioPreview");
+  const formatoSelect = document.getElementById("formato");
+
+  let textoReconocido = "";
+  let mediaRecorder;
+  let audioChunks = [];
+  let audioBlob;
+
+  // 🔹 Escapar caracteres especiales
+  function esc(s){
+    return s.replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;',
+      '"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+
+  // Vista previa de imagen
+  inputImagen.addEventListener("change", e => {
+    const archivo = e.target.files[0];
+    if (archivo) {
+      const url = URL.createObjectURL(archivo);
+      preview.src = url;
+      preview.style.display = "block";
+    }
+  });
+
+  // OCR estructurado
+  btnOCR.addEventListener("click", async () => {
+    if (!preview.src) {
+      alert("Por favor selecciona una imagen.");
+      return;
+    }
+    resultado.innerHTML = "⏳ Procesando imagen...";
+    const { data: { text } } = await Tesseract.recognize(preview.src, 'spa');
+    textoReconocido = (text || "").trim();
+
+    if (textoReconocido) {
+      resultado.innerHTML = `
+        <div style="border:1px solid #ccc;
+                    background:#fdfdf0;
+                    padding:10px;
+                    border-radius:6px;">
+          <strong>🖼️ Texto extraído de la imagen:</strong><br><br>
+          <div id="textoLeido" 
+               style="white-space:pre-wrap;
+                      line-height:1.6;
+                      background:#fafafa;
+                      padding:10px;
+                      border-radius:6px;
+                      border:1px solid #ddd;">
+            ${esc(textoReconocido)}
+          </div>
+        </div>`;
+    } else {
+      resultado.innerHTML = "⚠️ No se detectó texto.";
+    }
+  });
+
+  // Texto a voz
+  btnLeer.addEventListener("click", () => {
+    if (!textoReconocido) {
+      alert("Primero transcribe una imagen.");
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(textoReconocido);
+    utter.lang = "es-ES";
+    utter.rate = 1;
+    speechSynthesis.speak(utter);
+  });
+
+  btnDetener.addEventListener("click", () => {
+    speechSynthesis.cancel();
+  });
+
+  // Grabar voz humana
+  btnGrabar.addEventListener("click", async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      audioPreview.src = URL.createObjectURL(audioBlob);
+      btnGuardar.disabled = false;
+    };
+
+    mediaRecorder.start();
+    btnGrabar.disabled = true;
+    btnDetenerGrabacion.disabled = false;
+  });
+
+  btnDetenerGrabacion.addEventListener("click", () => {
+    mediaRecorder.stop();
+    btnGrabar.disabled = false;
+    btnDetenerGrabacion.disabled = true;
+  });
+
+  // Guardar audio grabado con conversión opcional
+  btnGuardar.addEventListener("click", async () => {
+    if (!audioBlob) return;
+    const formato = formatoSelect.value;
+
+    if (formato === "webm") {
+      const enlace = document.createElement("a");
+      enlace.href = URL.createObjectURL(audioBlob);
+      enlace.download = "lectura_profesor.webm";
+      enlace.click();
+    } else {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(audioBlob);
+      reader.onloadend = async () => {
+        const { createFFmpeg, fetchFile } = FFmpegWASM;
+        const ffmpeg = createFFmpeg({ log: true });
+        await ffmpeg.load();
+
+        await ffmpeg.FS("writeFile", "entrada.webm", new Uint8Array(reader.result));
+        await ffmpeg.run("-i", "entrada.webm", `salida.${formato}`);
+        const data = ffmpeg.FS("readFile", `salida.${formato}`);
+        const convertido = new Blob([data.buffer], { type: `audio/${formato}` });
+
+        const enlace = document.createElement("a");
+        enlace.href = URL.createObjectURL(convertido);
+        enlace.download = `lectura_profesor.${formato}`;
+        enlace.click();
+      };
+    }
+  });
+</script>
+
+
+
+
+</body>
+</html>

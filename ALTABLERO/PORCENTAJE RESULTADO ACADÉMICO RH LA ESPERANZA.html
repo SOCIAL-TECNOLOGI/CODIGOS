@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Comparación Diagnóstico vs Final por Área</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  canvas { max-width: 900px; margin-bottom: 50px; height: 900px !important; }
+  h2 { color: #333; }
+
+  
+</style>
+</head>
+<body>
+
+<h2>Inglés: Diagnóstico vs Final</h2>
+<canvas id="inglesChart"></canvas>
+
+<h2>Matemáticas: Diagnóstico vs Final</h2>
+<canvas id="matematicasChart"></canvas>
+
+<h2>Lectura Crítica: Diagnóstico vs Final</h2>
+<canvas id="lecturaChart"></canvas>
+
+<h2>Promedios Generales: Diagnóstico vs Final</h2>
+<canvas id="promediosChart"></canvas>
+
+<script>
+  // Datos
+  const students = [
+    "HERNANDEZ MONTILLA ", "BORJA ORTIZ ", "ZUÑIGA LOPEZ ",
+    "MOSQUERA PECHENE ", "MENDOZA BARRADAS ", "RODRÍGUEZ OSPINA ",
+    "ÑAÑEZ CASTRO ", "GARCÍA QUIÑONEZ ", "TUNUBALA SÁNCHEZ ",
+    "OSORIO CENTENO ", "MOSQUERA SÁNCHEZ ", "JURADO RIVERA ",
+    "MARTINEZ CHÁVEZ ", "DAZA NAVARRO ", "RODRIGUEZ GOMÉZ ",
+    "FONSECA DIAZ ", "APONZÁ GÓMEZ ", "MÉNDEZ FAJARDO ",
+    "ARARAT LEON ", "CAYAMA LINAREZ ", "PEREA VAQUERO "
+  ];
+
+  // Diagnóstico
+  const diagMath = [66,60,57,54,52.5,49.5,46,44,42,42,40,35,33.5,32.5,32.5,30,26.5,26.5,26,25,23.5];
+  const diagRead = [68,61.5,58.5,57,55,51,48,45.5,45,44,43.5,38,37,36,36,32,30.5,30.5,30,29.5,26];
+  const diagEng = [68,62.3,60,58.5,57,54.9,51,48.5,45.8,46,47.9,43,39,37,37,38,33.5,33.5,34,30.5,31.5];
+
+  // Final
+  const finalMath = [75.9,69,65.6,62.1,60.4,56.9,52.9,50.6,48.3,48.3,46,40.3,38.5,37.4,37.4,34.5,30.5,30.5,29.9,28.7,27];
+  const finalRead = [78.2,70.7,67.3,65.6,63.3,58.7,55.2,52.3,51.8,50.6,50,43.7,42.6,41.4,41.4,36.8,35.1,35.1,34.5,33.9,29.9];
+  const finalEng = [78.2,71.6,69,67.3,65.6,63.1,58.7,55.8,52.7,52.9,55.1,49.5,44.9,42.6,42.6,43.7,38.5,38.5,39.1,35.1,36.2];
+
+  // Función para promedios
+  function avg(arr) {
+    return arr.reduce((a,b) => a+b,0) / arr.length;
+  }
+
+  // 1. Inglés: Diagnóstico vs Final
+  const ctxEng = document.getElementById('inglesChart').getContext('2d');
+  const inglesChart = new Chart(ctxEng, {
+    type: 'bar',
+    data: {
+      labels: students,
+      datasets: [
+        { label: 'Diagnóstico', data: diagEng, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+        { label: 'Final', data: finalEng, backgroundColor: 'rgba(85, 170, 85, 0.7)' }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+
+  // 2. Matemáticas: Diagnóstico vs Final
+  const ctxMath = document.getElementById('matematicasChart').getContext('2d');
+  const matematicasChart = new Chart(ctxMath, {
+    type: 'bar',
+    data: {
+      labels: students,
+      datasets: [
+        { label: 'Diagnóstico', data: diagMath, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+        { label: 'Final', data: finalMath, backgroundColor: 'rgba(85, 170, 85, 0.7)' }
+      ]
+    },   
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+
+  // 3. Lectura Crítica: Diagnóstico vs Final
+  const ctxRead = document.getElementById('lecturaChart').getContext('2d');
+  const lecturaChart = new Chart(ctxRead, {
+    type: 'bar',
+    data: {
+      labels: students,
+      datasets: [
+        { label: 'Diagnóstico', data: diagRead, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+        { label: 'Final', data: finalRead, backgroundColor: 'rgba(85, 170, 85, 0.7)' }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+
+  // 4. Promedios generales Diagnóstico vs Final por área
+  const avgDiag = [avg(diagMath), avg(diagRead), avg(diagEng)];
+  const avgFinal = [avg(finalMath), avg(finalRead), avg(finalEng)];
+
+  const ctxProm = document.getElementById('promediosChart').getContext('2d');
+  const promediosChart = new Chart(ctxProm, {
+    type: 'bar',
+    data: {
+      labels: ['Matemáticas', 'Lectura Crítica', 'Inglés'],
+      datasets: [
+        { label: 'Diagnóstico', data: avgDiag, backgroundColor: 'rgba(54, 162, 235, 0.7)' },
+        { label: 'Final', data: avgFinal, backgroundColor: 'rgba(85, 170, 85, 0.7)' }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+
+</script>
+
+</body>
+</html>

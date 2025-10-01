@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gráfico de Ausentismo y Asistencia por Fecha</title>
+<style>
+  #dataArea {
+    width: 100%;
+    height: 300px;
+    resize: vertical;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .chart-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+  }
+
+  .download-button {
+    display: block;
+    margin-top: 10px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h2>Gráfico de Ausentismo y Asistencia por Fecha</h2>
+
+<textarea id="dataArea" placeholder="Pega los datos aquí..."></textarea><br>
+<button onclick="generarGrafico()">Generar Gráfico</button>
+
+<div class="chart-container">
+  <canvas id="myChart"></canvas>
+  <a id="downloadChart" class="download-button" download="chart.png" href="#">Descargar Gráfico</a>
+</div>
+
+<div class="chart-container">
+  <canvas id="myChart2"></canvas>
+  <a id="downloadChart2" class="download-button" download="chart2.png" href="#">Descargar Gráfico</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-toBlob/4.2.0/canvas-toBlob.min.js"></script>
+<script>
+function generarGrafico() {
+  // Obtener los datos del área de texto
+  var data = document.getElementById('dataArea').value.trim();
+  
+  // Dividir los datos por líneas
+  var lines = data.split('\n');
+  
+  // Encabezados (primer línea)
+  var headers = lines[0].split('\t');
+  
+  // Inicializar arrays para almacenar datos
+  var fechas = [];
+  var ausentismoMasculino = [];
+  var asistenciaMasculina = [];
+  var ausentismoFemenino = [];
+  var asistenciaFemenina = [];
+  
+  // Iterar sobre cada línea de datos (empezando desde la segunda línea)
+  for (var i = 1; i < lines.length; i++) {
+    var parts = lines[i].split('\t');
+    fechas.push(parts[0]);
+    ausentismoMasculino.push(parseFloat(parts[1].replace('%', '')));
+    asistenciaMasculina.push(parseFloat(parts[2].replace('%', '')));
+    ausentismoFemenino.push(parseFloat(parts[3].replace('%', '')));
+    asistenciaFemenina.push(parseFloat(parts[4].replace('%', '')));
+  }
+  
+  // Calcular promedios por género
+  var promedioAusentismoMasculino = calcularPromedio(ausentismoMasculino);
+  var promedioAsistenciaMasculina = calcularPromedio(asistenciaMasculina);
+  var promedioAusentismoFemenino = calcularPromedio(ausentismoFemenino);
+  var promedioAsistenciaFemenino = calcularPromedio(asistenciaFemenina);
+  
+  // Crear el gráfico de barras para ausentismo y asistencia
+  var ctx = document.getElementById('myChart').getContext('2d');
+  var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: fechas,
+      datasets: [{
+        label: 'Ausentismo Masculino',
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1,
+        data: ausentismoMasculino
+      }, {
+        label: 'Asistencia Masculina',
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+        data: asistenciaMasculina
+      }, {
+        label: 'Ausentismo Femenino',
+        backgroundColor: 'rgba(255, 206, 86, 0.6)',
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 1,
+        data: ausentismoFemenino
+      }, {
+        label: 'Asistencia Femenina',
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+        data: asistenciaFemenina
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Ausentismo y Asistencia por Fecha I.E General Alfredo Vásquez Cobo'
+        }
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+            callback: function(value) { return value + "%"; }
+          }
+        }]
+      }
+    }
+  });
+  
+  // Crear el gráfico de barras para promedios por género
+  var ctx2 = document.getElementById('myChart2').getContext('2d');
+  var myChart2 = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Hombres', 'Mujeres'],
+      datasets: [{
+        label: 'Ausentismo Hombres',
+        data: [promedioAusentismoMasculino, 0],
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }, {
+        label: 'Asistencia Hombres',
+        data: [promedioAsistenciaMasculina, 0],
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }, {
+        label: 'Ausentismo Mujeres',
+        data: [0, promedioAusentismoFemenino],
+        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 1
+      }, {
+        label: 'Asistencia Mujeres',
+        data: [0, promedioAsistenciaFemenino],
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Promedio de Ausentismo y Asistencia por Género I.E General Alfredo Vásquez Cobo'
+        }
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+            callback: function(value) { return value + "%"; }
+          }
+        }]
+      }
+    }
+  });
+  
+  // Habilitar descarga de gráficos
+  document.getElementById('downloadChart').addEventListener('click', function() {
+    var canvas = document.getElementById('myChart');
+    canvas.toBlob(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'chart.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png'); // Especificar tipo de archivo como imagen PNG
+  });
+  
+  document.getElementById('downloadChart2').addEventListener('click', function() {
+    var canvas = document.getElementById('myChart2');
+    canvas.toBlob(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'chart2.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png'); // Especificar tipo de archivo como imagen PNG
+  });
+}
+
+function calcularPromedio(data) {
+  if (data.length === 0) return 0;
+  
+  var sum = data.reduce(function(acc, val) {
+    return acc + val;
+  }, 0);
+  
+  return (sum / data.length).toFixed(2);
+}
+</script>
+
+</body>
+</html>

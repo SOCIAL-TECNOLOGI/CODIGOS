@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Impacto Ambiental</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f3f3f3;
+        }
+        h1 {
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            width: 80px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #03781a;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 25px; /* Controla la forma ovalada */
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        p {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Impacto Ambiental</h1>
+    
+    <label for="cantidad_latas">Cantidad de latas de aluminio:</label>
+    <input type="number" id="cantidad_latas" placeholder="0"><br><br>
+    
+    <label for="cantidad_cuadernos">Cantidad de cuadernos:</label>
+    <input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+    
+    <label for="cantidad_botellas">Cantidad de botellas plásticas:</label>
+    <input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+    
+    <button onclick="calcularImpacto()">Calcular Impacto</button>
+    
+    <h2>Impacto Ambiental Total:</h2>
+    <p id="resultado"></p>
+
+
+ <!-- Nuevo contenedor -->
+ <div class="nuevo-contenedor">
+        
+<h3>Nuevo Contenedor</h3>
+    <p><!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Calculadora Ambiental</title>
+            <style>
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px; /* Tamaño de fuente más grande en pantallas pequeñas */
+            }
+        }
+        
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                }
+        
+                h1 {
+                    color: #007acc;
+                }
+        
+                form {
+                    margin: 20px;
+                    padding: 10px;
+                    border: 1px solid #ccc;
+                    background-color: #f9f9f9;
+                    border-radius: 5px;
+                }
+        
+                label {
+                    font-weight: bold;
+                    margin-right: 10px;
+                }
+        
+                input {
+                    width: 100px;
+                    padding: 5px;
+                    margin-bottom: 10px;
+                    border: 1px solid #ccc;
+                    border-radius: 3px;
+                }
+        
+                button {
+                    background-color: #007acc;
+                    color: #fff;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+        
+                button:hover {
+                    background-color: #005aa7;
+                }
+        
+                #resultado {
+                    font-weight: bold;
+                    color: #007acc;
+                    margin-top: 20px;
+                }
+        
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-top: 20px;
+                }
+        
+                th, td {
+                    border: 1px solid #ccc;
+                    padding: 8px;
+                    text-align: center;
+                }
+        
+                th {
+                    background-color: #007acc;
+                    color: #fff;
+                }
+        
+               /* Estilo para el encabezado h2 */
+               h2 {
+                    color:  #052eb3; /* Cambia el color a tu preferencia */
+                    font-size: 24px; /* Cambia el tamaño de fuente a tu preferencia */
+                }
+        
+                /* Estilo para el párrafo con el id "resultado" */
+                #resultado {
+                    font-weight: bold; /* Cambia la negrita a tu preferencia */
+                    color: #008000; /* Cambia el color a tu preferencia */
+                    font-size: 20px; /* Cambia el tamaño de fuente a tu preferencia */
+                }
+        
+        
+                /* Estilos CSS omitidos para mantener el código más limpio */
+        
+                #recomendaciones {
+                    display: none;
+                }
+        /* Estilo para los comentarios */
+        .comentario {
+                font-style: italic;
+                color: #006400; /* Color verde para destacar los comentarios */
+                font-weight: bold;
+            }
+        
+            /* Estilo para la tabla */
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 20px;
+            }
+        
+            th, td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: center;
+                
+            }
+        
+            th {
+                background-color: #007acc;
+                color: #fff;
+            }
+            #contenedor-imagenes {
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .imagen-1 {
+            width: 150px; /* Tamaño personalizado para la primera imagen */
+            margin: 10px; /* Margen personalizado para la primera imagen */
+            border: 2px solid #ffffff; /* Borde personalizado para la primera imagen */
+            border-radius: 5px; /* Borde redondeado personalizado para la primera imagen */
+        }
+        
+        .imagen-2 {
+            width: 230px; /* Tamaño personalizado para la segunda imagen */
+            margin: 15px; /* Margen personalizado para la segunda imagen */
+            border: 2px solid #ffffff; /* Borde personalizado para la segunda imagen */
+            border-radius: 8px; /* Borde redondeado personalizado para la segunda imagen */
+        }
+        
+        .imagen-3 {
+            width: 250px; /* Tamaño personalizado para la tercera imagen */
+            margin: 12px; /* Margen personalizado para la tercera imagen */
+            border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+            border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+        }
+        
+        .imagen-4 {
+            width: 180px; /* Tamaño personalizado para la tercera imagen */
+            margin: 12px; /* Margen personalizado para la tercera imagen */
+            border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+            border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+        }
+        
+        
+        #contenedor-videos {
+            text-align: center;
+            margin: 20px;
+        }
+        
+        #contenedor-videos iframe {
+            width: 300px; /* Ajusta el ancho del video según tus preferencias */
+            max-width: 400px; /* Define un ancho máximo para mantener el diseño responsivo */
+            height: 290px; /* Ajusta la altura automáticamente según la relación de aspecto del video */
+        }
+        
+        .boton {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #050771;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold; /* Peso de la fuente */
+            font-size: 16px; /* Tamaño de fuente */
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .boton:hover {
+            background-color: #046b49;
+        }
+        
+        .texto-descriptivo {
+            font-family: Arial, sans-serif; /* Cambia la fuente a tu preferencia */
+            font-size: 35px; /* Cambia el tamaño de fuente a tu preferencia */
+            color: #333; /* Cambia el color del texto a tu preferencia */
+            margin-top: 10px; /* Ajusta el margen superior según tus preferencias */
+            font-style: none; /* Agrega estilo cursiva si lo deseas */
+            font-weight: bold; /* Agrega negrita si lo deseas */
+        }
+        
+        .contenedor {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        iframe {
+          margin-bottom: 10px; /* Espacio entre el vídeo y el texto */
+          max-width: 100%; /* Asegura que el vídeo no sea más ancho que su contenedor */
+          height: auto; /* Permite que la altura del vídeo se ajuste automáticamente */
+        }
+        
+        p {
+          margin-top: 10px; /* Espacio entre el texto y otros elementos */
+          font-size: 18px; /* Tamaño de fuente del texto "PATROCINADORES" */
+          font-weight: bold; /* Puedes ajustar el peso de la fuente según tus preferencias */
+          text-align: center; /* Centra el texto horizontalmente en el contenedor */
+        }
+        
+        /* Opcional: Estilo para el contenedor en sí */
+        .contenedor {
+          background-color: #f5f5f5; /* Color de fondo del contenedor */
+          padding: 20px; /* Espacio alrededor del contenedor */
+          border-radius: 10px; /* Borde redondeado del contenedor */
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra para el contenedor */
+        }
+        /* Estilo para los números */
+          .numero {
+            font-family: Arial, sans-serif; /* Tipo de letra */
+            font-size: 18px; /* Tamaño de fuente */
+            font-weight: bold; /* Texto en negrita */
+            font-style: italic; /* Texto en cursiva */
+            color: #3a3399; /* Color del texto */
+          }
+        
+            </style>
+        </head>
+        <body>
+            <h1>Calculadora Ambiental</h1>
+        
+            <form id="calculadoraForm">
+                <label for="consumoEnergia">Consumo de energía (kWh):</label>
+                <input type="number" id="consumoEnergia" name="consumoEnergia" step="0.01">
+                <br>
+        
+                <label for="consumoAgua">Consumo de agua (litros):</label>
+                <input type="number" id="consumoAgua" name="consumoAgua" step="1">
+                <br>
+        
+                <label for="emisionesCO2">Emisiones de CO2 (kg):</label>
+                <input type="number" id="emisionesCO2" name="emisionesCO2" step="0.01">
+                <br>
+        
+                <label for="kilometrosCoche">Kilómetros conducidos en coche:</label>
+                <input type="number" id="kilometrosCoche" name="kilometrosCoche" step="0.1">
+                <br>
+        
+                <button type="button" onclick="calcularHuella()">Calcular</button>
+                <button type="button" onclick="resetCalculadora()">Reiniciar</button>
+                
+            </form>
+        
+            <h2>Impacto Ambiental</h2>
+            <p id="resultado"></p>
+        
+            <table>
+                <thead>
+                    <tr>
+                        <th>Consumo de energía (kWh)</th>
+                        <th>Consumo de agua (litros)</th>
+                        <th>Emisiones de CO2 (kg)</th>
+                        <th>Kilómetros conducidos en coche</th>
+                    </tr>
+        
+                </thead>
+        
+                <tbody>
+                    <!-- Aquí se insertarán los datos desde el archivo Excel -->
+        
+        
+                </tbody>
+            </table>
+            <BR>
+            <div id="contenedor-videos">
+                <iframe width="150" height="85" src="https://www.youtube.com/embed/jL4cwuC4Mls" frameborder="0" allowfullscreen></iframe>
+               
+                <iframe src="https://archivo.lostutores.co/embed/0e3x2a02600b4ce7147e1bff0dac587636f1e?toolbar=false&appearance=light&themecolor=green" scrolling="no" frameborder="0" allowfullscreen=true width="800" height="520" ></iframe>
+               
+                <!-- Repite este bloque iframe para más vídeos si es necesario -->
+            </div>
+            <BR>
+            
+            <p class="texto-descriptivo">PATROCINADORES</p>
+            <div id="contenedor-imagenes">
+                <img src="data:image/png;base64,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" alt="Imagen 1" class="imagen-1">
+                <img src="https://us.iearn.org/assets/imgs/partners_americas_logo.jpg" alt="Imagen 2" class="imagen-2">
+                <img src="https://www.fedusocial.org/cedecur%20-%20copia.png" alt="Imagen 3" class="imagen-3">
+                <img src="https://download-accl.zoho.com/v1/workdrive/previewdata/4as8j810d693aaecc41a0b7b8639ddbaacdb0?orig=true" alt="Imagen 4" class="imagen-4">
+                
+            </div>
+            
+            </div>
+            <a href="https://www.recyclass.org" target="_blank" class="boton">¡Conocer Más!</a>
+        
+        
+            <script>
+        
+                
+        // Obtener el elemento de recomendaciones
+        const recomendaciones = document.getElementById('recomendaciones')
+                
+               // Factores de equivalencia (ejemplo)
+        const factorEnergia = 0.2; // Ejemplo: 1 kWh = 0.2 hectáreas globales
+        const factorAgua = 0.5;   // Ejemplo: 1 litro = 0.5 hectáreas globales
+        const factorCO2 = 2;      // Ejemplo: 1 kg de CO2 = 2 hectáreas globales
+        const factorCoche = 1;    // Ejemplo: 1 kilómetro en coche = 1 hectárea global
+        
+        // Variable para mantener un seguimiento de si se ha agregado una fila a la tabla
+        let filaAgregada = false;
+        
+        function calcularHuella() {
+            // Obtener los valores de entrada
+            const consumoEnergia = parseFloat(document.getElementById('consumoEnergia').value) || 0;
+            const consumoAgua = parseFloat(document.getElementById('consumoAgua').value) || 0;
+            const emisionesCO2 = parseFloat(document.getElementById('emisionesCO2').value) || 0;
+            const kilometrosCoche = parseFloat(document.getElementById('kilometrosCoche').value) || 0;
+            
+            // Calcular la huella ecológica utilizando factores de equivalencia
+            const huellaEnergia = consumoEnergia * factorEnergia;
+            const huellaAgua = consumoAgua * factorAgua;
+            const huellaCO2 = emisionesCO2 * factorCO2;
+            const huellaCoche = kilometrosCoche * factorCoche;
+        
+        
+            // Calcular los comentarios
+           const comentarioEnergia = 'Reduce el consumo de Energía (kWh) - Usa Energía Renovable: Cambia a fuentes de energía renovable, como la energía solar o eólica, para reducir la dependencia de combustibles fósiles. - Aplica la Eficiencia Energética: Mejora la eficiencia energética en tu hogar o negocio. Utiliza bombillas LED, electrodomésticos eficientes y aísla bien tu vivienda.';
+           const comentarioAgua = 'Reduce el consumo de Agua (Litros) - Reutilizar y Reciclar: Utiliza sistemas de reciclaje de agua para reutilizar el agua de lluvia y aguas grises para finos no potables, como el riego del jardín. - Arreglar Fugas: Repara las fugas de agua en tuberías y grifos, ya que las fugas desperdician grandes cantidades de agua';
+           const comentarioCO2 = 'Reduce las emisiones de C02 (Kg) - Transporte Sostenible: Opta por el transporte público, carpooling o usa vehículos eléctricos para reducir las emisiones de CO2 relacionadas con el transporte. - Reducir Uso de Combustibles Fósiles: Disminuye tu dependencia de combustibles fósiles, como la gasolina, y considera utilizar vehículos más eficientes en términos de consumo de combustible.';
+           const comentarioCoche = 'Kilómetros Conducidos en Coche - Fomenta el teletrabajo: Si es posible, negocia la opción de trabajar desde casa algunos días a la semana para reducir tus desplazamientos. - Promueve el transporte compartido: Únete a programas de carpooling o ridesharing para compartir el viaje con otros y reducir la cantidad de vehículos en la carretera.';
+        
+            // Sumar todas las huellas
+            const calculoHuella = huellaEnergia + huellaAgua + huellaCO2 + huellaCoche;
+        
+            // Mostrar el resultado en el elemento "resultado"
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Tu huella ambiental es: ' + calculoHuella.toFixed(2) + ' hectáreas globales';
+        
+        
+            if (!filaAgregada) {
+                // Si no se ha agregado una fila, agregar una nueva fila a la tabla
+                const tabla = document.querySelector('table tbody');
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td');
+                const td2 = document.createElement('td');
+                const td3 = document.createElement('td');
+                const td4 = document.createElement('td');
+        
+                td1.textContent = consumoEnergia;
+                td2.textContent = consumoAgua;
+                td3.textContent = emisionesCO2;
+                td4.textContent = kilometrosCoche;
+        
+         // Agregar estilos número de la tabla
+            td1.style.color = '#065ad9'; // Cambia el color a un código hexadecimal personalizado
+            td1.style.fontWeight = 'bold'; // Negrita 
+            td1.style.fontFamily = 'Arial, sans-serif'; // Cambia la fuente a Arial o la que prefieras
+            td1.style.fontSize = '20px'; // Cambia el tamaño de la fuente a 14px o el valor que desees
+           
+            td2.style.color = '#065ad9'; // Cambia el color a un código hexadecimal personalizado
+            td2.style.fontWeight = 'bold'; // Negrita 
+            td2.style.fontFamily = 'Arial, sans-serif'; // Cambia la fuente a Arial o la que prefieras
+            td2.style.fontSize = '20px'; // Cambia el tamaño de la fuente a 14px o el valor que desees
+        
+            td3.style.color = '#065ad9'; // Cambia el color a un código hexadecimal personalizado
+            td3.style.fontWeight = 'bold'; // Negrita 
+            td3.style.fontFamily = 'Arial, sans-serif'; // Cambia la fuente a Arial o la que prefieras
+            td3.style.fontSize = '20px'; // Cambia el tamaño de la fuente a 14px o el valor que desees
+        
+            td4.style.color = '#065ad9'; // Cambia el color a un código hexadecimal personalizado
+            td4.style.fontWeight = 'bold'; // Negrita 
+            td4.style.fontFamily = 'Arial, sans-serif'; // Cambia la fuente a Arial o la que prefieras
+            td4.style.fontSize = '20px'; // Cambia el tamaño de la fuente a 14px o el valor que desees
+            
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+        
+                tabla.appendChild(tr);
+            
+         // Crear un nuevo tr para los comentarios
+         const trComentarios = document.createElement('tr');
+        
+        // Crear elementos td para los comentarios
+        const tdComentarioEnergia = document.createElement('td');
+        const tdComentarioAgua = document.createElement('td');
+        const tdComentarioCO2 = document.createElement('td');
+        const tdComentarioCoche = document.createElement('td');
+        
+         // Establecer el contenido de los comentarios
+         tdComentarioEnergia.textContent = comentarioEnergia;
+            tdComentarioAgua.textContent = comentarioAgua;
+            tdComentarioCO2.textContent = comentarioCO2;
+            tdComentarioCoche.textContent = comentarioCoche;
+        
+             // Agregar los comentarios a la fila de comentarios
+             trComentarios.appendChild(tdComentarioEnergia);
+            trComentarios.appendChild(tdComentarioAgua);
+            trComentarios.appendChild(tdComentarioCO2);
+            trComentarios.appendChild(tdComentarioCoche);
+        
+            // Agregar la fila de comentarios debajo de la fila de valores
+            tabla.appendChild(trComentarios);
+            filaAgregada = true;
+        }
+        
+        
+                // Mostrar las recomendaciones
+        const recomendacionesDiv = document.getElementById('recomendacionesDiv');
+                recomendacionesDiv.style.display = 'block'
+        
+                // Si ya existe una fila, actualizar los valores de esa fila
+                const tabla = document.querySelector('table tbody');
+                const primeraFila = tabla.querySelector('tr'); // Suponemos que solo hay una fila
+                primeraFila.children[0].textContent = consumoEnergia;
+                primeraFila.children[1].textContent = consumoAgua;
+                primeraFila.children[2].textContent = emisionesCO2;
+                primeraFila.children[3].textContent = kilometrosCoche;
+            }
+        
+            if (filaAgregada) {
+            const tabla = document.querySelector('table tbody');
+            const primeraFila = tabla.querySelector('tr');
+            const segundaFila = tabla.querySelector('tr:nth-child(2)'); // La fila de comentarios
+        
+            tabla.removeChild(primeraFila);
+            tabla.removeChild(segundaFila);
+        
+            filaAgregada = false;
+        }
+        
+        
+        function resetCalculadora() {
+            // Restablecer los campos del formulario a sus valores iniciales
+            document.getElementById('consumoEnergia').value = "";
+            document.getElementById('consumoAgua').value = "";
+            document.getElementById('emisionesCO2').value = "";
+            document.getElementById('kilometrosCoche').value = "";
+        
+            // También, reiniciar el resultado
+            document.getElementById('resultado').textContent = '';
+        
+            // Limpiar la tabla eliminando todas las filas
+            const tabla = document.querySelector('table tbody');
+            tabla.innerHTML = '';
+        
+            filaAgregada = false; // Reiniciar el estado de la fila agregada
+        
+        
+        // También, reiniciar el resultado y los comentarios
+        document.getElementById('resultado').textContent = '';
+        
+        if (filaAgregada) {
+            const tabla = document.querySelector('table tbody');
+            const primeraFila = tabla.querySelector('tr');
+            tabla.removeChild(primeraFila);
+            filaAgregada = false;
+        }
+        
+        // Función para cargar y mostrar datos desde el archivo CSV
+        function cargarDatosDesdeCSV() {
+            // Ruta al archivo CSV
+            const archivoCSV = 'datos.csv';
+        
+            // Obtener la tabla
+            const tabla = document.querySelector('table tbody');
+        
+            // Crear una instancia del objeto XMLHttpRequest
+            const xhr = new XMLHttpRequest();
+        
+            // Configurar la solicitud GET para el archivo CSV
+            xhr.open('GET', archivoCSV, true);
+        
+            // Definir el manejador de eventos para la carga exitosa de datos
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const filas = xhr.responseText.trim().split('\n');
+        
+                    // Recorrer las filas y agregar datos a la tabla
+                    for (const fila of filas) {
+                        const datos = fila.split(',');
+                        if (datos.length === 4) {
+                            const tr = document.createElement('tr');
+                            for (const dato of datos) {
+                                const td = document.createElement('td');
+                                td.textContent = dato;
+                                tr.appendChild(td);
+                                
+                            }
+                            tabla.appendChild(tr);
+                        }
+                    }
+                } else {
+                    console.error('Error al cargar el archivo CSV.');
+                }
+            };
+        
+            // Enviar la solicitud
+            xhr.send();
+        }
+        }
+        // Llama a la función para cargar datos desde el archivo CSV
+        cargarDatosDesdeCSV();
+        
+        // Agregar los comentarios a la fila de comentarios
+        trComentarios.appendChild(tdComentarioEnergia);
+        trComentarios.appendChild(tdComentarioAgua);
+        trComentarios.appendChild(tdComentarioCO2);
+        trComentarios.appendChild(tdComentarioCoche);
+        
+        // Aplicar la clase de estilo a los comentarios
+        tdComentarioEnergia.classList.add('comentario');
+        tdComentarioAgua.classList.add('comentario');
+        tdComentarioCO2.classList.add('comentario');
+        tdComentarioCoche.classList.add('comentario');
+        
+            </script>
+        </body>
+        </html></p>
+</div>
+
+
+    
+    <script>
+        function calcularImpacto() {
+            const cantidad_latas = parseFloat(document.getElementById("cantidad_latas").value);
+            const cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value);
+            const cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+
+            const datos = {
+                "Lata de Aluminio": { Energia_kWh: 15, Agua_litros: 1.5, CO2_kg: 2.7 },
+                "Cuaderno (100 hojas)": { Energia_kWh: 2, Agua_litros: 10, CO2_kg: 1.5 },
+                "Botella Plástica": { Energia_kWh: 1.9, Agua_litros: 3, CO2_kg: 0.9 }
+            };
+
+            let impactoTotal = { Energia_kWh: 0, Agua_litros: 0, CO2_kg: 0 };
+
+            for (const producto in datos) {
+                if (datos.hasOwnProperty(producto)) {
+                    const cantidad = producto === "Lata de Aluminio" ? cantidad_latas :
+                                     producto === "Cuaderno (100 hojas)" ? cantidad_cuadernos : cantidad_botellas;
+                    impactoTotal.Energia_kWh += datos[producto].Energia_kWh * cantidad;
+                    impactoTotal.Agua_litros += datos[producto].Agua_litros * cantidad;
+                    impactoTotal.CO2_kg += datos[producto].CO2_kg * cantidad;
+                }
+            }
+
+            document.getElementById("resultado").innerHTML = `Energía (kWh): ${impactoTotal.Energia_kWh.toFixed(2)}<br>Agua (litros): ${impactoTotal.Agua_litros.toFixed(2)}<br>Emisiones de CO2 (kg): ${impactoTotal.CO2_kg.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>

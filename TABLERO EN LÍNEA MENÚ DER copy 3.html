@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html>
+<head>
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<style>
+
+/* Estilos generales */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+/* Estilos para la pizarra con borde */
+.whiteboard {
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border: 2px solid #34676b; /* Ancho y color del borde */
+}
+
+
+/* Barra de herramientas */
+.toolbar {
+    display: flex;
+    margin-bottom: 10px;
+    justify-content: center;
+    background-color: #fff;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 70%; /* Ajusta el ancho al 100% de la pantalla */
+}
+
+.toolbar select, .toolbar button {
+    margin-right: 10px;
+}
+
+/* Botón para borrar figura seleccionada */
+#erase {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+/* Contenedor del lienzo y botones de redimensionamiento */
+.whiteboard-container {
+    position: relative;
+}
+
+.resize-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.resize-button {
+    background-color: #34676b;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+    font-size: 24px;
+    margin: 5px;
+    border-radius: 50%;
+}
+
+/* Estilos del lienzo */
+.whiteboard {
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para los botones de navegación entre imágenes */
+#previousImage, #nextImage {
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+
+/* Agrega estilos para el botón de borrar figura seleccionada */
+#erase {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+/* Agrega estilos específicos para el campo de carga de imágenes */
+#imageUpload {
+    display: block;
+    margin: 10px;
+}
+
+/* Estilos para los botones con íconos de FontAwesome */
+.toolbar button {
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin: 0 10px;
+    border-radius: 5px;
+}
+
+.toolbar button:hover {
+    background-color: #254e52;
+}
+
+/* Estilos específicos para los botones de navegación de imágenes */
+#previousImage, #nextImage {
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin: 0 10px;
+    border-radius: 5px;
+}
+
+#previousImage:hover, #nextImage:hover {
+    background-color: #254e52;
+}
+
+#timer {
+    font-family: 'Arial', sans-serif;
+    font-size: 24px;
+    color: #333;
+    background-color: #f0f0f0;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    transition: background-color 0.3s;
+}
+
+#timer span {
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+#timer.time-up {
+    background-color: #ff6b6b; /* Cambia el color de fondo cuando el tiempo se agota */
+    color: white;
+}
+
+
+/* Estilos para el contenedor de la pizarra y la pizarra misma */
+.whiteboard-container {
+    position: relative;
+    width: 70%; /* Ocupa todo el ancho de la pantalla */
+}
+
+.whiteboard {
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 70%; /* Ocupa todo el ancho de la pantalla */
+}
+
+/* Establece un fondo de pantalla para el cuerpo de la página */
+body {
+    background-image: url('tu-imagen-de-fondo.jpg');
+    background-size: cover; /* Ajusta la imagen para cubrir todo el fondo */
+    background-attachment: fixed; /* Fija el fondo para que no se desplace con el contenido */
+}
+
+/* Si prefieres establecer un fondo solo para la pizarra */
+.whiteboard-container {
+    background-image: url('tu-imagen-de-fondo.jpg');
+    background-size: cover;
+}
+
+/* Estilos para el contenido de la pizarra (líneas, formas, etc.) */
+.whiteboard {
+    background-color: transparent; /* Haz que el fondo de la pizarra sea transparente */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+/* Estilos para el campo de entrada de tiempo */
+#timerInput {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 150px; /* Ajusta el ancho según tus preferencias */
+    margin-right: 10px;
+}
+
+/* Estilos para el botón de inicio del temporizador */
+#startTimer {
+    padding: 10px 20px;
+    background-color: #34676b;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Estilos al pasar el cursor sobre el botón */
+#startTimer:hover {
+    background-color: #254e52;
+}
+
+</style>
+
+
+</head>
+
+
+
+<body>
+    
+
+    <div class="toolbar">
+        <select id="colorPicker">
+            <option value="black">Negro</option>
+            <option value="red">Rojo</option>
+            <option value="blue">Azul</option>
+            <option value="green">Verde</option>
+        </select>
+        <select id="brushSize">
+            <option value="2">Pequeño</option>
+            <option value="5">Mediano</option>
+            <option value="10">Grande</option>
+        </select>
+        <button id="drawLine"><i class="fas fa-paint-brush"></i></button>
+        <button id="drawSquare"><i class="fas fa-square"></i></button>
+        <button id="drawCircle"><i class="fas fa-circle"></i></button>
+        <button id="undo"><i class="fas fa-undo"></i></button>
+        <button id="redo"><i class="fas fa-redo"></i></button>
+        <button id="clear"><i class="fas fa-trash"></i></button>
+        <button id="save"><i class="fas fa-save"></i></button>
+        <input type="file" id="imageUpload" accept="image/*" multiple>
+        <button id="previousImage"><i class="fas fa-arrow-left"></i></button>
+        <button id="nextImage"><i class="fas fa-arrow-right"></i></button>
+        <input type="text" id="timerInput" placeholder="Tiempo (segundos)">
+        <button id="startTimer"><i class="fas fa-play"></i></button>
+        <button id="pauseTimer"><i class="fas fa-pause"></i></button>
+
+        <!-- Agrega un botón de reinicio -->
+<button id="resetTimer"><i class="fas fa-sync"></i></button>
+
+
+
+
+    </div>
+
+
+    <div id="timer">
+        Tiempo restante: <span id="minutes">00</span>:<span id="seconds">00</span>
+    </div>
+   
+
+  
+    <div class="whiteboard-container">
+        <canvas id="whiteboard" width="800" height="400"></canvas>
+        <div class="resize-controls">
+            <div class="resize-button" id="increaseSize">+</div>
+            <div class="resize-button" id="decreaseSize">-</div>
+        </div>
+    </div>
+    
+    <button id="erase">Borrar Figura Seleccionada</button>
+    
+
+
+
+<script>
+
+
+// Coloca todo tu código JavaScript dentro del evento de carga de la página
+
+
+
+// ... (resto del código)
+
+// Coloca todo tu código JavaScript dentro del evento de carga de la página
+
+    const canvas = document.getElementById('whiteboard');
+    const context = canvas.getContext('2d');
+    let drawing = false;
+    let lastX, lastY;
+    let currentColor = 'black';
+    let currentSize = 2;
+    let undoStack = [];
+    let redoStack = [];
+    let shapes = []; // Lista para almacenar figuras geométricas
+
+    const colorPicker = document.getElementById('colorPicker');
+    const brushSize = document.getElementById('brushSize');
+    const drawLineBtn = document.getElementById('drawLine');
+    const drawSquareBtn = document.getElementById('drawSquare');
+    const drawCircleBtn = document.getElementById('drawCircle');
+    const undoBtn = document.getElementById('undo');
+    const redoBtn = document.getElementById('redo');
+    const clearBtn = document.getElementById('clear');
+    const saveBtn = document.getElementById('save');
+    const eraseBtn = document.getElementById('erase');
+
+   
+
+function updateColor() {
+    currentColor = colorPicker.value;
+}
+
+function updateSize() {
+    currentSize = brushSize.value;
+}
+
+
+
+
+
+function drawLine() {
+    drawLineBtn.addEventListener('click', drawLine);
+    canvas.style.cursor = 'crosshair';
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        lastX = e.clientX - canvas.offsetLeft;
+        lastY = e.clientY - canvas.offsetTop;
+    });
+
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', () => {
+        if (drawing) {
+            drawing = false;
+            context.closePath();
+            saveState();
+        }
+        canvas.style.cursor = 'default';
+    });
+}
+
+
+function draw(e) {
+    if (!drawing) return;
+    context.lineWidth = currentSize;
+    context.strokeStyle = currentColor;
+    context.lineCap = 'round';
+    context.beginPath();
+    context.moveTo(lastX, lastY);
+    lastX = e.clientX - canvas.offsetLeft;
+    lastY = e.clientY - canvas.offsetTop;
+    context.lineTo(lastX, lastY);
+    context.stroke();
+}
+
+
+
+
+
+
+
+
+
+function drawSquare() {
+    drawSquareBtn.addEventListener('click', drawSquare);
+    canvas.style.cursor = 'crosshair';
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        lastX = e.clientX - canvas.offsetLeft;
+        lastY = e.clientY - canvas.offsetTop;
+    });
+
+    canvas.addEventListener('mousemove', drawSquareShape);
+    canvas.addEventListener('mouseup', () => {
+        if (drawing) {
+            drawing = false;
+            context.closePath();
+            saveState();
+        }
+        canvas.style.cursor = 'default';
+    });
+}
+
+function drawCircle() {
+    drawCircleBtn.addEventListener('click', drawCircle);
+    canvas.style.cursor = 'crosshair';
+    canvas.addEventListener('mousedown', (e) => {
+        drawing = true;
+        lastX = e.clientX - canvas.offsetLeft;
+        lastY = e.clientY - canvas.offsetTop;
+    });
+
+    canvas.addEventListener('mousemove', drawCircleShape);
+    canvas.addEventListener('mouseup', () => {
+        if (drawing) {
+            drawing = false;
+            context.closePath();
+            saveState();
+        }
+        canvas.style.cursor = 'default';
+    });
+}
+
+function drawSquareShape(e) {
+    if (!drawing) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.lineWidth = currentSize;
+    context.strokeStyle = currentColor;
+    context.strokeRect(lastX, lastY, e.clientX - canvas.offsetLeft - lastX, e.clientY - canvas.offsetTop - lastY);
+}
+
+function drawCircleShape(e) {
+    if (!drawing) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.lineWidth = currentSize;
+    context.strokeStyle = currentColor;
+    const radius = Math.sqrt(
+        Math.pow(e.clientX - canvas.offsetLeft - lastX, 2) + Math.pow(e.clientY - canvas.offsetTop - lastY, 2)
+    );
+    context.beginPath();
+    context.arc(lastX, lastY, radius, 0, 2 * Math.PI);
+    context.stroke();
+}
+
+
+function undo() {
+    if (undoStack.length > 0) {
+        redoStack.push(context.getImageData(0, 0, canvas.width, canvas.height));
+        context.putImageData(undoStack.pop(), 0, 0);
+    }
+}
+
+function redo() {
+    if (redoStack.length > 0) {
+        undoStack.push(context.getImageData(0, 0, canvas.width, canvas.height));
+        context.putImageData(redoStack.pop(), 0, 0);
+    }
+}
+
+function clearCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    undoStack = [];
+    redoStack = [];
+}
+
+function saveCanvas() {
+    const dataURL = canvas.toDataURL();
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'whiteboard.png';
+    a.click();
+}
+
+function saveState() {
+    undoStack.push(context.getImageData(0, 0, canvas.width, canvas.height));
+    redoStack = [];
+}
+
+colorPicker.addEventListener('change', updateColor);
+brushSize.addEventListener('change', updateSize);
+drawLineBtn.addEventListener('click', drawLine);
+drawSquareBtn.addEventListener('click', drawSquare);
+drawCircleBtn.addEventListener('click', drawCircle);
+undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
+clearBtn.addEventListener('click', clearCanvas);
+saveBtn.addEventListener('click', saveCanvas);
+
+updateColor();
+updateSize();
+
+
+// Listener para borrar una figura seleccionada
+eraseBtn.addEventListener('click', clearSelectedShape);
+
+// ...
+
+// Listener para seleccionar figuras
+canvas.addEventListener('mousedown', (e) => {
+    if (e.target === canvas) {
+        const x = e.clientX - canvas.offsetLeft;
+        const y = e.clientY - canvas.offsetTop;
+        selectShape(x, y);
+    }
+});
+
+let selectedShape = null; // Almacena la figura seleccionada
+
+
+function drawShape(shape) {
+    context.lineWidth = shape.size;
+    context.strokeStyle = shape.color;
+    context.beginPath();
+    if (shape.type === 'line') {
+        context.moveTo(shape.startX, shape.startY);
+        context.lineTo(shape.endX, shape.endY);
+    } else if (shape.type === 'square') {
+        context.strokeRect(shape.startX, shape.startY, shape.endX - shape.startX, shape.endY - shape.startY);
+    } else if (shape.type === 'circle') {
+        const radius = Math.sqrt(
+            Math.pow(shape.endX - shape.startX, 2) + Math.pow(shape.endY - shape.startY, 2)
+        );
+        context.arc(shape.startX, shape.startY, radius, 0, 2 * Math.PI);
+    }
+    context.stroke();
+}
+
+function clearSelectedShape() {
+    if (selectedShape) {
+        const index = shapes.indexOf(selectedShape);
+        if (index !== -1) {
+            shapes.splice(index, 1);
+            redrawCanvas();
+            selectedShape = null;
+        }
+    }
+}
+
+eraseBtn.addEventListener('click', clearSelectedShape);
+
+function selectShape(x, y) {
+    for (let i = shapes.length - 1; i >= 0; i--) {
+        const shape = shapes[i];
+        if (shape.type === 'line') {
+            // Verificar si el cursor está cerca de una línea
+            const dist = pointToLineDistance(x, y, shape.startX, shape.startY, shape.endX, shape.endY);
+            if (dist <= 5) { // 5 es un valor de umbral para la selección
+                selectedShape = shape;
+                return;
+            }
+        } else if (shape.type === 'square') {
+            // Verificar si el cursor está dentro de un cuadrado
+            if (x >= shape.startX && x <= shape.endX && y >= shape.startY && y <= shape.endY) {
+                selectedShape = shape;
+                return;
+            }
+        } else if (shape.type === 'circle') {
+            // Verificar si el cursor está dentro de un círculo
+            const dist = Math.sqrt(Math.pow(x - shape.startX, 2) + Math.pow(y - shape.startY, 2));
+            if (dist <= shape.radius) {
+                selectedShape = shape;
+                return;
+            }
+        }
+    }
+    selectedShape = null; // Si no se selecciona ninguna figura
+}
+
+function pointToLineDistance(x, y, x1, y1, x2, y2) {
+    const A = x - x1;
+    const B = y - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const len_sq = C * C + D * D;
+    const param = -1;
+    if (len_sq !== 0) {
+        param = dot / len_sq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+
+    const dx = x - xx;
+    const dy = y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    if (e.target === canvas) {
+        if (selectedShape) {
+            clearSelectedShape();
+        } else {
+            const x = e.clientX - canvas.offsetLeft;
+            const y = e.clientY - canvas.offsetTop;
+            selectShape(x, y);
+        }
+    }
+});
+
+
+const imageUpload = document.getElementById('imageUpload');
+const previousImageBtn = document.getElementById('previousImage');
+const nextImageBtn = document.getElementById('nextImage');
+const imageList = []; // Almacena la lista de imágenes cargadas
+let currentImageIndex = -1; // Índice de la imagen actual
+
+imageUpload.addEventListener('change', (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const imageURL = URL.createObjectURL(file);
+            imageList.push(imageURL);
+        }
+        currentImageIndex = imageList.length - 1; // Establece la imagen cargada más reciente como la actual
+        loadImage(imageList[currentImageIndex]);
+    }
+});
+
+function loadImage(imageURL) {
+    const image = new Image();
+    image.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height); // Limpia el lienzo antes de mostrar la imagen
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    };
+    image.src = imageURL;
+}
+
+previousImageBtn.addEventListener('click', () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        loadImage(imageList[currentImageIndex]);
+    }
+});
+
+nextImageBtn.addEventListener('click', () => {
+    if (currentImageIndex < imageList.length - 1) {
+        currentImageIndex++;
+        loadImage(imageList[currentImageIndex]);
+    }
+});
+
+
+
+const whiteboardContainer = document.querySelector('.whiteboard-container');
+const increaseSizeBtn = document.getElementById('increaseSize');
+const decreaseSizeBtn = document.getElementById('decreaseSize');
+
+function resizeWhiteboard(width, height) {
+    canvas.width = width;
+    canvas.height = height;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+increaseSizeBtn.addEventListener('click', () => {
+    const currentWidth = canvas.width;
+    const currentHeight = canvas.height;
+    const newWidth = currentWidth + 100; // Incrementa el ancho en 100 píxeles
+    const newHeight = currentHeight + 100; // Incrementa la altura en 100 píxeles
+    resizeWhiteboard(newWidth, newHeight);
+});
+
+decreaseSizeBtn.addEventListener('click', () => {
+    const currentWidth = canvas.width;
+    const currentHeight = canvas.height;
+    if (currentWidth > 100 && currentHeight > 100) {
+        const newWidth = currentWidth - 100; // Disminuye el ancho en 100 píxeles
+        const newHeight = currentHeight - 100; // Disminuye la altura en 100 píxeles
+        resizeWhiteboard(newWidth, newHeight);
+    }
+});
+
+
+
+
+function startTimer() {
+    const timerButton = document.getElementById('startTimer');
+    const resetButton = document.getElementById('resetTimer');
+    const pauseButton = document.getElementById('pauseTimer'); // Agrega el botón de pausa
+    const timerInput = document.getElementById('timerInput');
+    const timerDisplay = document.getElementById('timer');
+    const minutesDisplay = document.getElementById('minutes');
+    const secondsDisplay = document.getElementById('seconds');
+
+    let countdown;
+    let remainingTime = 180; // Por defecto, 3 minutos (180 segundos)
+    let isPaused = false; // Variable para controlar si el temporizador está pausado
+
+    updateDisplay();
+
+    timerButton.addEventListener('click', () => {
+        const time = parseInt(timerInput.value, 10); // Obtiene el tiempo en segundos
+        if (isNaN(time) || time < 1) {
+            alert('Ingresa un valor válido para el temporizador (mínimo 1 segundo).');
+            return;
+        }
+
+        remainingTime = time;
+        updateDisplay();
+
+        clearInterval(countdown);
+
+        countdown = setInterval(function () {
+            if (remainingTime <= 0) {
+                clearInterval(countdown);
+                alert('¡Tiempo agotado!');
+                return;
+            }
+
+            if (!isPaused) {
+                remainingTime--;
+                updateDisplay();
+            }
+        }, 1000); // Actualiza cada segundo
+    });
+
+    resetButton.addEventListener('click', () => {
+        clearInterval(countdown);
+        remainingTime = 180; // Reinicia a 3 minutos por defecto
+        isPaused = false; // Restablece la pausa
+        updateDisplay();
+    });
+
+    // Agrega un evento para pausar o reanudar el temporizador
+    pauseButton.addEventListener('click', () => {
+        isPaused = !isPaused;
+    });
+
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        minutesDisplay.textContent = minutes < 10 ? '0' + minutes : minutes;
+        secondsDisplay.textContent = seconds < 10 ? '0' + seconds : seconds;
+        timerInput.value = remainingTime;
+    }
+}
+
+window.onload = function () {
+    startTimer();
+};
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juego Bloom – Docente</title>
+<style>
+  body{background:#0b1022;color:#e5e7eb;font-family:sans-serif;margin:0;padding:16px}
+  h1{margin:0 0 10px;font-size:20px;text-align:center}
+  p{font-size:14px;text-align:center;margin:4px 0 12px}
+  .gate{display:grid;gap:8px;margin:20px auto;max-width:320px}
+  input{padding:10px;border-radius:6px;border:1px solid #444;width:100%;font-size:14px}
+  button{padding:10px 14px;border:none;border-radius:8px;background:#38bdf8;color:#000;font-weight:bold;margin:6px 0;cursor:pointer;font-size:14px}
+  button:hover{background:#0ea5e9;color:#fff}
+  .panel{margin-top:12px;padding:12px;background:#111827;border-radius:8px}
+  .levels{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+  @media(min-width:560px){.levels{grid-template-columns:1fr 1fr}}
+  .lvl{border:2px dashed #475569;border-radius:12px;padding:8px;min-height:70px;cursor:pointer;font-size:13px}
+  .lvl h4{margin:0 0 4px;font-size:14px}
+  .lvl ul{margin:4px 0 0 14px;padding:0;font-size:15px;line-height:1.4;column-count:2;column-gap:20px}
+  .card{padding:14px;border-radius:8px;border:1px solid #334155;background:#0b1224;margin:10px auto;text-align:center;font-weight:800;font-size:16px;max-width:260px}
+  .card.selected{outline:3px solid #a78bfa}
+  #modal,#modalErrores{display:none;position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:10;padding:10px}
+  #modal .content,#modalErrores .content{background:#111827;padding:16px;border-radius:12px;max-width:95%;max-height:90%;overflow:auto;text-align:center;font-size:13px;color:#fff}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
+  th,td{border:1px solid #334155;padding:4px;text-align:center}
+  th{background:#1f2937;font-size:12px}
+  .row{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+  .prec-global{font-size:20px;font-weight:900;margin:10px 0}
+  .prec-green{color:#86efac}
+  .prec-yellow{color:#facc15}
+  .prec-red{color:#f87171}
+  .chips{display:flex;gap:6px;justify-content:center;margin:8px 0;flex-wrap:wrap}
+  .chip{padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px}
+  .chip.saber{background:#1e3a8a;color:#bfdbfe}
+  .chip.hacer{background:#9a3412;color:#fdba74}
+  .chip.ser{background:#065f46;color:#6ee7b7}
+  canvas{max-width:280px;margin:10px auto;display:block}
+</style>
+</head>
+<body>
+
+<h1>Juego Bloom – Móvil</h1>
+<p>Toca el nivel correcto para la tarjeta que aparece.</p>
+
+<!-- Gate -->
+<div class="gate" id="nameGate">
+  <p><strong>👤 Identifícate para empezar</strong></p>
+  <input id="firstName" placeholder="Nombres">
+  <input id="lastName" placeholder="Apellidos">
+  <button id="startWithName">Comenzar</button>
+  <p id="nameError" style="color:#fca5a5;display:none">Por favor escribe nombres y apellidos válidos.</p>
+</div>
+
+<!-- Juego -->
+<div class="panel hidden" id="appWrap">
+  <h3 id="dimTitle" style="text-align:center;margin-top:0"></h3>
+  <div id="cardArea"></div>
+  <div class="levels" id="levels"></div>
+  <p id="status"></p>
+</div>
+
+<!-- Modal principal -->
+<div id="modal">
+  <div class="content">
+    <h3>🎉 ¡Juego completado!</h3>
+    <div id="finalMsg"></div>
+    <canvas id="resultChart"></canvas>
+    <div class="row">
+      <button id="btnErrores">📊 Ver errores por dimensión</button>
+      <button onclick="downloadExcel()">📥 Excel</button>
+      <button onclick="downloadPDF()">📄 PDF</button>
+    </div>
+    <div class="row">
+      <button id="btnRestart">🔄 Jugar de nuevo</button>
+      <button id="btnExit">🚪 Salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de errores -->
+<div id="modalErrores">
+  <div class="content">
+    <h3>📊 Errores por dimensión</h3>
+    <div id="erroresDim"></div>
+    <div class="row"><button onclick="cerrarErrores()">Aceptar</button></div>
+  </div>
+</div>
+
+<!-- Librerías -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+/* === Data con “Refinar” en SABER nivel 3 === */
+const DATA={
+  saber:{
+    4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"], 
+    2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer:{
+    4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser:{
+    4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+const DIM_ORDER=["saber","hacer","ser"];
+let currentDimIndex=0,currentList=[],currentCard=null,jugador="",STATS={};
+
+/* === Juego === */
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr;}
+function initDimension(){
+  const dim=DIM_ORDER[currentDimIndex];
+  document.getElementById("dimTitle").textContent=dim.toUpperCase();
+  currentList=[];Object.entries(DATA[dim]).forEach(([lvl,list])=>list.forEach(v=>currentList.push({verb:v,level:+lvl,errors:0,attempts:[]})));
+  shuffle(currentList);STATS[dim]=[];buildLevels();nextCard();
+}
+function buildLevels(){
+  const levels=document.getElementById("levels");levels.innerHTML="";
+  for(let i=1;i<=4;i++){
+    const box=document.createElement("div");box.className="lvl";box.dataset.level=i;
+    box.innerHTML=`<h4>Nivel ${i}</h4><ul id="list-${i}"></ul>`;
+    box.onclick=()=>tryPlace(i,box);levels.appendChild(box);
+  }
+}
+function nextCard(){
+  const area=document.getElementById("cardArea");area.innerHTML="";
+  if(currentList.length===0){checkProgress();return;}
+  currentCard=currentList.pop();
+  const el=document.createElement("div");el.className="card selected";el.textContent=currentCard.verb;
+  area.appendChild(el);updateStatus();
+}
+function tryPlace(level,box){
+  if(!currentCard)return;
+  if(level===currentCard.level){
+    STATS[DIM_ORDER[currentDimIndex]].push({...currentCard});
+    const ul=box.querySelector("ul");const li=document.createElement("li");li.textContent=currentCard.verb;ul.appendChild(li);
+    currentCard=null;setTimeout(nextCard,350);
+  }else{
+    currentCard.errors++;
+    currentCard.attempts.push(level);
+    box.style.background="#5b1d1d";setTimeout(()=>box.style.background="",300);
+  }
+}
+function updateStatus(){
+  const dim=DIM_ORDER[currentDimIndex];
+  const total=Object.values(DATA[dim]).flat().length;
+  const done=STATS[dim].length;
+  document.getElementById("status").textContent=`Dimensión: ${dim.toUpperCase()} | ${done}/${total} completados`;
+}
+function checkProgress(){
+  if(currentDimIndex<DIM_ORDER.length-1){currentDimIndex++;initDimension();}
+  else endGame();
+}
+function endGame(){
+  let totalErrors=0;let resumenPorDim={};let totalVerbos=0;
+  let html=`<p><strong>${jugador}</strong></p>`;
+  DIM_ORDER.forEach(dim=>{
+    const erroresDim=STATS[dim].reduce((acc,it)=>acc+it.errors,0);
+    resumenPorDim[dim]=erroresDim;totalErrors+=erroresDim;totalVerbos+=STATS[dim].length;
+  });
+  const intentos=totalVerbos+totalErrors;
+  const precGlobal=intentos?Math.round((totalVerbos/intentos)*100):100;
+  let precClass=precGlobal>=80?"prec-green":precGlobal>=60?"prec-yellow":"prec-red";
+  html+=`<div class="prec-global ${precClass}">Precisión global: ${precGlobal}%</div>`;
+
+  // 📌 Top 3 verbos con más errores
+  let listaErrores=[];
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      if(it.errors>0) listaErrores.push({dim,verb:it.verb,err:it.errors});
+    });
+  });
+  listaErrores.sort((a,b)=>b.err-a.err);
+  if(listaErrores.length>0){
+    html+=`<div style="margin-top:10px;text-align:left">
+             <strong>🔎 Verbos con más dificultades:</strong>
+             <ol>`;
+    listaErrores.slice(0,3).forEach(it=>{
+      html+=`<li>${it.verb} (${it.dim.toUpperCase()}) → ${it.err} errores</li>`;
+    });
+    html+=`</ol></div>`;
+  }
+
+  document.getElementById("finalMsg").innerHTML=html;
+  document.getElementById("modal").style.display="flex";
+  drawChart(totalVerbos,totalErrors);
+}
+function drawChart(aciertos,errores){
+  const ctx=document.getElementById("resultChart").getContext("2d");
+  new Chart(ctx,{type:"doughnut",data:{labels:["Aciertos","Errores"],datasets:[{data:[aciertos,errores],backgroundColor:["#4ade80","#f87171"]}]},options:{plugins:{legend:{labels:{color:"#fff"},position:"bottom"}}}});
+}
+
+/* === Exportar Excel === */
+function downloadExcel(){
+  const wb=XLSX.utils.book_new(); 
+
+  // Hoja 1: resultados globales
+  const rowsAll=[["Dimensión","Verbo","Nivel","Errores"]];
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      rowsAll.push([dim.toUpperCase(),it.verb,it.level,it.errors]);
+    });
+  });
+  const wsAll=XLSX.utils.aoa_to_sheet(rowsAll);
+  XLSX.utils.book_append_sheet(wb,wsAll,"Resultados");
+
+  // Hoja 2: solo errores
+  const rowsErr=[["Dimensión","Verbo","Nivel","Errores","Intentos fallidos"]];
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      if(it.errors>0){
+        const attempts=it.attempts.length?"N"+it.attempts.join(", N"):"";
+        rowsErr.push([dim.toUpperCase(),it.verb,it.level,it.errors,attempts]);
+      }
+    });
+  });
+  const wsErr=XLSX.utils.aoa_to_sheet(rowsErr);
+  XLSX.utils.book_append_sheet(wb,wsErr,"Errores");
+
+  XLSX.writeFile(wb,`Informe_Bloom_${jugador}.xlsx`);
+}
+
+/* === Exportar PDF === */
+async function downloadPDF(){
+  const { jsPDF }=window.jspdf; 
+  const doc=new jsPDF();
+  doc.setFontSize(14); 
+  doc.text(`Informe Bloom – ${jugador}`,105,15,{align:"center"});
+
+  // 📌 Top 3 verbos con más errores
+  let listaErrores=[];
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      if(it.errors>0) listaErrores.push({dim,verb:it.verb,err:it.errors});
+    });
+  });
+  listaErrores.sort((a,b)=>b.err-a.err);
+  if(listaErrores.length>0){
+    doc.setFontSize(12);
+    doc.text("🔎 Top 3 verbos con más errores:",14,28);
+    listaErrores.slice(0,3).forEach((it,i)=>{
+      doc.text(`${i+1}. ${it.verb} (${it.dim.toUpperCase()}) → ${it.err} errores`,20,36+i*7);
+    });
+  }
+
+  // Resultados globales
+  let startY= listaErrores.length>0 ? 60 : 28;
+  doc.setFontSize(12);
+  doc.text("📘 Resultados globales",14,startY);
+  const rowsAll=[]; 
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      rowsAll.push([dim.toUpperCase(),it.verb,it.level,it.errors]);
+    });
+  });
+  doc.autoTable({
+    head:[["Dimensión","Verbo","Nivel","Errores"]],
+    body:rowsAll,
+    startY:startY+4,
+    styles:{ fontSize:9, halign:"center" },
+    headStyles:{ fillColor:[30,58,138], textColor:[255,255,255] }
+  });
+
+  // Errores detallados
+  let y=doc.lastAutoTable.finalY+12;
+  doc.setFontSize(12);
+  doc.text("❌ Errores detallados",14,y);
+  const rowsErr=[]; 
+  DIM_ORDER.forEach(dim=>{
+    STATS[dim].forEach(it=>{
+      if(it.errors>0){
+        const attempts=it.attempts.length?"N"+it.attempts.join(", N"):"";
+        rowsErr.push([dim.toUpperCase(),it.verb,it.level,it.errors,attempts]);
+      }
+    });
+  });
+  doc.autoTable({
+    head:[["Dimensión","Verbo","Nivel","Errores","Intentos fallidos"]],
+    body:rowsErr,
+    startY:y+4,
+    styles:{ fontSize:9, halign:"center" },
+    headStyles:{ fillColor:[139,0,0], textColor:[255,255,255] },
+    columnStyles:{4:{textColor:[200,0,0],fontStyle:"bold"}}
+  });
+
+  doc.save(`Informe_Bloom_${jugador}.pdf`);
+}
+
+/* === Eventos === */
+document.getElementById("startWithName").onclick=()=>{
+  const fn=document.getElementById("firstName").value.trim();const ln=document.getElementById("lastName").value.trim();
+  if(fn&&ln){jugador=fn+" "+ln;document.getElementById("nameGate").style.display="none";
+    document.getElementById("appWrap").classList.remove("hidden");currentDimIndex=0;STATS={};initDimension();
+  }else document.getElementById("nameError").style.display="block";
+};
+document.getElementById("btnRestart").onclick=()=>{document.getElementById("modal").style.display="none";document.getElementById("appWrap").classList.add("hidden");document.getElementById("nameGate").style.display="grid";};
+document.getElementById("btnExit").onclick=()=>{document.getElementById("finalMsg").innerHTML="<h3>🎉 Juego completado. Gracias por jugar</h3>";};
+document.getElementById("btnErrores").onclick=()=>{document.getElementById("modalErrores").style.display="flex";};
+function cerrarErrores(){document.getElementById("modalErrores").style.display="none";}
+</script>
+
+</body>
+</html>

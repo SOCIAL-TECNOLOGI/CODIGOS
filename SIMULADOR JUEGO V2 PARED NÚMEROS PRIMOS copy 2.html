@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Invaders 🚀</title>
+<style>
+  body {
+    background: black;
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  h1 { color: #00ffcc; text-shadow: 2px 2px #ff00ff; }
+
+  .pared {
+    margin: 20px auto;
+    width: 250px; min-height: 180px;
+    padding: 10px;
+    background: #222; border: 4px solid #00ffcc;
+    display: flex; flex-wrap: nowrap;
+    justify-content: center; align-items: center;
+    gap: 10px;
+    font-size: 20px; font-weight: bold;
+    transition: box-shadow 0.3s ease;
+    position: relative;
+    z-index: 5;
+  }
+  .pared.glow { animation: glowEfecto 2s ease-in-out infinite; }
+  @keyframes glowEfecto {
+    0% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+    50% { box-shadow: 0 0 50px #00ffcc, 0 0 100px #ff00ff; }
+    100% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+  }
+
+  .nave {
+    font-size: 60px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .nave:hover { transform: scale(1.2); }
+  .laser {
+    width: 8px; height: 0;
+    background: radial-gradient(circle, #ff00ff, transparent);
+    margin: 0 auto;
+    box-shadow: 0 0 25px #ff00ff;
+    transition: height 1s ease-out;
+  }
+
+  .ladrillo {
+    width: 50px; height: 30px; border-radius: 5px;
+    font-weight: bold; color: black;
+    display: flex; justify-content: center; align-items: center;
+    cursor: grab; position: absolute;
+    animation: flotar 4s infinite alternate ease-in-out;
+    z-index: 10;
+  }
+  .paredItem {
+    width: auto; min-width: 40px; height: 30px; border-radius: 5px;
+    font-weight: bold; color: black;
+    display: flex; justify-content: center; align-items: center;
+    padding: 0 8px;
+    background: #ccc;
+  }
+  .multiplicacion {
+    color: #fff;
+    font-size: 22px;
+    margin: 0 4px;
+  }
+  .p2 { background: #00ffcc; }
+  .p3 { background: #ff00ff; }
+  .p5 { background: #ffff00; }
+  .p7 { background: #ff6600; }
+
+  @keyframes flotar {
+    from { transform: translateY(0px) rotate(0deg); }
+    to   { transform: translateY(-30px) rotate(10deg); }
+  }
+
+  #marciano {
+    font-size: 40px;
+    opacity: 0;
+    margin-top: 20px;
+    transition: opacity 1s ease-in-out;
+  }
+  #marciano.visible { opacity: 1; }
+
+  #mensajeFinal {
+    font-size: 18px;
+    margin-top: 15px;
+    color: #00ffcc;
+    text-shadow: 1px 1px #ff00ff;
+  }
+
+.paredItem .base {
+  display: inline-block;
+  margin-right: 2px;
+}
+
+.paredItem sup {
+  font-size: 0.6em;          /* tamaño legible */
+  position: relative;        /* para poder moverlo */
+  top: -0.6em;               /* súbelo respecto a la base */
+  margin-left: 1px;          /* separación clara */
+  color: #000000;            /* negro */
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #000;
+}
+
+
+
+</style>
+</head>
+<body>
+  <h1>🚀 Prime Invaders</h1>
+  <p>Haz clic en la nave para disparar y traer los ladrillos desde el espacio</p>
+
+  <div class="nave" onclick="disparar()">🚀</div>
+  <div class="laser" id="laser"></div>
+  <div class="pared" id="pared">84</div>
+
+  <div id="marciano">👽</div>
+  <p id="mensajeFinal"></p>
+
+  <!-- 🎵 Sonidos -->
+  <audio id="sndLaser" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="sndExplode" src="https://actions.google.com/sounds/v1/explosions/explosion.ogg"></audio>
+  <audio id="sndPlace" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+<script>
+  let numero = 84;
+  let factores = [];
+  let colocados = {};
+  let instruccionFusionDada = false;
+  let misionCompletada = false;
+  let puedeDisparar = true; // 🔒 controla la nave
+
+  function factoresPrimos(n){
+    const f=[]; let d=2;
+    while(n>1){
+      while(n%d===0){ f.push(d); n/=d; }
+      d++;
+    }
+    return f;
+  }
+
+  function disparar(){
+    if(!puedeDisparar) return; 
+    puedeDisparar = false;
+
+    const laser=document.getElementById("laser");
+    const pared=document.getElementById("pared");
+    pared.innerHTML="💥";
+    pared.style.background="#222";
+
+    document.getElementById("sndLaser").play();
+    laser.style.height="180px";
+
+    setTimeout(()=>{
+      document.getElementById("sndExplode").play();
+      laser.style.height="0";
+      factores=factoresPrimos(numero);
+      pared.innerHTML="";
+      colocados={};
+      instruccionFusionDada = false;
+      misionCompletada = false;
+      mostrarInstruccionInicial();
+
+      const rectPared = pared.getBoundingClientRect();
+
+      factores.forEach((f,i)=>{
+        const ladrillo=document.createElement("div");
+        ladrillo.classList.add("ladrillo","p"+f);
+        ladrillo.textContent=f;
+        ladrillo.draggable=true;
+        ladrillo.id="l"+i;
+        ladrillo.ondragstart=arrastrar;
+
+        let x,y;
+        do{
+          x=Math.random()*(window.innerWidth-80);
+          y=Math.random()*(window.innerHeight-150);
+        }while(x>rectPared.left-80 && x<rectPared.right+20 &&
+               y>rectPared.top-80 && y<rectPared.bottom+20);
+
+        ladrillo.style.left=x+"px";
+        ladrillo.style.top=y+"px";
+        document.body.appendChild(ladrillo);
+      });
+      pared.ondrop=soltar;
+      pared.ondragover=permitirDrop;
+    },1000);
+  }
+
+  function mostrarInstruccionInicial(){
+    narrar("Terrícola, arrastra los ladrillos a la pared. Luego deberás fusionar los repetidos para formar potencias.");
+  }
+
+  function arrastrar(ev){ ev.dataTransfer.setData("text",ev.target.id); }
+  function permitirDrop(ev){ ev.preventDefault(); }
+
+  function soltar(ev){
+    if(misionCompletada) return;
+    ev.preventDefault();
+    const data=ev.dataTransfer.getData("text");
+    const ladrillo=document.getElementById(data);
+    if(!ladrillo) return;
+
+    const base=parseInt(ladrillo.textContent);
+    const bloque=document.createElement("div");
+    bloque.classList.add("paredItem","p"+base);
+    bloque.innerHTML = base; // sin superíndice inicial
+    bloque.dataset.base=base;
+    bloque.dataset.exp=1;
+    bloque.draggable=true;
+    bloque.id="p"+Date.now();
+    bloque.ondragstart=arrastrar;
+    bloque.ondrop=fusionar;
+    bloque.ondragover=permitirDrop;
+
+    ev.target.appendChild(bloque);
+
+    narrar("Colocaste el número " + base);
+    document.getElementById("sndPlace").play();
+    ladrillo.remove();
+
+    if(!colocados[base]) colocados[base]=0;
+    colocados[base]++;
+
+    verificarFinal();
+  }
+
+  function fusionar(ev){
+    if(misionCompletada) return;
+    ev.preventDefault();
+    const data=ev.dataTransfer.getData("text");
+    const arrastrado=document.getElementById(data);
+    if(!arrastrado) return;
+
+    const base1=parseInt(this.dataset.base);
+    const base2=parseInt(arrastrado.textContent);
+
+    if(base1===base2){
+      this.dataset.exp=parseInt(this.dataset.exp)+1;
+      const exp=this.dataset.exp;
+      this.innerHTML = `<span class="base">${base1}</span>${exp>1? `<sup>${exp}</sup>`:""}`;
+      arrastrado.remove();
+      colocados[base1]=exp;
+      narrarPotencia(base1,exp);
+      ordenarPared();
+      verificarFinal();
+    }
+  }
+
+  function narrarPotencia(base,exp){
+    let texto="";
+    if(exp===0) texto= base+" a la cero es uno";
+    else if(exp===1) texto= base.toString();
+    else if(exp===2) texto= base+" al cuadrado";
+    else if(exp===3) texto= base+" al cubo";
+    else texto= base+" a la "+exp;
+    narrar("Has formado "+texto);
+  }
+
+  function hayRepetidos(){
+    const bloques=[...document.querySelectorAll(".paredItem")];
+    const conteo={};
+    for(let b of bloques){
+      let base=parseInt(b.dataset.base);
+      conteo[base]=(conteo[base]||0)+1;
+      if(conteo[base]>1) return true;
+    }
+    return false;
+  }
+
+  function verificarFinal(){
+    const totalEnPared=document.querySelectorAll(".paredItem").length;
+
+    if(totalEnPared===factores.length && !instruccionFusionDada){
+      narrar("Ahora une o fusiona los factores repetidos.");
+      instruccionFusionDada = true;
+    }
+
+    if(hayRepetidos()) return;
+
+    let producto=1;
+    Object.entries(colocados).forEach(([b,e])=>{
+      producto*=Math.pow(parseInt(b),e);
+    });
+    if(producto===numero){
+      narrarFinal(colocados,numero);
+    }
+  }
+
+  function narrarFinal(colocados,numero){
+    misionCompletada = true;
+    let orden=Object.keys(colocados).map(n=>parseInt(n)).sort((a,b)=>a-b);
+    let texto="¡Misión completada! ";
+    let narracion="Misión completada: ";
+
+    orden.forEach((base,i)=>{
+      const exp=colocados[base];
+      if(i>0){ texto+=" × "; narracion+=" por "; }
+      texto+= base+(exp>1? `<sup>${exp}</sup>`:""); // ✅ superíndice final
+      if(exp===0) narracion+= base+" a la cero es uno";
+      else if(exp===1) narracion+= base;
+      else if(exp===2) narracion+= base+" al cuadrado";
+      else if(exp===3) narracion+= base+" al cubo";
+      else narracion+= base+" a la "+exp;
+    });
+    texto+=" = "+numero;
+    narracion+=" es igual a "+numero;
+
+    document.getElementById("mensajeFinal").innerHTML=texto;
+    narrar(narracion);
+    ordenarPared();
+    puedeDisparar = true;
+  }
+
+  function ordenarPared(){
+    const pared=document.getElementById("pared");
+    pared.innerHTML="";
+    let items=Object.keys(colocados).map(b=>({ base:parseInt(b), exp:colocados[b] }));
+    items.sort((a,b)=>a.base-b.base);
+
+    items.forEach((item,i)=>{
+      const nuevo=document.createElement("div");
+      nuevo.classList.add("paredItem","p"+item.base);
+      nuevo.dataset.base=item.base;
+      nuevo.dataset.exp=item.exp;
+      nuevo.innerHTML=item.base+(item.exp>1? `<sup>${item.exp}</sup>`:""); // ✅ superíndice ordenado
+      pared.appendChild(nuevo);
+      if(i<items.length-1){
+        const x=document.createElement("span");
+        x.classList.add("multiplicacion");
+        x.textContent="×";
+        pared.appendChild(x);
+      }
+    });
+  }
+
+  function narrar(texto){
+    const voz=new SpeechSynthesisUtterance(texto);
+    voz.lang="es-ES";
+    voz.pitch=0.8;
+    voz.rate=0.9;
+    speechSynthesis.speak(voz);
+    document.getElementById("marciano").classList.add("visible");
+    setTimeout(()=>document.getElementById("marciano").classList.remove("visible"),4000);
+  }
+</script>
+</body>
+</html>

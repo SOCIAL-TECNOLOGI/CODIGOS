@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sopa de Letras Genética Mendeliana</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #word-search {
+            display: grid;
+            grid-template-columns: repeat(12, 40px);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .letter-cell {
+            width: 40px;
+            height: 40px;
+            background-color: #3498db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: #fff;
+            cursor: pointer;
+            border: 1px solid #2980b9;
+            border-radius: 6px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .letter-cell:hover {
+            background-color: #2980b9;
+        }
+
+        .word-list {
+            text-align: center;
+        }
+
+        .word {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 18px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .found {
+            color: #2ecc71; /* Cambiar a tu color deseado para palabras encontradas */
+        }
+    </style>
+</head>
+<body>
+    <div id="word-search"></div>
+    <div class="word-list">
+        <p>Palabras: 
+            <span class="word" id="word1">GENE</span>
+            <span class="word" id="word2">HERENCIA</span>
+            <span class="word" id="word3">ALELO</span>
+            <span class="word" id="word4">DOMINANTE</span>
+            <span class="word" id="word5">RECESIVO</span>
+            <span class="word" id="word6">CROMOSOMA</span>
+            <span class="word" id="word7">FENOTIPO</span>
+            <span class="word" id="word8">GENOTIPO</span>
+            <span class="word" id="word9">MENDEL</span>
+            <span class="word" id="word10">CRUZAMIENTO</span>
+            <span class="word" id="word11">HÍBRIDO</span>
+            <span class="word" id="word12">PUNNETT</span>
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const wordSearch = document.getElementById("word-search");
+            const words = ["GENE", "HERENCIA", "ALELO", "DOMINANTE", "RECESIVO", "CROMOSOMA", "FENOTIPO", "GENOTIPO", "MENDEL", "CRUZAMIENTO", "HÍBRIDO", "PUNNETT"];
+
+            // Crea la sopa de letras
+            for (let i = 0; i < 12; i++) {
+                for (let j = 0; j < 12; j++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("letter-cell");
+                    cell.textContent = getRandomLetter();
+                    wordSearch.appendChild(cell);
+                }
+            }
+
+            // Coloca las palabras en la sopa de letras
+            words.forEach(word => {
+                const orientation = Math.random() < 0.5 ? "horizontal" : "vertical";
+                const startRow = Math.floor(Math.random() * 12);
+                const startCol = Math.floor(Math.random() * 12);
+
+                placeWord(word, orientation, startRow, startCol);
+            });
+
+            function getRandomLetter() {
+                const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                return alphabet[Math.floor(Math.random() * alphabet.length)];
+            }
+
+            function placeWord(word, orientation, startRow, startCol) {
+                const wordArray = word.split("");
+                const cells = [];
+
+                for (let i = 0; i < wordArray.length; i++) {
+                    let row = startRow;
+                    let col = startCol;
+
+                    if (orientation === "horizontal") {
+                        col += i;
+                    } else {
+                        row += i;
+                    }
+
+                    const cell = document.querySelector(`.letter-cell:nth-child(${(row - 1) * 12 + col + 1})`);
+                    cell.textContent = wordArray[i];
+                    cells.push(cell);
+                }
+
+                // Añade un evento clic para resaltar la palabra cuando se encuentre
+                const wordElement = document.getElementById("word" + (words.indexOf(word) + 1));
+                cells.forEach(cell => {
+                    cell.addEventListener("click", () => {
+                        cells.forEach(c => c.style.backgroundColor = "#e74c3c");
+                        wordElement.classList.add("found");
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

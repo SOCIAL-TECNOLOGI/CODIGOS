@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de CO₂ Evitado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input[type="number"] {
+            width: 80px;
+            margin: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .resultado {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cálculo de CO₂ Evitado</h1>
+
+        <h3>Por Cantidad:</h3>
+        <label for="cuadernos">Cantidad de Cuadernos:</label>
+        <input type="number" id="cuadernos" value="1" min="0">
+        <br>
+        <label for="botellas">Cantidad de Botellas:</label>
+        <input type="number" id="botellas" value="1" min="0">
+        <br>
+        <label for="latas">Cantidad de Latas:</label>
+        <input type="number" id="latas" value="1" min="0">
+        <br>
+        <button id="calcularCantidad">Calcular CO₂ por Cantidad</button>
+
+        <h3>Por Peso:</h3>
+        <label for="pesoCuadernos">Peso Total de Cuadernos (kg):</label>
+        <input type="number" id="pesoCuadernos" value="0.19" step="0.01" min="0">
+        <br>
+        <label for="pesoBotellas">Peso Total de Botellas (kg):</label>
+        <input type="number" id="pesoBotellas" value="0.02" step="0.01" min="0">
+        <br>
+        <label for="pesoLatas">Peso Total de Latas (kg):</label>
+        <input type="number" id="pesoLatas" value="0.014" step="0.01" min="0">
+        <br>
+        <button id="calcularPeso">Calcular CO₂ por Peso</button>
+
+        <div class="resultado" id="resultado"></div>
+    </div>
+
+    <script>
+        document.getElementById('calcularCantidad').addEventListener('click', function(event) {
+            event.preventDefault();
+            const cantidadCuadernos = parseInt(document.getElementById('cuadernos').value) || 0;
+            const cantidadBotellas = parseInt(document.getElementById('botellas').value) || 0;
+            const cantidadLatas = parseInt(document.getElementById('latas').value) || 0;
+
+            const huellaCuadernos = cantidadCuadernos * 0.68; // kg CO₂ evitados por cuaderno
+            const huellaBotellas = cantidadBotellas * 0.03; // kg CO₂ evitados por botella
+            const huellaLatas = cantidadLatas * 0.13; // kg CO₂ evitados por lata
+
+            const huellaTotal = huellaCuadernos + huellaBotellas + huellaLatas;
+            mostrarResultado(huellaTotal);
+        });
+
+        document.getElementById('calcularPeso').addEventListener('click', function(event) {
+            event.preventDefault();
+
+            const pesoCuadernos = parseFloat(document.getElementById('pesoCuadernos').value) || 0;
+            const pesoBotellas = parseFloat(document.getElementById('pesoBotellas').value) || 0;
+            const pesoLatas = parseFloat(document.getElementById('pesoLatas').value) || 0;
+
+            // Calcular huella de carbono por peso
+            const huellaCuadernos = (pesoCuadernos / 0.19) * 0.68; // 0.19 kg por cuaderno (190 g)
+            const huellaBotellas = (pesoBotellas / 0.02) * 0.03; // 0.02 kg por botella (20 g)
+            const huellaLatas = (pesoLatas / 0.014) * 0.13; // 0.014 kg por lata (14 g)
+
+            const huellaTotal = huellaCuadernos + huellaBotellas + huellaLatas;
+            mostrarResultado(huellaTotal);
+        });
+
+        function mostrarResultado(total) {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.textContent = `Total de CO₂ evitado: ${total.toFixed(2)} kg`;
+        }
+    </script>
+</body>
+</html>

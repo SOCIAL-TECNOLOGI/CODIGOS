@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Taxonomía de Bloom – Móvil (Tap-to-Place)</title>
+<style>
+  :root{
+    --bg:#0b1022; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+    --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#22d3ee; --vio:#a78bfa;
+    --saber:#38bdf8; --hacer:#fb923c; --ser:#34d399;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+    color:var(--txt); background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed;
+    -webkit-tap-highlight-color: transparent;
+  }
+  header{padding:16px 16px 8px}
+  h1{margin:0 0 6px; font-size:20px}
+  .sub{margin:0; color:var(--muted); font-size:13px}
+
+  .wrap{display:grid; gap:12px; grid-template-columns:1fr; padding:0 12px 18px}
+  .hidden{display:none !important}
+
+  .panel{background:rgba(17,24,39,.7); border:1px solid var(--borde); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter: blur(6px)}
+  .top{display:grid; gap:10px; padding:12px}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .chip{padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:13px}
+  .controls{display:flex; gap:8px; flex-wrap:wrap}
+  button{border:1px solid var(--borde); background:#0b1224; color:#e5e7eb; cursor:pointer; padding:10px 12px; border-radius:10px; font-weight:800; width:100%}
+  .row{display:flex; gap:8px; align-items:center}
+  .row > * {flex:1}
+  input, select{background:#0b1224; color:#e5e7eb; border:1px solid #334155; border-radius:10px; padding:10px; width:100%}
+  .toggle{display:flex; align-items:center; gap:8px; color:#e5e7eb; font-weight:700}
+  .toggle input{width:auto}
+
+  /* Etiquetas de dimensión */
+  .dim-head{display:flex; justify-content:space-between; align-items:center; padding:12px}
+  .dim-title{font-weight:900}
+  .tag{padding:.25rem .6rem; border-radius:999px; font-size:.8rem; font-weight:800; border:1px solid #334155}
+  .tag.saber{color:#dff6ff; background:linear-gradient(90deg, rgba(56,189,248,.18), transparent)}
+  .tag.hacer{color:#fff3e6; background:linear-gradient(90deg, rgba(251,146,60,.18), transparent)}
+  .tag.ser{color:#eafff5; background:linear-gradient(90deg, rgba(52,211,153,.18), transparent)}
+
+  /* Banco */
+  .bank{padding:12px}
+  .bank h3{margin:0 0 10px; font-size:16px}
+  .bank-grid{display:flex; flex-direction:column; gap:10px}
+  .card{
+    --bgc:#0e162a;
+    display:flex; align-items:center; justify-content:center;
+    min-height:52px; padding:12px; border-radius:14px;
+    border:1px solid #2a3a59; background:var(--bgc); color:#e5e7eb;
+    font-weight:900; letter-spacing:.02em; font-size:18px;
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+    user-select:none; touch-action:manipulation;
+  }
+  .card[data-dim="saber"]{--bgc:rgba(56,189,248,.10); border-color:rgba(56,189,248,.35)}
+  .card[data-dim="hacer"]{--bgc:rgba(251,146,60,.10);  border-color:rgba(251,146,60,.35)}
+  .card[data-dim="ser"]  {--bgc:rgba(52,211,153,.10);  border-color:rgba(52,211,153,.35)}
+  .card.selected{outline:3px solid var(--vio)}
+
+  /* Niveles (pila vertical) */
+  .levels{display:grid; gap:12px; padding:12px}
+  .lvl{
+    background:#0b1224; border:1px dashed #334155; border-radius:16px; padding:12px;
+  }
+  .pillbar{display:flex; gap:10px; margin-bottom:8px}
+  .pill{flex:1; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900}
+  .p1{background:#b91c1c}.p2{background:#d97706}.p3{background:#eab308;color:#0b1022}.p4{background:#65a30d}
+  .lvl h4{margin:0 0 6px; font-size:14px; color:#cbd5e1}
+  .hint{margin:6px 0 10px; color:#9ca3af; font-size:13px}
+  .hint.hidden{display:none}
+  .drop{display:flex; flex-direction:column; gap:8px; min-height:54px}
+
+  /* Feedback */
+  .ok{outline:2px solid #16a34a}
+  .bad{animation:shake .2s linear 2}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* Timer y marcador */
+  .timer{font-weight:900; font-size:22px; letter-spacing:.04em}
+  .timer.low{color:#ffd1d1}
+  .score{font-weight:900; font-size:18px}
+
+  /* Modal final */
+  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); z-index:100}
+  .card-modal{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:22px; max-width:560px; text-align:center; margin:16px}
+  .card-modal h3{margin:0 0 6px}
+  .card-modal p{margin:6px 0 16px; color:#cbd5e1}
+  .card-modal button{width:auto}
+
+  /* Botoncitos de banco */
+  .btns{display:flex; gap:8px; margin-top:8px}
+  .btns button{flex:1}
+
+  /* Accesibilidad táctil */
+  .touch-target{min-height:48px}
+
+  /* Destello pastilla + contador */
+  .pill.flash{ box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; transform:translateZ(0) scale(0.98); transition:box-shadow .18s, transform .18s; }
+  .lvl .count{ margin-top:6px; font-size:12px; color:#cbd5e1; opacity:.85 }
+  .lvl .count.done{ color:#86efac; font-weight:700 }
+
+  /* Opciones */
+  .opt-panel{margin-top:6px; border-top:1px solid #1f2937; padding-top:8px}
+  .opt-grid{display:grid; gap:8px; grid-template-columns:1fr}
+  @media (min-width:520px){
+    .opt-grid{grid-template-columns:1fr 1fr}
+  }
+  .opt-grid label{display:flex; align-items:center; gap:10px}
+  .opt-grid label > span{min-width:140px; color:#cbd5e1}
+
+  /* Gate: captura de nombre */
+  .gate{position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.55); z-index:200}
+  .gate-card{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:18px; width:min(520px,92vw)}
+  .gate-card h3{margin:0 0 8px}
+  .gate-card p{margin:0 0 12px; color:#cbd5e1}
+  .gate-grid{display:grid; gap:10px; grid-template-columns:1fr}
+  .gate-actions{display:flex; gap:8px; margin-top:10px}
+  .gate-actions button{flex:1}
+
+  /* Desktop: ancho moderado */
+  @media (min-width:720px){
+    .wrap{max-width:820px; margin:0 auto}
+  }
+
+  /* === Estilos del Wizard de Revisión Final === */
+  .rev-wrap{margin-top:6px}
+  .rev-chips{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:8px 0 0}
+  .rv-chip{padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px}
+  .rev-nav{display:flex; gap:8px; justify-content:center; margin-top:14px}
+  .rev-nav button{width:auto; min-width:120px}
+  .rev-step h4{margin:10px 0 6px}
+  details.rev-lev{background:#0b1224; border:1px solid #334155; border-radius:12px; padding:8px 10px; text-align:left}
+  details.rev-lev + details.rev-lev{margin-top:8px}
+  details.rev-lev summary{cursor:pointer; font-weight:800}
+  .rev-ul{list-style:none; padding-left:0; margin:8px 0 0}
+  .rev-ul li{padding:6px 0; border-bottom:1px dashed #334155; font-size:14px; display:flex; gap:6px; align-items:flex-start}
+  .rev-ul li:last-child{border-bottom:none}
+  .rv-tag{font-size:11px; border:1px solid #334155; border-radius:999px; padding:2px 6px; opacity:.9}
+  .rv-ok{color:#86efac; border-color:#14532d}
+  .rv-skip{color:#fde68a; border-color:#854d0e}
+  .rv-pen{color:#fca5a5; border-color:#7f1d1d}
+  .rv-why{opacity:.9}
+</style>
+</head>
+<body>
+<header>
+  <h1>Taxonomía de Bloom – Móvil</h1>
+  <p class="sub">Toca una <strong>tarjeta</strong> (ya viene seleccionada) y luego un <strong>nivel</strong>. Completa SABER → HACER → SER.</p>
+</header>
+
+<!-- Puerta de nombre -->
+<div class="gate" id="nameGate">
+  <div class="gate-card">
+    <h3>👤 Identifícate para empezar</h3>
+    <p>Escribe tu <strong>nombre</strong> y <strong>apellidos</strong>. Se mostrarán en el resultado final para tu captura de pantalla y compartir.</p>
+    <div class="gate-grid">
+      <input id="firstName" placeholder="Nombres" autocomplete="given-name" />
+      <input id="lastName"  placeholder="Apellidos" autocomplete="family-name" />
+    </div>
+    <div class="gate-actions">
+      <button id="startWithName">Comenzar</button>
+    </div>
+    <div class="hint" id="nameError" style="color:#fca5a5; display:none; margin-top:6px">Por favor escribe nombres y apellidos válidos.</div>
+  </div>
+</div>
+
+<div class="wrap hidden" id="appWrap">
+  <!-- Panel superior: estado + controles -->
+  <section class="panel top">
+    <div class="hud">
+      <span class="chip" id="teacherChip">Docente: —</span>
+      <span class="chip">Aciertos: <strong id="ok">0</strong>/<strong id="total">0</strong></span>
+      <span class="chip">Restantes: <strong id="left">0</strong></span>
+      <span class="chip">Puntos: <strong id="pts">0</strong></span>
+      <span class="chip" id="examBadge" style="display:none">Modo Examen</span>
+    </div>
+
+    <div class="row">
+      <div class="chip" style="flex:0 0 auto">Tiempo</div>
+      <div class="timer" id="timer">05:00</div>
+      <input type="number" id="min" value="5" min="1" class="touch-target" style="max-width:80px">
+      <input type="number" id="sec" value="0" min="0" max="59" class="touch-target" style="max-width:80px">
+      <button id="start">▶ Iniciar</button>
+    </div>
+    <div class="row">
+      <button id="pause">⏸ Pausa</button>
+      <button id="restart">↺ Reiniciar tiempo</button>
+    </div>
+
+    <label class="toggle"><input type="checkbox" id="exam" /> Modo Examen (oculta pistas, -5 por error)</label>
+
+    <div class="row">
+      <button id="reshuffle">🔀 Reorganizar verbos</button>
+      <button id="reset">↻ Reiniciar dimensión</button>
+    </div>
+
+    <!-- PANEL DE OPCIONES -->
+    <div class="opt-panel">
+      <div style="color:#cbd5e1; font-weight:800; margin:6px 0 6px">Opciones</div>
+      <div class="opt-grid">
+        <label class="toggle"><input type="checkbox" id="optHaptics"><span>Vibración (haptics)</span></label>
+        <label class="toggle"><input type="checkbox" id="optTones"><span>Tonos por nivel</span></label>
+        <label><span>Doble toque (ms)</span><input type="number" id="optDoubleTap" min="150" max="800" step="10" value="300"></label>
+        <label><span>Deshacer (límite)</span><input type="number" id="optUndoLimit" min="0" max="200" value="20"></label>
+        <label><span>Penalización “Saltar”</span><input type="number" id="optSkipPenalty" min="-20" max="0" step="1" value="0"></label>
+      </div>
+
+
+
+      <div class="btns" style="margin-top:8px">
+        <button id="saveOptions">💾 Guardar opciones</button>
+        <button id="resetOptions">🧹 Predeterminados</button>
+        <button id="changeName">👤 Cambiar nombre</button>
+        <button id="previewBlank">👁️ Preview informe</button>
+        <button id="previewDemo">🎛️ Preview demo</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Nota: en <strong>Modo Examen</strong> los tonos por nivel se desactivan aunque estén habilitados.</div>
+    </div>
+
+
+
+    
+  </section>
+
+  <!-- Banco (una sola tarjeta visible) -->
+  <section class="panel bank">
+    <div class="dim-head">
+      <div class="dim-title" id="dimTitle">📘 SABER (Cognitivo)</div>
+      <span id="dimTag" class="tag saber">Dimensión activa</span>
+    </div>
+    <div id="bankHelp" style="padding:0 12px 6px; color:#9ca3af; font-size:13px">Tarjeta actual (ya está seleccionada):</div>
+    <div id="bank" class="bank-grid"></div>
+    <!-- Acciones del banco -->
+    <div class="btns" id="bankActions" style="padding:6px 0 6px 0">
+      <button id="skipCard">⏭️ Saltar tarjeta</button>
+    </div>
+    <!-- (Los botones A–Z/Desordenar se ocultan en modo 1 tarjeta) -->
+    <div class="btns" id="bankBtns" style="padding:0 0 4px 0; display:none">
+      <button id="sortAZ">🔤 Ordenar A–Z</button>
+      <button id="shuffleBank">🔀 Desordenar</button>
+    </div>
+  </section>
+
+  <!-- Niveles -->
+  <section class="panel">
+    <div class="levels" id="levels">
+      <!-- Se crean por JS -->
+    </div>
+  </section>
+</div>
+
+<!-- MODAL FINAL -->
+<div class="modal" id="modal">
+  <div class="card-modal" id="modalCard">
+    <h3>🎉 ¡Ronda completada!</h3>
+    <p id="finalMsg">Resultados…</p>
+    <div id="reviewWrap" class="rev-wrap"></div>
+    <div class="rev-nav" id="reviewNav" style="display:none">
+      <button id="revPrev">⟵ Anterior</button>
+      <button id="revNext">Siguiente ⟶</button>
+      <button id="revFinish" style="display:none">Terminar</button>
+    </div>
+    <button id="closeModal">Aceptar</button>
+  </div>
+</div>
+
+<script>
+// ================== Preview (deduplicado) ==================
+const _pvBlank = document.getElementById('previewBlank');
+const _pvDemo  = document.getElementById('previewDemo');
+_pvBlank?.addEventListener('click', ()=> openReviewPreview({mode:'blank'}));
+_pvDemo?.addEventListener('click',  ()=> openReviewPreview({mode:'demo'}));
+
+/* ================== PARÁMETROS ================== */
+const DEFAULTS = { haptics:true, tones:true, doubleTapMs:300, undoLimit:20, skipPenalty:0 };
+function toBool(v){ if(v==null) return undefined; const s=String(v).toLowerCase(); return (s==='1'||s==='true'||s==='on'||s==='yes'); }
+function sanitize(o){
+  const r={};
+  if(typeof o.haptics === 'boolean') r.haptics = o.haptics;
+  if(typeof o.tones   === 'boolean') r.tones   = o.tones;
+  if(Number.isFinite(+o.doubleTapMs) && +o.doubleTapMs>=150 && +o.doubleTapMs<=800) r.doubleTapMs = +o.doubleTapMs;
+  if(Number.isFinite(+o.undoLimit)   && +o.undoLimit>=0   && +o.undoLimit<=200)     r.undoLimit   = +o.undoLimit;
+  if(Number.isFinite(+o.skipPenalty) && +o.skipPenalty>=-20 && +o.skipPenalty<=0)   r.skipPenalty = +o.skipPenalty;
+  return r;
+}
+function loadConfig(){
+  let cfg = {...DEFAULTS};
+  try{ const fromLS = JSON.parse(localStorage.getItem('bloomMobileCfg') || '{}'); cfg = {...cfg, ...sanitize(fromLS)}; }catch(e){}
+  const qs = new URLSearchParams(location.search);
+  const q = {};
+  if(qs.has('haptics')) q.haptics = toBool(qs.get('haptics'));
+  if(qs.has('tones'))   q.tones   = toBool(qs.get('tones'));
+  if(qs.has('dbltap'))  q.doubleTapMs = parseInt(qs.get('dbltap'),10);
+  if(qs.has('undo'))    q.undoLimit   = parseInt(qs.get('undo'),10);
+  if(qs.has('skip'))    q.skipPenalty = parseInt(qs.get('skip'),10);
+  cfg = {...cfg, ...sanitize(q)};
+  return cfg;
+}
+let CFG = loadConfig();
+const HAPTICS     = () => CFG.haptics;
+const LEVEL_TONES = () => CFG.tones;
+const DBLTAP      = () => CFG.doubleTapMs;
+const UNDO_LIM    = () => CFG.undoLimit;
+const SKIP_PEN    = () => CFG.skipPenalty;
+// Penalización efectiva del salto: fija −2
+function effectiveSkipPenalty(){ return -2; }
+
+/* ====== Gate nombre ====== */
+const nameGate   = document.getElementById('nameGate');
+const firstNameI = document.getElementById('firstName');
+const lastNameI  = document.getElementById('lastName');
+const startWithNameBtn = document.getElementById('startWithName');
+const nameErr    = document.getElementById('nameError');
+const appWrap    = document.getElementById('appWrap');
+const teacherChip= document.getElementById('teacherChip');
+const changeNameBtn = document.getElementById('changeName');
+
+function loadTeacherName(){ return localStorage.getItem('bloomTeacherName') || ""; }
+function saveTeacherName(v){ localStorage.setItem('bloomTeacherName', v); }
+function updateTeacherChip(n){ teacherChip.textContent = 'Docente: ' + (n||'—'); }
+function validateName(n1, n2){
+  const a=(n1||'').trim(), b=(n2||'').trim();
+  const re = /^[A-Za-zÀ-ÿ\u00f1\u00d1' -]{2,}$/u;
+  return re.test(a)&&re.test(b);
+}
+function openNameGate(prefill){
+  nameGate.style.display='grid';
+  if(prefill){ const [a,...rest]=prefill.split(' '); firstNameI.value=a||''; lastNameI.value=rest.join(' ')||''; }
+  firstNameI.focus();
+}
+function closeNameGate(){ nameGate.style.display='none'; }
+
+/* ================== Datos del juego ================== */
+const DATA = {
+  saber:{4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+         3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar"],
+         2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar","Refinar"],
+         1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]},
+  hacer:{4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+         3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+         2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+         1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]},
+  ser:{  4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+         3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+         2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+         1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]}
+};
+const DIM_ORDER = ["saber","hacer","ser"];
+const TITLE = {
+  saber:"📘 SABER (Cognitivo)",
+  hacer:"🛠️ HACER (Psicomotor)",
+  ser:"🤝 SER (Afectivo/Actitudinal)"
+};
+const POINT_CORRECT = 10;
+const PENALTY_WRONG = -5;
+
+/* ===== Overlay de dimensión ===== */
+const DIM_INFO = {
+  saber:{desc:"Cognitivo: procesos mentales (recordar → crear).", kickerClass:"dimk-saber"},
+  hacer:{desc:"Psicomotor: ejecución, procedimientos y desempeño.", kickerClass:"dimk-hacer"},
+  ser:{  desc:"Afectivo/actitudinal: valores, participación y ética.", kickerClass:"dimk-ser"}
+};
+let dimOverlay=null, dimOverlayTitle=null, dimOverlayDesc=null, dimOverlayKicker=null, dimOverlayBtn=null;
+function ensureDimOverlay(){
+  if(document.getElementById('dimOverlay')){
+    dimOverlay       = document.getElementById('dimOverlay');
+    dimOverlayTitle  = document.getElementById('dimTitleOverlay');
+    dimOverlayDesc   = document.getElementById('dimDescOverlay');
+    dimOverlayKicker = document.getElementById('dimKicker');
+    dimOverlayBtn    = document.getElementById('dimContinue');
+    return;
+  }
+  const css = `
+  .dimov{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); z-index:180}
+  .dimov.show{display:grid}
+  .dimcard{background:#0b1224; border:1px solid #334155; border-radius:18px; padding:22px; width:min(560px,92vw); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  .dimcard .kicker{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; font-weight:900; border:1px solid #334155; margin-bottom:10px}
+  .dimcard h3{margin:0 0 8px; font-size:20px}
+  .dimcard p{margin:0 0 14px; color:#cbd5e1}
+  .dimk-saber{background:linear-gradient(90deg, rgba(56,189,248,.18), transparent); color:#dff6ff}
+  .dimk-hacer{background:linear-gradient(90deg, rgba(251,146,60,.18), transparent); color:#fff3e6}
+  .dimk-ser{background:linear-gradient(90deg, rgba(52,211,153,.18), transparent); color:#eafff5}
+  `;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  dimOverlay = document.createElement('div'); dimOverlay.id='dimOverlay'; dimOverlay.className='dimov'; dimOverlay.setAttribute('aria-modal','true'); dimOverlay.setAttribute('role','dialog');
+  dimOverlay.innerHTML = `
+    <div class="dimcard">
+      <div id="dimKicker" class="kicker">Nueva dimensión</div>
+      <h3 id="dimTitleOverlay">—</h3>
+      <p id="dimDescOverlay">—</p>
+      <button id="dimContinue">Continuar</button>
+    </div>`;
+  document.body.appendChild(dimOverlay);
+  dimOverlayTitle  = dimOverlay.querySelector('#dimTitleOverlay');
+  dimOverlayDesc   = dimOverlay.querySelector('#dimDescOverlay');
+  dimOverlayKicker = dimOverlay.querySelector('#dimKicker');
+  dimOverlayBtn    = dimOverlay.querySelector('#dimContinue');
+}
+function announceDimension(dim, after){
+  ensureDimOverlay();
+  const info = DIM_INFO[dim] || {desc:"", kickerClass:""};
+  dimOverlayTitle.textContent  = TITLE[dim] || dim.toUpperCase();
+  dimOverlayDesc.textContent   = info.desc || '';
+  dimOverlayKicker.textContent = 'Nueva dimensión';
+  dimOverlayKicker.className   = 'kicker ' + (info.kickerClass || '');
+  const wasRunning = running === true;
+  if (wasRunning) pauseTimer();
+  dimOverlay.classList.add('show');
+  const handler = ()=>{
+    dimOverlay.classList.remove('show');
+    dimOverlayBtn.removeEventListener('click', handler);
+    if (wasRunning) startTimer();
+    if (typeof after === 'function') after();
+  };
+  dimOverlayBtn.addEventListener('click', handler);
+}
+
+/* ================== DOM refs ================== */
+const bankEl      = document.getElementById('bank');
+const levelsEl    = document.getElementById('levels');
+const okEl        = document.getElementById('ok');
+const totalEl     = document.getElementById('total');
+const leftEl      = document.getElementById('left');
+const ptsEl       = document.getElementById('pts');
+const dimTitle    = document.getElementById('dimTitle');
+const dimTag      = document.getElementById('dimTag');
+const examChk     = document.getElementById('exam');
+const examBadge   = document.getElementById('examBadge');
+const btnShuffleAll  = document.getElementById('reshuffle');
+const btnReset       = document.getElementById('reset');
+const timerEl = document.getElementById('timer');
+const minEl   = document.getElementById('min');
+const secEl   = document.getElementById('sec');
+const startBtn= document.getElementById('start');
+const pauseBtn= document.getElementById('pause');
+const restartBtn=document.getElementById('restart');
+const modal   = document.getElementById('modal');
+const finalMsg= document.getElementById('finalMsg');
+const closeModal = document.getElementById('closeModal');
+/* Opciones UI */
+const optHaptics   = document.getElementById('optHaptics');
+const optTones     = document.getElementById('optTones');
+const optDoubleTap = document.getElementById('optDoubleTap');
+const optUndoLimit = document.getElementById('optUndoLimit');
+const optSkipPenalty = document.getElementById('optSkipPenalty');
+/* Acciones banco */
+const skipBtn = document.getElementById('skipCard');
+
+/* ================== Estado ================== */
+let teacherName = "";
+let currentDimIndex = 0;
+let currentDim = DIM_ORDER[currentDimIndex];
+let CARDS = [];              // {verb, level, el|null, locked:false, stats:ref}
+let QUEUE = [];              // tarjetas pendientes
+let selectedCard = null;     // {verb, level, el}
+let points = 0;
+let undoStack = [];          // [{verb, level}]
+let lastTap = {el:null, t:0};
+let levelTapCount = 0;
+// Wizard
+let reviewStep = 0; // 0 resumen, luego 1..DIM_ORDER.length
+let reviewFilter = 'all'; // 'all' | 'conflicts'
+
+/* ===== Stats globales ===== */
+const STATS = {};
+function getStats(dim, verb, level){
+  STATS[dim] = STATS[dim] || {};
+  if(!STATS[dim][verb]){
+    STATS[dim][verb] = {
+      level, taps:0, wrong:0, skips:0, threePen:0, placed:false,
+      // nuevo
+      firstTry:null, firstDelta:0, solvedIn:0
+    };
+  }else{
+    STATS[dim][verb].level = level;
+  }
+  return STATS[dim][verb];
+}
+function clearAllStats(){
+  for(const dim of Object.keys(STATS)){
+    for(const v of Object.keys(STATS[dim])){
+      const l = STATS[dim][v].level || 1;
+      STATS[dim][v] = { level:l, taps:0, wrong:0, skips:0, threePen:0, placed:false, firstTry:null, firstDelta:0, solvedIn:0 };
+    }
+  }
+}
+
+/* ====== Criterios y razones ====== */
+const LEVEL_CRITERIA = {
+  saber:{
+    1:"Reconoce/recuerda información sin transformarla.",
+    2:"Comprende y explica con sus palabras.",
+    3:"Aplica/analiza en situaciones conocidas.",
+    4:"Crea/valida productos originales."
+  },
+  hacer:{
+    1:"Reproduce con ayuda o siguiendo pautas.",
+    2:"Ejecución básica con apoyo.",
+    3:"Integra y ajusta procedimientos con autonomía.",
+    4:"Optimiza/innova y transfiere a nuevos contextos."
+  },
+  ser:{
+    1:"Muestra disposición/aceptación inicial.",
+    2:"Participa y colabora activamente.",
+    3:"Valora, promueve y asume responsabilidades.",
+    4:"Modela, lidera e influye éticamente."
+  }
+};
+
+
+// Punto de extensión: razones específicas por verbo (completas para toda la DATA)
+const REASONS = {
+  saber: {
+    // Nivel 4
+    "Evaluar": "Emite juicios con criterios explícitos y evidencia, comparando alternativas (nivel 4).",
+    "Argumentar": "Sustenta posiciones con premisas y contraejemplos, evaluando su solidez (nivel 4).",
+    "Justificar": "Defiende decisiones con razones y datos triangulados de manera crítica (nivel 4).",
+    "Diseñar": "Elabora soluciones originales considerando restricciones y trade-offs (nivel 4).",
+    "Formular": "Plantea hipótesis o preguntas investigables con variables y supuestos claros (nivel 4).",
+    "Crear": "Produce artefactos o modelos originales que integran saberes previos (nivel 4).",
+    "Innovar": "Introduce mejoras o enfoques inéditos que resuelven necesidades reales (nivel 4).",
+    "Planificar": "Secuencia metas, recursos y tiempos anticipando riesgos (nivel 4).",
+    "Concebir": "Imagina estructuras o productos viables a partir de requerimientos (nivel 4).",
+    "Diseñar Prompts": "Redacta indicaciones estratégicas para orientar sistemas de IA a metas precisas (nivel 4).",
+    // Nivel 3
+    "Aplicar": "Traslada procedimientos a casos conocidos manteniendo criterios y pasos clave (nivel 3).",
+    "Analizar": "Descompone partes y relaciones para explicar el funcionamiento en casos conocidos (nivel 3).",
+    "Comparar": "Contrasta semejanzas y diferencias para elegir alternativas adecuadas (nivel 3).",
+    "Organizar": "Estructura información en categorías o esquemas operativos para resolver tareas (nivel 3).",
+    "Diferenciar": "Distingue elementos relevantes de irrelevantes en situaciones conocidas (nivel 3).",
+    "Contrastar": "Pone a prueba explicaciones frente a evidencias disponibles en contextos familiares (nivel 3).",
+    "Revisar": "Examina productos/ideas para detectar fallos y ajustar según criterios (nivel 3).",
+    // Nivel 2
+    "Comprender": "Reformula con sus palabras mostrando conexiones básicas entre ideas (nivel 2).",
+    "Describir": "Detalla características y atributos sin inferir causas (nivel 2).",
+    "Explicar": "Aclara el porqué usando ejemplos sencillos y nexos causales básicos (nivel 2).",
+    "Interpretar": "Da significado a datos o textos con base en el contexto (nivel 2).",
+    "Ejemplificar": "Ilustra conceptos con casos típicos pertinentes (nivel 2).",
+    "Clasificar": "Agrupa elementos con un criterio explícito y consistente (nivel 2).",
+    "Refinar": "Mejora una idea o definición para hacerla más clara y precisa (nivel 2).",
+    // Nivel 1
+    "Recordar": "Evoca hechos, fórmulas o definiciones tal como fueron presentados (nivel 1).",
+    "Identificar": "Reconoce elementos solicitados entre varias opciones (nivel 1).",
+    "Reconocer": "Distingue lo ya visto cuando se le presenta de nuevo (nivel 1).",
+    "Definir": "Enuncia definiciones canónicas o rasgos esenciales (nivel 1).",
+    "Listar": "Enumera datos o pasos sin profundizar (nivel 1).",
+    "Nombrar": "Menciona términos o conceptos correctos a demanda (nivel 1)."
+  },
+  hacer: {
+    // Nivel 4
+    "Automatizar": "Convierte procedimientos en rutinas reproducibles con validación de resultados (nivel 4).",
+    "Optimizar": "Reduce tiempos/costos manteniendo calidad mediante ajustes fundamentados (nivel 4).",
+    "Transferir": "Aplica destrezas a contextos nuevos adaptando criterios de ejecución (nivel 4).",
+    "Innovar": "Propone y prueba nuevas técnicas o herramientas de ejecución (nivel 4).",
+    "Trazar Estrategias": "Define tácticas, recursos y métricas para alcanzar un objetivo operativo (nivel 4).",
+    "Combinar Herramientas": "Integra instrumentos diversos para un flujo de trabajo más eficiente (nivel 4).",
+    // Nivel 3
+    "Coordinar": "Secuencia tareas y recursos con autonomía para lograr un resultado (nivel 3).",
+    "Implementar": "Lleva a la práctica un plan respetando especificaciones (nivel 3).",
+    "Integrar": "Ensambla componentes o procesos que funcionen de forma conjunta (nivel 3).",
+    "Perfeccionar": "Ajusta la ejecución para mejorar precisión y consistencia (nivel 3).",
+    "Aplicar Con Autonomía": "Ejecuta sin supervisión continua, justificando decisiones técnicas (nivel 3).",
+    // Nivel 2
+    "Ejecutar": "Realiza procedimientos básicos siguiendo un plan dado (nivel 2).",
+    "Practicar": "Repite tareas para ganar fluidez y control (nivel 2).",
+    "Demostrar": "Evidencia la destreza paso a paso ante otros (nivel 2).",
+    "Operar": "Maneja equipos o software cumpliendo protocolos (nivel 2).",
+    "Utilizar Con Apoyo": "Usa herramientas con guía puntual cuando es necesario (nivel 2).",
+    // Nivel 1
+    "Imitar": "Reproduce una acción observada con apoyo cercano (nivel 1).",
+    "Copiar": "Replica un modelo o ejemplo sin variaciones propias (nivel 1).",
+    "Seguir Instrucciones": "Cumple pasos indicados tal cual se presentan (nivel 1).",
+    "Manipular Con Ayuda": "Manipula materiales o interfaces bajo supervisión (nivel 1)."
+  },
+  ser: {
+    // Nivel 4
+    "Interiorizar": "Actúa por convicción, alineando decisiones estables con valores (nivel 4).",
+    "Liderar": "Conduce a otros hacia metas compartidas cuidando el clima ético (nivel 4).",
+    "Modelar": "Sirve de ejemplo consistente de la conducta esperada (nivel 4).",
+    "Transformar": "Promueve cambios positivos y sostenibles en el entorno (nivel 4).",
+    "Influir Positivamente": "Motiva conductas valiosas con argumentos y cuidado del otro (nivel 4).",
+    "Validar Éticamente": "Contrasta acciones con principios y consecuencias para decidir (nivel 4).",
+    // Nivel 3
+    "Valorar": "Juzga prácticas y argumentos con criterios explícitos (nivel 3).",
+    "Argumentar": "Sostiene posturas respetuosas frente a dilemas, escuchando objeciones (nivel 3).",
+    "Promover": "Impulsa iniciativas y convoca a la participación (nivel 3).",
+    "Asumir Responsabilidades": "Acepta tareas y responde por sus resultados (nivel 3).",
+    "Ser Consciente": "Reconoce impactos de sus actos y regula su conducta (nivel 3).",
+    // Nivel 2
+    "Responder": "Reacciona adecuadamente ante normas o requerimientos (nivel 2).",
+    "Participar": "Se involucra de forma constante en actividades del grupo (nivel 2).",
+    "Colaborar": "Trabaja con otros aportando y escuchando (nivel 2).",
+    "Respetar": "Observa normas y a las personas de forma consistente (nivel 2).",
+    "Cumplir": "Entrega compromisos y tareas según lo acordado (nivel 2).",
+    // Nivel 1
+    "Atender": "Presta atención y muestra interés inicial (nivel 1).",
+    "Escuchar": "Escucha activamente sin interrumpir (nivel 1).",
+    "Aceptar": "Muestra apertura a indicaciones y retroalimentación (nivel 1).",
+    "Mostrar Disposición": "Se ofrece a participar con actitud positiva (nivel 1)."
+  }
+};
+
+
+function reasonForVerb(dim, verb, level){
+  const r = REASONS[dim]?.[verb] || null;
+  if(r) return r;
+  const crit = LEVEL_CRITERIA[dim]?.[level] || "";
+  return `Está en nivel ${level} porque ${crit.toLowerCase()}`;
+}
+
+/* ================== Utils / Sonidos ================== */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
+function pad2(n){return String(n).padStart(2,'0');}
+let audioCtx;
+function baseCtx(){ try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} return audioCtx; }
+function ding(){ try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type='triangle'; o.frequency.value=900; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22); o.start(); o.stop(t+0.25);}catch(e){} }
+function buzz(){ try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sawtooth'; o.frequency.value=180; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.38); o.start(); o.stop(t+0.4);}catch(e){} }
+function playTone(freq=660, dur=0.18, type='triangle'){
+  try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination);
+    const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(); o.stop(t+dur+0.02);
+  }catch(_){}
+}
+const LEVEL_FREQ = {1:440, 2:620, 3:820, 4:1020};
+function playLevelTone(level){ if (examChk.checked || !LEVEL_TONES()) { ding(); return; } playTone(LEVEL_FREQ[level] || 800, 0.18, 'triangle'); }
+
+/* ================== Construcción / Cola ================== */
+function buildModelAndQueue(){
+  CARDS = [];
+  for (const lvl of Object.keys(DATA[currentDim])){
+    for (const v of DATA[currentDim][lvl]){
+      const statsRef = getStats(currentDim, v, +lvl);
+      CARDS.push({verb:v, level:+lvl, el:null, locked:false, stats:statsRef});
+    }
+  }
+  QUEUE = shuffle(CARDS.filter(c=>!c.locked));
+  renderCurrentCard();
+  updateCounters();
+}
+function makeCardEl(card){
+  if(card.el) return card.el;
+  const el = document.createElement('div');
+  el.className = 'card touch-target';
+  el.textContent = card.verb;
+  el.dataset.dim = currentDim;
+  el.dataset.level = String(card.level);
+  el.addEventListener('click', ()=> onCardTap(card.verb, card.level, el));
+  card.el = el;
+  return el;
+}
+function renderCurrentCard(){
+  bankEl.innerHTML = '';
+  const next = QUEUE[0];
+  if(!next){ return; }
+  const el = makeCardEl(next);
+  el.classList.remove('ok');
+  bankEl.appendChild(el);
+  if(selectedCard?.el) selectedCard.el.classList.remove('selected');
+  selectedCard = {verb:next.verb, level:next.level, el:next.el};
+  next.el.classList.add('selected');
+  levelTapCount = 0; // reinicia contador por tarjeta
+}
+
+/* ================== Cabecera / contadores ================== */
+function applyDimHeader(){ dimTitle.textContent = TITLE[currentDim]; dimTag.className = 'tag '+currentDim; }
+function updateCounters(){
+  const ok = CARDS.filter(c=>c.locked).length;
+  const total = CARDS.length;
+  okEl.textContent = ok; totalEl.textContent = total; leftEl.textContent = (total-ok); ptsEl.textContent = points;
+}
+function updateLevelCounter(level){
+  const total = DATA[currentDim][level].length;
+  const placed = CARDS.filter(c=>c.locked && c.level===level).length;
+  const remaining = total - placed;
+  const el = document.querySelector(`.lvl[data-level="${level}"] .count`);
+  if(el){ el.textContent = `Quedan: ${remaining}/${total}`; el.classList.toggle('done', remaining===0); }
+}
+function updateAllLevelCounters(){ for(let lvl=1; lvl<=4; lvl++) updateLevelCounter(lvl); }
+
+/* ================== Interacción tarjetas ================== */
+function onCardTap(verb, level, el){
+  const now = Date.now();
+  if (selectedCard && selectedCard.el===el && (now - lastTap.t) < DBLTAP()){
+    el.classList.remove('selected'); selectedCard = null; lastTap = {el:null, t:0}; return;
+  }
+  lastTap = {el, t:now};
+  if(selectedCard?.el === el){ el.classList.remove('selected'); selectedCard = null; return; }
+  if(selectedCard?.el) selectedCard.el.classList.remove('selected');
+  selectedCard = {verb, level, el}; el.classList.add('selected');
+  if(HAPTICS() && navigator.vibrate) navigator.vibrate(15);
+}
+
+/* ================== Tap en nivel/pastilla ================== */
+function onLevelTap(targetLevel, levelBox, dropEl){
+  if(!selectedCard) return;
+  const cRef = CARDS.find(x=>x.el===selectedCard.el);
+  const st = cRef?.stats;
+
+  // Contabiliza toques
+  levelTapCount += 1;
+  if(st) st.taps += 1;
+
+  // Registrar primera intuición (solo una vez, antes de saber si es correcta)
+  if(st && st.firstTry==null){ st.firstTry = targetLevel; st.firstDelta = (targetLevel - selectedCard.level); }
+
+  // Penalización cada 3 toques
+  if(levelTapCount % 3 === 0){
+    points -= 2; if(st) st.threePen += 1; updateCounters();
+    toast('Penalización −2: 3 toques de nivel en la misma tarjeta');
+  }
+
+  const correct = (selectedCard.level === targetLevel);
+  levelBox.classList.remove('bad','ok'); void levelBox.offsetWidth;
+
+  if(correct){
+    dropEl.appendChild(selectedCard.el);
+    selectedCard.el.classList.remove('selected');
+    selectedCard.el.classList.add('ok');
+    selectedCard.el.style.opacity = '1';
+
+    if(cRef){ cRef.locked = true; if(st){ st.placed = true; st.solvedIn = levelTapCount; } }
+
+    removeFromHint(targetLevel, selectedCard.verb);
+    updateLevelCounter(targetLevel);
+
+    undoStack.push({ verb:selectedCard.verb, level:targetLevel });
+    if(undoStack.length > UNDO_LIM()) undoStack.shift();
+
+    points += POINT_CORRECT;
+    playLevelTone(targetLevel);
+
+    if(QUEUE[0]?.el === selectedCard.el) QUEUE.shift();
+    else{
+      const idx = QUEUE.findIndex(q=>q.el===selectedCard.el);
+      if(idx!==-1) QUEUE.splice(idx,1);
+    }
+    selectedCard = null; updateCounters();
+
+    if(CARDS.every(c=>c.locked)){ checkDimensionDone(); } else { renderCurrentCard(); }
+  }else{
+    levelBox.classList.add('bad');
+    if(HAPTICS() && navigator.vibrate) navigator.vibrate(60);
+    buzz();
+    if(st) st.wrong += 1;
+    if(examChk.checked){ points += PENALTY_WRONG; updateCounters(); }
+  }
+}
+
+/* ====== Saltar tarjeta ====== */
+function skipCurrent(){
+  if(QUEUE.length===0) return;
+  if(QUEUE.length===1){ if(HAPTICS() && navigator.vibrate) navigator.vibrate(8); toast('No hay más tarjetas para saltar'); return; }
+  const cur = QUEUE.shift(); QUEUE.push(cur);
+  if(cur?.stats) cur.stats.skips += 1;
+  points += effectiveSkipPenalty(); updateCounters();
+  toast('Tarjeta saltada (−2)');
+  if(HAPTICS() && navigator.vibrate) navigator.vibrate(10);
+  renderCurrentCard();
+}
+skipBtn?.addEventListener('click', skipCurrent);
+
+/* ====== Pistas ====== */
+function removeFromHint(level, verb){
+  const hintEl = document.querySelector(`.hint[data-hint="${level}"]`); if(!hintEl) return;
+  const items = hintEl.textContent.split(',').map(s=>s.trim()).filter(Boolean);
+  const idx = items.findIndex(t => t.localeCompare(verb,'es',{sensitivity:'base'})===0);
+  if(idx!==-1) items.splice(idx,1);
+  hintEl.textContent = items.join(', ');
+  if(items.length===0) hintEl.classList.add('hidden');
+}
+function addBackToHint(level, verb){
+  const hintEl = document.querySelector(`.hint[data-hint="${level}"]`); if(!hintEl) return;
+  const parts = hintEl.textContent ? hintEl.textContent.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  parts.push(verb); parts.sort((a,b)=> a.localeCompare(b,'es',{sensitivity:'base'}));
+  hintEl.textContent = parts.join(', '); hintEl.classList.remove('hidden');
+}
+
+/* ================== Flujo por dimensiones ================== */
+function checkDimensionDone(){
+  if(!(CARDS.length>0 && CARDS.every(c=>c.locked))) return;
+  const nextIndex = currentDimIndex + 1;
+  if(nextIndex < DIM_ORDER.length){
+    const nextDim = DIM_ORDER[nextIndex];
+    announceDimension(nextDim, ()=>{
+      currentDimIndex = nextIndex; currentDim = nextDim; undoStack = []; switchDimension(nextDim);
+    });
+  }else{ endRound(); }
+}
+function switchDimension(dim){
+  currentDim = dim; applyDimHeader(); buildLevels(); buildModelAndQueue(); updateAllLevelCounters();
+}
+
+/* ================== Controles generales ================== */
+btnShuffleAll?.addEventListener('click', ()=>{
+  const remaining = CARDS.filter(c=>!c.locked);
+  const current = QUEUE[0];
+  QUEUE = remaining.slice(); shuffle(QUEUE);
+  if(current){ const i = QUEUE.findIndex(q=>q.verb===current.verb && q.level===current.level);
+    if(i>0){ const [it]=QUEUE.splice(i,1); QUEUE.unshift(it); } }
+  renderCurrentCard();
+});
+function resetDimension(){
+  CARDS.forEach(c=>{ c.locked=false; c.el?.classList.remove('ok','selected'); });
+  document.querySelectorAll('.drop').forEach(d=> d.innerHTML='');
+  for(let lvl=1; lvl<=4; lvl++){
+    const hintEl = document.querySelector(`.hint[data-hint="${lvl}"]`);
+    if(hintEl){ hintEl.textContent = DATA[currentDim][lvl].join(', '); hintEl.classList.toggle('hidden', examChk.checked); }
+  }
+  undoStack=[]; points=0; QUEUE = shuffle(CARDS.filter(c=>!c.locked));
+  renderCurrentCard(); updateAllLevelCounters(); updateCounters();
+}
+btnReset?.addEventListener('click', resetDimension);
+
+/* ================== Examen ================== */
+function setSkipPenaltyInputState(){
+  if(!optSkipPenalty) return;
+  optSkipPenalty.disabled = true; optSkipPenalty.value = -2; optSkipPenalty.placeholder = 'Forzado: -2';
+  optSkipPenalty.title = 'La penalización por “Saltar” es fija: −2';
+}
+examChk?.addEventListener('change', ()=>{
+  examBadge.style.display = examChk.checked ? 'inline-block' : 'none';
+  document.querySelectorAll('.hint').forEach(h=> h.classList.toggle('hidden', examChk.checked));
+  setSkipPenaltyInputState();
+  toast(examChk.checked ? 'Modo Examen: tonos desactivados.' : 'Modo normal.');
+});
+
+/* ================== Cronómetro ================== */
+let timerId=null, timeLeft=300, running=false, finished=false;
+function setTimeFromInputs(){ const m=Math.max(0,+minEl.value|0); const s=Math.max(0,Math.min(59,+secEl.value|0)); timeLeft=m*60+s; updateTimer(); }
+function updateTimer(){ timerEl.textContent = `${pad2(Math.floor(timeLeft/60))}:${pad2(timeLeft%60)}`; timerEl.classList.toggle('low', timeLeft<=10); }
+function startTimer(){ if(running) return; running=true; clearInterval(timerId); timerId=setInterval(()=>{ timeLeft--; updateTimer(); if(timeLeft<=0){ timeLeft=0; updateTimer(); endRound(); }},1000); }
+function pauseTimer(){ running=false; clearInterval(timerId); timerId=null; }
+function restartTimer(){ pauseTimer(); setTimeFromInputs(); updateTimer(); }
+startBtn?.addEventListener('click', ()=>{ if(!finished) startTimer(); });
+pauseBtn?.addEventListener('click', pauseTimer);
+restartBtn?.addEventListener('click', restartTimer);
+minEl?.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+secEl?.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+
+/* ================== Revisión final (Wizard) ================== */
+function ensureReviewStyles(){
+  if(document.getElementById('revStyles')) return;
+  const st=document.createElement('style'); st.id='revStyles';
+  st.textContent=`
+    .rev-nav{display:none; gap:8px; margin-top:12px; justify-content:center}
+    .rev-nav button{width:auto}
+    .rev-step{ text-align:left; margin-top:10px }
+    details.rev-lev{background:#0b1224; border:1px solid #334155; border-radius:12px; padding:8px 10px; text-align:left}
+    details.rev-lev summary{cursor:pointer; font-weight:800}
+    .rev-ul{list-style:none; margin:8px 0 0; padding-left:0}
+    .rev-ul li{padding:6px 0; border-bottom:1px dashed #334155; font-size:14px}
+    .rev-ul li:last-child{border-bottom:none}
+    .rv-chip{ display:inline-block; margin:4px 6px 0 0; padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px }
+    .rv-tag{ display:inline-block; padding:2px 6px; border-radius:8px; border:1px solid #334155; margin-right:4px; font-size:11px }
+    .rv-ok{ background:#052e1a; border-color:#14532d; color:#86efac }
+    .rv-skip{ background:#1f2937; color:#fcd34d }
+    .rv-pen{ background:#2a1620; border-color:#7f1d1d; color:#fca5a5 }
+    .rv-conf{ background:#2b1f12; border-color:#b45309; color:#fbbf24 }
+    .rv-why{ color:#cbd5e1 }
+    /* Toolbar */
+    .rev-tools{display:flex; gap:10px; justify-content:flex-end; margin-top:10px}
+    .rev-tools label{display:inline-flex; gap:6px; align-items:center; font-size:13px; opacity:.85}
+    .rev-tools .btn-sm{padding:6px 10px; border-radius:10px; border:1px solid #334155; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px}
+    /* Colores por dimensión */
+    #reviewWrap[data-dim="saber"] details.rev-lev summary{ color: var(--saber); }
+    #reviewWrap[data-dim="hacer"] details.rev-lev summary{ color: var(--hacer); }
+    #reviewWrap[data-dim="ser"]   details.rev-lev summary{ color: var(--ser); }
+    #reviewWrap[data-dim="saber"] details.rev-lev{ border-color: rgba(56,189,248,.35); }
+    #reviewWrap[data-dim="hacer"] details.rev-lev{ border-color: rgba(251,146,60,.35); }
+    #reviewWrap[data-dim="ser"]   details.rev-lev{ border-color: rgba(52,211,153,.35); }
+  `;
+  document.head.appendChild(st);
+}
+
+function ensureReviewUI(){
+  ensureReviewStyles();
+  const card = modal.querySelector('.card-modal');
+  let wrap = document.getElementById('reviewWrap');
+  let nav  = document.getElementById('reviewNav');
+  let tools= document.getElementById('reviewTools');
+
+  if(!wrap){ wrap = document.createElement('div'); wrap.id='reviewWrap'; wrap.className='rev-wrap'; card.appendChild(wrap); }
+  if(!nav){
+    nav = document.createElement('div'); nav.id='reviewNav'; nav.className='rev-nav';
+    nav.innerHTML = `<button id="revPrev">⟵ Anterior</button>
+                     <button id="revNext">Siguiente ⟶</button>
+                     <button id="revFinish">✔ Finalizar</button>`;
+    card.appendChild(nav);
+  }
+  if(!tools){
+    tools = document.createElement('div'); tools.id='reviewTools'; tools.className='rev-tools';
+    tools.innerHTML = `
+      <label><input type="checkbox" id="rvOnlyConf"> Solo conflictos</label>
+      <span style="flex:1"></span>
+      <button id="rvPracticeDim" class="btn-sm">Re-practicar conflictos (dim)</button>
+      <button id="rvPracticeAll" class="btn-sm">Re-practicar conflictos (todos)</button>`;
+    card.appendChild(tools);
+  }
+
+  const prev = nav.querySelector('#revPrev');
+  const next = nav.querySelector('#revNext');
+  const fini = nav.querySelector('#revFinish');
+  const chkConf = tools.querySelector('#rvOnlyConf');
+  const btnPD   = tools.querySelector('#rvPracticeDim');
+  const btnPA   = tools.querySelector('#rvPracticeAll');
+
+  if(!nav.dataset.bound){
+    prev.addEventListener('click', ()=>{ if(reviewStep>0){ reviewStep--; renderReview(); }});
+    next.addEventListener('click', ()=>{ if(reviewStep < DIM_ORDER.length){ reviewStep++; renderReview(); }});
+    fini.addEventListener('click', closeReviewModal);
+    if(closeModal && !closeModal.dataset.bound){ closeModal.addEventListener('click', closeReviewModal); closeModal.dataset.bound = '1'; }
+    nav.dataset.bound = '1';
+  }
+  if(!tools.dataset.bound){
+    chkConf.addEventListener('change', ()=>{ reviewFilter = chkConf.checked ? 'conflicts':'all'; renderReview(); });
+    btnPD.addEventListener('click', ()=> startConflictPractice({scope:'current'}));
+    btnPA.addEventListener('click', ()=> startConflictPractice({scope:'all'}));
+    tools.dataset.bound = '1';
+  }
+
+  // sincroniza toggle
+  tools.querySelector('#rvOnlyConf').checked = (reviewFilter==='conflicts');
+
+  return {wrap, nav, prev, next, fini, tools};
+}
+
+/* ===== Helpers de conflictos ===== */
+function isConflict(st){
+  if(!st) return false;
+  if((st.firstDelta||0) !== 0) return true;
+  if((st.wrong||0) > 0) return true;
+  if((st.solvedIn||0) > 1) return true;
+  return false;
+}
+function collectConflictCards(scope='current'){
+  const list = [];
+  const dimList = (scope==='all') ? DIM_ORDER : [ (reviewStep>0 ? DIM_ORDER[reviewStep-1] : currentDim) ];
+  dimList.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      DATA[dim][lvl].forEach(verb=>{
+        const st = (STATS[dim]||{})[verb];
+        if(!isConflict(st)) return;
+        const d = Math.abs(st.firstDelta||0);
+        const score = 3*d + 2*(st.wrong||0) + Math.max(0,(st.solvedIn||0)-1);
+        list.push({dim, level:+lvl, verb, score});
+      });
+    });
+  });
+  return list.sort((a,b)=> b.score - a.score);
+}
+function startConflictPractice({scope='current', max=12}={}){
+  const pool = collectConflictCards(scope).slice(0, max);
+  if(pool.length===0){ toast('No hay conflictos pendientes'); return; }
+
+  // reconstruye sesión con solo conflictos
+  finished=false; modal.style.display='none';
+  CARDS = pool.map(({dim, level, verb})=>{
+    const st = getStats(dim, verb, level);
+    return { verb, level, el:null, locked:false, stats:st };
+  });
+  QUEUE = shuffle(CARDS.slice());
+  selectedCard=null; undoStack=[]; points=0; updateCounters();
+
+  currentDim = pool[0].dim; currentDimIndex = DIM_ORDER.indexOf(currentDim);
+  applyDimHeader(); buildLevels(); renderCurrentCard(); updateAllLevelCounters();
+  toast('Sesión iniciada: conflictos');
+}
+
+/* ===== Render de pasos ===== */
+function badgeDelta(st){
+  const d = st?.firstDelta||0;
+  if(!d) return '';
+  const s = d>0? `+${d}`: `${d}`;
+  return `<span class="rv-tag rv-conf">Δ${s}</span>`;
+}
+function renderDimStep(dim){
+  const stats = computeDimStats(dim);
+  finalMsg.innerHTML = TITLE[dim];
+
+  const lvlBox = (lvl)=>{
+    const meta = stats.byLevel[lvl];
+    const avgTaps = meta.total ? (meta.taps/meta.total).toFixed(1) : '0.0';
+    const crit = LEVEL_CRITERIA[dim][lvl];
+
+    const verbs = DATA[dim][lvl].filter(v=>{
+      if(reviewFilter==='all') return true;
+      const st = (STATS[dim]||{})[v];
+      return isConflict(st);
+    });
+
+    const lis = verbs.map(v=>{
+      const st = (STATS[dim]||{})[v] || {};
+      const tags = [];
+      if(st.placed)      tags.push('<span class="rv-tag rv-ok">✔</span>');
+      if(st.skips>0)     tags.push(`<span class="rv-tag rv-skip">⏭×${st.skips}</span>`);
+      if(st.threePen>0)  tags.push(`<span class="rv-tag rv-pen">⚠×${st.threePen}</span>`);
+      if(isConflict(st)) tags.push(badgeDelta(st));
+      const why = reasonForVerb(dim, v, +lvl);
+      return `<li>${tags.join(' ')} <strong>${v}:</strong> <span class="rv-why">${why}</span></li>`;
+    }).join('') || (reviewFilter==='conflicts' ? `<li><em>Sin conflictos en este nivel</em></li>` : '');
+
+    return `
+      <details class="rev-lev">
+        <summary><strong>Nivel ${lvl}</strong> · ${crit} — Aciertos: ${meta.placed}/${meta.total} · Intentos medios: ${avgTaps}</summary>
+        <ul class="rev-ul">${lis}</ul>
+      </details>
+    `;
+  };
+
+  const {wrap} = ensureReviewUI();
+  // contar conflictos en dimensión
+  let conflictsDim = 0;
+  Object.keys(DATA[dim]).forEach(l=> DATA[dim][l].forEach(v=>{ if(isConflict((STATS[dim]||{})[v])) conflictsDim++; }));
+
+  wrap.innerHTML = `
+    <div class="rev-step">
+      <div class="rev-chips">
+        <span class="rv-chip">Aciertos: ${stats.placed}/${stats.total}</span>
+        <span class="rv-chip">Intentos (toques): ${stats.taps}</span>
+        <span class="rv-chip">Saltos (−2): ${stats.skips}</span>
+        <span class="rv-chip">3 toques (−2): ${stats.three}</span>
+        <span class="rv-chip">Conflictos: ${conflictsDim}</span>
+      </div>
+      <h4 style="margin-top:12px">Niveles</h4>
+      ${lvlBox(1)}${lvlBox(2)}${lvlBox(3)}${lvlBox(4)}
+      <p class="hint" style="margin-top:10px">Sugerencia: presta atención a los <strong>Δ</strong> (primera intuición vs. nivel correcto) y a ítems con varios intentos.</p>
+    </div>`;
+}
+
+function ensureReviewBasicsAndContext(){
+  const { nav, wrap } = ensureReviewUI();
+  nav.dataset.step = String(reviewStep);
+  if (wrap){ wrap.dataset.step = String(reviewStep); wrap.dataset.dim = (reviewStep > 0) ? DIM_ORDER[reviewStep - 1] : 'resumen'; }
+}
+function renderReview(){
+  const { nav, prev, next, fini } = ensureReviewUI();
+  if (typeof reviewStep !== 'number' || isNaN(reviewStep)) reviewStep = 0;
+  reviewStep = Math.max(0, Math.min(DIM_ORDER.length, reviewStep));
+
+  if(closeModal) closeModal.style.display = 'none';
+  nav.style.display = 'flex';
+  prev.style.display = (reviewStep > 0) ? 'inline-block' : 'none';
+  next.style.display = (reviewStep < DIM_ORDER.length) ? 'inline-block' : 'none';
+  fini.style.display = (reviewStep === DIM_ORDER.length) ? 'inline-block' : 'none';
+  ensureReviewBasicsAndContext();
+
+  if (reviewStep === 0){ renderSummaryStep(); }
+  else { renderDimStep(DIM_ORDER[reviewStep-1]); }
+}
+
+function closeReviewModal(){
+  const nav  = document.getElementById('reviewNav');
+  const wrap = document.getElementById('reviewWrap');
+  if(closeModal) closeModal.style.display = 'inline-block';
+  if(nav)  nav.style.display = 'none';
+  if(wrap){ wrap.innerHTML=''; wrap.removeAttribute('data-step'); wrap.removeAttribute('data-dim'); }
+  finalMsg.textContent = 'Resultados…';
+  modal.style.display = 'none';
+  const isPreview = modal.dataset.preview === '1';
+  finished = false;
+  if(!isPreview){
+    points = 0; ptsEl.textContent = '0';
+    selectedCard = null; undoStack = [];
+    currentDimIndex = 0; currentDim = DIM_ORDER[0];
+    switchDimension(currentDim);
+    setTimeFromInputs(); updateTimer();
+  }
+  delete modal.dataset.preview;
+}
+
+function endRound(){
+  if(finished) return;
+  finished = true; pauseTimer(); reviewStep = 0; renderReview();
+  modal.dataset.preview = '0'; modal.style.display='grid';
+}
+
+function computeTotals(){
+  let totalVerbs = 0, placed = 0, skips=0, three=0;
+  DIM_ORDER.forEach(dim=>{
+    const levels = DATA[dim];
+    Object.keys(levels).forEach(lvl=>{
+      totalVerbs += levels[lvl].length;
+      levels[lvl].forEach(v=>{
+        const st = (STATS[dim]||{})[v];
+        if(st){ if(st.placed) placed += 1; skips += (st.skips||0); three += (st.threePen||0); }
+      });
+    });
+  });
+  return { totalVerbs, placed, skips, three };
+}
+function computeDimStats(dim){
+  const levels = DATA[dim];
+  let placed=0, wrong=0, skips=0, three=0, taps=0, total=0;
+  const byLevel = {1:{placed:0,total:0,taps:0},2:{placed:0,total:0,taps:0},3:{placed:0,total:0,taps:0},4:{placed:0,total:0,taps:0}};
+  Object.keys(levels).forEach(lvl=>{
+    const L = +lvl;
+    levels[lvl].forEach(v=>{
+      total++;
+      const st = (STATS[dim]||{})[v] || {};
+      if(st.placed) { placed++; byLevel[L].placed++; }
+      wrong += (st.wrong||0); skips += (st.skips||0); three += (st.threePen||0); taps  += (st.taps||0);
+      byLevel[L].total++; byLevel[L].taps += (st.taps||0);
+    });
+  });
+  return {placed,total,wrong,skips,three,taps,byLevel};
+}
+function renderSummaryStep(){
+  const { totalVerbs, placed, skips, three } = computeTotals();
+  // contar conflictos globales
+  let conflictsAll = 0;
+  DIM_ORDER.forEach(dim=> Object.keys(DATA[dim]).forEach(l=> DATA[dim][l].forEach(v=>{ if(isConflict((STATS[dim]||{})[v])) conflictsAll++; })));
+  finalMsg.innerHTML = `Docente: <strong>${teacherName || '—'}</strong> · Puntos: <strong>${points}</strong> · Tiempo restante: <strong>${timerEl.textContent}</strong>`;
+  const {wrap} = ensureReviewUI();
+  wrap.innerHTML = `
+    <div class="rev-step">
+      <h4>Resumen general</h4>
+      <div class="rev-chips">
+        <span class="rv-chip">Aciertos: ${placed}/${totalVerbs}</span>
+        <span class="rv-chip">Saltos (−2): ${skips}</span>
+        <span class="rv-chip">Penaliz. 3 toques (−2): ${three}</span>
+        <span class="rv-chip">Conflictos: ${conflictsAll}</span>
+      </div>
+      <div class="rev-tools" style="justify-content:flex-start">
+        <button id="rvPracticeAllTop" class="btn-sm">Re-practicar conflictos (todos)</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Consejo: usa “Solo conflictos” y luego “Re-practicar” para afinar tu criterio en verbos de frontera (Δ).</p>
+    </div>`;
+  document.getElementById('rvPracticeAllTop').onclick = ()=> startConflictPractice({scope:'all'});
+}
+
+/* ================== Toast ================== */
+function toast(msg){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.position='fixed'; t.style.left='50%'; t.style.bottom='24px';
+  t.style.transform='translateX(-50%)';
+  t.style.background='#0b1224'; t.style.border='1px solid #334155'; t.style.color='#e5e7eb';
+  t.style.padding='10px 14px'; t.style.borderRadius='12px'; t.style.boxShadow='0 10px 30px rgba(0,0,0,.35)'; t.style.zIndex='200';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .25s'; t.style.opacity='0'; }, 1200);
+  setTimeout(()=>{ t.remove(); }, 1500);
+}
+
+/* ================== Opciones ================== */
+function populateOptionsUI(){
+  optHaptics.checked   = !!HAPTICS();
+  optTones.checked     = !!LEVEL_TONES();
+  optDoubleTap.value   = DBLTAP();
+  optUndoLimit.value   = UNDO_LIM();
+  if(optSkipPenalty){ optSkipPenalty.value = -2; }
+}
+function applyOptionsFromUI({save=false}={}){
+  const next = {
+    haptics: !!optHaptics.checked,
+    tones:   !!optTones.checked,
+    doubleTapMs: Math.max(150, Math.min(800, parseInt(optDoubleTap.value||300,10))),
+    undoLimit:   Math.max(0,   Math.min(200, parseInt(optUndoLimit.value||20,10))),
+    skipPenalty: Math.max(-20, Math.min(0, parseInt((optSkipPenalty?.value)||0,10))),
+  };
+  CFG = {...CFG, ...sanitize(next)};
+  if(undoStack.length > UNDO_LIM()){ undoStack = undoStack.slice(-UNDO_LIM()); }
+  if(save){ localStorage.setItem('bloomMobileCfg', JSON.stringify(CFG)); toast('✅ Opciones guardadas'); }
+  else{ toast('⚙️ Opciones aplicadas'); }
+}
+document.getElementById('saveOptions')?.addEventListener('click', ()=> applyOptionsFromUI({save:true}));
+document.getElementById('resetOptions')?.addEventListener('click', ()=>{
+  CFG = {...DEFAULTS}; localStorage.setItem('bloomMobileCfg', JSON.stringify(CFG));
+  populateOptionsUI(); setSkipPenaltyInputState(); toast('🔄 Opciones restablecidas');
+});
+
+/* ================== Init + delegación + gate ================== */
+function ensureUndoButton(){
+  let undoBtn = document.getElementById('undo');
+  if(!undoBtn && btnReset){
+    undoBtn = document.createElement('button');
+    undoBtn.id = 'undo'; undoBtn.textContent = '↶ Deshacer';
+    btnReset.parentElement?.insertBefore(undoBtn, btnReset.nextSibling);
+  }
+  document.getElementById('undo')?.addEventListener('click', undoLast);
+}
+function init(){
+  populateOptionsUI(); applyDimHeader(); buildLevels(); buildModelAndQueue();
+  setTimeFromInputs(); updateTimer(); ensureUndoButton(); setSkipPenaltyInputState(); ensureDimOverlay(); announceDimension(currentDim);
+
+  levelsEl.addEventListener('click', (ev)=>{
+    const pill = ev.target.closest('.pill');
+    if(pill){
+      const lvl = +pill.dataset.level;
+      const box = levelsEl.querySelector(`.lvl[data-level="${lvl}"]`);
+      const drop = box.querySelector('.drop');
+      if(HAPTICS() && navigator.vibrate) navigator.vibrate(12);
+      pill.classList.add('flash'); setTimeout(()=>pill.classList.remove('flash'), 180);
+      onLevelTap(lvl, box, drop); return;
+    }
+    const box = ev.target.closest('.lvl'); if(!box) return;
+    const lvl = +box.dataset.level; const drop = box.querySelector('.drop');
+    onLevelTap(lvl, box, drop);
+  }, {passive:true});
+}
+function bootstrap(){
+  const stored = loadTeacherName();
+  if(stored){ teacherName = stored; updateTeacherChip(teacherName); nameGate.style.display='none'; appWrap.classList.remove('hidden'); init(); }
+  else{ appWrap.classList.add('hidden'); openNameGate(); }
+}
+/* Gate events */
+startWithNameBtn?.addEventListener('click', ()=>{
+  const n1 = firstNameI.value, n2 = lastNameI.value;
+  if(!validateName(n1,n2)){ nameErr.style.display = 'block'; return; }
+  nameErr.style.display = 'none';
+  teacherName = (n1.trim() + ' ' + n2.trim()).replace(/\s+/g,' '); saveTeacherName(teacherName); updateTeacherChip(teacherName);
+  closeNameGate(); appWrap.classList.remove('hidden'); init();
+});
+[firstNameI,lastNameI].forEach(inp=> inp?.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ startWithNameBtn.click(); }}));
+changeNameBtn?.addEventListener('click', ()=> openNameGate(loadTeacherName()));
+bootstrap();
+
+/* ================== Build niveles ================== */
+function buildLevels(){
+  levelsEl.innerHTML = "";
+  const scale = document.createElement('div');
+  scale.className = 'pillbar';
+  scale.innerHTML = `<div class="pill p1" data-level="1">1</div>
+                     <div class="pill p2" data-level="2">2</div>
+                     <div class="pill p3" data-level="3">3</div>
+                     <div class="pill p4" data-level="4">4</div>`;
+  levelsEl.appendChild(scale);
+  const names = ["Nivel 1 – Bajo","Nivel 2 – Básico","Nivel 3 – Alto","Nivel 4 – Superior"];
+  for (let lvl = 1; lvl <= 4; lvl++){
+    const box  = document.createElement('div'); box.className='lvl'; box.dataset.level=String(lvl);
+    const h4   = document.createElement('h4');  h4.textContent = names[lvl-1];
+    const hint = document.createElement('div'); hint.className='hint'; hint.dataset.hint=String(lvl);
+    hint.textContent = DATA[currentDim][lvl].join(', '); if (examChk.checked || hint.textContent.trim()==='') hint.classList.add('hidden');
+    const count= document.createElement('div'); count.className='count'; count.textContent='';
+    const drop = document.createElement('div'); drop.className='drop'; drop.dataset.level=String(lvl);
+    box.appendChild(h4); box.appendChild(hint); box.appendChild(count); box.appendChild(drop); levelsEl.appendChild(box);
+  }
+  updateAllLevelCounters();
+}
+
+/* ================== UNDO ================== */
+function undoLast(){
+  const move = undoStack.pop(); if(!move) return;
+  const c = CARDS.find(x=>x.verb===move.verb && x.level===move.level); if(!c) return;
+  c.locked = false; if(c.el?.parentElement) c.el.parentElement.removeChild(c.el);
+  c.el.classList.remove('ok','selected');
+  addBackToHint(move.level, move.verb); updateLevelCounter(move.level);
+  points -= POINT_CORRECT; updateCounters();
+  const idx = QUEUE.findIndex(q=>q.verb===c.verb && q.level===c.level); if(idx!==-1) QUEUE.splice(idx,1);
+  QUEUE.unshift(c); renderCurrentCard();
+}
+
+/* ================== PREVIEW ================== */
+(function setupPreviewMode(){
+  function seedDemoStats(){
+    let placed=0, skips=0, three=0, taps=0;
+    DIM_ORDER.forEach(dim=>{
+      Object.keys(DATA[dim]).forEach(lvl=>{
+        DATA[dim][lvl].forEach(v=>{
+          const st = getStats(dim, v, +lvl);
+          st.placed   = Math.random() < 0.65;
+          st.skips    = Math.random() < 0.15 ? 1 : 0;
+          st.threePen = Math.random() < 0.10 ? 1 : 0;
+          st.wrong    = Math.random() < 0.25 ? 1 : 0;
+          st.taps     = 1 + Math.floor(Math.random()*3);
+          // Δ (primera intuición) ±1 con más probabilidad en límites
+          const delta = (Math.random()<0.25) ? (Math.random()<0.5? -1: +1) : 0;
+          st.firstDelta = delta; st.firstTry = (+lvl) + delta; st.solvedIn = st.taps;
+          if(st.placed) placed++; skips += st.skips; three += st.threePen; taps += st.taps;
+        });
+      });
+    });
+    return { placed, skips, three, taps };
+  }
+
+  window.openReviewPreview = function({mode='blank'} = {}){
+    modal.dataset.preview = '1';
+    if(!teacherName){ teacherName = loadTeacherName() || 'Docente Demo'; saveTeacherName(teacherName); updateTeacherChip(teacherName); }
+    nameGate.style.display='none'; appWrap.classList.remove('hidden');
+    if(!levelsEl.children.length) init();
+
+    clearAllStats();
+    if(mode==='demo'){
+      const s = seedDemoStats();
+      points = (s.placed * POINT_CORRECT) + (effectiveSkipPenalty() * s.skips) + (-2 * s.three);
+    } else { points = 0; }
+    ptsEl.textContent = points;
+
+    finished=true; pauseTimer(); reviewStep=0; reviewFilter='all'; renderReview();
+    modal.style.display='grid';
+  };
+
+  if(!window._previewHotkeyBound){
+    document.addEventListener('keydown', (e)=>{
+      if(e.altKey && (e.key==='p'||e.key==='P')){ e.preventDefault(); openReviewPreview({ mode: e.shiftKey ? 'demo' : 'blank' }); }
+    });
+    window._previewHotkeyBound = true;
+  }
+
+  const pv = new URLSearchParams(location.search).get('preview');
+  if(pv){ const mode = (pv.toLowerCase()==='demo') ? 'demo' : 'blank'; setTimeout(()=> openReviewPreview({mode}), 0); }
+})();
+
+/* ================== ESC para cerrar wizard ================== */
+if(!window._bloomEscBound){
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.style.display==='grid') closeReviewModal(); });
+  window._bloomEscBound = true;
+}
+</script>
+
+
+
+</body>
+</html>

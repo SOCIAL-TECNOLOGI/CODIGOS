@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escáner de hojas de respuestas</title>
+    <style>
+        #hojaRespuestas {
+            width: 500px; /* Ajusta el tamaño según tus necesidades */
+            height: 300px;
+            position: relative;
+        }
+
+        .burbuja {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #fff; /* Color de fondo de la burbuja no seleccionada */
+            border: 1px solid #000; /* Borde de la burbuja */
+            border-radius: 50%; /* Forma circular */
+        }
+    </style>
+</head>
+<body>
+    <div id="hojaRespuestas">
+        <!-- Burbujas simuladas -->
+        <div class="burbuja" data-opcion="A" style="top: 50px; left: 50px;"></div>
+        <div class="burbuja" data-opcion="B" style="top: 50px; left: 150px;"></div>
+        <div class="burbuja" data-opcion="C" style="top: 150px; left: 50px;"></div>
+        <div class="burbuja" data-opcion="D" style="top: 150px; left: 150px;"></div>
+    </div>
+
+    <script>
+        // ... (código existente) ...
+
+        // Función para detectar marcas en la hoja de respuestas
+        function detectarMarcas(imgData) {
+            const marcas = [];
+            // Implementación básica: recorrer la imagen y detectar marcas
+            for (let y = 0; y < imgData.height; y++) {
+                for (let x = 0; x < imgData.width; x++) {
+                    const pixelIndex = (y * imgData.width + x) * 4;
+                    const valorMarca = imgData.data[pixelIndex] > 127 ? 'A' : 'B'; // Ejemplo básico
+                    if (valorMarca === 'A' || valorMarca === 'B') {
+                        marcas.push({ x, y, valor: valorMarca });
+                    }
+                }
+            }
+            return marcas;
+        }
+
+        // ... (código existente) ...
+
+        // Función principal después de cargar la imagen
+        img.onload = function() {
+            // ... (código existente) ...
+
+            // Detectar marcas en la hoja de respuestas
+            const marcasDetectadas = detectarMarcas(gray);
+
+            // Extraer información y calificar respuestas
+            const resultados = extraerYCalificarRespuestas(marcasDetectadas);
+
+            // Mostrar resultados al usuario
+            mostrarResultados(resultados);
+        };
+
+        // ... (código existente) ...
+    </script>
+</body>
+</html>

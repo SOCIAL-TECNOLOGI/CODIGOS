@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha384-ezjWvZi0yvl7Lw8R6ZNMT5YQZUcRSgqCK5Q/8e6+phLg5I3a8r6YekCE2e1ymk9Y" crossorigin="anonymous">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .menu {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid #000;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content button {
+            padding: 12px 16px;
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #ddd;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover .dropbtn {
+            background-color: #2980b9;
+        }
+
+        #thicknessSelector {
+            margin-left: 10px;
+        }
+    </style>
+    <title>Dibujo en Pizarra</title>
+</head>
+
+<body>
+    <div class="menu">
+        <label for="tools">Herramienta:</label>
+        <div class="dropdown">
+            <button class="dropbtn"><i class="fas fa-shapes"></i></button>
+            <div class="dropdown-content">
+                <button onclick="selectTool('pen')"><i class="fas fa-pencil-alt"></i> Lápiz</button>
+                <button onclick="selectTool('circle')"><i class="fas fa-circle"></i> Círculo</button>
+                <button onclick="selectTool('triangle')"><i class="fas fa-play"></i> Triángulo</button>
+                <button onclick="selectTool('rectangle')"><i class="fas fa-square"></i> Rectángulo</button>
+                <button onclick="selectTool('line')"><i class="fas fa-minus"></i> Línea Recta</button>
+            </div>
+        </div>
+
+        <label for="colorPicker">Color:</label>
+        <input type="color" id="colorPicker" onchange="setColor()">
+
+        <label for="thicknessSelector">Grosor:</label>
+        <input type="range" id="thicknessSelector" min="1" max="20" value="5" onchange="setThickness()">
+        
+        <button onclick="undo()"><i class="fas fa-undo"></i> Deshacer</button>
+        <button onclick="clearCanvas()"><i class="fas fa-trash"></i> Borrar Todo</button>
+    </div>
+
+    <canvas id="drawingCanvas" width="800" height="600"></canvas>
+
+    <script>
+        let canvas = document.getElementById("drawingCanvas");
+        let context = canvas.getContext("2d");
+
+        let isDrawing = false;
+        let selectedTool = "pen";
+        let startX, startY;
+        let figures = [];
+        let currentFigure = null;
+        let selectedColor = "#000000"; // Color por defecto es negro
+        let selectedThickness = 5; // Grosor por defecto es 5
+
+        function selectTool(tool) {
+            selectedTool = tool;
+        }
+
+        function setColor() {
+            selectedColor = document.getElementById("colorPicker").value;
+        }
+
+        function setThickness() {
+            selectedThickness = document.getElementById("thicknessSelector").value;
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            startX = e.clientX - canvas.offsetLeft;
+            startY = e.clientY - canvas.offsetTop;
+
+            // Crear una nueva figura al comenzar a dibujar
+            currentFigure = {
+                tool: selectedTool,
+                color: selectedColor,
+                thickness: selectedThickness,
+                points: [{ x: startX, y: startY }]
+            };
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            let x, y;
+
+            if (e.touches && e.touches[0]) {
+                // To support touch events (for tablets)
+                x = e.touches[0].clientX - canvas.offsetLeft;
+                y = e.touches[0].clientY - canvas.offsetTop;
+            } else {
+                x = e.clientX - canvas.offsetLeft;
+                y = e.clientY - canvas.offsetTop;
+            }
+
+            // Limpiar el lienzo antes de dibujar la próxima figura
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar las figuras previas
+            drawPreviousFigures();
+
+            context.beginPath();
+            context.strokeStyle = selectedColor;
+            context.lineWidth = selectedThickness;
+
+            // Dibujar la figura actual
+            drawFigure(currentFigure);
+
+            switch (selectedTool) {
+                case "pen":
+                    // Agregar el punto actual a la figura
+                    currentFigure.points.push({ x, y });
+                    // Suavizar la línea
+                    smoothLine(currentFigure.points);
+                    break;
+                default:
+                    // Actualizar las coordenadas finales de la figura
+                    currentFigure.endX = x;
+                    currentFigure.endY = y;
+                    // Dibujar la figura actual
+                    drawFigure(currentFigure);
+                    break;
+            }
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                // Almacenar la figura dibujada solo si estamos dibujando
+                figures.push(currentFigure);
+            }
+            isDrawing = false;
+            currentFigure = null;
+        }
+
+        function drawPreviousFigures() {
+            figures.forEach(drawFigure);
+        }
+
+        function drawFigure(figure) {
+            context.beginPath();
+            context.strokeStyle = figure.color;
+            context.lineWidth = figure.thickness;
+            switch (figure.tool) {
+                case "pen":
+                    drawPen(figure.points);
+                    break;
+                case "circle":
+                    context.arc(figure.points[0].x, figure.points[0].y, calculateRadius(figure), 0, 2 * Math.PI);
+                    context.stroke();
+                    break;
+                case "triangle":
+                    context.moveTo(figure.points[0].x, figure.points[0].y);
+                    context.lineTo(figure.endX, figure.points[0].y);
+                    context.lineTo((figure.points[0].x + figure.endX) / 2, figure.endY);
+                    context.closePath();
+                    context.stroke();
+                    break;
+                case "rectangle":
+                    context.rect(figure.points[0].x, figure.points[0].y, figure.endX - figure.points[0].x, figure.endY - figure.points[0].y);
+                    context.stroke();
+                    break;
+                case "line":
+                    context.moveTo(figure.points[0].x, figure.points[0].y);
+                    context.lineTo(figure.endX, figure.endY);
+                    context.stroke();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function drawPen(points) {
+            if (points.length < 2) return;
+
+            context.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < points.length; i++) {
+                context.lineTo(points[i].x, points[i].y);
+            }
+
+            context.stroke();
+        }
+
+        function calculateRadius(figure) {
+            const dx = figure.endX - figure.points[0].x;
+            const dy = figure.endY - figure.points[0].y;
+            return Math.sqrt(dx ** 2 + dy ** 2);
+        }
+
+        function smoothLine(points) {
+            if (points.length < 3) return;
+
+            context.lineJoin = "round";
+            context.lineCap = "round";
+            context.lineWidth = selectedThickness * 2; // Ajusta este valor para cambiar la suavidad
+
+            context.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < points.length - 2; i++) {
+                const xc = (points[i].x + points[i + 1].x) / 2;
+                const yc = (points[i].y + points[i + 1].y) / 2;
+                context.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+
+                // Añadir puntos adicionales para suavizar más la línea
+                for (let j = 1; j <= 8; j++) {
+                    const xq = (xc + points[i + 1].x) / 2;
+                    const yq = (yc + points[i + 1].y) / 2;
+                    context.quadraticCurveTo(xc, yc, xq, yq);
+                    xc = xq;
+                    yc = yq;
+                }
+            }
+
+            context.quadraticCurveTo(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+            context.stroke();
+        }
+
+        function undo() {
+            // Deshacer la última figura dibujada
+            figures.pop();
+            // Limpiar el lienzo y volver a dibujar las figuras restantes
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawPreviousFigures();
+        }
+
+        function clearCanvas() {
+            // Borrar todo el lienzo
+            figures = [];
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseout", stopDrawing);
+
+        // Agregar eventos de pantalla táctil para tabletas
+        canvas.addEventListener("touchstart", startDrawing);
+        canvas.addEventListener("touchmove", draw);
+        canvas.addEventListener("touchend", stopDrawing);
+    </script>
+</body>
+
+</html>

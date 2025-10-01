@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculadora de Huella Ecológica</title>
+  <style>
+    /* Estilos para ocultar elementos */
+.hidden {
+  display: none;
+}
+
+/* Estilos generales del cuerpo */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
+
+/* Contenedor principal */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 2px solid #ccc;
+}
+
+
+/* Estilos para el encabezado principal */
+h1 {
+  text-align: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 20px;
+  margin: 0;
+}
+
+/* Estilos para etiquetas */
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Estilos para campos de entrada numérica */
+input[type="number"] {
+  width: 35%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 18px;
+  margin-left: 31%;
+  
+}
+
+/* Estilos para botones */
+button {
+  display: block;
+  width: 10%; /* Ancho del 100% para centrar */
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+
+/* Estilos para títulos secundarios */
+h2 {
+  text-align: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+/* Estilos para tablas */
+table {
+  width:100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Estilos para encabezados de tabla de impacto ambiental */
+th {
+  background-color: #0c63bb;
+  color: white;
+  font-weight: bold; /* Texto en negrita */
+  text-align: center; /* Alineación al centro */
+}
+
+
+/* Añade estilos para los comentarios debajo de la tabla de recomendaciones */
+.texto-descriptivo {
+  text-align: center;
+  background-color: #ffffff;
+  font-weight: bold; /* Texto en negrita */
+  font-size: 25px;
+  color: rgb(0, 0, 0);
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px; /* Borde redondeado */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.texto-descriptivo p {
+  margin: 10px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #333;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1.4;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.texto-descriptivo a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.texto-descriptivo a:hover {
+  text-decoration: underline;
+}
+
+
+.texto-descriptivo p {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s;
+}
+
+.texto-descriptivo p:hover {
+  background-color: #e0e0e0;
+}
+
+
+/* Estilos para los resultados de la calculadora */
+#resultado_hectareas {
+  font-size: 20px; /* Tamaño de fuente aumentado */
+  color: #4CAF50; /* Color de texto verde */
+  font-weight: bold; /* Texto en negrita */
+  margin-top: 15px; /* Espacio superior */
+  padding: 10px; /* Espaciado interno */
+  background-color: #e0f2e9; /* Fondo ligeramente coloreado */
+  border: 1px solid #4CAF50; /* Borde delgado */
+  border-radius: 5px; /* Borde redondeado */
+  text-align: center; /* Alineación al centro */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+
+/* Estilos para los comentarios */
+.texto-descriptivo p {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f7f7f7; /* Color de fondo */
+  border: 1px solid #ddd; /* Borde */
+  border-radius: 5px; /* Borde redondeado */
+  color: #333; /* Color de texto */
+  font-size: 16px; /* Tamaño de fuente */
+  line-height: 1.4; /* Espaciado entre líneas */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+/* Estilos para la tabla de recomendaciones */
+table.recomendaciones {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  
+}
+
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td {
+  text-align: justify;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+
+table.recomendaciones th, table.recomendaciones td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table.recomendaciones th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+
+/* Estilos para las filas pares (opcional) */
+table.recomendaciones tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilos para el texto en las celdas */
+table.recomendaciones td {
+  font-size: 40px;
+}
+
+
+/* Estilos para el texto en las celdas de encabezado */
+table.recomendaciones th {
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  text-align: center; /* Alineación al centro */
+}
+
+/* Estilos para los comentarios en la tabla de recomendaciones */
+table.recomendaciones p {
+  margin: 0;
+  padding: 5px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #333;
+}
+
+/* Estilos para el botón de reinicio */
+#reiniciarBtn {
+  background-color: #e74c3c; /* Color de fondo */
+  color: white; /* Color de texto */
+  padding: 10px 20px; /* Espaciado interno */
+  border: none; /* Borde */
+  border-radius: 5px; /* Borde redondeado */
+  cursor: pointer; /* Cambio de cursor al pasar el mouse */
+  margin-top: 10px; /* Espacio superior */
+  transition: background-color 0.3s; /* Transición suave de color al pasar el mouse */
+}
+
+#reiniciarBtn:hover {
+  background-color: #c0392b; /* Color de fondo al pasar el mouse */
+}
+
+/* Estilos para el nuevo contenedor */
+.nuevo-contenedor {
+  background-color: #ffffff; /* Fondo blanco */
+  padding: 20px; /* Relleno de 20 píxeles en todas las direcciones */
+  margin: 20px 0; /* Margen superior e inferior de 20 píxeles, sin margen en los lados */
+  border: 7px solid #ccc; /* Borde con un borde sólido de 1 píxel y color gris claro */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  border-radius: 5px; /* Bordes redondeados de 5 píxeles */
+  color: #333; /* Color del texto */
+  font-size: 16px; /* Tamaño de fuente de 16 píxeles */
+  line-height: 1.5; /* Espaciado entre líneas de 1.5 */
+}
+
+/* Estilos para los enlaces dentro del contenedor */
+.nuevo-contenedor a {
+  color: #0077cc; /* Color de enlace azul */
+  text-decoration: none; /* Sin subrayado en los enlaces */
+}
+
+/* Estilos para los enlaces al pasar el ratón sobre ellos */
+.nuevo-contenedor a:hover {
+  text-decoration: underline; /* Subrayado en los enlaces al pasar el ratón */
+}
+
+/*CONTENEDOR DE IMÁGENES */
+
+    #contenedor-imagenes { 
+    text-align: center;
+    margin: 0px;
+    background-color: #ffffff; /* Fondo blanco */
+}
+
+.imagen-1 {
+    width: 150px; /* Tamaño personalizado para la primera imagen */
+    margin: 10px; /* Margen personalizado para la primera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la primera imagen */
+    border-radius: 5px; /* Borde redondeado personalizado para la primera imagen */
+}
+
+.imagen-2 {
+    width: 230px; /* Tamaño personalizado para la segunda imagen */
+    margin: 15px; /* Margen personalizado para la segunda imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la segunda imagen */
+    border-radius: 8px; /* Borde redondeado personalizado para la segunda imagen */
+}
+
+.imagen-3 {
+    width: 250px; /* Tamaño personalizado para la tercera imagen */
+    margin: 12px; /* Margen personalizado para la tercera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+    border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+}
+
+.imagen-4 {
+    width: 180px; /* Tamaño personalizado para la tercera imagen */
+    margin: 12px; /* Margen personalizado para la tercera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+    border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+}  
+
+
+
+#contenedor-videos { /* VÍDEOS */
+    text-align: center;
+    margin: 20px;
+}
+
+#contenedor-videos iframe {
+    width: 300px; /* Ajusta el ancho del video según tus preferencias */
+    max-width: 400px; /* Define un ancho máximo para mantener el diseño responsivo */
+    height: 290px; /* Ajusta la altura automáticamente según la relación de aspecto del video */
+    margin-left: 20px;
+}
+
+.boton {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #050771;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold; /* Peso de la fuente */
+    font-size: 16px; /* Tamaño de fuente */
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    font-weight: bold;
+    
+}
+
+.boton:hover {
+    background-color: #046b49;
+}
+
+  .BOTONES{display: flex; justify-content: center}
+
+/* Estilos para centrar el botón */
+.centrar-boton {
+    display: flex;
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    height: 100vh; /* Asegura que el contenedor ocupe toda la altura de la ventana */
+  }
+  
+  
+/* Estilos para el botón "Conocer Más" */
+#conocer-mas-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center; /* Centrar el texto horizontalmente */
+  display: inline-block; /* Hacer que el botón sea un bloque en línea */
+  font-size: 16px; /* Tamaño de fuente */
+  transition: background-color 0.3s; /* Transición de color de fondo */
+}
+
+#conocer-mas-btn:hover {
+  background-color: #45a049;
+}
+
+.BOTÓN-CONOCER-MÁS{display: flex; justify-content: center}
+  
+.conteo-reciclaje{text-align: center;}
+
+/* Estilos para centrar el contenido de la clase .conteo-reciclaje */
+.conteo-reciclaje {
+  text-align: center;
+  font-weight: bold; /* Texto en negrita */
+  font-size: 18px;
+  background-color: #f2f2f2; /* Fondo gris claro */
+  padding: 10px; /* Relleno de 10 píxeles */
+}
+
+/* Estilos para las celdas de la tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+/* Estilos para los elementos <strong> dentro del párrafo #huella_ecologica */
+  .titulo-strong {
+    font-weight: bold;
+    color: #0c63bb; /* Color azul (puedes cambiarlo al color que desees)  #0066cc*/
+    font-size: 1.15em; /* Tamaño de fuente */
+}
+
+/* Estilos para el elemento <span> dentro del párrafo #huella_ecologica */
+.resultado-span {
+    font-weight: bold;
+    color: #00cc00; /* Color verde (puedes cambiarlo al color que desees) */
+    font-size: 1.4em; /* Tamaño de fuente */
+    margin: 0 5px; /* Espacio entre el número y "Hectáreas Globales" */
+}
+
+/* Estilos generales para el párrafo #huella_ecologica */
+#huella_ecologica {
+    text-align: center; /* Centrar el contenido del párrafo */
+    margin: 20px; /* Márgenes exteriores del párrafo */
+}
+
+/* Estilos para los elementos <strong> dentro del párrafo con clase .texto-descriptivo */
+  .texto-descriptivo strong {
+    font-weight: bold; /* Peso de la fuente en negrita */
+    color: #009900; /* Color del texto (puedes cambiarlo al color que desees) */
+    font-size: 1.1em; /* Tamaño de fuente (ajusta según tus preferencias) */
+}
+
+/*BARRA DE DESPLAZAMIENTO*/
+body {
+  scrollbar-width: thin; /* Establece el ancho de la barra de desplazamiento a "thin" */
+  scrollbar-color: transparent transparent; /* Establece el color de la barra de desplazamiento en transparente */
+  -ms-overflow-style: none; /* Para Internet Explorer */
+}
+
+/* Estilos de la barra de desplazamiento en Webkit (Chrome, Safari, etc.) */
+body::-webkit-scrollbar {
+  width: 8px; /* Establece el ancho de la barra de desplazamiento */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: transparent; /* Establece el color de la barra de desplazamiento en transparente */
+}
+
+body::-webkit-scrollbar-track {
+  background-color: transparent; /* Establece el color del fondo de la barra de desplazamiento en transparente */
+}
+
+</style>
+
+</head>
+<body>
+
+<h1>CALCULADORA AMBIENTAL</h1><br><br>
+
+<label class="conteo-reciclaje" for="cantidad_latas">Cantidad de latas de aluminio:</label><br>
+<input type="number" id="cantidad_latas" placeholder="0"><br><br>
+
+<label class="conteo-reciclaje" for="cantidad_cuadernos">Cantidad de cuadernos:</label><br>
+<input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+
+<label class="conteo-reciclaje" for="cantidad_botellas">Cantidad de botellas plásticas:</label><br>
+<input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+
+<!-- BOTONES DE CALCULAR Y REINICIAR -->
+<span class="BOTONES"><button onclick="calcularImpacto()">Calcular Impacto</button><button onclick="reiniciarCalculadora()">Reiniciar</button></span><br><br> 
+
+
+<h2 class="hidden">Impacto de tu reciclaje:</h2>
+
+<div class="hidden">
+
+
+<!-- TABLA CONSUMO DE RECURSOS -->
+  <table>
+    <tr>
+      <th>Tipo de Material Reciclable</th>
+      <th>Energía (kWh)</th>
+      <th>Agua (litros)</th>
+      <th>Emisiones de CO2 (kg)</th>
+    </tr>
+    <tr>
+      <td>Lata de Aluminio</td>
+      <td><span id="lata_energia">0.00</span> kWh</td>
+      <td><span id="lata_agua">0.00</span> litros</td>
+      <td><span id="lata_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td>Cuaderno (100 hojas)</td>
+      <td><span id="cuaderno_energia">0.00</span> kWh</td>
+      <td><span id="cuaderno_agua">0.00</span> litros</td>
+      <td><span id="cuaderno_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td>Botella Plástica</td>
+      <td><span id="botella_energia">0.00</span> kWh</td>
+      <td><span id="botella_agua">0.00</span> litros</td>
+      <td><span id="botella_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td><strong><span id="total_energia">0.00</span> kWh</strong></td>
+      <td><strong><span id="total_agua">0.00</span> litros</strong></td>
+      <td><strong><span id="total_co2">0.00</span> kg</strong></td>
+    </tr>
+  </table>
+
+  <p id="huella_ecologica">
+    <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+    <span id="resultado_hectareas" class="resultado-span">0.00</span>
+    
+<strong class="titulo-strong">Hectáreas Globales</strong><br>
+
+  
+  <p class="texto-descriptivo"><strong>Recomendaciones Ambientales</strong></p>
+  <table >
+    <tr>
+      <th>AHORRO DE ENERGÍA</th>
+      <th>AHORRO DE AGUA</th>
+      <th>MENOS EMISIONES DE CO2</th>
+    </tr>
+    <tr> 
+
+      <td>Reduce el consumo de Energía (kWh) - Usa Energía Renovable: Cambia a fuentes de energía renovable, como la energía solar o eólica, para reducir la dependencia de combustibles fósiles. - Aplica la Eficiencia Energética: Mejora la eficiencia energética en tu hogar o negocio. Utiliza bombillas LED, electrodomésticos eficientes y aísla bien tu vivienda.</td>
+
+      <td>Reduce el consumo de Agua (Litros) - Reutilizar y Reciclar: Utiliza sistemas de reciclaje de agua para reutilizar el agua de lluvia y aguas grises para fines no potables, como el riego del jardín. - Arreglar Fugas: Repara las fugas de agua en tuberías y grifos, ya que las fugas desperdician grandes cantidades de agua</td>
+
+      <td>Reduce las emisiones de CO2 (Kg) - Transporte Sostenible: Opta por el transporte público, carpooling o usa vehículos eléctricos para reducir las emisiones de CO2 relacionadas con el transporte. - Reducir Uso de Combustibles Fósiles: Disminuye tu dependencia de combustibles fósiles, como la gasolina, y considera utilizar vehículos más eficientes en términos de consumo de combustible.</td>
+    </tr>
+  </table>
+
+
+</div>
+
+<!-- TABLA DE PESOS EN GRAMOS -->
+<table>
+  <tr>
+      <th>Tipo de Material Reciclable</th>
+      <th>Peso Promedio (gramos)</th>
+      <th>Peso Total (gramos)</th>
+  </tr>
+  <tr>
+      <td>Cuaderno de 100 hojas</td>
+      <td>160</td>
+      <td id="peso_cuadernos">0</td>
+  </tr>
+  <tr>
+      <td>Lata de aluminio</td>
+      <td>12</td>
+      <td id="peso_latas">0</td>
+  </tr>
+  <tr>
+      <td>Botella plástica de 500 mL</td>
+      <td>20</td>
+      <td id="peso_botellas">0</td>
+  </tr>
+  <tr>
+      <td><strong>Peso Total del Material Reciclado</strong></td>
+      <td></td>
+      <td id="peso_total"><strong>0</strong></td>
+  </tr>
+
+
+</table><br><br>
+
+
+<!-- CONTENEDOR DE VÍDEOS E IMÁGENES PATROCINADORES-->
+<div id="contenedor-videos">
+  <iframe width="150" height="85" src="https://www.youtube.com/embed/jL4cwuC4Mls" frameborder="0" allowfullscreen></iframe>
+ 
+  <iframe src="https://archivo.lostutores.co/embed/0e3x2a02600b4ce7147e1bff0dac587636f1e?toolbar=false&appearance=light&themecolor=green" scrolling="no" frameborder="0" allowfullscreen=true width="800" height="620"></iframe>
+ 
+  <!-- Repite este bloque iframe para más vídeos si es necesario -->
+</div>
+<BR>
+
+<p class="texto-descriptivo">PATROCINADORES</p>
+<div id="contenedor-imagenes">
+  <img src="data:image/png;base64,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" alt="Imagen 1" class="imagen-1">
+  <img src="https://us.iearn.org/assets/imgs/partners_americas_logo.jpg" alt="Imagen 2" class="imagen-2">
+  <img src="https://www.fedusocial.org/cedecur%20-%20copia.png" alt="Imagen 3" class="imagen-3">
+  <img src="https://download-accl.zoho.com/v1/workdrive/previewdata/4as8j810d693aaecc41a0b7b8639ddbaacdb0?orig=true" alt="Imagen 4" class="imagen-4">
+  
+</div><br>
+
+<!-- BOTÓN CONOCER MÁS -->
+<div> <span class="BOTÓN-CONOCER-MÁS"><a href="https://www.recyclass.org" target="_blank" class="boton">¡Conocer Más!</a></span></div>
+ 
+
+<div id="contenedor" style="display: none;">
+    <!-- Contenido de tu contenedor -->
+</div>
+
+<script>
+function calcularImpacto() {
+  var cantidad_latas = parseFloat(document.getElementById("cantidad_latas").value);
+  var cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value);
+  var cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+
+  if (cantidad_latas > 0 || cantidad_cuadernos > 0 || cantidad_botellas > 0) {
+    var lata_energia = cantidad_latas * 15;
+    var lata_agua = cantidad_latas * 1.5;
+    var lata_co2 = cantidad_latas * 2.7;
+
+    var cuaderno_energia = cantidad_cuadernos * 2;
+    var cuaderno_agua = cantidad_cuadernos * 10;
+    var cuaderno_co2 = cantidad_cuadernos * 1.5;
+
+    var botella_energia = cantidad_botellas * 1.9;
+    var botella_agua = cantidad_botellas * 3;
+    var botella_co2 = cantidad_botellas * 0.9;
+
+    var total_energia = lata_energia + cuaderno_energia + botella_energia;
+    var total_agua = lata_agua + cuaderno_agua + botella_agua;
+    var total_co2 = lata_co2 + cuaderno_co2 + botella_co2;
+
+    document.getElementById("lata_energia").textContent = lata_energia.toFixed(2);
+    document.getElementById("lata_agua").textContent = lata_agua.toFixed(2);
+    document.getElementById("lata_co2").textContent = lata_co2.toFixed(2);
+
+    document.getElementById("cuaderno_energia").textContent = cuaderno_energia.toFixed(2);
+    document.getElementById("cuaderno_agua").textContent = cuaderno_agua.toFixed(2);
+    document.getElementById("cuaderno_co2").textContent = cuaderno_co2.toFixed(2);
+
+    document.getElementById("botella_energia").textContent = botella_energia.toFixed(2);
+    document.getElementById("botella_agua").textContent = botella_agua.toFixed(2);
+    document.getElementById("botella_co2").textContent = botella_co2.toFixed(2);
+
+    document.getElementById("total_energia").textContent = total_energia.toFixed(2);
+    document.getElementById("total_agua").textContent = total_agua.toFixed(2);
+    document.getElementById("total_co2").textContent = total_co2.toFixed(2);
+
+    var hectareas_globales = total_co2 / 2.7;
+    document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+
+    // Mostrar la tabla al final del cálculo
+    document.querySelector("h2").classList.remove("hidden");
+    document.querySelector("div").classList.remove("hidden");
+  }
+}
+
+function reiniciarTabla() {
+    // Restablecer los valores de la tabla a cero
+    document.getElementById("peso_latas").textContent = "0";
+    document.getElementById("peso_cuadernos").textContent = "0";
+    document.getElementById("peso_botellas").textContent = "0";
+   // Aplicar la etiqueta <strong> y establecer el contenido HTML en negrita
+    document.getElementById("peso_total").innerHTML = "<strong>0</strong>";
+}
+
+
+// Llamada a la función reiniciarTabla() cuando se hace clic en el botón "Reiniciar"
+function reiniciarCalculadora() {
+    // Restablecer las entradas
+    document.getElementById("cantidad_latas").value = "";
+    document.getElementById("cantidad_cuadernos").value = "";
+    document.getElementById("cantidad_botellas").value = "";
+
+    // Ocultar la tabla y el resultado
+    document.querySelector("h2").classList.add("hidden");
+    document.querySelector("div").classList.add("hidden");
+
+    // Llama a la función para reiniciar la tabla
+    reiniciarTabla();
+}
+
+
+// Mostrar los comentarios debajo de la tabla de recomendaciones
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioEnergia}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioAgua}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioCO2}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioCoche}</p>`);
+
+const calcularButton = document.getElementById('calcularButton');
+        const reiniciarButton = document.getElementById('reiniciarButton');
+        const contenedor = document.getElementById('contenedor');
+        const tabla = document.querySelector('table');
+
+        calcularButton.addEventListener('click', () => {
+            contenedor.style.display = 'none';
+        });
+
+        reiniciarButton.addEventListener('click', () => {
+            if (tablaIsEmpty()) {
+                contenedor.style.display = 'block';
+            }
+        });
+
+        function tablaIsEmpty() {
+            // Comprueba si los valores de la tabla están en cero
+            const filas = tabla.querySelectorAll('tr');
+            for (let i = 1; i < filas.length; i++) { // Empezamos desde 1 para omitir la fila de encabezado
+                const celdas = filas[i].querySelectorAll('td');
+                for (let j = 1; j < celdas.length; j++) { // Empezamos desde 1 para omitir la primera celda
+                    if (parseFloat(celdas[j].innerText) !== 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+// Calcula la suma total y la coloca en la celda de "Peso Total (gramos)"
+function calcularImpacto() {
+            const cantidadLatas = parseInt(document.getElementById("cantidad_latas").value);
+            const cantidadCuadernos = parseInt(document.getElementById("cantidad_cuadernos").value);
+            const cantidadBotellas = parseInt(document.getElementById("cantidad_botellas").value);
+
+
+            const pesoLatas = cantidadLatas * 12; // Peso promedio de lata de aluminio
+            const pesoCuadernos = cantidadCuadernos * 160; // Peso promedio de cuaderno
+            const pesoBotellas = cantidadBotellas * 20; // Peso promedio de botella plástica
+            const pesoTotal = pesoLatas + pesoCuadernos + pesoBotellas;
+
+            document.getElementById("peso_latas").textContent = pesoLatas;
+            document.getElementById("peso_cuadernos").textContent = pesoCuadernos;
+            document.getElementById("peso_botellas").textContent = pesoBotellas;
+
+// Aplicar la etiqueta <strong> al resultado y establecer el contenido HTML
+    const pesoTotalElement = document.getElementById("peso_total");
+    pesoTotalElement.innerHTML = "<strong>" + pesoTotal + "</strong>";
+
+}
+
+   
+</script>
+
+</body>
+</html>

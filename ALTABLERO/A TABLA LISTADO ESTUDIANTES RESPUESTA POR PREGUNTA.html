@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Análisis de Respuestas</title>
+
+
+     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+     
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .tab {
+      overflow: hidden;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+    }
+    .tab button {
+      background-color: inherit;
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      transition: 0.3s;
+    }
+    .tab button:hover {
+      background-color: #ddd;
+    }
+    .tab button.active {
+      background-color: #ccc;
+    }
+    .tabcontent {
+      display: none;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-top: none;
+    }
+
+    #dataInput {  
+      display: none; /* Ocultar el área de texto por defecto */  
+    }  
+  </style>
+</head>
+<body>
+
+  
+  <h1>Análisis de Respuestas</h1>
+  <button id="toggleTextareaButton">Mostrar Área de Texto</button> 
+   
+<textarea id="dataInput" rows="10" cols="80" placeholder="Pega aquí los datos..."></textarea>
+  <br>
+  <label for="respuestaCorrecta">Respuesta Correcta:</label>
+  <input type="text" id="respuestaCorrecta" placeholder="Ej: A" maxlength="1">
+  <br>
+  <label for="urlRefuerzo">URL de Refuerzo:</label>
+  <input type="text" id="urlRefuerzo" placeholder="Ej: https://www.ejemplo.com/refuerzo">
+  <button id="analyzeButton">Analizar Datos</button>
+  <button id="downloadCSVButton">Descargar CSV</button>
+  <button id="downloadChartButton">Descargar Gráfico</button> <!-- Botón para descargar gráfico --> 
+  <canvas id="responseChart" width="200" height="50"></canvas>
+  <div id="results"></div>
+ 
+
+  
+
+
+
+
+
+  <script>
+   document.getElementById('analyzeButton').addEventListener('click', function() {
+  const data = document.getElementById('dataInput').value;
+  const lines = data.split('\n');
+  const results = {};
+  const estudiantesRegistrados = {};
+  let numeroPregunta = '';
+
+  if (lines.length > 0) {
+    const encabezado = lines[0].split('\t');
+    encabezado.forEach(columna => {
+      if (columna.startsWith('Pregunta')) {
+        numeroPregunta = columna.match(/\d+/)[0];
+      }
+    });
+  }
+
+  const respuestaCorrecta = document.getElementById('respuestaCorrecta').value.toUpperCase();
+  const urlRefuerzo = document.getElementById('urlRefuerzo').value;
+
+  lines.slice(1).forEach(line => {
+    const parts = line.split('\t');
+    if (parts.length === 4) {
+      const sede = parts[0];
+      const nombres = parts[1];
+      const apellidos = parts[2];
+      const respuesta = parts[3];
+      const nombreCompleto = (nombres + ' ' + apellidos).toUpperCase();
+
+      if (!results[sede]) {
+        results[sede] = { 'A': [], 'B': [], 'C': [], 'D': [] };
+        estudiantesRegistrados[sede] = {};
+      }
+
+      if (!estudiantesRegistrados[sede][nombreCompleto]) {
+        if (results[sede] && results[sede][respuesta]) {
+          results[sede][respuesta].push(nombreCompleto);
+        }
+        estudiantesRegistrados[sede][nombreCompleto] = true;
+      }
+    }
+  });
+
+  // Generar CSV (como antes)
+
+  function generarCSV() {
+    // Generar CSV con la estructura original
+    let csvContent = 'Institución,Opción,Nombre,Enlace de Refuerzo\n';
+    for (const sede in results) {
+      for (const option in results[sede]) {
+        results[sede][option].sort().forEach(name => {
+          let enlace = '';
+          if (option !== respuestaCorrecta) {
+            enlace = urlRefuerzo;
+          }
+          csvContent += `${sede},${option},${name},${enlace}\n`;
+        });
+      }
+    }
+
+    // Crear archivo CSV para descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `resultados_pregunta_${numeroPregunta}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Agregar evento al botón para descargar CSV
+  document.getElementById('downloadCSVButton').addEventListener('click', generarCSV);
+
+  // Generar HTML (como antes)
+  let html = '';
+  for (const sede in results) {
+    html += `<h2>${sede}</h2>`;
+    html += `<div class="tab">`;
+    ['A', 'B', 'C', 'D'].forEach(option => {
+      html += `<button class="tablinks" onclick="openTab(event, '${sede}-${option}')">Opción ${option}</button>`;
+    });
+    html += `</div>`;
+
+    ['A', 'B', 'C', 'D'].forEach(option => {
+      html += `<div id="${sede}-${option}" class="tabcontent">`;
+      html += '<table><thead><tr><th>Nombre</th></tr></thead><tbody>';
+
+      results[sede][option].sort().forEach(name => {
+        html += `<tr><td>${name}</td></tr>`;
+      });
+
+      html += '</tbody></table></div>';
+    });
+  }
+
+  document.getElementById('results').innerHTML = html;
+  const firstTab = document.querySelector('.tablinks');
+  if (firstTab) {
+    firstTab.click();
+  }
+
+
+    // Generar gráfico de barras
+    const sedeKeys = Object.keys(results);
+    if (sedeKeys.length > 0) {
+        const firstSede = sedeKeys[0]; // Tomamos la primera sede para el gráfico
+        const counts = ['A', 'B', 'C', 'D'].map(option => results[firstSede][option].length);
+        const total = counts.reduce((a, b) => a + b, 0);
+        const percentages = counts.map(count => ((count / total) * 100).toFixed(2));
+
+        const ctx = document.getElementById('responseChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['A', 'B', 'C', 'D'],
+                datasets: [{
+                    label: 'Porcentaje de respuestas',
+                    data: percentages,
+                    backgroundColor: [  
+    'rgba(135, 206, 250, 0.5)', // Azul cielo (Sky Blue)    
+    'rgba(255, 206, 86, 0.2)',   // Amarillo claro para B  
+    'rgba(144, 238, 144, 0.2)',  // Verde claro pastel para C (Light Green)  
+    'rgba(153, 102, 255, 0.2)'   // Morado claro para D  
+],  
+borderColor: [  
+    'rgba(0, 102, 204, 1)',      // Bordes más azul para A (Medium Blue)    
+    'rgba(255, 206, 86, 1)',     // Amarillo oscuro para B  
+    'rgba(144, 238, 144, 1)',     // Verde oscuro para C (Light Green)  
+    'rgba(153, 102, 255, 1)'     // Morado oscuro para D  
+
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label;
+                                const value = context.parsed.y;
+                                const count = counts[context.dataIndex];
+                                return `${label}: ${value}% (${count} respuestas)`;
+                            }
+                        }
+                    },
+                     
+    datalabels: {  
+        anchor: 'center',  
+        align: 'center',  
+        formatter: function(value, context) {  
+            const count = counts[context.dataIndex];  
+            return `${value}% (${count})`;  
+        },  
+        color: 'black',  
+        font: {  
+            weight: 'bold',  
+            size: '12', // Cambia el tamaño de la fuente aquí  
+        }  
+    }, 
+
+                    legend: {
+                        display: true, // Aseguramos que la leyenda se muestre
+                        labels: {
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (data.datasets.length) {
+                                    return data.datasets.map(function(dataset, i) {
+                                        return {
+                                            text: dataset.label,
+                                            fillStyle: 'transparent', // Hacemos el rectángulo transparente
+                                            strokeStyle: 'transparent', // Hacemos el borde transparente
+                                            lineWidth: 0,
+                                            hidden: isNaN(data.datasets[i].data[0]),
+                                            index: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+});
+    function openTab(evt, tabName) {
+      let i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName('tabcontent');
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = 'none';
+      }
+      tablinks = document.getElementsByClassName('tablinks');
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(' active', '');
+      }
+      document.getElementById(tabName).style.display = 'block';
+      evt.currentTarget.className += ' active';
+    }
+
+    document.getElementById('toggleTextareaButton').addEventListener('click', function() {  
+      const textarea = document.getElementById('dataInput');  
+      if (textarea.style.display === 'none' || textarea.style.display === '') {  
+        textarea.style.display = 'block';  
+        this.textContent = 'Ocultar Área de Texto'; // Cambia el texto al mostrar el área de texto  
+      } else {  
+        textarea.style.display = 'none';  
+        this.textContent = 'Mostrar Área de Texto'; // Cambia el texto al ocultar el área de texto  
+      }  
+    });  
+
+    document.getElementById('downloadChartButton').addEventListener('click', function() {  
+    const canvas = document.getElementById('responseChart');  
+    
+    // Crear un nuevo canvas para exportar  
+    const newCanvas = document.createElement('canvas');  
+    const ctx = newCanvas.getContext('2d');  
+    
+    // Establecer el tamaño del nuevo canvas igual al original  
+    newCanvas.width = canvas.width;  
+    newCanvas.height = canvas.height;  
+
+    // Establecer el color de fondo  
+    ctx.fillStyle = 'white'; // Cambia el color de fondo según sea necesario  
+    ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);  
+
+    // Dibujar el gráfico en el nuevo canvas  
+    ctx.drawImage(canvas, 0, 0);  
+
+    const link = document.createElement('a');  
+    link.href = newCanvas.toDataURL('image/png');  
+    link.download = 'grafico_respuestas.png'; // Nombre del archivo que se descargará  
+
+    // Simula un clic para activar la descarga  
+    link.click();  
+});  
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Metabolismo y Calorías</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e7f7e7;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Calculadora de Metabolismo y Calorías</h1>
+    <label for="edad">Edad (años):</label>
+    <input type="number" id="edad" value="45" required>
+
+    <label for="peso">Peso (kg):</label>
+    <input type="number" id="peso" value="79" required>
+
+    <label for="genero">Género:</label>
+    <select id="genero">
+        <option value="hombre" selected>Hombre</option>
+        <option value="mujer">Mujer</option>
+    </select>
+
+    <label for="actividad">Actividad Cardiovascular:</label>
+    <select id="actividad">
+        <option value="1">Sedentario</option>
+        <option value="2">Actividad ligera</option>
+        <option value="3">Moderada</option>
+        <option value="4">Intensa</option>
+        <option value="5" selected>Muy intensa</option>
+    </select>
+
+    <label for="musculacion">Días de Musculación por semana:</label>
+    <select id="musculacion">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7" selected>7</option>
+    </select>
+
+    <label for="objetivo">Objetivo del Entrenamiento:</label>
+    <select id="objetivo" onchange="togglePesoObjetivo()">
+        <option value="bajar" selected>Bajar de peso</option>
+        <option value="mantener">Mantener peso</option>
+        <option value="aumentar">Aumentar peso</option>
+        <option value="masa">Aumentar masa muscular</option>
+    </select>
+    
+    <div id="peso-objetivo-div" style="display:none;">
+        <label for="pesoObjetivo">Peso Objetivo (kg):</label>
+        <input type="number" id="pesoObjetivo">
+    </div>
+
+    <button onclick="calcular()">Calcular</button>
+    <button onclick="resetearCampos()">Limpiar</button>
+
+    <div class="result" id="resultados" style="display:none;">
+        <h2>Resultado:</h2>
+        <p><strong>Metabolismo Basal (TMB):</strong> <span id="tmb"></span> kcal/día</p>
+        <p><strong>Gasto Calórico Total (con actividad):</strong> <span id="tdee"></span> kcal/día</p>
+        <p><strong>Calorías Ajustadas según Objetivo:</strong> <span id="calorias-ajustadas"></span> kcal/día</p>
+        <p><strong>Distribución de Calorías por Comida:</strong></p>
+        <p>Comida 1 (10:00 am): <span id="comida1"></span> kcal</p>
+        <p>Comida 2 (14:00 h): <span id="comida2"></span> kcal</p>
+        <p>Comida 3 (18:00 h): <span id="comida3"></span> kcal</p>
+        <p id="calorias-total-container"><strong>Total Calorías a Perder o Ganar:</strong> <span id="calorias-total"></span> kcal</p>
+        <p id="kg-total-container"><strong>Total KG a Perder o Ganar:</strong> <span id="kg-total"></span> kg</p>
+        <p id="tiempo-estimado-container"><strong>Tiempo Estimado para alcanzar tu objetivo:</strong> <span id="tiempo-estimado"></span> días</p>
+    </div>
+</div>
+
+<script>
+function togglePesoObjetivo() {
+    const objetivo = document.getElementById("objetivo").value;
+    const divPesoObjetivo = document.getElementById("peso-objetivo-div");
+
+    // Mostrar el campo "Peso Objetivo" solo si el objetivo es "Bajar de peso" o "Aumentar peso"
+    if (objetivo === "bajar" || objetivo === "aumentar") {
+        divPesoObjetivo.style.display = "block";
+    } else {
+        divPesoObjetivo.style.display = "none";
+    }
+}
+
+function calcular() {
+    const edad = parseInt(document.getElementById("edad").value);
+    const peso = parseInt(document.getElementById("peso").value);
+    const genero = document.getElementById("genero").value;
+    const actividad = parseInt(document.getElementById("actividad").value);
+    const musculacion = parseInt(document.getElementById("musculacion").value);
+    const objetivo = document.getElementById("objetivo").value;
+    const pesoObjetivo = parseInt(document.getElementById("pesoObjetivo").value);  // Aquí se recoge el peso objetivo
+
+    let tmb; // Metabolismo basal
+    let tdee; // Gasto calórico total
+    let caloriasAjustadas;
+
+    // Fórmula de Harris-Benedict para TMB (hombres y mujeres)
+    if (genero === "hombre") {
+        tmb = 88.362 + (13.397 * peso) + (4.799 * 175) - (5.677 * edad); // Ejemplo para 70kg y 175cm
+    } else {
+        tmb = 447.593 + (9.247 * peso) + (3.098 * 175) - (4.330 * edad); // Ejemplo para 70kg y 175cm
+    }
+
+    // Factor de actividad basado en la selección
+    switch (actividad) {
+        case 1: tdee = tmb * 1.2; break; // Sedentario
+        case 2: tdee = tmb * 1.375; break; // Actividad ligera
+        case 3: tdee = tmb * 1.55; break; // Moderada
+        case 4: tdee = tmb * 1.725; break; // Intensa
+        case 5: tdee = tmb * 1.9; break; // Muy intensa
+        default: tdee = tmb * 1.375; // Por defecto, actividad ligera
+    }
+
+    // Ajustar calorías según el objetivo
+    if (objetivo === "bajar") {
+        caloriasAjustadas = tdee - 500; // Déficit para bajar de peso
+    } else if (objetivo === "mantener") {
+        caloriasAjustadas = tdee;
+    } else if (objetivo === "aumentar") {
+        caloriasAjustadas = tdee + 500; // Superávit para aumentar peso
+    } else {
+        caloriasAjustadas = tdee + 300; // Superávit moderado para aumentar masa muscular
+    }
+
+    // Calcular el total de calorías necesarias para el cambio de peso
+    const caloriasPorKg = 7700; // Aproximadamente 7700 calorías por kg de peso
+    let diferenciaPeso = pesoObjetivo - peso;
+
+    // Calcular las calorías a ganar o perder
+    let caloriasTotales = diferenciaPeso * caloriasPorKg;  // Calorías necesarias para ganar o perder peso
+
+    // Asegurarse de que el tiempo estimado sea positivo
+    if (caloriasTotales < 0) {
+        caloriasTotales = Math.abs(caloriasTotales);  // Convertir a valor absoluto
+    }
+
+    // Calcular el tiempo estimado (en días) para alcanzar el objetivo
+    let tiempoDias = caloriasTotales / (caloriasAjustadas * (objetivo === "bajar" ? -1 : 1));
+
+    // Asegurarse de que el tiempo estimado no sea negativo
+    if (tiempoDias < 0) {
+        tiempoDias = Math.abs(tiempoDias);
+    }
+
+    // Mostrar los resultados
+    document.getElementById("tmb").textContent = tmb.toFixed(2);
+    document.getElementById("tdee").textContent = tdee.toFixed(2);
+    document.getElementById("calorias-ajustadas").textContent = caloriasAjustadas.toFixed(2);
+
+    document.getElementById("comida1").textContent = (caloriasAjustadas * 0.3).toFixed(2);
+    document.getElementById("comida2").textContent = (caloriasAjustadas * 0.4).toFixed(2);
+    document.getElementById("comida3").textContent = (caloriasAjustadas * 0.3).toFixed(2);
+
+    document.getElementById("calorias-total").textContent = caloriasTotales.toFixed(2);
+    document.getElementById("kg-total").textContent = diferenciaPeso.toFixed(2);
+
+    document.getElementById("tiempo-estimado").textContent = Math.round(tiempoDias);
+    
+    document.getElementById("resultados").style.display = "block";
+}
+
+function resetearCampos() {
+    // Limpiar los campos de entrada
+    document.getElementById("edad").value = "";
+    document.getElementById("peso").value = "";
+    document.getElementById("genero").value = "hombre";
+    document.getElementById("actividad").value = "1";
+    document.getElementById("musculacion").value = "0";
+    document.getElementById("objetivo").value = "bajar";
+    document.getElementById("pesoObjetivo").value = "";
+    document.getElementById("resultados").style.display = "none";
+    togglePesoObjetivo();
+}
+
+window.onload = function() {
+    togglePesoObjetivo();
+};
+
+
+
+
+function mostrarResultados() {
+  const objetivo = document.getElementById("objetivo").value; // Obtén el valor del objetivo (puede ser bajar o aumentar de peso, o cualquier otro objetivo)
+  
+  const caloriasPerderGanar = document.getElementById("caloriasPerderGanar");
+  const kgPerderGanar = document.getElementById("kgPerderGanar");
+  const tiempoEstimado = document.getElementById("tiempoEstimado");
+  
+  if (objetivo === "bajar de peso" || objetivo === "aumentar de peso") {
+    // Aquí calculas las calorías, el peso y el tiempo estimado basándote en las fórmulas que ya tienes.
+    // Asumir que las variables `calorias`, `peso`, `tiempo` ya están calculadas previamente.
+    
+    caloriasPerderGanar.innerText = `Total Calorías a Perder o Ganar: ${calorias} kcal`;
+    kgPerderGanar.innerText = `Total KG a Perder o Ganar: ${peso} kg`;
+    tiempoEstimado.innerText = `Tiempo Estimado para alcanzar tu objetivo: ${tiempo} días`;
+  } else {
+    // Si el objetivo no es perder o ganar peso, ocultamos esos resultados.
+    caloriasPerderGanar.innerText = "";
+    kgPerderGanar.innerText = "";
+    tiempoEstimado.innerText = "";
+  }
+}
+
+</script>
+
+</body>
+</html>

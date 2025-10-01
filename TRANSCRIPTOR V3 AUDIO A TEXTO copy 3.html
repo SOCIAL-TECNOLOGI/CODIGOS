@@ -1,0 +1,377 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcribir Audio e Imagen + Lectura</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 30px;
+      text-align: center;
+    }
+    .contenedor {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    audio {
+      margin: 15px 0;
+      width: 100%;
+    }
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+    button {
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover { background: #128c7e; }
+    .btn-limpiar { background: #e53935; }
+    .btn-limpiar:hover { background: #b71c1c; }
+    .btn-parar { background: #ff9800; }
+    .btn-parar:hover { background: #e65100; }
+    .btn-reanudar { background: #3f51b5; }
+    .btn-reanudar:hover { background: #1a237e; }
+    #texto {
+      margin-top: 20px;
+      padding: 10px;
+      background: #eee;
+      border-radius: 6px;
+      text-align: left;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>🎙️ Transcripción de Audio / 🖼️ OCR de Imagen + 🔊 Lectura</h2>
+    
+    <!-- Input para audio -->
+    <input type="file" id="archivo" accept=".opus,audio/*"><br><br>
+    <audio id="player" controls></audio><br>
+
+    <!-- Botones transcripción -->
+    <h3>🎧 Transcripción de Audio</h3>
+    <div>
+      <button id="btnTranscribir">Transcribir Audio</button>
+      <button id="btnParar" class="btn-parar">Pausar</button>
+      <button id="btnReanudar" class="btn-reanudar">Reanudar</button>
+      <button id="btnLimpiar" class="btn-limpiar">Limpiar Todo</button>
+    </div>
+
+    <!-- Texto transcrito -->
+    <div id="texto">Aquí aparecerá el texto transcrito...</div>
+
+    <!-- Input para imagen -->
+    <h3>🖼️ Subir Imagen</h3>
+    <input type="file" id="imagenInput" accept="image/*"><br>
+    <img id="previewImagen" alt="Vista previa de la imagen"><br>
+    <button id="btnOCR">Extraer Texto de Imagen</button>
+
+    <!-- Botones lectura -->
+    <h3>🔊 Control de Lectura</h3>
+    <div>
+      <button id="btnLeer">▶️ Iniciar Lectura</button>
+      <button id="btnPausarLectura" class="btn-parar">⏸️ Pausar</button>
+      <button id="btnReanudarLectura" class="btn-reanudar">🔁 Reanudar</button>
+      <button id="btnDetenerLectura" class="btn-limpiar">🛑 Detener</button>
+      <!-- NUEVO: Descargar -->
+      <button id="btnDescargarAudio" style="background:#009688;">💾 Descargar Audio</button>
+    </div>
+    
+  </div>
+
+  <!-- Importar Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script>
+  // --- DOM ---
+  const inputArchivo = document.getElementById("archivo");
+  const player = document.getElementById("player");
+  const inputImagen = document.getElementById("imagenInput");
+  const previewImagen = document.getElementById("previewImagen");
+  const btnOCR = document.getElementById("btnOCR");
+
+  const btnLeer = document.getElementById("btnLeer");
+  const btnPausarLectura = document.getElementById("btnPausarLectura");
+  const btnReanudarLectura = document.getElementById("btnReanudarLectura");
+  const btnDetenerLectura = document.getElementById("btnDetenerLectura");
+  const btnDescargarAudio = document.getElementById("btnDescargarAudio");
+
+  const btnTranscribir = document.getElementById("btnTranscribir");
+  const btnParar = document.getElementById("btnParar");
+  const btnReanudar = document.getElementById("btnReanudar");
+  const btnLimpiar = document.getElementById("btnLimpiar");
+
+  const salida = document.getElementById("texto");
+
+  // --- Estado ---
+  let reconocimiento = null;
+  let transcripcionParcial = "";
+  let textoExtraido = "";
+
+  // Karaoke
+  let utter = null;
+  let tokens = [];          
+  let tokenStarts = [];     
+  let baseOffset = 0;       
+  let lastCharGlobal = 0;   
+  let currentToken = -1;    
+
+  // --- Karaoke CSS ---
+  (function injectKaraokeCSS(){
+    const s = document.createElement("style");
+    s.textContent = `
+      #textoLeido { white-space: pre-wrap; line-height: 1.6; }
+      #textoLeido span.k { padding:0 .08em; border-radius:.2em; }
+      #textoLeido span.k.on { background: #ffe66d; font-weight: 700; }
+    `;
+    document.head.appendChild(s);
+  })();
+
+  const esc = (s) => s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  function tokenize(text){
+    tokens = text.match(/[\S]+|\s+/g) || [];
+    tokenStarts = new Array(tokens.length);
+    let acc = 0;
+    for (let i=0;i<tokens.length;i++){ tokenStarts[i]=acc; acc += tokens[i].length; }
+  }
+
+  function renderTokens(){
+    const cont = document.getElementById("textoLeido");
+    if (!cont) return;
+    cont.innerHTML = tokens.map((t,i)=>`<span class="k" data-i="${i}">${esc(t)}</span>`).join("");
+  }
+
+  function indexFromChar(charPos){
+    let lo=0, hi=tokens.length-1, ans=-1;
+    while (lo<=hi){
+      const mid=(lo+hi)>>1, start=tokenStarts[mid], end=start+tokens[mid].length;
+      if (charPos < start) hi = mid-1;
+      else if (charPos >= end) lo = mid+1;
+      else { ans=mid; break; }
+    }
+    if (ans===-1) ans = Math.min(lo, tokens.length-1);
+    while (ans < tokens.length && /^\s+$/.test(tokens[ans])) ans++;
+    return Math.min(ans, tokens.length-1);
+  }
+
+  function highlightToken(idx){
+    const cont = document.getElementById("textoLeido");
+    if (!cont) return;
+    if (currentToken === idx) return;
+    if (currentToken >= 0){
+      const prev = cont.querySelector(`span.k[data-i="${currentToken}"]`);
+      if (prev) prev.classList.remove("on");
+    }
+    currentToken = idx;
+    const el = cont.querySelector(`span.k[data-i="${currentToken}"]`);
+    if (el){
+      el.classList.add("on");
+      el.scrollIntoView({block:"nearest", inline:"nearest"});
+    }
+  }
+
+  function speakFrom(charOffset){
+    if (!textoExtraido) return;
+    baseOffset = charOffset;
+    const fragmento = textoExtraido.slice(baseOffset);
+    if (!fragmento.trim()) return;
+
+    utter = new SpeechSynthesisUtterance(fragmento);
+    utter.lang = "es-ES";
+    utter.rate = 1;
+
+    utter.onboundary = (e) => {
+      const localChar = (typeof e.charIndex === "number") ? e.charIndex : 0;
+      lastCharGlobal = baseOffset + localChar;
+      const idx = indexFromChar(lastCharGlobal);
+      highlightToken(idx);
+    };
+
+    utter.onend = () => {
+      lastCharGlobal = textoExtraido.length;
+      highlightToken(tokens.length-1);
+    };
+
+    speechSynthesis.speak(utter);
+  }
+
+  // --- OCR ---
+  inputImagen.addEventListener("change", e => {
+    const archivo = e.target.files[0];
+    if (archivo) {
+      previewImagen.src = URL.createObjectURL(archivo);
+      previewImagen.style.display = "block";
+    }
+  });
+
+  btnOCR.addEventListener("click", () => {
+    if (!inputImagen.files[0]) {
+      alert("Por favor selecciona una imagen primero.");
+      return;
+    }
+    salida.innerHTML = "⏳ Procesando imagen, por favor espera...";
+    Tesseract.recognize(inputImagen.files[0], 'spa').then(({ data:{ text } })=>{
+      textoExtraido = (text || "").trim();
+      salida.innerHTML = `
+        🖼️ Texto extraído de la imagen:<br><br>
+        <div style="border:1px solid #ccc;padding:8px;border-radius:6px;background:#fafafa">
+          <div id="textoLeido">${esc(textoExtraido)}</div>
+        </div>`;
+      tokenize(textoExtraido);
+      renderTokens();
+      currentToken = -1;
+    }).catch(err=>{
+      salida.innerHTML = "⚠️ Error en OCR: " + err.message;
+    });
+  });
+
+  // --- Lectura Karaoke ---
+  btnLeer.addEventListener("click", () => {
+    if (!textoExtraido) { alert("No hay texto para leer."); return; }
+    speechSynthesis.cancel();
+    tokenize(textoExtraido);
+    renderTokens();
+    currentToken = -1;
+    lastCharGlobal = 0;
+    speakFrom(0);
+  });
+
+  btnPausarLectura.addEventListener("click", () => {
+    if (speechSynthesis.speaking && !speechSynthesis.paused) speechSynthesis.pause();
+  });
+
+  btnReanudarLectura.addEventListener("click", () => {
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+    } else {
+      if (lastCharGlobal < textoExtraido.length) {
+        speechSynthesis.cancel();
+        speakFrom(lastCharGlobal);
+      }
+    }
+  });
+
+  btnDetenerLectura.addEventListener("click", () => {
+    speechSynthesis.cancel();
+    lastCharGlobal = 0;
+    highlightToken(-1);
+  });
+
+   // --- Descargar Audio como .webm ---
+ btnDescargarAudio.addEventListener("click", async () => {
+  if (!textoExtraido) { alert("No hay texto para convertir."); return; }
+
+  const stream = await navigator.mediaDevices.getDisplayMedia({ 
+    audio: true, 
+    video: false 
+  });
+
+  const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+  let chunks = [];
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "audio/webm" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "texto.webm";
+    a.click();
+  };
+
+  mediaRecorder.start();
+
+  const utter2 = new SpeechSynthesisUtterance(textoExtraido);
+  utter2.lang = "es-ES";
+  utter2.rate = 1;
+  utter2.onend = () => mediaRecorder.stop();
+
+  speechSynthesis.speak(utter2);
+});
+
+
+
+
+  // --- Audio player ---
+  inputArchivo.addEventListener("change", e => {
+    const archivo = e.target.files[0];
+    if (archivo) player.src = URL.createObjectURL(archivo);
+  });
+
+  function iniciarTranscripcion(){
+    if (!("webkitSpeechRecognition" in window)) {
+      alert("Tu navegador no soporta la API de reconocimiento de voz.");
+      return;
+    }
+    reconocimiento = new webkitSpeechRecognition();
+    reconocimiento.lang = "es-ES";
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = true;
+    reconocimiento.start();
+    salida.innerHTML = transcripcionParcial || "🎧 Escuchando...";
+    reconocimiento.onresult = (event) => {
+      let textoNuevo = "";
+      for (let i=0; i<event.results.length; i++) textoNuevo += event.results[i][0].transcript + " ";
+      salida.innerHTML = transcripcionParcial + " " + textoNuevo;
+    };
+    reconocimiento.onerror = (e) => {
+      salida.innerHTML += "<br>⚠️ Error: " + e.error;
+    };
+  }
+
+  btnTranscribir.addEventListener("click", () => {
+    if (reconocimiento) reconocimiento.stop();
+    transcripcionParcial = "";
+    iniciarTranscripcion();
+  });
+
+  btnParar.addEventListener("click", () => {
+    player.pause();
+    if (reconocimiento) {
+      reconocimiento.stop();
+      transcripcionParcial = salida.innerHTML;
+      salida.innerHTML += "<br>⏸️ Transcripción pausada.";
+    }
+  });
+
+  btnReanudar.addEventListener("click", () => {
+    player.play();
+    iniciarTranscripcion();
+    salida.innerHTML += "<br>▶️ Transcripción reanudada...";
+  });
+
+  btnLimpiar.addEventListener("click", () => {
+    if (reconocimiento) reconocimiento.stop();
+    inputArchivo.value = "";
+    inputImagen.value = "";
+    player.pause(); player.src = "";
+    previewImagen.src = ""; previewImagen.style.display = "none";
+    transcripcionParcial = ""; textoExtraido = "";
+    salida.innerHTML = "Aquí aparecerá el texto transcrito...";
+    speechSynthesis.cancel();
+    tokens = []; tokenStarts = []; currentToken = -1; lastCharGlobal = 0; baseOffset = 0;
+  });
+</script>
+
+
+
+
+</body>
+
+</html>

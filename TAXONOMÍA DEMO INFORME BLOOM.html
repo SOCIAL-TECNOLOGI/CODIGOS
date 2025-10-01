@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Demo Wizard con Verbos y Razones</title>
+<style>
+  body { background:#0b1224; color:#e5e7eb; font-family:system-ui; margin:0; padding:20px; }
+  #modal { display:grid; place-items:center; position:fixed; inset:0; background:rgba(0,0,0,.6); }
+  .card-modal { background:#111827; border-radius:16px; padding:20px; max-width:900px; width:92%; }
+  #finalMsg { font-weight:bold; margin-bottom:10px; }
+
+  details.rev-lev{border:1px solid #334155;border-radius:12px;padding:8px 10px;margin:6px 0}
+  details.rev-lev summary{cursor:pointer;font-weight:800}
+  .rev-ul{list-style:none;margin:6px 0;padding-left:0}
+  .rev-ul li{padding:4px 0;border-bottom:1px dashed #334155;font-size:14px}
+  .rev-ul li:last-child{border-bottom:none}
+  .rv-why{color:#cbd5e1}
+
+  /* Colores por dimensión */
+  .saber details.rev-lev summary{color:#38bdf8;}
+  .hacer details.rev-lev summary{color:#fb923c;}
+  .ser details.rev-lev summary{color:#34d399;}
+</style>
+</head>
+<body>
+
+<button onclick="endRound()">Abrir Wizard</button>
+
+<div id="modal" style="display:none">
+  <div class="card-modal">
+    <div id="finalMsg">—</div>
+    <!-- Aquí se inyecta reviewWrap y reviewNav -->
+  </div>
+</div>
+
+<script>
+/* ====== Configuración ====== */
+const DIM_ORDER=["saber","hacer","ser"];
+const TITLE={saber:"📘 SABER", hacer:"🛠️ HACER", ser:"🤝 SER"};
+
+/* ====== Verbos base ====== */
+const DATA={
+  saber:{
+    4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar"],
+    2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar","Refinar"],
+    1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer:{
+    4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser:{
+    4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+/* ====== Criterios y razones ====== */
+const LEVEL_CRITERIA = {
+  saber:{
+    1:"Reconoce/recuerda información sin transformarla.",
+    2:"Comprende y explica con sus palabras.",
+    3:"Aplica/analiza en situaciones conocidas.",
+    4:"Crea/valida productos originales."
+  },
+  hacer:{
+    1:"Reproduce con ayuda o siguiendo pautas.",
+    2:"Ejecución básica con apoyo.",
+    3:"Integra y ajusta procedimientos con autonomía.",
+    4:"Optimiza/innova y transfiere a nuevos contextos."
+  },
+  ser:{
+    1:"Muestra disposición/aceptación inicial.",
+    2:"Participa y colabora activamente.",
+    3:"Valora, promueve y asume responsabilidades.",
+    4:"Modela, lidera e influye éticamente."
+  }
+};
+
+const REASONS = {
+  saber: {
+    "Evaluar": "Emite juicios con criterios explícitos y evidencia, comparando alternativas (nivel 4).",
+    "Argumentar": "Sustenta posiciones con premisas y contraejemplos, evaluando su solidez (nivel 4).",
+    "Justificar": "Defiende decisiones con razones y datos triangulados de manera crítica (nivel 4).",
+    "Diseñar": "Elabora soluciones originales considerando restricciones y trade-offs (nivel 4).",
+    "Formular": "Plantea hipótesis o preguntas investigables con variables y supuestos claros (nivel 4).",
+    "Crear": "Produce artefactos o modelos originales que integran saberes previos (nivel 4).",
+    "Innovar": "Introduce mejoras o enfoques inéditos que resuelven necesidades reales (nivel 4).",
+    "Planificar": "Secuencia metas, recursos y tiempos anticipando riesgos (nivel 4).",
+    "Concebir": "Imagina estructuras o productos viables a partir de requerimientos (nivel 4).",
+    "Diseñar Prompts": "Redacta indicaciones estratégicas para orientar sistemas de IA a metas precisas (nivel 4).",
+    "Aplicar": "Traslada procedimientos a casos conocidos manteniendo criterios y pasos clave (nivel 3).",
+    "Analizar": "Descompone partes y relaciones para explicar el funcionamiento en casos conocidos (nivel 3).",
+    "Comparar": "Contrasta semejanzas y diferencias para elegir alternativas adecuadas (nivel 3).",
+    "Organizar": "Estructura información en categorías o esquemas operativos para resolver tareas (nivel 3).",
+    "Diferenciar": "Distingue elementos relevantes de irrelevantes en situaciones conocidas (nivel 3).",
+    "Contrastar": "Pone a prueba explicaciones frente a evidencias disponibles en contextos familiares (nivel 3).",
+    "Revisar": "Examina productos/ideas para detectar fallos y ajustar según criterios (nivel 3).",
+    "Comprender": "Reformula con sus palabras mostrando conexiones básicas entre ideas (nivel 2).",
+    "Describir": "Detalla características y atributos sin inferir causas (nivel 2).",
+    "Explicar": "Aclara el porqué usando ejemplos sencillos y nexos causales básicos (nivel 2).",
+    "Interpretar": "Da significado a datos o textos con base en el contexto (nivel 2).",
+    "Ejemplificar": "Ilustra conceptos con casos típicos pertinentes (nivel 2).",
+    "Clasificar": "Agrupa elementos con un criterio explícito y consistente (nivel 2).",
+    "Refinar": "Mejora una idea o definición para hacerla más clara y precisa (nivel 2).",
+    "Recordar": "Evoca hechos, fórmulas o definiciones tal como fueron presentados (nivel 1).",
+    "Identificar": "Reconoce elementos solicitados entre varias opciones (nivel 1).",
+    "Reconocer": "Distingue lo ya visto cuando se le presenta de nuevo (nivel 1).",
+    "Definir": "Enuncia definiciones canónicas o rasgos esenciales (nivel 1).",
+    "Listar": "Enumera datos o pasos sin profundizar (nivel 1).",
+    "Nombrar": "Menciona términos o conceptos correctos a demanda (nivel 1)."
+  },
+  hacer: {
+    "Automatizar": "Convierte procedimientos en rutinas reproducibles con validación de resultados (nivel 4).",
+    "Optimizar": "Reduce tiempos/costos manteniendo calidad mediante ajustes fundamentados (nivel 4).",
+    "Transferir": "Aplica destrezas a contextos nuevos adaptando criterios de ejecución (nivel 4).",
+    "Innovar": "Propone y prueba nuevas técnicas o herramientas de ejecución (nivel 4).",
+    "Trazar Estrategias": "Define tácticas, recursos y métricas para alcanzar un objetivo operativo (nivel 4).",
+    "Combinar Herramientas": "Integra instrumentos diversos para un flujo de trabajo más eficiente (nivel 4).",
+    "Coordinar": "Secuencia tareas y recursos con autonomía para lograr un resultado (nivel 3).",
+    "Implementar": "Lleva a la práctica un plan respetando especificaciones (nivel 3).",
+    "Integrar": "Ensambla componentes o procesos que funcionen de forma conjunta (nivel 3).",
+    "Perfeccionar": "Ajusta la ejecución para mejorar precisión y consistencia (nivel 3).",
+    "Aplicar Con Autonomía": "Ejecuta sin supervisión continua, justificando decisiones técnicas (nivel 3).",
+    "Ejecutar": "Realiza procedimientos básicos siguiendo un plan dado (nivel 2).",
+    "Practicar": "Repite tareas para ganar fluidez y control (nivel 2).",
+    "Demostrar": "Evidencia la destreza paso a paso ante otros (nivel 2).",
+    "Operar": "Maneja equipos o software cumpliendo protocolos (nivel 2).",
+    "Utilizar Con Apoyo": "Usa herramientas con guía puntual cuando es necesario (nivel 2).",
+    "Imitar": "Reproduce una acción observada con apoyo cercano (nivel 1).",
+    "Copiar": "Replica un modelo o ejemplo sin variaciones propias (nivel 1).",
+    "Seguir Instrucciones": "Cumple pasos indicados tal cual se presentan (nivel 1).",
+    "Manipular Con Ayuda": "Manipula materiales o interfaces bajo supervisión (nivel 1)."
+  },
+  ser: {
+    "Interiorizar": "Actúa por convicción, alineando decisiones estables con valores (nivel 4).",
+    "Liderar": "Conduce a otros hacia metas compartidas cuidando el clima ético (nivel 4).",
+    "Modelar": "Sirve de ejemplo consistente de la conducta esperada (nivel 4).",
+    "Transformar": "Promueve cambios positivos y sostenibles en el entorno (nivel 4).",
+    "Influir Positivamente": "Motiva conductas valiosas con argumentos y cuidado del otro (nivel 4).",
+    "Validar Éticamente": "Contrasta acciones con principios y consecuencias para decidir (nivel 4).",
+    "Valorar": "Juzga prácticas y argumentos con criterios explícitos (nivel 3).",
+    "Argumentar": "Sostiene posturas respetuosas frente a dilemas, escuchando objeciones (nivel 3).",
+    "Promover": "Impulsa iniciativas y convoca a la participación (nivel 3).",
+    "Asumir Responsabilidades": "Acepta tareas y responde por sus resultados (nivel 3).",
+    "Ser Consciente": "Reconoce impactos de sus actos y regula su conducta (nivel 3).",
+    "Responder": "Reacciona adecuadamente ante normas o requerimientos (nivel 2).",
+    "Participar": "Se involucra de forma constante en actividades del grupo (nivel 2).",
+    "Colaborar": "Trabaja con otros aportando y escuchando (nivel 2).",
+    "Respetar": "Observa normas y a las personas de forma consistente (nivel 2).",
+    "Cumplir": "Entrega compromisos y tareas según lo acordado (nivel 2).",
+    "Atender": "Presta atención y muestra interés inicial (nivel 1).",
+    "Escuchar": "Escucha activamente sin interrumpir (nivel 1).",
+    "Aceptar": "Muestra apertura a indicaciones y retroalimentación (nivel 1).",
+    "Mostrar Disposición": "Se ofrece a participar con actitud positiva (nivel 1)."
+  }
+};
+
+/* ====== Wizard ====== */
+let reviewStep=0;
+const modal=document.getElementById("modal"), finalMsg=document.getElementById("finalMsg");
+
+function ensureReviewUI(){
+  const card=modal.querySelector('.card-modal');
+  let wrap=document.getElementById('reviewWrap');
+  let nav=document.getElementById('reviewNav');
+  if(!wrap){wrap=document.createElement('div');wrap.id='reviewWrap';card.appendChild(wrap);}
+  if(!nav){
+    nav=document.createElement('div');nav.id='reviewNav';
+    nav.innerHTML=`<button id="revPrev">⟵ Anterior</button>
+                   <button id="revNext">Siguiente ⟶</button>
+                   <button id="revFinish">✔ Finalizar</button>`;
+    card.appendChild(nav);
+    nav.querySelector('#revPrev').addEventListener('click',()=>{if(reviewStep>0){reviewStep--;renderReview();}});
+    nav.querySelector('#revNext').addEventListener('click',()=>{if(reviewStep<DIM_ORDER.length){reviewStep++;renderReview();}});
+    nav.querySelector('#revFinish').addEventListener('click',()=> modal.style.display="none");
+  }
+  return {wrap,nav};
+}
+
+function renderSummaryStep(){
+  finalMsg.innerHTML="📊 Resumen general";
+  const {wrap}=ensureReviewUI();
+  wrap.innerHTML=`<div class="rev-step"><h4>Resumen</h4>
+    <p>Aquí podrías mostrar totales de aciertos, saltos, etc.</p></div>`;
+}
+
+function renderDimStep(dim){
+  finalMsg.innerHTML=TITLE[dim];
+  const {wrap}=ensureReviewUI();
+  const lvlBox=(lvl)=>{
+    const crit=LEVEL_CRITERIA[dim][lvl];
+    const verbs=DATA[dim][lvl];
+    const lis=verbs.map(v=>{
+      const why=REASONS[dim]?.[v] || `Está en nivel ${lvl} porque ${crit.toLowerCase()}`;
+      return `<li><strong>${v}:</strong> <span class="rv-why">${why}</span></li>`;
+    }).join('');
+    return `<details class="rev-lev"><summary><strong>Nivel ${lvl}</strong> · ${crit}</summary><ul class="rev-ul">${lis}</ul></details>`;
+  };
+  wrap.className = dim; // para aplicar color
+  wrap.innerHTML=`<div class="rev-step">
+    <h4>${TITLE[dim]} — Niveles</h4>
+    ${lvlBox(1)}${lvlBox(2)}${lvlBox(3)}${lvlBox(4)}
+  </div>`;
+}
+
+function renderReview(){
+  const {nav}=ensureReviewUI();
+  nav.style.display='flex';
+  if(reviewStep===0) renderSummaryStep();
+  else renderDimStep(DIM_ORDER[reviewStep-1]);
+}
+
+function endRound(){reviewStep=0;renderReview();modal.style.display='grid';}
+</script>
+</body>
+</html>

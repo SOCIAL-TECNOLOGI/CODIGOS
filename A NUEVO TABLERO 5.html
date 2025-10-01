@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Galería Emergente</title>
+
+
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.gallery-container {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.image-gallery {
+  overflow: hidden;
+}
+
+.image-gallery img {
+  width: 100%;
+  height: auto;
+  display: none;
+}
+
+.nav-btn {
+  display: block;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+
+
+
+</style>
+
+
+</head>
+<body>
+    <button id="openGalleryBtn">Abrir Galería</button>
+
+    <div id="galleryContainer" class="gallery-container">
+      <span class="close-btn" id="closeGalleryBtn">&times;</span>
+      <div id="imageGallery" class="image-gallery"></div>
+      <button id="prevBtn" class="nav-btn">Anterior</button>
+      <button id="nextBtn" class="nav-btn">Siguiente</button>
+      <input type="file" id="imageInput" multiple>
+    </div>
+  
+    <script src="script.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const openGalleryBtn = document.getElementById('openGalleryBtn');
+  const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+  const galleryContainer = document.getElementById('galleryContainer');
+  const imageInput = document.getElementById('imageInput');
+  const imageGallery = document.getElementById('imageGallery');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let currentImageIndex = 0;
+
+  openGalleryBtn.addEventListener('click', function () {
+    galleryContainer.style.display = 'block';
+    displayImages();
+  });
+
+  closeGalleryBtn.addEventListener('click', function () {
+    galleryContainer.style.display = 'none';
+  });
+
+  // Hacer el contenedor emergente arrastrable
+  dragElement(galleryContainer);
+
+  // Manejar la carga de imágenes
+  imageInput.addEventListener('change', function () {
+    displayImages();
+  });
+
+  // Manejar la navegación entre imágenes
+  prevBtn.addEventListener('click', function () {
+    showImage(currentImageIndex - 1);
+  });
+
+  nextBtn.addEventListener('click', function () {
+    showImage(currentImageIndex + 1);
+  });
+
+  function displayImages() {
+    imageGallery.innerHTML = '';
+    currentImageIndex = 0;
+
+    for (const file of imageInput.files) {
+      const imgElement = document.createElement('img');
+      imgElement.src = URL.createObjectURL(file);
+      imageGallery.appendChild(imgElement);
+    }
+
+    showImage(currentImageIndex);
+  }
+
+  function showImage(index) {
+    const images = imageGallery.querySelectorAll('img');
+    
+    if (index >= 0 && index < images.length) {
+      images[currentImageIndex].style.display = 'none';
+      currentImageIndex = index;
+      images[currentImageIndex].style.display = 'block';
+    }
+  }
+
+  function dragElement(element) {
+    let pos1 = 0,
+      pos2 = 0,
+      pos3 = 0,
+      pos4 = 0;
+    if (document.getElementById(element.id + '-header')) {
+      // if present, the header is where you move the DIV from:
+      document.getElementById(element.id + '-header').onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV:
+      element.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      element.style.top = element.offsetTop - pos2 + 'px';
+      element.style.left = element.offsetLeft - pos1 + 'px';
+    }
+
+    function closeDragElement() {
+      // stop moving when the mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+});
+
+
+
+
+
+    
+</script>
+
+</body>
+</html>

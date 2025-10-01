@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarjetas DCE + Bloom + DBA</title>
+  
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 { color: #1d4ed8; margin-bottom: 30px; }
+h2 { margin: 20px 0; }
+h3 { margin-bottom: 15px; }
+.area { display: none; flex-direction: column; align-items: center; }
+.area.active { display: flex; }
+.card-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.card {
+  width: 280px;
+  height: 220px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+.card.flipped .card-inner { transform: rotateY(180deg); }
+
+/* ===================== Caras generales ===================== */
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+  backface-visibility: hidden;
+  text-align: center;
+}
+.front { transform: rotateY(0deg); font-weight: bold; font-size: 18px; }
+.back { transform: rotateY(180deg); }
+/* ===================== ÁREAS Y TARJETAS (FRONTALES) ===================== */
+
+/* 🌱 Ciencias Naturales */
+.nat-contenido .front { background: #4ade80; } /* verde claro */
+.nat-bloom .front     { background: #22c55e; } /* verde medio vivo */
+.nat-dce .front       { background: #14532d; } /* verde oscuro marcado */
+
+/* 📐 Matemáticas */
+.mat-contenido .front { background: #60a5fa; } /* azul claro */
+.mat-bloom .front     { background: #3b82f6; } /* azul medio vivo */
+.mat-dce .front       { background: #1e3a8a; } /* azul oscuro marcado */
+
+/* 📖 Lenguaje */
+.len-contenido .front { background: #fdba74; } /* naranja claro */
+.len-bloom .front     { background: #db8a48; } /* naranja medio vivo */
+.len-dce .front       { background: #7c2d12; } /* naranja oscuro marcado */
+
+/* 🌍 Sociales */
+.soc-contenido .front { background: #f87171; } /* rojo claro */
+.soc-bloom .front     { background: #ef4444; } /* rojo medio vivo */
+.soc-dce .front       { background: #7f1d1d; } /* rojo oscuro marcado */
+
+/* 🇬🇧 Inglés */
+.eng-contenido .front { background: #c084fc; } /* púrpura claro */
+.eng-bloom .front     { background: #a855f7; } /* púrpura medio vivo */
+.eng-dce .front       { background: #4c1d95; } /* púrpura oscuro marcado */
+
+
+/* ===================== ÁREAS Y TARJETAS (TRASERAS) ===================== */
+
+/* 🌱 Ciencias Naturales */
+.nat-contenido .back { background: #75dbb2; } /* verde claro */
+.nat-bloom .back     { background: #34d399; } /* verde medio */
+.nat-dce .back       { background: #047857; } /* verde oscuro */
+
+/* 📐 Matemáticas */
+.mat-contenido .back { background: #87b0de; } /* azul claro */
+.mat-bloom .back     { background: #3b82f6; } /* azul medio */
+.mat-dce .back       { background: #1e3a8a; } /* azul oscuro */
+
+/* 📖 Lenguaje */
+.len-contenido .back { background: #dcbc98; } /* naranja claro */
+.len-bloom .back     { background: #db8a48; } /* naranja medio */
+.len-dce .back       { background: #9a3412; } /* naranja oscuro */
+
+/* 🌍 Sociales */
+.soc-contenido .back { background: #de9797; } /* rojo claro */
+.soc-bloom .back     { background: #ef4444; } /* rojo medio */
+.soc-dce .back       { background: #7f1d1d; } /* rojo oscuro */
+
+/* 🇬🇧 Inglés */
+.eng-contenido .back { background: #b49acf; } /* púrpura claro */
+.eng-bloom .back     { background: #a855f7; } /* púrpura medio */
+.eng-dce .back       { background: #581c87; } /* púrpura oscuro */
+
+
+/* ===================== OTROS ===================== */
+.hidden { display: none; }
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  background: #1d4ed8;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background: #2563eb; }
+hr {
+  border: 0;
+  border-top: 1px solid #fff;
+  margin: 6px 0 10px 0;
+  width: 100%;
+}
+
+/* Botón debajo de tarjetas */
+.area button {
+  margin-top: 60px;      /* separación con las tarjetas */
+  margin-bottom: 30px;   /* más aire antes de lo que sigue */
+  display: block;
+  margin-left: auto;     /* centra horizontalmente */
+  margin-right: auto;
+}
+
+/* Texto final (última área) */
+.area p {
+  margin-top: 60px;      /* espacio extra respecto a tarjetas */
+  font-weight: bold;
+  font-size: 18px;
+  color: #16a34a;        /* verde positivo */
+  text-align: center;    /* centrado */
+}
+
+/* ===================== Barra de progreso ===================== */
+#progress {
+  margin: 15px 0;
+  font-weight: bold;
+  color: #1d4ed8;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Botones */
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  background: #1d4ed8;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background: #71b7e6; }
+
+.hidden { display: none; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 768px) {
+  .card-row { flex-direction: column; align-items: center; }
+  .card { width: 90%; height: 200px; }
+}
+
+
+
+/* Contenedor de flujo */
+    .bloom-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    /* Tarjetas (botones) */
+    .bloom-card {
+      width: 140px;
+      height: 200px;
+      border-radius: 12px;
+      background: #2563eb;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    .bloom-card:hover {
+      background: #1e40af;
+      transform: translateY(-5px);
+    }
+
+    .bloom-card span {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    /* Flechas */
+    .arrow {
+      font-size: 28px;
+      color: #333;
+      margin: 0 15px;
+    }
+
+    /* Panel inferior */
+    .verbos-panel {
+      display: none;
+      max-width: 800px;
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #1e3a8a;
+      color: white;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .verbos-panel.active {
+      display: block;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+
+
+/* ===================== Tabs SABER/HACER/SER ===================== */
+.tabs {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.tabs button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+.tabs button.active {
+  background: #2563eb;
+  color: white;
+}
+.tabs button.inactive {
+  background: #f0f0f0;
+  color: #444;
+}
+.tab-content { 
+  display: none;
+  margin-top: 20px;
+  padding: 15px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1000px;
+}
+.tab-content.active { display: block; }
+.tab-content p { margin: 6px 0; color: #000; }
+
+/* ===== Botones decorativos por Nivel ===== */
+.nivel-1, .nivel-2, .nivel-3, .nivel-4 {
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-right: 8px;
+}
+.nivel-1 { background: #d01515; color: #fff; }
+.nivel-2 { background: #d48702; color: #fff; }
+.nivel-3 { background: #ffee52; color: #000; }
+.nivel-4 { background: #109541; color: #fff; }
+
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 { color: #1d4ed8; margin-bottom: 30px; }
+h2 { margin: 20px 0; }
+h3 { margin-bottom: 15px; }
+
+/* ===================== Bloom Flow ===================== */
+.bloom-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.bloom-card {
+  width: 140px;
+  height: 200px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s;
+}
+.bloom-card:hover {
+  background: #1e40af;
+  transform: translateY(-5px);
+}
+.bloom-card span {
+  margin-top: 10px;
+  font-size: 16px;
+}
+.arrow {
+  font-size: 28px;
+  color: #333;
+  margin: 0 15px;
+}
+/* Panel inferior */
+.verbos-panel {
+  display: none;
+  max-width: 800px;
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #1e3a8a;
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.verbos-panel.active {
+  display: block;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+
+
+
+</style>
+
+
+</head>
+<body>
+
+<!-- ===================== INTRO CON LEYENDA BLOOM ===================== -->
+  <h2>📘 Leyenda de Niveles Bloom</h2>
+
+  <!-- 🔹 Camino Bloom -->
+  <div class="bloom-flow">
+    <div class="bloom-card" onclick="showVerbs('recordar')">🧠<span>Recordar</span></div>
+    <div class="arrow">➜</div>
+    <div class="bloom-card" onclick="showVerbs('comprender')">💡<span>Comprender</span></div>
+    <div class="arrow">➜</div>
+    <div class="bloom-card" onclick="showVerbs('aplicar')">⚙️<span>Aplicar</span></div>
+    <div class="arrow">➜</div>
+    <div class="bloom-card" onclick="showVerbs('analizar')">🔍<span>Analizar</span></div>
+    <div class="arrow">➜</div>
+    <div class="bloom-card" onclick="showVerbs('evaluar')">📝<span>Evaluar</span></div>
+    <div class="arrow">➜</div>
+    <div class="bloom-card" onclick="showVerbs('crear')">🎨<span>Crear</span></div>
+  </div>
+
+  <!-- 🔹 Panel donde aparecen los verbos -->
+  <div id="verbosPanel" class="verbos-panel"></div>
+
+
+<!-- 🔹 Dimensiones SABER/HACER/SER -->
+<h3>Dimensiones de Competencia</h3>
+<div class="tabs">
+  <button onclick="showTab('saber', this)" class="inactive">📘 SABER</button>
+  <button onclick="showTab('hacer', this)" class="inactive">🛠️ HACER</button>
+  <button onclick="showTab('ser', this)" class="inactive">🤝 SER</button>
+</div>
+
+<!-- ================= SABER ================= -->
+<div class="tab-content" id="saber">
+  <p><span class="nivel-4">Nivel 4:</span> Evaluar, Argumentar, Justificar, Diseñar, Formular, Crear, Innovar, Planificar, Concebir, Diseñar Prompts</p>
+  <p><span class="nivel-3">Nivel 3:</span> Aplicar, Analizar, Comparar, Organizar, Diferenciar, Contrastar, Revisar, Refinar</p>
+  <p><span class="nivel-2">Nivel 2:</span> Comprender, Describir, Explicar, Interpretar, Ejemplificar, Clasificar</p>
+  <p><span class="nivel-1">Nivel 1:</span> Recordar, Identificar, Reconocer, Definir, Listar, Nombrar</p>
+</div>
+
+<!-- ================= HACER ================= -->
+<div class="tab-content" id="hacer">
+  <p><span class="nivel-4">Nivel 4:</span> Automatizar, Optimizar, Transferir, Innovar, Trazar Estrategias, Combinar Herramientas</p>
+  <p><span class="nivel-3">Nivel 3:</span> Coordinar, Implementar, Integrar, Perfeccionar, Aplicar con Autonomía</p>
+  <p><span class="nivel-2">Nivel 2:</span> Ejecutar, Practicar, Demostrar, Operar, Utilizar con Apoyo</p>
+  <p><span class="nivel-1">Nivel 1:</span> Imitar, Copiar, Seguir Instrucciones, Manipular con Ayuda</p>
+</div>
+
+<!-- ================= SER ================= -->
+<div class="tab-content" id="ser">
+  <p><span class="nivel-4">Nivel 4:</span> Interiorizar, Liderar, Modelar, Transformar, Influir Positivamente, Validar Éticamente</p>
+  <p><span class="nivel-3">Nivel 3:</span> Valorar, Argumentar, Promover, Asumir Responsabilidades, Ser Consciente</p>
+  <p><span class="nivel-2">Nivel 2:</span> Responder, Participar, Colaborar, Respetar, Cumplir</p>
+  <p><span class="nivel-1">Nivel 1:</span> Atender, Escuchar, Aceptar, Mostrar Disposición</p>
+</div>
+
+  <button onclick="startJourney()">Iniciar recorrido ➡️</button>
+</div>
+
+
+<!-- ========== CIENCIAS NATURALES ========== -->
+<div class="area" id="area1">
+  <h2>🌱 Ciencias Naturales – Grado 7°</h2>
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-nat">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card nat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> La fotosíntesis 🌱
+            <hr>
+            <i><b>DBA 7.3:</b> Explica cómo los organismos vivos realizan funciones vitales y cómo estas se relacionan con el flujo de materia y energía en los ecosistemas.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card nat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Explica cómo la fotosíntesis influye en la cadena alimenticia” (comprender + aplicar).<br><br>↪ Coherente con DBA 7.3.</div>
+        </div>
+      </div>
+      <div class="card nat-dce" onclick="flip(this); showNext('ejemplo2-nat')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza un gráfico de concentración de oxígeno y justifica qué ocurre cuando disminuye la luz.<br><br>↪ Evidencia observable del DBA 7.3.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-nat" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card nat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Ciclo del agua 💧
+            <hr>
+            <i><b>DBA 7.4:</b> Describe e interpreta fenómenos naturales como el ciclo del agua y su relación con el ambiente y la vida.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card nat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Dibuja y describe las etapas del ciclo del agua” (recordar + comprender).<br><br>↪ Coherente con DBA 7.4.</div>
+        </div>
+      </div>
+      <div class="card nat-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Interpreta un caso de sequía y explica qué etapa del ciclo del agua se alteró y cómo afecta a la población.<br><br>↪ Evidencia observable del DBA 7.4.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(1)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== MATEMÁTICAS ========== -->
+<div class="area" id="area2">
+  <h2>📐 Matemáticas – Grado 7°</h2>
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-mat">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card mat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Proporciones 📊
+            <hr>
+            <i><b>DBA 7.5:</b> Aplica razones y proporciones en la solución de problemas de contexto.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card mat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Resuelve 3/4 = x/12” (aplicar).<br><br>↪ Coherente con DBA 7.5.</div>
+        </div>
+      </div>
+      <div class="card mat-dce" onclick="flip(this); showNext('ejemplo2-mat')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">En una encuesta, 3 de cada 4 estudiantes tienen celular. Si hay 36, ¿cuántos tienen? Explica tu razonamiento.<br><br>↪ Evidencia del DBA 7.5.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-mat" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card mat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Estadística básica 📈
+            <hr>
+            <i><b>DBA 7.8:</b> Reconoce y utiliza medidas de tendencia central en situaciones de la vida cotidiana.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card mat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Calcula el promedio de estas cinco notas” (aplicar).<br><br>↪ Coherente con DBA 7.8.</div>
+        </div>
+      </div>
+      <div class="card mat-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza los resultados de asistencia y propone una conclusión sobre hábitos de puntualidad.<br><br>↪ Evidencia observable del DBA 7.8.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(2)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== LENGUAJE ========== -->
+<div class="area" id="area3">
+  <h2>📖 Lenguaje – Grado 7°</h2>
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-len">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card len-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Tipos de textos narrativos 📖
+            <hr>
+            <i><b>DBA 7.2:</b> Identifica el narrador y la perspectiva en un texto narrativo.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card len-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Identifica el narrador en el cuento leído” (recordar + comprender).<br><br>↪ Coherente con DBA 7.2.</div>
+        </div>
+      </div>
+      <div class="card len-dce" onclick="flip(this); showNext('ejemplo2-len')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Reescribe un párrafo con otro narrador y analiza cómo cambia la interpretación.<br><br>↪ Evidencia observable del DBA 7.2.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-len" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card len-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Argumentación ✍️
+            <hr>
+            <i><b>DBA 7.6:</b> Reconoce la tesis en un texto argumentativo y los argumentos que la sustentan.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card len-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Señala la tesis en un texto argumentativo” (analizar).<br><br>↪ Coherente con DBA 7.6.</div>
+        </div>
+      </div>
+      <div class="card len-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Escribe un texto breve defendiendo una postura sobre el uso de celulares en clase, con dos razones.<br><br>↪ Evidencia observable del DBA 7.6.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(3)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CIENCIAS SOCIALES ========== -->
+<div class="area" id="area4">
+  <h2>🌍 Ciencias Sociales – Grado 7°</h2>
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-soc">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card soc-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Constitución de 1991 📜
+            <hr>
+            <i><b>DBA 7.4:</b> Reconoce los principios de la Constitución Política de 1991 y su importancia en la vida democrática.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card soc-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Menciona tres derechos fundamentales de la Constitución” (recordar).<br><br>↪ Coherente con DBA 7.4.</div>
+        </div>
+      </div>
+      <div class="card soc-dce" onclick="flip(this); showNext('ejemplo2-soc')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Lee un caso sobre violación de derechos y argumenta cuál derecho se vulnera y cómo debería actuar el Estado.<br><br>↪ Evidencia observable del DBA 7.4.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-soc" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card soc-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Globalización 🌐
+            <hr>
+            <i><b>DBA 7.7:</b> Explica fenómenos de globalización y sus impactos en la vida cotidiana y cultural.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card soc-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Define globalización y da un ejemplo” (comprender).<br><br>↪ Coherente con DBA 7.7.</div>
+        </div>
+      </div>
+      <div class="card soc-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza cómo la globalización afecta la cultura gastronómica de tu región y sustenta con ejemplos.<br><br>↪ Evidencia observable del DBA 7.7.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(4)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== INGLÉS ========== -->
+<div class="area" id="area5">
+  <h2>🇬🇧 Inglés – Grado 7°</h2>
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-eng">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card eng-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Present simple vs. continuous ⏳
+            <hr>
+            <i><b>DBA 7.3:</b> Comprende y usa expresiones en presente simple y presente continuo en contextos comunicativos cotidianos.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card eng-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Completa oraciones con la forma verbal correcta” (aplicar).<br><br>↪ Coherente con DBA 7.3.</div>
+        </div>
+      </div>
+      <div class="card eng-dce" onclick="flip(this); showNext('ejemplo2-eng')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Graba un audio en el que cuentes tu rutina diaria (present simple) y lo que estás haciendo ahora (present continuous).<br><br>↪ Evidencia observable del DBA 7.3.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-eng" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card eng-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Vocabulary – Food and drinks 🍔🥤
+            <hr>
+            <i><b>DBA 7.5:</b> Reconoce y utiliza vocabulario relacionado con alimentos y bebidas en situaciones comunicativas.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card eng-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Write 10 words related to food and drinks” (recordar).<br><br>↪ Coherente con DBA 7.5.</div>
+        </div>
+      </div>
+      <div class="card eng-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Diseña un menú para un restaurante imaginario en inglés y explícalo.<br><br>↪ Evidencia observable del DBA 7.5.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(5)">Finalizar ➡️</button>
+  </div>
+</div>
+
+<!-- Área final -->
+<div class="area" id="final">
+  <h2>✅ Has completado todas las áreas</h2>
+  <p>¡Excelente! Has recorrido la secuencia completa.</p>
+  <button onclick="location.reload()">🔄 Reiniciar</button>
+</div>
+
+
+
+
+<script>
+
+
+const verbos = {
+  recordar: `
+    <b>SABER:</b> Recordar, Identificar, Reconocer, Definir, Listar, Nombrar<br>
+    <b>HACER:</b> Imitar, Copiar, Seguir Instrucciones, Manipular con Ayuda<br>
+    <b>SER:</b> Atender, Escuchar, Aceptar, Mostrar Disposición
+  `,
+  comprender: `
+    <b>SABER:</b> Comprender, Describir, Explicar, Interpretar, Ejemplificar, Clasificar<br>
+    <b>HACER:</b> Ejecutar, Practicar, Demostrar, Operar, Utilizar con Apoyo<br>
+    <b>SER:</b> Responder, Participar, Colaborar, Respetar, Cumplir
+  `,
+  aplicar: `
+    <b>SABER:</b> Aplicar, Analizar, Comparar, Organizar, Diferenciar, Contrastar, Revisar, Refinar<br>
+    <b>HACER:</b> Coordinar, Implementar, Integrar, Perfeccionar, Aplicar con Autonomía<br>
+    <b>SER:</b> Valorar, Argumentar, Promover, Asumir Responsabilidades, Ser Consciente
+  `,
+  analizar: `
+    <b>SABER:</b> Analizar, Comparar, Organizar, Diferenciar, Contrastar<br>
+    <b>HACER:</b> Coordinar, Integrar, Implementar<br>
+    <b>SER:</b> Valorar, Promover, Ser Consciente
+  `,
+  evaluar: `
+    <b>SABER:</b> Evaluar, Argumentar, Justificar<br>
+    <b>SER:</b> Validar Éticamente, Liderar, Asumir Responsabilidades
+  `,
+  crear: `
+    <b>SABER:</b> Crear, Diseñar, Formular, Planificar, Concebir, Innovar, Diseñar Prompts<br>
+    <b>HACER:</b> Automatizar, Optimizar, Transferir, Trazar Estrategias, Combinar Herramientas<br>
+    <b>SER:</b> Interiorizar, Modelar, Transformar, Influir Positivamente
+  `
+};
+function showVerbs(nivel) {
+  const panel = document.getElementById("verbosPanel");
+  panel.innerHTML = verbos[nivel];
+  panel.classList.add("active");
+}
+function showTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tabs button').forEach(b => {
+    b.classList.remove('active');
+    b.classList.add('inactive');
+  });
+  document.getElementById(tabId).style.display = 'block';
+  btn.classList.add('active');
+  btn.classList.remove('inactive');
+}
+
+
+
+let totalAreas = 5; 
+let currentArea = 0; // empieza en intro
+
+
+function flip(card) {
+  card.classList.toggle("flipped");
+}
+
+// Iniciar recorrido desde intro
+function startJourney() {
+  document.getElementById("intro").classList.remove("active");
+  document.getElementById("area1").classList.add("active");
+  document.getElementById("progress").classList.remove("hidden");
+  document.getElementById("progress").innerText = "Área 1 de " + totalAreas;
+  currentArea = 1;
+}
+
+// Mostrar siguiente ejemplo
+function showNext(nextId) {
+  document.getElementById(nextId).classList.remove("hidden");
+}
+
+// Pasar al siguiente bloque de área
+function nextArea(current) {
+  document.getElementById("area" + current).classList.remove("active");
+  currentArea++;
+  if(currentArea <= totalAreas){
+    document.getElementById("area" + (current + 1)).classList.add("active");
+    document.getElementById("progress").innerText = "Área " + currentArea + " de " + totalAreas;
+  } else {
+    document.getElementById("final").classList.add("active");
+  }
+}
+
+// Diccionario de íconos por nivel Bloom
+const bloomIcons = {
+  "recordar": "🧠",
+  "comprender": "💡",
+  "aplicar": "⚙️",
+  "analizar": "🔍",
+  "evaluar": "📝",
+  "crear": "🎨"
+};
+
+// Agregar íconos automáticamente
+document.querySelectorAll(".bloom-text").forEach(el => {
+  let text = el.innerHTML.toLowerCase();
+  for (const [nivel, icono] of Object.entries(bloomIcons)) {
+    if (text.includes(nivel)) {
+      el.innerHTML = icono + " " + el.innerHTML;
+    }
+  }
+});
+
+
+</script>
+
+</body>
+</html>

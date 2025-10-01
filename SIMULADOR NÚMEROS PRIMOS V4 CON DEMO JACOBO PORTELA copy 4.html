@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Números Primos</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mP8z/D/PwMDAwMjBoYBAG6RBAcKxM5oAAAAAElFTkSuQmCC">
+<link rel="icon" type="image/svg+xml" 
+      href="data:image/svg+xml;utf8,
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+        <polygon points='32,4 39,24 60,24 42,38 48,58 32,46 16,58 22,38 4,24 25,24' 
+                 fill='%23ffcc00' stroke='%23ff6600' stroke-width='3'/>
+      </svg>">
+
+<style>
+/* ====== ESTILO GENERAL ====== */
+body {
+  font-family:"Segoe UI",sans-serif;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:#ffffff; margin:0; padding:0; text-align:center;
+}
+h1 { margin:20px 0; font-size:2.2em }
+.pantalla { display:none; min-height:100vh; padding:20px }
+.activa { display:block }
+button {
+  padding:12px 20px; margin:15px; font-size:1.1em;
+  border:none; border-radius:8px; cursor:pointer;
+  background:#ff9800; color:#fff; transition:0.3s;
+}
+button:hover { background:#ffa733; transform:scale(1.05) }
+
+/* ====== GRID NIVEL 1 ====== */
+#grid {
+  display:grid; grid-template-columns:repeat(10,1fr);
+  gap:6px; max-width:600px; margin:20px auto;
+}
+.num {
+  background:#ffffff33; padding:12px; border-radius:8px;
+  font-size:1.1em; cursor:pointer; transition:0.3s;
+}
+.num:hover { transform:scale(1.1); background:#ffffff55 }
+.correcto { background:#4caf50 !important; color:#fff }
+.error { background:#e53935 !important; color:#fff }
+#instruccion {
+  margin:15px; font-size:1.2em; background:#ffffff22;
+  padding:10px; border-radius:8px;
+}
+
+/* ====== FACTORIZACIÓN ====== */
+#factorTree { margin-top:20px; text-align:center; font-size:1.2em }
+.nodo { margin:10px auto; padding:8px; border:2px solid #fff;
+        border-radius:8px; display:inline-block; min-width:40px }
+.rama { margin:5px auto }
+
+/* ====== VERDADERO/FALSO ====== */
+.pregunta {
+  margin:20px auto; font-size:1.3em; background:#ffffff22;
+  padding:15px; border-radius:10px; max-width:600px;
+}
+.feedback { font-weight:bold; margin-top:10px }
+
+/* ====== NIVEL 4: FACTORES ====== */
+.zonaNumeros, .zonaDrop {
+  display:flex; flex-wrap:wrap; justify-content:center;
+  margin:15px; gap:10px;
+}
+.ficha {
+  padding:12px 18px; background:#ffffff33; border-radius:8px;
+  cursor:grab; font-size:1.2em;
+}
+.drop {
+  width:100px; height:50px; background:#ffffff22;
+  border:2px dashed #fff; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2em;
+}
+.completado { background:#4caf50 !important; border:none; color:#fff }
+
+/* ====== SPLASH ====== */
+#pantallaSplash {
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center;
+  background:linear-gradient(135deg,#000,#111827,#1f2937);
+}
+.tituloSplash {
+  font-size:3em; color:#ffcc00;
+  text-shadow:2px 2px 8px #ff6600, -2px -2px 8px #ff0000;
+  margin-bottom:30px;
+}
+.pressStart {
+  font-size:1.5em; color:#fff;
+  animation:parpadeo 1s infinite; cursor:pointer;
+}
+@keyframes parpadeo {
+  0%,50% {opacity:1;}
+  50.1%,100% {opacity:0;}
+}
+
+/* ====== TOAST ====== */
+#toast {
+  position:fixed; bottom:20px; left:50%;
+  transform:translateX(-50%);
+  background:#333; color:#fff;
+  padding:12px 20px; border-radius:8px;
+  opacity:0; transition:opacity 0.5s;
+  font-size:1.1em; z-index:999;
+}
+
+/* ====== DEBUG ====== */
+#menuDebug {
+  display:none; position:fixed; top:10px; right:10px;
+  background:#222; padding:10px; border-radius:8px;
+  z-index:9999; color:#fff; font-size:14px;
+}
+#menuDebug select {
+  margin-top:5px; padding:4px; border-radius:4px; font-size:14px;
+}
+
+/* ====== GLOWS PERSONALIZADOS ====== */
+.glow-2 { animation: glow2 1.5s infinite alternate; }
+.glow-3 { animation: glow3 1.5s infinite alternate; }
+.glow-5 { animation: glow5 1.5s infinite alternate; }
+.glow-7 { animation: glow7 1.5s infinite alternate; }
+
+@keyframes glow2 { from { box-shadow:0 0 8px #39FF14; } to { box-shadow:0 0 20px #76ff03; } }
+@keyframes glow3 { from { box-shadow:0 0 8px #00e5ff; } to { box-shadow:0 0 20px #40c4ff; } }
+@keyframes glow5 { from { box-shadow:0 0 8px #ff9100; } to { box-shadow:0 0 20px #ff9800; } }
+@keyframes glow7 { from { box-shadow:0 0 8px #9c27b0; } to { box-shadow:0 0 20px #ab47bc; } }
+</style>
+</head>
+<body>
+
+
+<!-- Splash Screen -->
+<div id="pantallaSplash" class="pantalla activa">
+  <h1 class="tituloSplash">⭐ Juego de Números Primos ⭐</h1>
+  <p class="pressStart">▶️ Press Start</p>
+</div>
+
+
+<!-- Menú de depuración (solo visible en DEBUG) -->
+<div id="menuDebug">
+  <label for="selectNivel">Ir al nivel:</label><br>
+  <select id="selectNivel">
+    <option value="">-- Selecciona --</option>
+    <option value="pantallaNivel1">Nivel 1 - Criba</option>
+    <option value="pantallaNivel2">Nivel 2 - Factorización</option>
+    <option value="pantallaNivel3">Nivel 3 - Verdadero/Falso</option>
+    <option value="pantallaNivel4">Nivel 4 - Pares de Factores</option>
+    <option value="pantallaNivel5">Nivel 5 - Producto de dos primos</option>
+    <option value="pantallaNivel6">Nivel 6 - Arcade</option>
+    <option value="pantallaRankingGlobal">Ranking Global</option>
+  </select>
+
+
+
+<!-- 🏠 Pantalla de inicio -->
+<div id="pantallaInicio" class="pantalla">
+  <h1>🎮 Juego de Números Primos</h1>
+  <p>Aprende y juega descubriendo qué son los números primos y compuestos.</p>
+  <button onclick="cambiarPantalla('pantallaIntro')">▶️ Comenzar</button>
+  <button onclick="mostrarRankingGlobal()">🏅 Ver Ranking Arcade</button>
+</div>
+
+<!-- 🔔 Toast de notificaciones -->
+<div id="toast" 
+     style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+            background:#333;color:#fff;padding:12px 20px;border-radius:8px;
+            opacity:0;transition:opacity 0.5s;font-size:1.1em;z-index:999;">
+</div>
+
+<!-- 📘 Pantalla de explicación -->
+<div id="pantallaIntro" class="pantalla">
+  <h1>¿Qué es un número primo?</h1>
+  <p>Un número primo tiene <b>solo dos divisores</b>: el 1 y él mismo.<br>
+     Ejemplos: 2, 3, 5, 7, 11.</p>
+  <h1>¿Qué es un número compuesto?</h1>
+  <p>Un número compuesto tiene <b>más de dos divisores</b>.<br>
+     Ejemplo: 4 (1, 2, 4), 6 (1, 2, 3, 6).</p>
+  <button id="btnNarrar">🔊 Escuchar explicación</button>
+  <br>
+  <button onclick="cambiarPantalla('pantallaNivel1')">➡️ Ir al Nivel 1</button>
+</div>
+
+<!-- 🔢 Nivel 1: Criba -->
+<div id="pantallaNivel1" class="pantalla">
+  <h1>Nivel 1: Descubre los Números Primos</h1>
+  <div id="instruccion">Marca todos los múltiplos de <b>2</b>, excepto el 2.</div>
+
+  <div style="display:flex;justify-content:center;gap:40px;align-items:flex-start;">
+    <!-- Grid principal -->
+    <div id="grid"></div>
+
+    <!-- Mini-grid de múltiplos -->
+    <div id="tablaMultiplos" style="background:#ffffff22;padding:12px;border-radius:8px;">
+      <h3 style="margin-top:0;">Múltiplos de 2</h3>
+      <div id="gridMultiplos" 
+           style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:220px;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🎉 Transición entre niveles -->
+<div id="pantallaTransicion" class="pantalla">
+  <h1>🎉 ¡Nivel Completado!</h1>
+  <p>Prepárate para el siguiente reto...</p>
+  <button onclick="cambiarPantalla('pantallaNivel2')">➡️ Ir al Nivel 2</button>
+</div>
+
+<!-- 🌳 Nivel 2: Factorización -->
+<div id="pantallaNivel2" class="pantalla">
+  <h1>Nivel 2: Factorización Prima</h1>
+  <p>Escribe un número y observa su árbol de factores:</p>
+  <input type="number" id="numFactor" value="60" min="2" style="padding:8px;font-size:1em">
+  <button onclick="factorizar()">Descomponer</button>
+  <div id="factorTree"></div>
+  <button onclick="cambiarPantalla('pantallaNivel3')">➡️ Siguiente Nivel</button>
+</div>
+
+<!-- ✅❌ Nivel 3: Verdadero/Falso -->
+<div id="pantallaNivel3" class="pantalla">
+  <h1>Nivel 3: Verdadero o Falso</h1>
+  <div id="contenedorPreguntas"></div>
+  <button onclick="mostrarResultados()">📊 Ver Resultados</button>
+  <div id="resultados"></div>
+  <button onclick="cambiarPantalla('pantallaNivel4')">➡️ Siguiente Nivel</button>
+</div>
+
+<!-- ✨ Nivel 4: Pares de Factores -->
+<div id="pantallaNivel4" class="pantalla">
+  <h1>Nivel 4: Pares de Factores</h1>
+  <p>Ingresa un número y elige el modo de juego:</p>
+
+  <!-- Selector de número -->
+  <input type="number" id="inputNumeroNivel4" value="24" min="2" style="padding:6px;font-size:1em;">
+
+  <!-- Modos -->
+  <div style="margin:10px 0;">
+    <label>
+      <input type="radio" name="modoNivel4" value="factores" checked>
+      🔹 Pares de factores
+    </label>
+    <label style="margin-left:15px;">
+      <input type="radio" name="modoNivel4" value="primos">
+      🔸 Factorización en primos
+    </label>
+  </div>
+
+  <!-- Botones -->
+  <button onclick="generarNivel4()">Generar ejercicio</button>
+  <button id="btnRepetirNivel4">🔊 Repetir instrucción</button>
+  
+  <!-- Área de juego -->
+  <div class="zonaNumeros" id="zonaNumeros"></div>
+  <div class="zonaDrop" id="zonaDrop"></div>
+  <div id="estadoNivel4"></div>
+</div>
+
+<!-- 🔗 Nivel 5: Producto de dos primos -->
+<div id="pantallaNivel5" class="pantalla">
+  <h1>Nivel 5: Producto de dos primos</h1>
+  <div id="contenedorQuiz"></div>
+</div>
+
+<!-- 🕹️ Nivel 6: Reto Arcade -->
+<div id="pantallaNivel6" class="pantalla">
+  <h1>Nivel 6: Reto Arcade ⏱️</h1>
+  <p>Clasifica el número como Primo o Compuesto antes de que acabe el tiempo.</p>
+  <h2 id="numeroReto">--</h2>
+  <button onclick="responderArcade(true)">🔹 Primo</button>
+  <button onclick="responderArcade(false)">🔸 Compuesto</button>
+  <p>Tiempo: <span id="tiempoArcade">30</span> s</p>
+  <p>Puntos: <span id="puntosArcade">0</span></p>
+</div>
+
+<!-- 🏆 Resultados Arcade -->
+<div id="pantallaArcadeFinal" class="pantalla">
+  <h1>⏰ ¡Tiempo terminado!</h1>
+  <p>Tu puntaje final: <b id="puntajeFinalArcade"></b></p>
+  <h2 id="medallaArcade"></h2>
+  <canvas id="confetiArcade"></canvas>
+  <h3>🏅 Ranking de Mejores Puntajes</h3>
+  <table style="margin:0 auto; border-collapse:collapse; color:#fff;">
+    <thead>
+      <tr>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Puntaje</th>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Medalla</th>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Fecha</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoRanking"></tbody>
+  </table>
+  <br>
+  <button onclick="reiniciarArcade()">🔄 Volver a intentar</button>
+  <button onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al inicio</button>
+</div>
+
+<!-- 🌍 Ranking Global -->
+<div id="pantallaRankingGlobal" class="pantalla">
+  <h1>🏅 Ranking Arcade Global</h1>
+  <table style="margin:0 auto; border-collapse:collapse; color:#fff;">
+    <thead>
+      <tr>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Puntaje</th>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Medalla</th>
+        <th style="padding:6px 12px; border-bottom:1px solid #fff;">Fecha</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoRankingGlobal"></tbody>
+  </table>
+  <br>
+  <button onclick="cambiarPantalla('pantallaInicio')">🏠 Volver al inicio</button>
+</div>
+
+
+
+<script>
+
+
+// ====== MODO DEBUG ======
+const DEBUG = true; // 👈 pon en false para ocultar el menú
+
+if(DEBUG){
+  document.getElementById("menuDebug").style.display = "block";
+
+  document.getElementById("selectNivel").addEventListener("change", e=>{
+    if(e.target.value){
+      cambiarPantalla(e.target.value);
+    }
+  });
+}
+
+
+
+
+
+// ===== Splash Screen =====
+const sonidoToast = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+const sonidoStart = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+document.querySelector(".pressStart").addEventListener("click",()=>{
+  sonidoStart.currentTime = 0;
+  sonidoStart.play();
+  setTimeout(()=>{
+    narracionNivel1Iniciada = false; // 🔄 reset narración al volver al inicio
+    cambiarPantalla("pantallaInicio");
+  }, 800);
+});
+
+
+// 👉 Variable global para evitar doble narración en Nivel 1
+let narracionNivel1Iniciada = false;
+
+// 👉 Candado para narración en Nivel 1
+let narrandoIntro1 = false;
+
+// ===== Función cambiar pantalla =====
+function cambiarPantalla(id){
+  // Ocultar todas las pantallas
+  document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));
+  const pantalla = document.getElementById(id);
+
+  if(pantalla){
+    pantalla.classList.add("activa");
+
+    // 🔄 Reset narración si vuelve al inicio
+    if(id === "pantallaInicio"){
+      narracionNivel1Iniciada = false;
+      narrandoIntro1 = false;
+    }
+
+    // 🔊 Nivel 1
+    if(id === "pantallaNivel1" && narracionHabilitada){
+      if(DEBUG){
+        narrarIntroNivel1(true); // fuerza narración en debug
+      } else {
+        if(!narracionNivel1Iniciada){
+          narracionNivel1Iniciada = true;
+          narrarIntroNivel1();
+        }
+      }
+    }
+
+    // 🔊 Nivel 4
+    if(id === "pantallaNivel4" && narracionHabilitada){
+      if(DEBUG){
+        narrarNivel4(false); // siempre narra en debug
+      } else {
+        narrarNivel4(true);  // con candado en modo normal
+      }
+    }
+  } else {
+    console.error("No existe la pantalla con id:", id);
+  }
+}
+
+// 👉 Función auxiliar para narrar intro de Nivel 1
+function narrarIntroNivel1(forzar = false){
+  if (narrandoIntro1 && !forzar) return; // 🔒 evita doble narración en modo normal
+  narrandoIntro1 = true;
+
+  setTimeout(() => {
+    const mensaje = "Comencemos. Encuentra todos los múltiplos de 2, excepto el 2.";
+    const utter = new SpeechSynthesisUtterance(mensaje);
+    utter.lang = "es-ES";
+    utter.rate = 1.1;
+    utter.onend = ()=> narrandoIntro1 = false; // 🔄 liberar candado al terminar
+    speechSynthesis.speak(utter);
+
+    // ✨ Glow momentáneo en el número 2
+    const celda2 = [...grid.children].find(c => Number(c.dataset.valor) === 2);
+    if (celda2) {
+      celda2.style.boxShadow = "0 0 15px 5px #39FF14";
+      setTimeout(() => celda2.style.boxShadow = "", 1500);
+    }
+  }, 800);
+}
+
+
+  if(DEBUG){
+    document.getElementById("menuDebug").style.display = "block";
+
+    document.getElementById("selectNivel").addEventListener("change", e=>{
+      if(e.target.value){
+        cambiarPantalla(e.target.value);
+      }
+    });
+  }
+  // ===== Narrador =====
+  document.getElementById("btnNarrar").addEventListener("click",()=>{
+    let texto="Un número primo solo tiene dos divisores: el uno y él mismo. Ejemplos: dos, tres, cinco, siete. Un número compuesto tiene más de dos divisores, como el cuatro o el seis.";
+    const utter=new SpeechSynthesisUtterance(texto);
+    utter.lang="es-ES"; utter.rate=1;
+    speechSynthesis.speak(utter);
+  });
+
+  // ===== Sonidos =====
+  const sonidoCorrecto=new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  const sonidoError=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  const sonidoVictoria=new Audio("https://actions.google.com/sounds/v1/cartoon/descending_whistle.ogg");
+  const sonidoScoreboard=new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+
+// ===== Nivel 1: Criba =====
+const grid = document.getElementById("grid");
+for (let i = 1; i <= 100; i++) {
+  const div = document.createElement("div");
+  div.className = "num";
+  div.textContent = i;
+  div.dataset.valor = i;
+  grid.appendChild(div);
+}
+
+const pasos = [2, 3, 5, 7];
+let pasoIndex = 0;
+
+function actualizarInstruccion() {
+  const n = pasos[pasoIndex];
+  document.getElementById("instruccion").innerHTML =
+    `Marca todos los múltiplos de <b>${n}</b>, excepto el ${n}.`;
+  mostrarMultiplos(n); // 👉 mini-grid lateral
+}
+actualizarInstruccion();
+
+// Verificar si ya se marcaron todos los múltiplos del primo actual
+function todosMarcados(primo) {
+  const multiples = [];
+  for (let i = primo * 2; i <= 100; i += primo) {
+    multiples.push(i);
+  }
+  return multiples.every(m => {
+    const cell = [...grid.children].find(c => Number(c.dataset.valor) === m);
+    return cell && cell.classList.contains("correcto");
+  });
+}
+
+// Avanzar al siguiente paso automáticamente
+function avanzarPaso() {
+  pasoIndex++;
+
+  if (pasoIndex < pasos.length) {
+    // 👉 Todavía quedan pasos (2, 3, 5, 7)
+    actualizarInstruccion();
+
+    // 🎉 Toast verde
+    mostrarToast("¡Bien hecho! Pasemos al siguiente primo.", "verde");
+
+   // 🎤 Narrador automático
+const primo = pasos[pasoIndex];
+setTimeout(() => {
+  const mensaje = `Ahora encuentra los múltiplos de ${primo}, excepto el ${primo}`;
+  const utter = new SpeechSynthesisUtterance(mensaje);
+  utter.lang = "es-ES";
+  utter.rate = 1.1;
+  speechSynthesis.speak(utter);
+
+// ✨ Glow momentáneo en el primo actual del grid grande (color único por primo)
+const celdaPrimo = [...grid.children].find(c => Number(c.dataset.valor) === primo);
+if (celdaPrimo) {
+  const claseGlow = "glow-" + primo; // glow-2, glow-3, glow-5, glow-7
+  celdaPrimo.classList.add(claseGlow);
+  setTimeout(() => celdaPrimo.classList.remove(claseGlow), 3000); // dura 3s
+}
+
+}, 1000);
+
+
+  } else {
+    // ✅ Hemos terminado con el 7
+    sonidoVictoria.play();
+
+    // 👉 Resaltar los números primos en el grid con efecto neón
+    [...grid.children].forEach(cell => {
+      const n = Number(cell.dataset.valor);
+      if (esPrimo(n)) {
+        cell.classList.add("primo-resaltado");
+        cell.title = "Número primo"; // ✅ tooltip
+      }
+    });
+
+    // 🎉 Explicación final
+    const instruccion = document.getElementById("instruccion");
+    instruccion.innerHTML = `
+      <p style="color:#39FF14; font-weight:bold; font-size:1.3em;">
+        🎉 ¡Nivel completado!<br>
+        Observa que los botones que no tachaste son los números primos del 1 al 100.<br>
+        Bien hecho, ya conoces todos los números primos hasta 100.
+      </p>
+      <button class="btn-next-level" onclick="cambiarPantalla('pantallaNivel2')">
+        ➡️ Ir al Nivel 2
+      </button>
+    `;
+
+    // 🎤 Narración final
+    const mensaje = "Muy bien. Has completado el nivel uno. Observa que los números que no seleccionaste son los primos entre 1 y 100. Bien hecho, ahora conoces los números primos hasta cien.";
+    const utter = new SpeechSynthesisUtterance(mensaje);
+    utter.lang = "es-ES";
+    utter.rate = 1.0;
+    speechSynthesis.speak(utter);
+  }
+}
+
+// Click en la grilla
+grid.addEventListener("click", e => {
+  if (!e.target.classList.contains("num")) return;
+
+  const n = Number(e.target.dataset.valor);
+  const primo = pasos[pasoIndex];
+
+  if (n === primo) {
+    e.target.classList.add("error");
+    sonidoError.play();
+    return;
+  }
+
+  if (n % primo === 0) {
+    e.target.classList.add("correcto");
+    sonidoCorrecto.play();
+
+    // 👉 Marcar también en la tabla lateral
+    const celda = document.getElementById("m" + n);
+    if (celda) {
+      celda.style.background = "#4caf50";
+      celda.style.color = "#000";
+      celda.style.textDecoration = "line-through";
+    }
+
+    if (todosMarcados(primo)) {
+      setTimeout(avanzarPaso, 800);
+    }
+
+  } else {
+    e.target.classList.add("error");
+    sonidoError.play();
+  }
+});
+
+
+  // ===== Nivel 2: Factorización =====
+ function factorizar(){
+  const n=Number(document.getElementById("numFactor").value);
+  const container=document.getElementById("factorTree");
+  container.innerHTML="";
+  if(isNaN(n)||n<2) return;
+  let huboDescomposicion = false; // 👈
+
+  function crearNodo(num){
+    const div=document.createElement("div");
+    div.className="nodo";
+    div.textContent=num;
+    return div;
+  }
+  function descomponer(num,parent){
+    if(esPrimo(num)){
+      const nodo=crearNodo(num);
+      parent.appendChild(nodo);
+      return;
+    }
+    let factor=2;
+    while(num%factor!==0){factor++;}
+    const rama=document.createElement("div");
+    rama.className="rama";
+    rama.appendChild(crearNodo(num));
+    const sub1=crearNodo(factor);
+    rama.appendChild(sub1);
+    parent.appendChild(rama);
+    descomponer(num/factor,rama);
+    huboDescomposicion = true; // 👈 hubo división
+  }
+  descomponer(n,container);
+
+  if(huboDescomposicion){
+    mostrarToast("✅ Has descompuesto el número", "azul");
+  } else {
+    mostrarToast("🔹 El número ya es primo", "verde");
+  }
+}
+
+ 
+ 
+ 
+ 
+  function esPrimo(num){
+    if(num<2) return false;
+    for(let i=2;i<=Math.sqrt(num);i++){if(num%i===0)return false;}
+    return true;
+  }
+
+  // ===== Nivel 3: Verdadero/Falso =====
+  const preguntas=[
+    {texto:"Todos los impares son primos.",respuesta:false},
+    {texto:"Todos los pares son compuestos.",respuesta:false},
+    {texto:"Los números que terminan en 0 no son primos.",respuesta:true},
+    {texto:"Los que terminan en 1 son primos.",respuesta:false}
+  ];
+  const contenedor=document.getElementById("contenedorPreguntas");
+  preguntas.forEach((p,i)=>{
+    const div=document.createElement("div");
+    div.className="pregunta";
+    div.innerHTML=`
+      <p>${p.texto}</p>
+      <button onclick="responder(${i},true,this)">✅ Verdadero</button>
+      <button onclick="responder(${i},false,this)">❌ Falso</button>
+      <div class="feedback" id="fb${i}"></div>
+    `;
+    contenedor.appendChild(div);
+  });
+  let aciertos=0;
+  function responder(i,respuesta,btn){
+  const fb=document.getElementById("fb"+i);
+  if(respuesta===preguntas[i].respuesta){
+    fb.textContent="¡Correcto!";
+    fb.style.color="lightgreen";
+    sonidoCorrecto.play();
+    aciertos++;
+    mostrarToast("✅ ¡Correcto!", "verde"); // 👈 mini-toast inmediato
+  }else{
+    fb.textContent="Incorrecto.";
+    fb.style.color="red";
+    sonidoError.play();
+    mostrarToast("❌ Incorrecto", "dorado"); // 👈 mini-toast también en error
+  }
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.disabled=true);
+}
+
+  function mostrarResultados(){
+    document.getElementById("resultados").innerHTML=
+      `<h2>Resultados</h2><p>Has acertado ${aciertos} de ${preguntas.length}.</p>`;
+    sonidoVictoria.play();
+    mostrarToast("📊 Resultados listos", "azul");
+
+  }
+
+
+
+
+
+
+// ===== NIVEL 4 Generar dinámico según modo =====
+function generarNivel4(){
+  const modo = document.querySelector('input[name="modoNivel4"]:checked').value;
+  const num = Number(document.getElementById("inputNumeroNivel4").value);
+
+  if(isNaN(num) || num < 2) {
+    mostrarToast("❌ Ingresa un número mayor que 1", "dorado");
+    return;
+  }
+
+  let pares = [];
+  let factores = [];
+
+  if (modo === "factores") {
+    // === MODO FACTORES ===
+    let divisores = [];
+    for(let i=1;i<=num;i++){
+      if(num % i === 0) divisores.push(i);
+    }
+
+    for(let i=0;i<divisores.length;i++){
+      let a = divisores[i];
+      let b = num / a;
+      if(a <= b && !pares.some(([x,y]) => (x===a && y===b))){
+        pares.push([a,b]);
+      }
+    }
+
+    pares.forEach(([a,b])=>{
+      factores.push(a);
+      factores.push(b);
+    });
+
+  } else if (modo === "primos") {
+    // === MODO FACTORES PRIMOS ===
+    let n = num;
+    let primos = [];
+    for(let p=2; p<=n; p++){
+      while(n % p === 0){
+        primos.push(p);
+        n = n/p;
+      }
+    }
+
+    // Cada primo será un "factor" independiente
+    factores = primos.slice();
+    pares = primos.map(p => [p]); 
+  }
+
+  // 👉 Estado y narración
+  const zonaEstado = document.getElementById("estadoNivel4");
+  zonaEstado.innerHTML = "";
+  if (pares.length === 0) {
+    const msg = `${num} es un número primo, solo se puede expresar como 1 × ${num}.`;
+    zonaEstado.innerHTML = `<p style="color:#39FF14; font-weight:bold; font-size:1.5em; margin:10px 0">✨ ${msg}</p>`;
+    narrarTexto(msg);
+  } else {
+    const tipo = (modo === "factores") ? "pares de factores" : "factores primos";
+    const msg = `Forma los ${tipo} de ${num}.`;
+    zonaEstado.innerHTML = `<p style="color:#39FF14; font-weight:bold; font-size:1.2em; margin:10px 0">${msg}</p>`;
+    narrarTexto(msg);
+  }
+
+  // 3) Renderizar fichas
+  const zonaNumeros = document.getElementById("zonaNumeros");
+  zonaNumeros.innerHTML = "";
+  factores.forEach((f, idx)=>{
+    crearFicha(f, `f${f}_${idx}`, zonaNumeros);
+  });
+
+  // 4) Renderizar zonas de drop
+  const zonaDrop = document.getElementById("zonaDrop");
+  zonaDrop.innerHTML = "";
+
+  if (modo === "factores") {
+    // Mostrar en pares
+    pares.forEach(([a,b])=>{
+      const grupo = document.createElement("div");
+      grupo.className = "grupo-pareja";
+      grupo.style.display = "inline-flex";
+      grupo.style.alignItems = "center";
+      grupo.style.margin = "0 14px";
+
+      const d1 = document.createElement("div");
+      d1.className = "drop";
+      d1.dataset.pairA = a; 
+      d1.dataset.pairB = b;
+
+      const d2 = document.createElement("div");
+      d2.className = "drop";
+      d2.dataset.pairA = a; 
+      d2.dataset.pairB = b;
+
+      const x = document.createElement("span");
+      x.textContent = " × ";
+      x.style.margin = "0 8px";
+      x.style.fontWeight = "bold";
+
+      grupo.appendChild(d1);
+      grupo.appendChild(x);
+      grupo.appendChild(d2);
+      zonaDrop.appendChild(grupo);
+    });
+  } else {
+    // Mostrar todos los primos en secuencia lineal
+    pares.forEach(([p], idx)=>{
+      const d = document.createElement("div");
+      d.className = "drop";
+      d.dataset.pairA = p;
+      d.dataset.pairB = p;
+      zonaDrop.appendChild(d);
+
+      if (idx < pares.length - 1) {
+        const x = document.createElement("span");
+        x.textContent = " × ";
+        x.style.margin = "0 8px";
+        x.style.fontWeight = "bold";
+        zonaDrop.appendChild(x);
+      }
+    });
+  }
+
+  activarArrastreNivel4(modo, pares);
+}
+
+// ===== Crear ficha con ID único =====
+function crearFicha(valor, id, contenedor){
+  const div = document.createElement("div");
+  div.className = "ficha";
+  div.textContent = valor;
+  div.draggable  = true;
+  div.dataset.valor = valor;
+  div.id = id;
+  div.addEventListener("dragstart", ev => ev.dataTransfer.setData("text", id));
+  contenedor.appendChild(div);
+}
+
+
+// ===== Arrastre universal en modo PRIMOS =====
+function activarArrastreNivel4(modo, pares){
+  const zonaDrop = document.getElementById("zonaDrop");
+
+  zonaDrop.addEventListener("dragover", ev => ev.preventDefault());
+
+  zonaDrop.addEventListener("drop", ev=>{
+    ev.preventDefault();
+    const target = ev.target;
+    if (!target.classList.contains("drop")) return;
+
+    const fichaId = ev.dataTransfer.getData("text");
+    const ficha = document.getElementById(fichaId);
+    if (!ficha) return;
+
+    const n = Number(ficha.dataset.valor);
+
+    // Ya ocupado
+    if (target.textContent.trim() !== "") { 
+      sonidoError.play();
+      efectoError(target);
+      return; 
+    }
+
+    if (modo === "primos") {
+      target.textContent = String(n);
+      target.classList.add("completado");
+      ficha.style.display = "none";
+      sonidoCorrecto.play();
+      verificarNivel4(pares); // ✅ ahora sí recibe el arreglo correcto
+      return;
+    }
+
+    // ... resto de validación normal para modo factores ...
+  });
+}
+
+
+
+
+// ===== Verificación final con superíndices + desarrollo =====
+function verificarNivel4(pares){
+  const completos = document.querySelectorAll(".drop.completado").length;
+  const modo = document.querySelector('input[name="modoNivel4"]:checked')?.value || "factores";
+  const num = Number(document.getElementById("inputNumeroNivel4").value);
+
+  // ✅ Ajuste clave: calcular total de fichas que deben ser colocadas
+  let totalNecesario;
+  if (modo === "factores") {
+    totalNecesario = pares.length * 2;
+  } else {
+    // En modo primos, el total de fichas es la cantidad de "fichas" creadas
+    totalNecesario = document.querySelectorAll("#zonaNumeros .ficha").length;
+  }
+
+  if (completos === totalNecesario) {
+    const estado = document.getElementById("estadoNivel4");
+    if (!estado.querySelector(".msg-victoria")) {
+      estado.innerHTML += "<h2 class='msg-victoria'>🎉 ¡Nivel completado!</h2>";
+      sonidoVictoria.play();
+      mostrarToast("🎉 ¡Nivel 4 completado!", "verde");
+
+      if (modo === "primos") {
+        let n = num;
+        let primos = [];
+        for(let p=2; p<=n; p++){
+          while(n % p === 0){
+            primos.push(p);
+            n = n/p;
+          }
+        }
+
+        // Contar exponentes
+        let conteo = {};
+        primos.forEach(p => conteo[p] = (conteo[p]||0)+1);
+
+        // Potencias con superíndice HTML (ejemplo: 2³)
+        let potencias = Object.entries(conteo).map(([p,e])=>{
+          return (e>1) ? `${p}<sup>${e}</sup>` : `${p}`;
+        }).join(" × ");
+
+        // Desarrollo paso a paso
+        let desarrollo = primos.join(" × ");
+
+        // Mostrar retroalimentación clara
+        estado.innerHTML += `
+          <div class="msg-factorizacion" 
+               style="margin-top:12px; font-size:1.3em; color:#39FF14; text-align:center; font-weight:bold;">
+            📊 Factorización prima de ${num}: <br>
+            ${potencias} = ${desarrollo} = ${num}
+          </div>
+        `;
+
+        // 🎤 Narración automática al completar nivel
+        if (narracionHabilitada) {
+          let narracion = Object.entries(conteo).map(([p,e])=>{
+            if(e === 1) return `${p}`;
+            if(e === 2) return `${p} al cuadrado`;
+            if(e === 3) return `${p} al cubo`;
+            return `${p} a la ${e}`;
+          }).join(" por ");
+
+          const frase = `La factorización prima de ${num} es ${narracion}`;
+
+          const utter = new SpeechSynthesisUtterance(frase);
+          utter.lang = "es-ES";
+          utter.rate = 1.0;
+          speechSynthesis.speak(utter);
+        }
+      }
+    }
+  }
+}
+
+
+// 🔴 Vibración + parpadeo rojo
+function efectoError(el){
+  el.style.animation = "vibrar 0.3s, parpadeoRojo 0.6s";
+  el.style.background = "#e57373"; 
+  setTimeout(()=>{
+    el.style.animation = "";
+    el.style.background = "";
+  }, 600);
+}
+
+
+// ===== Narración auxiliar =====
+function narrarTexto(msg){
+  if (typeof narracionHabilitada !== "undefined" && narracionHabilitada) {
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(msg);
+    utter.lang = "es-ES";
+    utter.rate = 1.0;
+    speechSynthesis.speak(utter);
+  }
+}
+
+
+
+// ===== Narración automática y botón repetir (Nivel 4) =====
+let narrandoNivel4 = false;
+let narracionHabilitada = false;
+
+// ===== Narrar Nivel 4 =====
+function narrarNivel4(auto = false){
+  if (!narracionHabilitada) return;
+
+  // 👇 Solo bloquea en modo normal
+  if (!DEBUG && auto && narrandoNivel4) return;
+
+  speechSynthesis.cancel();
+  narrandoNivel4 = true;
+
+  const num = Number(document.getElementById("inputNumeroNivel4").value) || 24; 
+  const modo = document.querySelector('input[name="modoNivel4"]:checked')?.value || "factores";
+  const tipo = (modo === "factores") ? "pares de factores" : "pares de factores primos";
+
+  const texto = `Da clic en generar ejercicio. Luego arrastra los números hacia los cuadros para formar los ${tipo} de ${num}. 
+  Recuerda que el orden no importa, gracias a la propiedad conmutativa de la multiplicación.`;
+
+  const utter = new SpeechSynthesisUtterance(texto);
+  utter.lang = "es-ES";
+  utter.rate = 1.0;
+
+  utter.onend = () => { narrandoNivel4 = false; };
+  speechSynthesis.speak(utter);
+}
+// 👉 Botón repetir narración (siempre dinámico con el número actual)
+document.getElementById("btnRepetirNivel4").addEventListener("click", ()=>{
+  if (!narracionHabilitada) return;
+  speechSynthesis.cancel();
+  setTimeout(()=> narrarNivel4(false), 100);
+});
+
+// 👉 Botón para desbloquear narraciones al inicio
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.createElement("button");
+  btn.textContent = "🔊 Activar narración";
+  btn.style.position = "fixed";
+  btn.style.bottom = "20px";
+  btn.style.right = "20px";
+  btn.style.padding = "10px 15px";
+  btn.style.zIndex = "9999";
+
+  btn.addEventListener("click", ()=>{
+    narracionHabilitada = true;
+    const utterTest = new SpeechSynthesisUtterance(" ");
+    utterTest.lang = "es-ES";
+    speechSynthesis.speak(utterTest);
+    mostrarToast("Narración activada ✅", "azul");
+    btn.remove();
+  });
+
+  document.body.appendChild(btn);
+});
+
+
+// 👉 Botón repetir narración (dinámico con el modo y número actual)
+document.getElementById("btnRepetirNivel4").addEventListener("click", ()=>{
+  if (!narracionHabilitada) return;
+  speechSynthesis.cancel();
+  setTimeout(()=> narrarNivel4(false), 100);
+});
+// 👉 Botón repetir narración (sin candado, siempre habla)
+document.getElementById("btnRepetirNivel4").addEventListener("click", ()=>{
+  if (!narracionHabilitada) return;
+  speechSynthesis.cancel();
+  setTimeout(()=> narrarNivel4(false), 100); // 👈 siempre reproduce
+});
+
+// 👉 Botón para desbloquear narraciones al inicio
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.createElement("button");
+  btn.textContent = "🔊 Activar narración";
+  btn.style.position = "fixed";
+  btn.style.bottom = "20px";
+  btn.style.right = "20px";
+  btn.style.padding = "10px 15px";
+  btn.style.zIndex = "9999";
+
+  btn.addEventListener("click", ()=>{
+    narracionHabilitada = true;
+    const utterTest = new SpeechSynthesisUtterance(" ");
+    utterTest.lang = "es-ES";
+    speechSynthesis.speak(utterTest);
+    mostrarToast("Narración activada ✅", "azul");
+    btn.remove();
+  });
+
+  document.body.appendChild(btn);
+});
+
+
+
+  // ===== Nivel 5: Producto de dos primos =====
+  const ejercicios=[
+    {numero:35, opciones:["5×7","3×11","2×19"], correcta:"5×7"},
+    {numero:34, opciones:["2×17","11×3","5×5"], correcta:"2×17"},
+    {numero:77, opciones:["7×11","13×5","19×2"], correcta:"7×11"},
+    {numero:21, opciones:["3×7","2×11","5×5"], correcta:"3×7"}
+  ];
+  const contQuiz=document.getElementById("contenedorQuiz");
+  let hechos=0;
+  function cargarQuiz(){
+    contQuiz.innerHTML="";
+    hechos=0;
+    ejercicios.forEach((ej,i)=>{
+      const div=document.createElement("div");
+      div.className="pregunta";
+      let html=`<p>¿Cuál es la factorización prima de <b>${ej.numero}</b>?</p>`;
+      ej.opciones.forEach(op=>{
+        html+=`<button onclick="responderQuiz(${i},'${op}',this)">${op}</button> `;
+      });
+      html+=`<div class="feedback" id="fbq${i}"></div>`;
+      div.innerHTML=html;
+      contQuiz.appendChild(div);
+    });
+  }
+  cargarQuiz();
+function responderQuiz(i,resp,btn){
+  const ej=ejercicios[i];
+  const fb=document.getElementById("fbq"+i);
+  if(resp===ej.correcta){
+    fb.textContent="¡Correcto!";
+    fb.style.color="lightgreen";
+    sonidoCorrecto.play();
+    hechos++;
+    mostrarToast("✅ Bien hecho", "verde"); // 👈
+  }else{
+    fb.textContent="Incorrecto.";
+    fb.style.color="red";
+    sonidoError.play();
+    mostrarToast("❌ Incorrecto", "dorado"); // 👈
+  }
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.disabled=true);
+  if(hechos===ejercicios.length){
+    sonidoVictoria.play();
+    mostrarToast("🚀 Pasando al Arcade", "dorado");
+    setTimeout(()=>iniciarArcade(),1500); // pasa al nivel 6
+  }
+}
+
+  // ===== Nivel 6: Arcade =====
+  let tiempo=30;
+  let puntos=0;
+  let intervaloArcade;
+  let numeroActual;
+  const canvasArc=document.getElementById("confetiArcade");
+  const ctxArc=canvasArc.getContext("2d");
+  let confetisArc=[], animArc;
+
+  function iniciarArcade(){
+    tiempo=30;
+    puntos=0;
+    document.getElementById("puntosArcade").textContent=puntos;
+    document.getElementById("tiempoArcade").textContent=tiempo;
+    cambiarPantalla("pantallaNivel6");
+    nuevoNumeroArcade();
+    intervaloArcade=setInterval(()=>{
+      tiempo--;
+      document.getElementById("tiempoArcade").textContent=tiempo;
+      if(tiempo<=0){
+        clearInterval(intervaloArcade);
+        mostrarResultadosArcade();
+      }
+    },1000);
+  }
+  function nuevoNumeroArcade(){
+    numeroActual=Math.floor(Math.random()*98)+2;
+    document.getElementById("numeroReto").textContent=numeroActual;
+  }
+  function responderArcade(esPrimoSeleccion){
+    if(esPrimo(numeroActual)===esPrimoSeleccion){
+      puntos++;
+      document.getElementById("puntosArcade").textContent=puntos;
+      sonidoCorrecto.play();
+    }else{
+      sonidoError.play();
+    }
+    nuevoNumeroArcade();
+  }
+
+  // ===== Confeti Arcade =====
+  function resizeCanvasArc(){
+    canvasArc.width=window.innerWidth;
+    canvasArc.height=200;
+  }
+  window.addEventListener("resize",resizeCanvasArc);
+  resizeCanvasArc();
+  function crearConfetiArc(){
+    const colores=["#ff0","#0f0","#0ff","#f0f","#f00","#00f","#ffa500"];
+    for(let i=0;i<120;i++){
+      confetisArc.push({
+        x:Math.random()*canvasArc.width,
+        y:Math.random()*canvasArc.height-canvasArc.height,
+        r:Math.random()*6+4,
+        color:colores[Math.floor(Math.random()*colores.length)],
+        velocidad:Math.random()*3+2
+      });
+    }
+  }
+  function dibujarConfetiArc(){
+    ctxArc.clearRect(0,0,canvasArc.width,canvasArc.height);
+    confetisArc.forEach(c=>{
+      ctxArc.beginPath();
+      ctxArc.arc(c.x,c.y,c.r,0,Math.PI*2);
+      ctxArc.fillStyle=c.color;
+      ctxArc.fill();
+    });
+    moverConfetiArc();
+  }
+  function moverConfetiArc(){
+    confetisArc.forEach(c=>{
+      c.y+=c.velocidad;
+      if(c.y>canvasArc.height){
+        c.y=-10;
+        c.x=Math.random()*canvasArc.width;
+      }
+    });
+  }
+  function animarConfetiArc(){
+    dibujarConfetiArc();
+    animArc=requestAnimationFrame(animarConfetiArc);
+  }
+  function iniciarConfetiArc(){
+    confetisArc=[];
+    crearConfetiArc();
+    animarConfetiArc();
+  }
+  function detenerConfetiArc(){
+    cancelAnimationFrame(animArc);
+    ctxArc.clearRect(0,0,canvasArc.width,canvasArc.height);
+  }
+
+  // ===== Ranking =====
+  function guardarEnRanking(puntos,medalla){
+    let ranking=JSON.parse(localStorage.getItem("rankingArcade")||"[]");
+    const fecha=new Date().toLocaleString();
+    ranking.push({puntos,medalla,fecha});
+    ranking.sort((a,b)=>b.puntos-a.puntos);
+    ranking=ranking.slice(0,5);
+    localStorage.setItem("rankingArcade",JSON.stringify(ranking));
+    mostrarRanking();
+  }
+  function mostrarRanking(){
+    const ranking=JSON.parse(localStorage.getItem("rankingArcade")||"[]");
+    const cuerpo=document.getElementById("cuerpoRanking");
+    cuerpo.innerHTML="";
+    ranking.forEach(r=>{
+      const fila=document.createElement("tr");
+      fila.innerHTML=`<td style="padding:6px 12px;">${r.puntos}</td>
+                      <td style="padding:6px 12px;">${r.medalla}</td>
+                      <td style="padding:6px 12px;">${r.fecha}</td>`;
+      cuerpo.appendChild(fila);
+    });
+  }
+  function mostrarResultadosArcade(){
+    document.getElementById("puntajeFinalArcade").textContent=puntos;
+    let medalla="";
+    detenerConfetiArc();
+    if(puntos<=5){
+      medalla="🥉 Bronce";
+    }else if(puntos<=12){
+      medalla="🥈 Plata";
+    }else{
+      medalla="🥇 Oro";
+      iniciarConfetiArc();
+    }
+    document.getElementById("medallaArcade").textContent=medalla;
+    guardarEnRanking(puntos,medalla);
+    mostrarToast("🏆 Arcade terminado", "dorado");
+    cambiarPantalla("pantallaArcadeFinal");
+    sonidoVictoria.play();
+  }
+  function reiniciarArcade(){
+    clearInterval(intervaloArcade);
+    detenerConfetiArc();
+    iniciarArcade();
+  }
+
+  // ===== Ranking Global =====
+  function mostrarRankingGlobal(){
+    const ranking=JSON.parse(localStorage.getItem("rankingArcade")||"[]");
+    const cuerpo=document.getElementById("cuerpoRankingGlobal");
+    cuerpo.innerHTML="";
+    ranking.forEach((r,i)=>{
+      const fila=document.createElement("tr");
+      fila.className="fila-ranking";
+      fila.style.animationDelay=`${i*0.4}s`;
+      fila.innerHTML=`<td style="padding:6px 12px;">${r.puntos}</td>
+                      <td style="padding:6px 12px;">${r.medalla}</td>
+                      <td style="padding:6px 12px;">${r.fecha}</td>`;
+      cuerpo.appendChild(fila);
+    });
+    cambiarPantalla("pantallaRankingGlobal");
+    sonidoScoreboard.currentTime=0;
+    sonidoScoreboard.play();
+  }
+
+
+
+function mostrarMultiplos(primo) {
+  const gridM = document.getElementById("gridMultiplos");
+  gridM.innerHTML = "";
+  let multiplos = [];
+  for (let i = primo * 2; i <= 100; i += primo) {
+    multiplos.push(i);
+  }
+  document.querySelector("#tablaMultiplos h3").textContent = `Múltiplos de ${primo}`;
+  
+  multiplos.forEach(m => {
+    const div = document.createElement("div");
+    div.textContent = m;
+    div.id = "m" + m;  // 👉 identificador único
+    div.style.background = "#ffffff33";
+    div.style.padding = "10px";
+    div.style.borderRadius = "6px";
+    div.style.textAlign = "center";
+    div.style.fontWeight = "bold";
+    gridM.appendChild(div);
+  });
+}
+
+
+function mostrarToast(mensaje, color="default") {
+  const toast = document.getElementById("toast");
+  toast.textContent = mensaje;
+
+  // 🎨 Colores dinámicos
+  if (color === "verde") {
+    toast.style.background = "#2e7d32";
+    toast.style.color = "#fff";
+  } else if (color === "azul") {
+    toast.style.background = "#1565c0";
+    toast.style.color = "#fff";
+  } else if (color === "dorado") {
+    toast.style.background = "#ffb300";
+    toast.style.color = "#000";
+  } else {
+    toast.style.background = "#333";
+    toast.style.color = "#fff";
+  }
+
+  // 🎶 Sonido
+  sonidoToast.currentTime = 0;
+  sonidoToast.play();
+
+  // 👉 Animación con rebote
+  toast.style.opacity = "1";
+  toast.style.animation = "slideUpBounce 0.8s ease forwards";
+
+  // Ocultar después de 2s con fade out
+  setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 2000);
+}
+
+
+
+</script>
+
+
+
+</body>
+</html>
+
+

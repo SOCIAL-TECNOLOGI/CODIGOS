@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Constructor Dinámico de Cuestionario</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; }
+    .hidden { display:none; }
+    .pregunta-builder, .pregunta { border:1px solid #ccc; padding:15px; margin:10px 0; border-radius:6px; }
+    .pregunta-builder h3 { margin-top:0; }
+    .option-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    .option-row input[type="text"] { flex:1; }
+    button { padding:6px 12px; border:none; background:#101b5a; color:#fff; border-radius:4px; cursor:pointer; margin-right:4px;}
+    button.danger { background:#c00; }
+  </style>
+</head>
+<body>
+
+  <!-- 1) MODELO DE CREACIÓN -->
+  <div id="builder-container">
+    <h1>Constructor de Preguntas</h1>
+    <button id="btn-nueva-pregunta"><i class="fas fa-plus"></i> Crear Pregunta</button>
+    <button id="btn-finalizar" class="danger" disabled>Terminar creación y generar cuestionario</button>
+
+    <div id="lista-preguntas"></div>
+
+    <!-- FORMULARIO DE PREGUNTA (oculto inicialmente) -->
+    <div id="form-pregunta" class="pregunta-builder hidden">
+      <h3>Nueva Pregunta</h3>
+      <label>Enunciado:</label><br>
+      <textarea id="input-enunciado" rows="3" style="width:100%"></textarea><br><br>
+
+      <label>Imagen (opcional):</label>
+      <input type="file" id="input-imagen" accept="image/*"><br><br>
+
+      <div id="opciones-container">
+        <h4>Opciones de respuesta</h4>
+        <!-- se inyectan aquí las opciones -->
+      </div>
+      <button id="btn-agregar-opcion"><i class="fas fa-plus"></i> Agregar opción</button><br><br>
+      <button id="btn-guardar-pregunta"><i class="fas fa-save"></i> Guardar pregunta</button>
+      <button id="btn-cancelar" class="danger">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- 2) CONTAINER DEL CUESTIONARIO (se genera dinámicamente) -->
+  <div id="quiz-container" class="hidden">
+    <h1 id="tituloEvaluacion">Cuestionario Dinámico</h1>
+    <div id="registro-container" class="pregunta-builder">
+      <h3>Registro Estudiante</h3>
+      <label>Nombre:</label>
+      <input type="text" id="nombre"><br><br>
+      <label>Email:</label>
+      <input type="email" id="email"><br><br>
+      <button id="btn-iniciar-quiz">Iniciar Cuestionario</button>
+    </div>
+    <div id="preguntas-quiz"></div>
+    <!-- Aquí puedes volver a reutilizar tu menú sticky con botones:
+         Comprobar, Puntaje, Explicaciones, Ver Resultados, etc.  -->
+  </div>
+
+<script>
+  // almacenamiento en memoria
+  const preguntas = [];
+
+  // referencias DOM
+  const btnNueva = document.getElementById('btn-nueva-pregunta');
+  const btnFinalizar = document.getElementById('btn-finalizar');
+  const listaPregs = document.getElementById('lista-preguntas');
+  const formPreg = document.getElementById('form-pregunta');
+  const inputEnun = document.getElementById('input-enunciado');
+  const inputImg   = document.getElementById('input-imagen');
+  const optsCont   = document.getElementById('opciones-container');
+  const btnAddOpt  = document.getElementById('btn-agregar-opcion');
+  const btnGuardar = document.getElementById('btn-guardar-pregunta');
+  const btnCancelar= document.getElementById('btn-cancelar');
+
+  // helpers para builder
+  let currentOpts = [];
+  function renderOpciones() {
+    optsCont.querySelectorAll('.option-row').forEach(n=>n.remove());
+    currentOpts.forEach((opt,i)=>{
+      const row = document.createElement('div');
+      row.classList.add('option-row');
+      row.innerHTML = `
+        <input type="radio" name="correcta" value="${i}">
+        <input type="text" placeholder="Texto opción" value="${opt.text}">
+        <button class="del-opt danger">✕</button>
+      `;
+      // listeners
+      row.querySelector('input[type="text"]').oninput = e => opt.text = e.target.value;
+      row.querySelector('.del-opt').onclick = ()=> {
+        currentOpts.splice(i,1);
+        renderOpciones();
+      };
+      optsCont.appendChild(row);
+    });
+  }
+  btnAddOpt.onclick = ()=>{
+    currentOpts.push({ text:'', correct:false });
+    renderOpciones();
+  };
+
+  // abre form nueva pregunta
+  btnNueva.onclick = ()=>{
+    formPreg.classList.remove('hidden');
+    btnNueva.disabled = true;
+    btnFinalizar.disabled = true;
+    inputEnun.value = '';
+    inputImg.value = '';
+    currentOpts = [];
+    renderOpciones();
+  };
+  btnCancelar.onclick = ()=>{
+    formPreg.classList.add('hidden');
+    btnNueva.disabled = false;
+    btnFinalizar.disabled = preguntas.length===0;
+  };
+
+  // guardar pregunta
+  btnGuardar.onclick = ()=>{
+    const enun = inputEnun.value.trim();
+    if(!enun || currentOpts.length<2) {
+      return alert('Agrega enunciado y al menos 2 opciones');
+    }
+    const sel = optsCont.querySelector('input[name="correcta"]:checked');
+    if(!sel) return alert('Marca cuál opción es la correcta');
+
+    // carga la imagen como DataURL
+    const file = inputImg.files[0];
+    if(file) {
+      const reader = new FileReader();
+      reader.onload = evt => {
+        pushPregunta(enun, evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      pushPregunta(enun, null);
+    }
+  };
+
+  function pushPregunta(enun, imgData) {
+    // marca opción correcta
+    const idxCorrect = parseInt(optsCont.querySelector('input[name="correcta"]:checked').value);
+    const opciones = currentOpts.map((o,i)=>({
+      text:o.text,
+      correct: i===idxCorrect
+    }));
+    preguntas.push({ enunciado: enun, img: imgData, opciones });
+    formPreg.classList.add('hidden');
+    btnNueva.disabled = false;
+    btnFinalizar.disabled = false;
+    actualizarLista();
+  }
+
+  function actualizarLista() {
+    listaPregs.innerHTML = '';
+    preguntas.forEach((p,i)=>{
+      const d = document.createElement('div');
+      d.classList.add('pregunta-builder');
+      d.innerHTML = `<strong>${i+1}. ${p.enunciado}</strong> &nbsp; 
+                     (<em>${p.opciones.length} opciones</em>)`;
+      listaPregs.appendChild(d);
+    });
+  }
+
+  // al terminar, generamos el quiz
+  btnFinalizar.onclick = ()=>{
+    document.getElementById('builder-container').classList.add('hidden');
+    document.getElementById('quiz-container').classList.remove('hidden');
+    // here you could immediately render las preguntas en #preguntas-quiz
+    // tras registro, etc.
+    renderRegistro();
+  };
+
+  // ---------- Renderizado de la parte de estudiante ----------
+  function renderRegistro() {
+    const btnInit = document.getElementById('btn-iniciar-quiz');
+    const regDiv  = document.getElementById('registro-container');
+    btnInit.onclick = e => {
+      e.preventDefault();
+      const name = document.getElementById('nombre').value.trim();
+      const mail = document.getElementById('email').value.trim();
+      if(!name||!mail) return alert('Completa nombre y mail');
+      regDiv.classList.add('hidden');
+      renderQuiz();
+    };
+  }
+
+  function renderQuiz() {
+    const container = document.getElementById('preguntas-quiz');
+    preguntas.forEach((p,i)=>{
+      const qdiv = document.createElement('div');
+      qdiv.classList.add('pregunta');
+      let html = `<p><strong>${i+1}. ${p.enunciado}</strong></p>`;
+      if(p.img) html += `<img src="${p.img}" style="max-width:200px"><br>`;
+      p.opciones.forEach((opt,j)=>{
+        html += `
+          <div class="opcion">
+            <input 
+              type="radio" 
+              name="resp${i}" 
+              value="${j}"
+            > ${opt.text}
+          </div>`;
+      });
+      html += `<div class="retroalimentacion-container"></div>`;
+      qdiv.innerHTML = html;
+      container.appendChild(qdiv);
+    });
+    // Aquí puedes inyectar tu menú de control:
+    // ej:
+    const menu = document.createElement('div');
+    menu.innerHTML = `
+      <button onclick="verificar()">Comprobar</button>
+      <button onclick="puntaje()">Puntaje</button>
+      <button onclick="verResultados()">Ver Resultados</button>
+    `;
+    container.parentNode.insertBefore(menu, container);
+  }
+
+  // ---------- Lógica de evaluación (simplificada) ----------
+  function verificar(){
+    document.querySelectorAll('.pregunta').forEach((q,i)=>{
+      const sel = q.querySelector('input[type=radio]:checked');
+      const fb  = q.querySelector('.retroalimentacion-container');
+      if(!sel) {
+        fb.textContent = 'Debes responder.';
+        fb.style.color='orange';
+      } else {
+        const correct = preguntas[i].opciones[+sel.value].correct;
+        fb.textContent = correct?'✅ Correcto':'❌ Incorrecto';
+        fb.style.color = correct?'green':'red';
+      }
+    });
+  }
+
+  function puntaje(){
+    let ac=0;
+    preguntas.forEach((p,i)=>{
+      const sel = document.querySelector(`input[name=resp${i}]:checked`);
+      if(sel && p.opciones[+sel.value].correct) ac++;
+    });
+    alert(`Aciertos: ${ac} / ${preguntas.length} (${(ac/preguntas.length*100).toFixed(1)}%)`);
+  }
+
+  function verResultados(){
+    verificar();
+    puntaje();
+    // aquí podrías invocar tu gráfico con Chart.js y excel export
+  }
+
+</script>
+</body>
+</html>

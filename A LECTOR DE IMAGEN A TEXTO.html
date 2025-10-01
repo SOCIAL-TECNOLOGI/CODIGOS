@@ -1,0 +1,1201 @@
+<html lang="es"><head><script type="text/javascript" async="" src="https://script.4dex.io/localstore.js"></script><meta http-equiv="origin-trial" content="Az520Inasey3TAyqLyojQa8MnmCALSEU29yQFW8dePZ7xQTvSt73pHazLFTK5f7SyLUJSo2uKLesEtEa9aUYcgMAAACPeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZS5jb206NDQzIiwiZmVhdHVyZSI6IkRpc2FibGVUaGlyZFBhcnR5U3RvcmFnZVBhcnRpdGlvbmluZyIsImV4cGlyeSI6MTcyNTQwNzk5OSwiaXNTdWJkb21haW4iOnRydWUsImlzVGhpcmRQYXJ0eSI6dHJ1ZX0=">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href="https://www.editpad.org/editpad.png" rel="icon" type="image/x-icon">
+  <meta name="_token" content="rMoLf2cgptflqH6hvkUDh4Vd07aV0kExZNZVbuxH">
+  <title>Extraer Texto de una Imagen - Convertir Imagen a Texto</title>
+  <meta name="description" content="Esta imagen al convertidor de texto utiliza algoritmos a base de AI para convertir texto de la imagen. Con el uso de la tecnología OCR, esta herramienta convierte la imagen al texto con precisión.">
+  <link rel="canonical" href="https://www.editpad.org/tool/es/imagen-a-texto">
+  <link rel="alternate" hreflang="x-default" href="https://www.editpad.org/tool/extract-text-from-image">
+  <link rel="alternate" hreflang="en" href="https://www.editpad.org/tool/extract-text-from-image">
+  <link rel="alternate" hreflang="es" href="https://www.editpad.org/tool/es/imagen-a-texto">
+  <link rel="alternate" hreflang="br" href="https://www.editpad.org/tool/br/imagem-em-texto">
+  <link rel="alternate" hreflang="id" href="https://www.editpad.org/tool/id/gambar-ke-teks">
+  <link rel="alternate" hreflang="fr" href="https://www.editpad.org/tool/fr/extraire-le-texte-de-limage">
+  <link rel="alternate" hreflang="de" href="https://www.editpad.org/tool/de/text-aus-bild-extrahieren">
+  
+  <script async="" src="//cdn.confiant-integrations.net/prebid/202401101304/wrap.js"></script><script type="text/javascript" src="https://cdn.confiant-integrations.net/U2BFwRmNpCRU_52zo36a84MPmYU/prebid/config.js" async=""></script><script type="text/javascript" async="" src="https://www.gstatic.com/recaptcha/releases/u-xcq3POCWFlCr3x8_IPxgPu/recaptcha__es_419.js" crossorigin="anonymous" integrity="sha384-OxYhFMLrvJezPrjcFDUbaGe/nBFVBYLbT3Gh5PZfT016Jg+WvAKdU/74l8c4vekD"></script><script type="text/javascript" async="" src="https://www.googletagmanager.com/gtag/js?id=G-1X1S77N82E&amp;l=dataLayer&amp;cx=c"></script><script async="" src="https://www.googletagmanager.com/gtm.js?id=GTM-MRHVSRB9"></script><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MRHVSRB9');</script>
+  
+  <link rel="stylesheet" href="https://www.editpad.org/web_assets/frontend/css/style.css?v3.1.18">
+
+
+  
+  <style>
+      .greybox {
+          border-top: 2px solid #a1afb4;
+      }
+  
+      .bps2,
+      .rbs {
+          border-radius: 5px;
+          margin-top: 21px;
+          clear: both;
+          background: #fff;
+          box-shadow: 0 0 6px 3px #f1f1f1;
+      }
+  
+      .rBtns {
+          padding: 5px 10px;
+          background: #f4f6f7;
+          color: #3c5057;
+          cursor: pointer;
+          border-radius: 5px;
+          font-size: 16px;
+          margin: 0 4px;
+          display: inline-block;
+      }
+ 
+  <link rel="stylesheet" href="https://www.editpad.org/web_assets/frontend/css/tool/extract-text-from-image.css?v4.7.1">
+ 
+          .ep__laoder__wrapper {
+              top: 0px;
+              left: 0px;
+              right: 0px;
+              bottom: 0px;
+              background: #ffffffcb;
+              width: 100%;
+              height: 100%;
+              display: block;
+              position: absolute;
+              z-index: 100;
+          }
+  
+          .ep__loader {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              background: transparent !important;
+          }
+  
+          .ep__loader__ani {
+              width: 30px;
+              height: 30px;
+              display: flex;
+              background: white;
+              border-radius: 100%;
+              border: 4px solid #f2f2f2;
+              transform: scale(1.2)
+          }
+  
+          /* #f2f2f2 */
+          .ep__loader__ani::before {
+              content: '';
+              display: block;
+              min-width: 21px;
+              min-height: 21px;
+              border: 3px solid #2196f3;
+              border-radius: 100px;
+              border-left-color: #f2f2f2;
+              animation: rotateLoader 1s ease-out infinite;
+              margin-top: -2px;
+              margin-left: -2px;
+              transform: rotate(360deg);
+              transform-origin: center;
+              transition: 0.3s ease
+          }
+  
+  
+          .ep__loader__ani::after {
+              content: '';
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 23px;
+              height: 23px;
+              display: block;
+              background-image: url('/web_assets/frontend/images/green-tick-icon.svg');
+              background-size: cover;
+              margin-top: -5px;
+              margin-left: 5px;
+              transition: 0.3s ease;
+              opacity: 0;
+  
+          }
+  
+  
+          .completed::after {
+              transition: 0.3s ease;
+              opacity: 1;
+          }
+  
+          .completed::before {
+              transform: rotate(130deg);
+              transition: 0.3s ease;
+              border: 3px solid #2196f3 !important;
+          }
+  
+          @keyframes rotateLoader {
+              0% {
+                  transform: rotate(0deg);
+              }
+  
+              100% {
+                  transform: rotate(360deg);
+              }
+          }
+  
+  <script async="" type="text/javascript" src="https://cdn.livechatinc.com/tracking.js"></script><script type="text/javascript" async="" src="//cdn.snigelweb.com/prebid/7.53.0/prebid.js?v=8984-1704980516960"></script><script type="text/javascript" async="" src="//c.amazon-adsystem.com/aax2/apstag.js"></script><script type="text/javascript" async="" src="//securepubads.g.doubleclick.net/tag/js/gpt.js"></script><script type="text/javascript" async="" src="//adengine.snigelweb.com/editpad.org/8984-1704980516960/adngin.js"></script><script type="text/javascript" async="" src="//cdn.snigelweb.com/argus/argus.js"></script><script type="text/javascript" async="" src="//cdnx.snigelweb.com/315b44bc-10e5-45a8-8f58-064d6e7317c0.js"></script><meta http-equiv="origin-trial" content="As0hBNJ8h++fNYlkq8cTye2qDLyom8NddByiVytXGGD0YVE+2CEuTCpqXMDxdhOMILKoaiaYifwEvCRlJ/9GcQ8AAAB8eyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3MTk1MzI3OTksImlzU3ViZG9tYWluIjp0cnVlfQ=="><meta http-equiv="origin-trial" content="AgRYsXo24ypxC89CJanC+JgEmraCCBebKl8ZmG7Tj5oJNx0cmH0NtNRZs3NB5ubhpbX/bIt7l2zJOSyO64NGmwMAAACCeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiV2ViVmlld1hSZXF1ZXN0ZWRXaXRoRGVwcmVjYXRpb24iLCJleHBpcnkiOjE3MTk1MzI3OTksImlzU3ViZG9tYWluIjp0cnVlfQ=="><meta http-equiv="origin-trial" content="A/ERL66fN363FkXxgDc6F1+ucRUkAhjEca9W3la6xaLnD2Y1lABsqmdaJmPNaUKPKVBRpyMKEhXYl7rSvrQw+AkAAACNeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiRmxlZGdlQmlkZGluZ0FuZEF1Y3Rpb25TZXJ2ZXIiLCJleHBpcnkiOjE3MTkzNTk5OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><meta http-equiv="origin-trial" content="A6OdGH3fVf4eKRDbXb4thXA4InNqDJDRhZ8U533U/roYjp4Yau0T3YSuc63vmAs/8ga1cD0E3A7LEq6AXk1uXgsAAACTeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiRmxlZGdlQmlkZGluZ0FuZEF1Y3Rpb25TZXJ2ZXIiLCJleHBpcnkiOjE3MTkzNTk5OTksImlzU3ViZG9tYWluIjp0cnVlLCJpc1RoaXJkUGFydHkiOnRydWV9"><script src="https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m202401110101/pubads_impl.js?cb=31080415" async=""></script><argprec0></argprec0><argprec1></argprec1><style type="text/css">.snigel-cmp-framework .sn-inner {background-color:#fffefe!important;}.snigel-cmp-framework .sn-b-def {border-color:#3440ca!important;color:#3440ca!important;}.snigel-cmp-framework .sn-b-def.sn-blue {color:#ffffff!important;background-color:#3440ca!important;border-color:#3440ca!important;}.snigel-cmp-framework .sn-selector ul li {color:#3440ca!important;}.snigel-cmp-framework .sn-selector ul li:after {background-color:#3440ca!important;}.snigel-cmp-framework .sn-footer-tab .sn-privacy a {color:#3440ca!important;}.snigel-cmp-framework .sn-arrow:after,.snigel-cmp-framework .sn-arrow:before {background-color:#3440ca!important;}.snigel-cmp-framework .sn-switch input:checked + span::before {background-color:#3440ca!important;}#adconsent-usp-link {border: 1px solid #3440ca!important;color:#3440ca!important;}#adconsent-usp-banner-optout input:checked + .adconsent-usp-slider {background-color:#3440ca!important;}#adconsent-usp-banner-btn {color:#ffffff;border: solid 1px #3440ca!important;background-color:#3440ca!important; }</style><script src="https://config.aps.amazon-adsystem.com/configs/3927" type="text/javascript" async="async"></script><script src="//secure.cdn.fastclick.net/js/pubcid/latest/pubcid.min.js"></script><script src="//cdn.id5-sync.com/api/1.0/id5-api.js"></script><style type="text/css">@font-face { font-family: Roboto; src: url('chrome-extension://gdojjgflncpbcfmenbkndfhoamlhajmf/fonts/Roboto-Regular.ttf'); }</style><link href="https://fonts.googleapis.com/css?family=Roboto:500" type="text/css" rel="stylesheet"><style type="text/css">:root {It:env(safe-area-inset-top);
+  Rt:env(safe-area-inset-bottom);
+  St:env(safe-area-inset-left);
+  Et:env(safe-area-inset-right);}</style><meta http-equiv="origin-trial" content="A4A26Ymj79UVY7C7JGUS4BG1s7MdcDokAQf/RP0paks+RoTYbXHxceT/5L4iKcsleFCngi75YfNRGW2+SpVv1ggAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjk1MTY3OTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="></head>
+  <body>
+  <input type="hidden" name="crindex" id="crindex" value="0">
+
+
+
+  <style>
+      .navsec {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+      }
+  
+      .navsec .logo {
+          display: flex;
+          gap: 5px;
+      }
+  
+      .navsec .nav__right {
+          display: flex;
+          gap: 10px;
+          flex-direction: row-reverse;
+          align-items: center;
+      }
+  
+      .toolDiv {
+          display: flex;
+          gap: 15px;
+      }
+  
+      .toolDiv a {}
+  
+      .content-sec {
+          margin-top: 50px;
+      }
+  
+      .rownr {
+          display: none;
+      }
+  
+      .dont-break-out {
+          max-height: 100%;
+          width: 100%;
+      }
+  
+      .sidebarinfo {
+          display: none;
+      }
+  
+      .navbar {
+          display: flex
+      }
+  
+      .content-sec {
+          display: flex;
+          flex-direction: column;
+      }
+  
+      .header .leftbar,
+      .content-sec .left {
+          width: 100% !important;
+      }
+  
+      .footer {
+          margin-top: 0px !important;
+      }
+  
+      .nav__right__btn {
+          display: flex;
+          gap: 10px;
+          margin-left: 50px;
+          align-items: center;
+      }
+  
+      .nav__right__btn a span,
+      .nav__right__btn button {
+          font-size: 16px !important;
+      }
+  
+      .nav__right__btn a,
+      .nav__right__btn button {
+          transition: 0.3s ease !important;
+          cursor: pointer !important;
+          align-items: center !important;
+          padding: 0px 10px !important;
+          height: 30px;
+      }
+  
+      .nav__right__btn a:hover,
+      .login__btn:hover {
+          box-shadow: -2px 2px 0px #000 !important;
+      }
+  
+      .nav__premium {
+          background-color: var(--color-yellow) !important;
+      }
+  
+      .navsec .logo {
+          display: flex;
+          align-items: center;
+      }
+  
+      .navsec .logo a {
+          display: flex;
+          align-items: center;
+  
+      }
+  
+      .login__btn {
+          background-color: var(--color-purple) !important;
+      }
+  
+      .navBtn {
+          border: none;
+          outline: none;
+          background-color: transparent;
+          display: flex;
+          align-items: center;
+          width: fit-content;
+          padding: 4px 10px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          border: 1px solid var(--color-black);
+          box-shadow: var(--box-shadow);
+          font-size: 16px !important;
+      }
+  
+      nav a {
+          text-decoration: none !important;
+      }
+  
+      .account__btn {
+          background-color: var(--color-green) !important;
+      }
+  
+      .search-top {
+          margin-left: 0px !important;
+      }
+  
+      .toolDiv2 {
+          margin-left: 15px;
+      }
+  
+      #search-icon-image {
+          width: 20px;
+      }
+  
+      .header__sidebar {
+          width: 100%;
+          background: #fff;
+          z-index: 100000;
+          border: 1px solid #000;
+          box-shadow: -2px 2px 0px #000;
+          margin-bottom: 5px;
+      }
+  
+  
+      .header__sidebar .nav__right {
+          display: flex;
+          flex-direction: column-reverse;
+      }
+  
+      .nav__right label {
+          max-width: fit-content !important;
+      }
+  
+  
+  
+      .header__sidebar .nav__right__btn {
+          flex-direction: column-reverse;
+          margin-top: 15px !important;
+      }
+  
+      .header__sidebar .nav__right__btn a {
+          justify-content: center !important;
+          width: 100%;
+          text-align: center !important;
+      }
+  
+      .header__sidebar .toolDiv2 {
+          margin-left: 0px !important;
+          margin-top: 15px !important;
+      }
+  
+      .header__sidebar a {
+          color: #000;
+          text-decoration: none;
+          font-size: 16px !important;
+      }
+  
+      .header__sidebar .toolDiv,
+      .header__sidebar .navbar,
+      .header__sidebar .nav__right__btn {
+          display: flex;
+          flex-direction: column;
+          display: flex;
+          flex-direction: column;
+          margin: auto 0px !important;
+      }
+  
+      .header__sidebar .toolDiv,
+      .header__sidebar .nav__right__btn {
+          padding: 30px 20px !important;
+  
+      }
+  
+      .header__sidebar .toolDiv {
+          border-bottom: 1px solid #000;
+      }
+  
+      .header__sidebar {
+          display: none;
+      }
+  
+      .menu__icon img {
+          max-width: 28px;
+          max-height: 28px;
+          transition: 0.3s ease;
+          background: #000;
+          transform: translateY(2px);
+          cursor: pointer;
+          display: none;
+      }
+  
+      .menu__icon img:hover {
+          transform: scale(1.02)
+      }
+  
+  
+      @media only screen and (max-width: 1260px) {
+          .menu__icon img {
+              display: block;
+          }
+  
+          .header__sidebar.active {
+              display: block;
+          }
+  
+          .header .navbar {
+              display: none;
+          }
+  
+          .nav__bar__premium {
+              display: none;
+          }
+  
+          .header__sidebar .nav__premium,
+          .header__sidebar .chat__button {
+              max-width: 300px;
+          }
+  
+          .header__sidebar .toolDiv,
+          .header__sidebar .toolDiv2 {
+              margin: auto !important;
+              width: 100%;
+              text-align: center;
+          }
+  
+          #app__header--dark {
+              position: absolute;
+              left: 104px;
+          }
+      }
+  
+      .sales__banner {
+          background: url('/web_assets/frontend/images/banners/sale-banner.svg');
+          width: 100%;
+          height: 45px;
+          background-size: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          color: #B34200;
+          gap: 4px;
+      }
+  
+      .sales__banner span {
+          font-weight: 700;
+      }
+  
+  
+  
+  
+  
+      @media only screen and (max-width: 768px) {
+          .chat__button {
+              display: none;
+          }
+      }
+ 
+          #chat-widget-minimized {
+              display: none !important;
+          }
+  
+          #chat-widget-container {
+              margin-bottom: 100px !important;
+              max-height: 614px !important;
+          }
+  
+          .nav__right__top {
+              justify-content: space-between;
+              width: 74%;
+          }
+  
+          @media only screen and (max-width: 1370px) {
+              .nav__right__top {
+                  width: 80%;
+              }
+          }
+      </style>
+
+
+
+
+
+  <div class="header">
+  <div class="navsec">
+  <span class="logo"><a href="https://www.editpad.org"><img src="https://www.editpad.org/imgs/logo128.png" alt="Edit Pad - Free Online Text Editor" width="16" height="16" hspace="2" vspace="0" border="0" align="bottom">Editpad</a><span class="flag-n3" data-title="New Tab" style="cursor: pointer;font-size: 20px;font-weight: 500;" id="newwindow"><a href="/" target="_blank" class="q">+</a></span> </span>
+  <div class="nav__right nav__right__top">
+  <div class="nav__right__btn" style="">
+  <label for="dark-mode-op" id="app__header--dark" class="" tooltip="Dark Mode" flow="left"><span id="darkmode" onclick="darkmode()" class="app__header--dark--span "><i class="gg-sun"></i></span></label>
+  <label class="search-top" style="margin-bottom: -3px !important" id="search-top" onclick="openSearchBar()" search=""><img id="search-icon-image" src="https://www.editpad.org/web_assets/frontend/images/search-icon.svg" class="search-icon-image" alt="search on editpad"></label>
+  <div id="search-bar-global">
+  <div class="autocomplete">
+  <input type="search" placeholder="Enter Search Term To Find Tool" id="search_query">
+  </div>
+  <span class="close-search" onclick="closeSearchBar()">×</span>
+  </div>
+  <a href="#" class="nav__bar__premium navBtn chat__button">
+  <img src="https://www.editpad.org/web_assets/frontend/images/chat-online-icon.svg" alt="">
+  Chat Online
+  </a>
+  <a href="https://www.editpad.org/tool/plans" class="nav__premium nav__bar__premium navBtn">
+  <img src="https://www.editpad.org/web_assets/frontend/images/premium-solid-icon.svg" alt="">
+  Get Premium
+  </a>
+  <a href="https://www.editpad.org/tool/login" class="navBtn login__btn">Login</a>
+  <div class="menu__icon">
+  <img src="https://www.editpad.org/web_assets/frontend/images/menu-icon.svg" alt="">
+  </div>
+  </div>
+  <span class="navbar" id="topnavbar">
+  <div class="toolDiv">
+  <a href="https://www.editpad.org/tool/es/plagiarism-checker">Detector de Plagio</a>
+  <a href="https://www.editpad.org/tool/es/paraphrasing-tool">Parafrasear online</a>
+  </div>
+  <div class="toolDiv toolDiv2">
+  <a href="https://www.editpad.org/tool/text-summarizer">Text
+  Summarizer</a>
+  </div>
+  <div class="toolDiv toolDiv2">
+  <a href="https://www.editpad.org/tool/essay-writer">Essay Writer</a>
+  </div>
+  </span>
+  </div>
+  </div>
+  </div>
+  <div class="header__sidebar">
+  <div class="nav__right" style="justify-content: space-between;">
+  <div class="nav__right__btn">
+  <a href="https://www.editpad.org/tool/plans" class="nav__premium navBtn">
+  <img src="https://www.editpad.org/web_assets/frontend/images/premium-solid-icon.svg" alt="">
+  Get Premium
+  </a>
+  <a href="#" class="navBtn chat__button">
+  <img src="https://www.editpad.org/web_assets/frontend/images/chat-online-icon.svg" alt="">
+  Chat Online
+  </a>
+  </div>
+  
+  <span class="navbar" id="topnavbar">
+  <div class="toolDiv">
+  <a href="https://www.editpad.org/tool/es/plagiarism-checker">Detector de Plagio</a>
+  <a href="https://www.editpad.org/tool/es/paraphrasing-tool">Parafrasear online</a>
+  </div>
+  </span>
+  </div>
+  </div>
+  <div class="labels">
+  <label style="font-size: 12px;text-transform: uppercase;" for="">advertisement</label>
+  </div>
+  <div class="flex-row" style="column-gap: 30px;margin:0rem auto;max-height: 110px !important;min-height: 110px;padding-bottom: 0px !important;">
+  <div class="flex-col" style="width:100%">
+  <div class="top_ad_box">
+  <div id="adngin-top_banner-0" data-google-query-id="CLS46b_c1oMDFY-80QQdGD4GKQ"><div id="google_ads_iframe_/22152718,21740973315/editpad.org_top_banner_1__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/22152718,21740973315/editpad.org_top_banner_1" name="google_ads_iframe_/22152718,21740973315/editpad.org_top_banner_1" title="3rd party ad content" width="728" height="100" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" aria-label="Advertisement" tabindex="0" allow="attribution-reporting" style="border: 0px; vertical-align: bottom;" data-load-complete="true" data-google-container-id="7"></iframe></div></div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-row" style="margin:0 auto">
+  <div class="flex-col tool__div__section " style="flex-basis:70%">
+  <div class="flex-row" style="flex-direction:column;margin:0 auto">
+  <div class="flex-col" style="width:100%">
+  <div class="flex-row" style="margin:0 auto;">
+  <div class="flex-col" style="width:100%">
+  <input required="" type="file" name="img[]" style="display:none;" onchange="readURL(this)" id="uploadFile" autocomplete="off" multiple="" accept=".jpg,.jpeg,.gif,.png,.bmp,.jpe,.jif,.jfif,.jfi,.webp,.tiff,.tif,.pdf">
+  <input type="hidden" name="uploadurl" style="display:none;" id="u
+                              ploadUrl" value="">
+  <input type="hidden" name="submitType" id="imgSRC" value="0">
+  <div class="content textContent">
+  <div class="prevbox__wrapper" style="display: none;">
+  <div class="loader__comp d-none">
+  <section class="ep__laoder__wrapper d-none" style="">
+  <div class="ep__loader">
+  <span style="" class="ep__loader__ani"></span>
+  <span class="ep__loader__text">Extracting Text...</span>
+  </div>
+  </section> </div>
+  <div style="padding: 0px 20px;" id="upload__file__count">
+  <div>
+  <b>Files Left: </b> <span id="images__count">0</span>
+  </div>
+  <div class="limit__error d-none">
+  Max 3 files Allowed
+  </div>
+  <div class="clear__all">
+  <span>Clear all</span>
+  <img src="https://www.editpad.org/web_assets/frontend/images/icons/clear.svg" alt="">
+  </div>
+  </div>
+  <div class="main-prev-box ui-sortable" id="main-prev-box"></div>
+  </div>
+  <div class="col-sm-12 main-ris-box d-none">
+  <div class="drag-zone hide_after_paste initials__insert__div activate" ondragover="_ondragover(event)" ondrop="_ondrop(event)" ondragleave="_ondragleave(event)" ondragenter="_ondragenter(event)" style="background: rgb(255, 255, 255); display: block;">
+  <img class="upload__icon" src="https://www.editpad.org/web_assets/frontend/images/new-icon/image-to-text-icon.svg?v1.0">
+  <span class="instUpload">Drag &amp; Drop files here</span>
+  <span class="or__option">or select</span>
+  <label class="upload__section">
+  <span class="mybtn" onclick="activupload()" id="uploadBtn">
+  <img src="https://www.editpad.org/web_assets/frontend/images/new-icon/upload-icon-itt.svg" alt="">
+  <span class="before">Upload File</span>
+  <span class="after">Click to browse</span>
+  </span>
+  <div class="form-group">
+  <img src="https://www.editpad.org/web_assets/frontend/images/link-icon.svg" alt="">
+  <input type="url" placeholder="Paste URL" id="inputURL" name="url" autocomplete="off" class="form-control green-border" style="" value="">
+  </div>
+  </label>
+  </div>
+  <input type="hidden" name="tool_submit" value="1">
+  <input type="submit" id="submitBtn" name="submit" value="1" style="display:none;">
+  </div>
+  <div class="result__response__wrapper">
+  <div class="result__topbar">
+  <p>Result</p>
+  <div class="result__topbar__left">
+  <p id="total__result__count">Showing <span>1</span> results</p>
+  <button id="download__zip" class="result__button">Download Zip
+  File</button>
+  <button id="start__over" class="result__button">Start Over</button>
+  </div>
+  </div>
+  <div class="result__response">
+                  <div class="response__box">
+                      <div class="response__image">
+                          <img src="">
+                      </div>
+                      <div class="response__content">
+                          <div class="response__topbar">
+                              <p>30.jpeg</p>
+                              <div class="response__button">
+                                  <button class="expand__txt">
+                                      <img src="https://www.editpad.org/web_assets/frontend/images/new-icon/expand-icon.svg" alt="expand content icon">
+                                  </button>
+  
+                                  <button class="copy__txt">
+                                      <img src="https://www.editpad.org/web_assets/frontend/images/new-icon/copy-icon.svg" alt="copy image icon">
+                                  </button>
+                                  <button class="download__txt">
+                                      <img src="https://www.editpad.org/web_assets/frontend/images/new-icon/download-icon.svg" alt="download image icon">
+                                  </button>
+                              </div>
+                          </div>
+                          <div class="response__text" contenteditable="true"></div>
+                      </div>
+                  </div></div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-col" style="width:100%;">
+  <center>
+  <div id="btnShadowRoot" class="d-none"></div>
+  </center>
+  </div>
+  <div class="flex-col d-none" style="width:100%">
+  <div class="content textContent d-none" style="text-align: center;margin-bottom: 3%;margin-top: 30px;padding-top: 0px;">
+  <div class="tool__options">
+  <button type="button" id="copyclip" class="sampBtn">
+  <span>Copied</span>
+  <img src="https://www.editpad.org/web_assets/frontend/images/copy-icon.svg" alt="">
+  </button>
+  <button id="download__btn">
+  <span>Download</span>
+  <img src="https://www.editpad.org/web_assets/frontend/images/download-icon.svg" alt="">
+  </button>
+  </div>
+  <div id="result" style="background: rgb(255, 255, 255);border: 1px solid rgb(204, 204, 204);margin: 0px auto;box-shadow: 0px 1px 11px 3px #ccc9;line-height: 1.8;display: block;overflow: auto;font-size: 15px;border-radius: 5px;white-space: break-spaces;text-align:left;display: flex;border: 1px solid #000;align-items: flex-start;">
+  <div style="display:flex; align-items: flex-start; padding: 15px;position: sticky; top: 0px;border-right: 1px solid #000;min-height: 300px">
+  <img id="imgURL" style="max-width: 200px;max-height: 200px;border:1px solid lightgray;" src="" alt="">
+  </div>
+  <div contenteditable="true" style="min-height:200px;padding: 15px;max-height: 300px;overflow-y: auto;width: 100%;" id="output__result">
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-col" style="width:100%; margin-top: 50px !important">
+  <div class="flex-row" style="justify-content:space-between;margin:0rem auto">
+  <div class="flex-col mobile-hide" style="min-height: 300px;">
+  <div style="text-align: center">
+  <div class="labels__ads" style="margin-top:0">
+  <label style="font-size: 12px;text-transform: uppercase;" for="">advertisement</label>
+  </div>
+  <div class="inlinADs">
+  <div id="adngin-sidebar_3-0" data-google-query-id="CPm8w4vc1oMDFe03TwgdjwMCKg"><div id="google_ads_iframe_/22152718,21740973315/editpad.org_sidebar_3_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/22152718,21740973315/editpad.org_sidebar_3_0" name="google_ads_iframe_/22152718,21740973315/editpad.org_sidebar_3_0" title="3rd party ad content" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" aria-label="Advertisement" tabindex="0" allow="attribution-reporting" style="border: 0px; vertical-align: bottom;" data-load-complete="true" data-google-container-id="1"></iframe></div></div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-col">
+  <div style="text-align: center; margin-bottom: 30px; display: none;">
+  <div class="labels__ads" style="margin-top:0">
+  <label style="font-size: 12px;text-transform: uppercase;" for="">advertisement</label>
+  </div>
+  <div class="inlinADs">
+  <div id="adngin-sidebar_4-0" data-google-query-id="CPj-8N_W1oMDFfCj0QQdjf8PGw"><div id="google_ads_iframe_/22152718,21740973315/editpad_sidebar_4_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 250px;"><iframe frameborder="0" src="https://5bd68dbbc7a245d05d005f5e68ca8501.safeframe.googlesyndication.com/safeframe/1-0-40/html/container.html" id="google_ads_iframe_/22152718,21740973315/editpad_sidebar_4_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" width="300" height="250" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="4" data-load-complete="true" style="border: 0px; vertical-align: bottom;"></iframe></div></div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-col" style="width:100%;margin-top:1rem">
+  <div style="text-align: center;">
+  <div class="content contentDiv" style="text-align: left;position:relative">
+  <div class="dont-break-out" style="width: 100%;padding-right: 5px;">
+  <h1 style="text-align:center">Convertir Imagen a Texto</h1>
+  <p>El convertidor de imagen a texto le permite extraer texto de una imagen con un solo clic.<br>
+  Escanea la imagen utilizando la última tecnología OCR y extrae cada pieza de texto escrita en la imagen.</p>
+  <h2>¿Cómo convertir la imagen al texto?</h2>
+  <p>Para extraer el texto de la imagen usando este convertidor en línea, siga los pasos a continuación:</p>
+  <ul>
+  <li>Arrastre o cargue un archivo del sistema.</li>
+  <li>O, pegue la URL de la imagen específica.</li>
+  <li>Haga clic en el botón Extraer texto.</li>
+  </ul>
+  <p>El convertidor utilizará la última tecnología OCR y genera el informe de texto extraído en segundos.</p>
+  <h2>¿Qué es la tecnología OCR?</h2>
+  <p>OCR es la tecnología "Reconocimiento de caracteres ópticas" que se usa para convertir cualquier imagen que contiene un texto legible manuscrito o impreso.</p>
+  <p>Una vez que el archivo se haya procesado a través de la OCR en línea, el texto extraído se puede editar adicionalmente usando software de procesamiento de textos como MS Word.</p>
+  <h2>¿Por qué usar este traductor de imagen?</h2>
+  <p>Esta imagen para el convertidor de texto es perfecta para escanear y extraer el texto legible deseado de la imagen.</p>
+  <p>Además, proporciona las siguientes características siguientes para obtener fácilmente el texto requerido desde cualquier imagen:</p>
+  <h3><strong>No hay registro</strong></h3>
+  <p>No se requiere ningún proceso de registro o instalación para usar este convertidor de texto.<br>
+  Es completamente gratuito y extrae texto de las imágenes dentro de una fracción de segundos.</p>
+  <h3><strong>Carga de imágenes</strong></h3>
+  <p>Esta función proporciona una opción para cargar imágenes en formato PNG, JPEG, BMP y JPG. Los usuarios también pueden arrastrar imágenes desde sus sistemas sin ningún obstáculo.</p>
+  <h3><strong>Extraer texto a través de URL</strong></h3>
+  <p>Extraer texto legible de las imágenes a través de URL le permite obtener el texto deseado de cualquier imagen en línea.</p>
+  <h3><strong>Informe de texto extraído preciso</strong></h3>
+  <p>Si sube una imagen en el convertidor como:<br>
+  &nbsp;<br>
+  Escanea toda la imagen, extrae el texto legible y genera el informe de texto preciso como:</p>
+  <h3><strong>Copia los datos de resultados</strong></h3>
+  <p>Esta característica proporciona una opción para copiar el texto extraído en tiempo real.</p>
+  <h2>Beneficios de usar la herramienta de imagen para texto.</h2>
+  <p>Hay una serie de ventajas clave de este convertidor en línea. Algunos de ellos se mencionan a continuación:</p>
+  <ul>
+  <li>La imagen para el convertidor de texto aumenta la productividad de los usuarios extrayendo el texto en segundos.</li>
+  <li>Los empresarios pueden usar esta utilidad para escanear sus documentos comerciales para crear informes de análisis sin ningún obstáculo.</li>
+  <li>Las personas en plataformas de redes sociales como Facebook y Twitter pueden encontrar algunas imágenes interesantes.</li>
+  <li>Pueden convertir estas imágenes en un formulario textual legible con un solo clic.</li>
+  <li>El convertidor de fotos ayuda a los usuarios a editar y actualizar el texto de resultados en ningún momento.</li>
+  <li>Hace que los documentos sean de búsqueda y ayuda a los usuarios a buscar texto específico fácilmente escrito en el archivo.</li>
+  </ul>
+  <div id="gtx-trans" style="left:7px; position:absolute; top:87.2125px">
+  <div class="gtx-trans-icon">&nbsp;</div>
+  </div>
+  </div>
+  <div class="toolsSec">
+  <div>
+  <h3 style="margin-bottom: 0px;margin-top: 0px;">
+  Other Tools
+  </h3>
+  <ul style="list-style-type: none;padding: 0;margin-top: 9px;" class="mul">
+  <li><a href="https://www.editpad.org/tool/es/paraphrasing-tool">Parafrasear online</a></li>
+  <li><a href="https://www.editpad.org/tool/es/plagiarism-checker">Detector de Plagio</a></li>
+  <li><a href="https://www.editpad.org/tool/es/article-rewriter">Reescribir Textos</a></li>
+  <li><a href="https://www.editpad.org/tool/es/text-summarizer">Resumidor De Textos</a></li>
+  <li><a href="https://www.editpad.org/tool/es/caracter-invisible">Carácter Invisible</a></li>
+  <li><a href="https://www.editpad.org/tool/es/imagen-a-texto">Convertir Imagen a Texto</a></li>
+  <li><a href="https://www.editpad.org/tool/es/corrector-castellano">Corrector castellano</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-texto-inverso">Texto inverso - Generador de texto al revés</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-texto-pequeno">Generador de texto pequeño: versalitas/texto diminuto</a></li>
+  <li><a href="https://www.editpad.org/tool/es/convertidor-de-texto-al-reves">Generador de texto al revés</a></li>
+  <li><a href="https://www.editpad.org/tool/es/convertidor-de-casos">Convertidor de Casos</a></li>
+  <li><a href="https://www.editpad.org/tool/es/comprobador-de-legibilidad">Comprobador de legibilidad</a></li>
+  <li><a href="https://www.editpad.org/tool/es/comprobador-de-diferencias">Comprobador de diferencias</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-extrano">Generador de texto extraño</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-con-estilo">Generador de texto con estilo</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-de-falla">Generador de texto de falla</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-fuentes-cursivas">Generador de fuentes cursivas</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-gotico">Generador de texto gótico</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-fuentes-discordia">Generador de fuentes de discordia</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-texto-estetico">Generador de texto estético</a></li>
+  <li><a href="https://www.editpad.org/tool/es/genial-generador-de-texto">Genial generador de texto</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-zalgo">Generador de texto Zalgo</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-texto-elegante">Generador de texto elegante</a></li>
+  <li><a href="https://www.editpad.org/tool/es/repetidor-de-texto">Repetidor de texto</a></li>
+  <li><a href="https://www.editpad.org/tool/es/generador-de-conclusiones">Generador de conclusiones</a></li>
+  <li><a href="https://www.editpad.org/tool/es/creador-de-ensayos"></a></li>
+  </ul>
+  <hr>
+  <div>
+  <h3 style="margin: 5px 0;">
+  Supported Languages</h3>
+  <p style="margin: 0px" class="lang__support">
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="en" href="https://www.editpad.org/tool/extract-text-from-image">EN</a>
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="es" href="https://www.editpad.org/tool/es/imagen-a-texto">ES</a>
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="br" href="https://www.editpad.org/tool/br/imagem-em-texto">BR</a>
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="id" href="https://www.editpad.org/tool/id/gambar-ke-teks">ID</a>
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="fr" href="https://www.editpad.org/tool/fr/extraire-le-texte-de-limage">FR</a>
+  <a style="color:#000000;opacity:0.6;text-decoration: none;" class="langSec" data-lang="de" href="https://www.editpad.org/tool/de/text-aus-bild-extrahieren">DE</a>
+  </p>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <div class="flex-col mobile-hide sticky__sidebar__add" style="width:30%">
+  <div style="position:sticky;top:0">
+  <div style="text-align: center;margin-top: -18px;">
+  <div class="labels__ads">
+  <label style="font-size: 12px;text-transform: uppercase;" for="">advertisement</label>
+  </div>
+  <div class="inlinADs">
+  
+  <div id="adngin-sidebar_sticky-0" style="min-width: 300px;min-height:600px;" data-google-query-id="CPq8w4vc1oMDFe03TwgdjwMCKg"><div id="google_ads_iframe_/22152718,21740973315/editpad.org_sidebar_sticky_0__container__" style="border: 0pt none; display: inline-block; width: 300px; height: 600px;"><iframe frameborder="0" src="https://5bd68dbbc7a245d05d005f5e68ca8501.safeframe.googlesyndication.com/safeframe/1-0-40/html/container.html" id="google_ads_iframe_/22152718,21740973315/editpad.org_sidebar_sticky_0" title="3rd party ad content" name="" scrolling="no" marginwidth="0" marginheight="0" width="300" height="600" data-is-safeframe="true" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" allow="attribution-reporting" aria-label="Advertisement" tabindex="0" data-google-container-id="2" style="border: 0px; vertical-align: bottom;" data-load-complete="true"></iframe></div></div>
+  </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <ul align="right" class="footer">
+  <li><a href="https://www.editpad.org">Editpad</a></li>&nbsp;&nbsp;&nbsp;
+  <li>
+  <a href="https://www.editpad.org/tool/es/plagiarism-checker">Detector de Plagio</a>
+  </li>&nbsp;&nbsp;&nbsp;
+  <li>
+  <a href="https://www.editpad.org/tool/es/paraphrasing-tool">Parafrasear online</a>
+  </li>&nbsp;&nbsp;&nbsp;
+  <li>
+  <a href="https://www.editpad.org/tool/blogs">Blogs</a>
+  </li>&nbsp;&nbsp;&nbsp;
+  <li>
+  <a href="https://www.editpad.org/refund-policy.html">Refund Policy</a>
+  </li>&nbsp;&nbsp;&nbsp;
+  <li>
+  <a href="https://www.editpad.org/contact.html">Contact us</a>
+  </li>
+  <br><br>
+  <li><a href="/" target="_blank" title="Home Editpad" rel="nofollow"><img src="https://www.editpad.org/editpad.png" alt="Edit Pad - Free Online Text Editor" width="16" height="16" hspace="2" vspace="0" border="0" align="bottom"></a>Edit Pad © 2023</li>
+  </ul>
+  <button id="edtpd_feedback_moddel_trigger_btn">Feedback</button>
+  
+  <div id="edtpd_feedback_modal_wrapper" class="edtpd-feedback-modal">
+  
+  <div class="modal-content">
+  <span class="edtpd-feedback-close">×</span>
+  <p>Feedback</p>
+  <div class="feedback-form">
+  <p class="responseMsg"></p>
+  <input type="email" id="edtpd_feedback_email_input" placeholder="Enter your email">
+  <input type="hidden" id="edtpd_feedback_tool_id" value="448">
+  <textarea id="edtpd_feedback_suggestion_input" placeholder="Write your Feedback / Suggestion / bug report / tool request to send webmaster"></textarea>
+  <button onclick="editpad_feedback()" id="feedback_send_btn" class="tool__btn">Send</button>
+  </div>
+  </div>
+  </div>
+  <div class="wrapper loginfadeInDown alert-error-model" style="display: none;">
+  <div id="background-login" style="background:grey; filter:alpha(opacity=60); -moz-opacity:0.6; -khtml-opacity:0.6; opacity:0.6; position:fixed; left:0; top:0; bottom:0; right:0; z-index:9; display: block;">
+  </div>
+  <div id="formContent" style="z-index: 10;">
+  <div class="col-md-12" style="background: #ebf6ff;border-radius: 10px;"><img src="https://www.editpad.org/web_assets/frontend/images/error_img.svg" class="alertimg" id="icon" alt="User Icon">
+  </div>
+  <h2 class="alrt-label" style="margin-bottom: 3%;"></h2>
+  <p style="padding-bottom: 29px;" class="alrt-text"></p>
+  </div>
+  </div>
+  <div class="wrapper loginfadeInDown alert-error-model-word" style="display: none;">
+  <div id="background-login-word" style="background:grey; filter:alpha(opacity=60); -moz-opacity:0.6; -khtml-opacity:0.6; opacity:0.6; position:fixed; left:0; top:0; bottom:0; right:0; z-index:9; display: block;">
+  </div>
+  <div id="formContent" style="z-index: 10;">
+  <div class="col-md-12" style="background: #ebf6ff;border-radius: 10px;"><img src="https://www.editpad.org/web_assets/frontend/images/wordlimit.svg" class="alertimg" id="icon" alt="User Icon">
+  </div>
+  <h2 class="alrt-label-word" style="margin-bottom: 3%;"></h2>
+  <div class="alrt-text-word" style="padding: 10px;"></div>
+  </div>
+  </div>
+  <input type="hidden" name="crindex" id="crindex" value="0">
+  <div id="floorad-wrapper" style="background:#f2f7f9!important;width:100%;bottom:0;position:fixed;box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);text-align: center;padding-top:4px;">
+  <span id="close-floorad-btn" onclick="hideFAd()" style="cursor:pointer;margin-right: 5px;display: inline-block;margin-top: -30px;float: right;">✖</span>
+  <div id="sticky-ad-background"></div>
+  <div id="adngin-adhesive_bottom-0" data-google-query-id="CLO46b_c1oMDFY-80QQdGD4GKQ"><div id="google_ads_iframe_/22152718,21740973315/editpad.org_adhesive_bottom_1__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/22152718,21740973315/editpad.org_adhesive_bottom_1" name="google_ads_iframe_/22152718,21740973315/editpad.org_adhesive_bottom_1" title="3rd party ad content" width="728" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" aria-label="Advertisement" tabindex="0" allow="attribution-reporting" style="border: 0px; vertical-align: bottom;" data-load-complete="true" data-google-container-id="6"></iframe></div></div>
+  </div>
+
+
+
+
+
+  <script>
+      function hideFAd(){
+          document.getElementById("floorad-wrapper").setAttribute("style", "display:none;");
+                      $("#consent").css("margin-bottom","0px");
+              }
+      </script>
+  <div id="detect"></div>
+  <div style="display:none;position: absolute;left: 0;top: 0;width: 100%;z-index: 10;background: #00000061;height: 100%;" id="alert_box_awdws">
+  <div class="alert_box_awdws">
+  <div style="background:#EBF6FF;text-align:center">
+  <img src="https://www.editpad.org/web_assets/frontend/images/adblocker_alert.svg">
+  </div>
+  <div style="text-align:center;padding: 2em;">
+  <h2>Adblock Detected!</h2>
+  <p>Our website is made possible by displaying ads to our visitors. please support us by whitelisting our
+  website.</p>
+  <button id="continue" style="cursor:pointer">Continue</button>
+  </div>
+  </div>
+  </div>
+  
+  <script>
+          window.__lc = window.__lc || {};
+          window.__lc.license = 16690533;
+          ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript",n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
+      </script>
+  <noscript><a href="https://www.livechat.com/chat-with/16690533/" rel="nofollow">Chat with us</a>, powered by <a href="https://www.livechat.com/?welcome" rel="noopener nofollow" target="_blank">LiveChat</a></noscript>
+  
+  <script type="text/javascript">
+      var base_url = "https://www.editpad.org/";
+      var tool_name = "Convertir Imagen a Texto";
+      var usrAgentt = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+      var curent_url = "https://www.editpad.org/tool/es/imagen-a-texto";
+      var emd_is_user_premium = +"0";
+  </script>
+  <script type="text/javascript" src="https://www.editpad.org/web_assets/frontend/script/jquery.js"></script>
+  <script type="text/javascript" src="https://www.editpad.org/web_assets/frontend/script/script.js?v3.1.5"></script>
+  <script type="text/javascript" src="https://www.editpad.org/web_assets/frontend/script/search-autocomplete-min.js"></script>
+  
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MRHVSRB9" height="0" width="0"
+          style="display:none;visibility:hidden"></iframe></noscript>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
+  <script src="https://www.editpad.org/web_assets/frontend/script/jquery-ui.min.js"></scrip
+ 
+          var isPremium = "0";
+          var extractTextUrl = "https://www.editpad.org/extractTextImg";
+          var isreturn = 0;
+ 
+      var ShadowRootBtnStyle = {
+          fontSize: '18px',
+          background: "#1fa95b",
+          border: "1px solid #000",
+          boxShadow: "2px 2px 0px #000000",
+          padding: "8.5px 10px",
+          minWidth: "160px",
+          color: "#ffffff",
+          cursor: 'pointer',
+          marginTop: '10px',
+          cursor: 'pointer',
+      };
+  
+      var toolSubmitBtn = "Extraer Texto";
+      var toolLang = "es";
+      var toolWordsLimit = +"1000";
+  
+  
+      $(".menu__icon").on('click', function() {
+          $(this).toggleClass('active');
+          $(".sidebar").toggleClass('active');
+      });
+  
+      var plagRoute = "https://www.editpad.org/tool/es/plagiarism-checker";
+      var paraphraseRoute = "https://www.editpad.org/tool/es/paraphrasing-tool";
+      var summarizeRoute = "https://www.editpad.org/tool/text-summarizer";
+  
+      function putContentForCheck(routeType) {
+          var route;
+          switch (routeType) {
+              case 'plag':
+                  route = plagRoute;
+                  break;
+              case 'paraphrase':
+                  route = paraphraseRoute;
+                  break;
+              case 'summarize':
+                  route = summarizeRoute;
+                  break;
+              default:
+                  route = '';
+                  break;
+          }
+          localStorage.setItem('contentFromOtherTool', (document.getElementById("result").innerText).trim());
+          window.location.href = route;
+      }
+  
+      function checkParaphraseRequestFromOtherPage() {
+          var content = localStorage.getItem('contentFromOtherTool');
+          if (content != null) {
+              $("#text").val(content.trim());
+              localStorage.removeItem('contentFromOtherTool')
+          }
+      }
+      $(document).ready(function() {
+          checkParaphraseRequestFromOtherPage();
+      });
+  </script>
+  <script src="https://www.editpad.org/web_assets/frontend/script/tool/extract-text-from-image.js?v3.6.8"></script>
+  <script>
+          $(".menu__icon").on('click', function() {
+              $(this).toggleClass('active');
+              $(".header__sidebar").toggleClass('active');
+          });
+  
+  
+          $(".chat__button").on('click', function() {
+              var iframe = $("#chat-widget-minimized")[0];
+              var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+              var chatButton = (iframeDocument.children)[0].querySelector('button');
+              $(chatButton).click();
+          });
+      </script>
+  <script async="" src="https://cdn.snigelweb.com/adengine/editpad.org/loader.js" type="text/javascript"></script>
+  <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-1X1S77N82E"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+  
+      function gtag() {
+          dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-1X1S77N82E");
+  </script>
+  <script type="text/javascript">
+      var allToolsSearchSeeds = [["home","Edit Pad - Online Text Editor &amp; Wordpad (Notepad) for Notes - es"],["paraphrasing-tool","Parafrasear online"],["plagiarism-checker","Detector de Plagio"],["article-rewriter","Reescribir Textos"],["text-summarizer","Resumidor De Textos"],["caracter-invisible","Carácter Invisible"],["imagen-a-texto","Convertir Imagen a Texto"],["corrector-castellano","Corrector castellano"],["generador-texto-inverso","Texto inverso - Generador de texto al revés"],["generador-texto-pequeno","Generador de texto pequeño: versalitas/texto diminuto"],["convertidor-de-texto-al-reves","Generador de texto al revés"],["convertidor-de-casos","Convertidor de Casos"],["comprobador-de-legibilidad","Comprobador de legibilidad"],["comprobador-de-diferencias","Comprobador de diferencias"],["generador-de-texto-extrano","Generador de texto extraño"],["generador-de-texto-con-estilo","Generador de texto con estilo"],["generador-de-texto-de-falla","Generador de texto de falla"],["generador-de-fuentes-cursivas","Generador de fuentes cursivas"],["generador-de-texto-gotico","Generador de texto gótico"],["generador-fuentes-discordia","Generador de fuentes de discordia"],["generador-texto-estetico","Generador de texto estético"],["genial-generador-de-texto","Genial generador de texto"],["generador-de-texto-zalgo","Generador de texto Zalgo"],["generador-de-texto-elegante","Generador de texto elegante"],["repetidor-de-texto","Repetidor de texto"],["generador-de-conclusiones","Generador de conclusiones"],["creador-de-ensayos",""],];
+      autocomplete(document.getElementById("search_query"), allToolsSearchSeeds);
+      $("#background-login,#close_login_popup").on('click', function(event) {
+          $(".alert-error-model").hide();
+      });
+      $(document).keydown(function(event) {
+          if ($("#search-bar-global").css('display') == 'block') {
+              switch (event.keyCode) {
+                  case 37:
+                      if ($("#search_queryautocomplete-list").find('.bg-gry').length <= 0) {
+                          $("#search_queryautocomplete-list").find('a:eq(0)').addClass('bg-gry');
+                          $("#crindex").val(0);
+                      } else {
+                          $("#search_queryautocomplete-list").find('a').removeClass('bg-gry');
+                          var crindex = +$("#crindex").val() - 1;
+                          crindex = (crindex <= 0) ? 0 : crindex;
+                          $("#search_queryautocomplete-list").find('a:eq(' + crindex + ')').addClass('bg-gry');
+                          $("#crindex").val(crindex)
+                      }
+                      break;
+                  case 38:
+                      if ($("#search_queryautocomplete-list").find('.bg-gry').length <= 0) {
+                          $("#search_queryautocomplete-list").find('a:eq(0)').addClass('bg-gry');
+                          $("#crindex").val(0);
+                      } else {
+                          $("#search_queryautocomplete-list").find('a').removeClass('bg-gry');
+                          var crindex = +$("#crindex").val() - 4;
+                          crindex = (crindex <= 0) ? 0 : crindex;
+                          $("#search_queryautocomplete-list").find('a:eq(' + crindex + ')').addClass('bg-gry');
+                          $("#crindex").val(crindex)
+                      }
+                      // console.log("Up key is pressed.");
+                      break;
+                  case 39:
+                      if ($("#search_queryautocomplete-list").find('.bg-gry').length <= 0) {
+                          $("#search_queryautocomplete-list").find('a:eq(0)').addClass('bg-gry');
+                          $("#crindex").val(0);
+                      } else {
+                          $("#search_queryautocomplete-list").find('a').removeClass('bg-gry');
+                          var crindex = +$("#crindex").val() + 1;
+                          $("#search_queryautocomplete-list").find('a:eq(' + crindex + ')').addClass('bg-gry');
+                          $("#crindex").val(crindex)
+                      }
+                      // console.log("Right key is pressed.");
+                      break;
+                  case 40:
+                      if ($("#search_queryautocomplete-list").find('.bg-gry').length <= 0) {
+                          $("#search_queryautocomplete-list").find('a:eq(0)').addClass('bg-gry');
+                          $("#crindex").val(0);
+                      } else {
+                          $("#search_queryautocomplete-list").find('a').removeClass('bg-gry');
+                          var crindex = +$("#crindex").val() + 4;
+                          $("#search_queryautocomplete-list").find('a:eq(' + crindex + ')').addClass('bg-gry');
+                          $("#crindex").val(crindex)
+                      }
+                      // console.log("Down key is pressed.");
+                      break;
+                  case 13:
+                      window.location.href = $(".bg-gry").attr('href');
+                      // console.log("Enter key is pressed.");
+                      break;
+              }
+          }
+      });
+  
+          var default_text =
+          "Welcome to EditPad.org - your online plain text editor. Enter or paste your text here. To download and save it, click on the button below.";
+      var doWarn = 1;
+  
+  
+          $(document).ready(function() {
+              if (!isrecaptchajsincluded) {
+                  loadRecaptchajsAPIonClickCallback();
+                  isrecaptchajsincluded = true;
+              }
+              var mycl_url = '';
+  
+              function getCookie(name) {
+                  // Split cookie string and get all individual name=value pairs in an array
+                  var cookieArr = document.cookie.split(";");
+  
+                  // Loop through the array elements
+                  for (var i = 0; i < cookieArr.length; i++) {
+                      var cookiePair = cookieArr[i].split("=");
+  
+                      /* Removing whitespace at the beginning of the cookie name
+                      and compare it with the given string */
+                      if (name == cookiePair[0].trim()) {
+                          // Decode the cookie value and return
+                          return decodeURIComponent(cookiePair[1]);
+                      }
+                  }
+  
+                  // Return null if not found
+                  return 'notfound';
+              }
+  
+              var config = {
+                  'messagingSenderId': '189537486031',
+                  'apiKey': 'AIzaSyBWa79m3ijZeD50d8ugN_g_hNGH1doSOr8',
+                  'projectId': 'editpad-ebf3d',
+                  'appId': '1:189537486031:web:bc7e3024b08096602863ba',
+              };
+              firebase.initializeApp(config);
+  
+              const messaging = firebase.messaging();
+              messaging
+                  .requestPermission()
+                  .then(function() {
+                      console.log("Notification permission granted.");
+  
+                      // get the token in the form of promise
+                      return messaging.getToken()
+                  })
+                  .then(function(token) {
+                      console.log(token);
+                      var pushTok = getCookie("push_token");
+                      console.log("yeh " + pushTok);
+                      if (pushTok != '' && pushTok != 'notfound') {
+                          if (pushTok != token) {
+  
+                              saveTokn(token, 'updated');
+                          }
+                      } else {
+                          saveTokn(token, 'saved');
+                      }
+  
+  
+                  })
+                  .catch(function(err) {
+                      console.log("Unable to get permission to notify.", err);
+                  });
+  
+              let enableForegroundNotification = true;
+              messaging.onMessage(function(payload) {
+                  // console.log("Message received. ", payload);
+                  // NotisElem.innerHTML = NotisElem.innerHTML + JSON.stringify(payload);
+                  var payll = JSON.parse(payload.data.notification);
+                  mycl_url = payll.click_action;
+                  if (enableForegroundNotification) {
+                      const {
+                          title,
+                          ...options
+                      } = JSON.parse(payload.data.notification);
+                      navigator.serviceWorker.getRegistrations().then(registration => {
+                          registration[0].showNotification(title, options);
+                      });
+                  }
+              });
+          });
+    
+  
+  
+  <script src="https://www.google.com/recaptcha/api.js"></script><iframe src="https://5bd68dbbc7a245d05d005f5e68ca8501.safeframe.googlesyndication.com/safeframe/1-0-40/html/container.html" style="visibility: hidden; display: none;"></iframe><iframe name="__tcfapiLocator" style="display: none;"></iframe><iframe name="__uspapiLocator" style="display: none;"></iframe><iframe name="__adconsentLocator" style="display: none;"></iframe><deepl-input-controller></deepl-input-controller><canvas id="AnnotateScreenShotCaptureCanvas" class="extension_reset_css " style="display: none; touch-action: none;"></canvas><canvas id="AnnotateScreenShotCopyCanvas" class="extension_reset_css " style="display: none; touch-action: none;"></canvas><canvas id="AnnotateAnnotationCaptureCanvas" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none; pointer-events: none;"></canvas><canvas id="AnnotateNotesAnnotationCaptureCanvas" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none; pointer-events: none;"></canvas><canvas id="AnnotateFeedbackAnnotationCaptureCanvas" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none; pointer-events: none;"></canvas><canvas id="AnnotateAnnotationSelectionCanvas" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none; pointer-events: none; cursor: auto;"></canvas><div id="AnnotateScreenCaptureDiv" class="extension_reset_css " data-annotateextensionversionno="8.30" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCapturelefthandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCapturetophandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCapturerighthandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCapturebottomhandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCaptureTopLefthandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCaptureBottomLefthandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenShotCaptureBottomRighthandle" class="extension_reset_css annotate-highlight-plugin-capture-tab-handle" style="display: none; touch-action: none;"></div><div id="AnnotateScreenCaptureBtnCancel" title="Cancel" class="extension_reset_css extension_icon extension_icon-close" style="display: none; color: rgb(0, 0, 0);"></div><div id="AnnotateScreenCaptureBtnOk" title="Capture on current page" class="extension_reset_css extension_icon extension_icon-capture_tab" style="display: none; color: rgb(0, 0, 0); touch-action: none;"></div><div id="AnnotateScreenCaptureBtnOkNewPage" title="Capture on new page" class="extension_reset_css extension_icon extension_icon-capture_new_page" style="display: none; color: rgb(0, 0, 0); touch-action: none;"></div><div id="AnnotateScreenCaptureBtnCopy" title="Copy to clipboard" class="extension_reset_css extension_icon extension_icon-copy_clipboard" style="display: none; color: rgb(0, 0, 0); touch-action: none;"></div><div id="AnnotateScreenShotCaptureMsg" class="extension_reset_css " style="display: none; touch-action: none;"></div><div id="AnnotateErrorMsgOverlay" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none;"></div><div id="AnnotateLaserElemeent" class=" extension_reset_css " style="display: none; width: 32px; height: 32px; top: 0px; left: 0px; border-radius: 16px; touch-action: none;"></div><div class="extension_reset_css annotate-no-print " id="AnnotateMsgDialog" style="display: none; touch-action: none;"><div id="AnnotateMsgDialogBtnClose" class="extension_reset_css extension_icon extension_icon-close_button_msg_dialog" style="color: rgb(33, 150, 243);"></div><div id="AnnotateMsgDialogHeader" class="extension_reset_css"></div><div class="extension_reset_css" id="AnnotateMsgDialogMessage"></div><div id="AnnotateImportOptionContainer" class="extension_reset_css"><div style="margin-bottom: 10px;"><div id="AnnotateImportFileNameLabel" class="extension_reset_css">Notebook name</div><div class="extension_reset_css" style="display: inline;"><input type="text" id="AnnotateFileName"></div><br><div class="extension_reset_css" id="AnnotateFileNameErr"></div></div><div class="extension_reset_css" style="margin-bottom: 20px;"><input type="radio" id="AnnotateImportOption1" name="importOption" class="ImportOption" value="all"><label for="AnnotateImportOption1" class="ImportOptionLabel">Entire Document</label></div><div><input type="radio" id="AnnotateImportOption2" name="importOption" class="ImportOption" value="selected"><label for="AnnotateImportOption2" class="extension_reset_css ImportOptionLabel" style="vertical-align: middle;">Selected Pages</label><div class="extension_reset_css" style="display: inline;"><input type="text" id="AnnotateImportRange" disabled="" placeholder="e.g. 1-5, 8, 11-13"></div><br><div class="extension_reset_css" id="AnnotateImportRangeErr"></div></div></div><div id="AnnotateSaveOptionContainer" class="extension_reset_css"><div class="extension_reset_css"><div class="extension_reset_css" style="margin-bottom: 8px;"><div id="AnnotateSaveAnnotationNameLabel" class="extension_reset_css TextInputElementLabel">Name</div><div class="extension_reset_css" style="display: inline;"><input type="text" id="AnnotateAnnotationName" class="extension_reset_css TextInputElement" spellcheck="false"></div><br><div class="extension_reset_css" id="AnnotateAnnotationNameErr"></div></div><div class="extension_reset_css" style="margin-bottom: 5px;"><div id="AnnotateSaveAnnotationDescriptionLabel" class="extension_reset_css TextInputElementLabel">Description</div><div class="extension_reset_css" style="display: inline;"><input type="text" id="AnnotateAnnotationDescription" class="extension_reset_css TextInputElement" spellcheck="false"></div></div></div><div class="extension_reset_css"><div class="extension_reset_css" style="margin-bottom: 20px;"><input type="radio" id="AnnotateSaveOption1" name="saveOption" class="extension_reset_css SaveOption" value="update"><label for="AnnotateSaveOption1" class="extension_reset_css saveOptionLabel">Update existing</label></div><div class="extension_reset_css" style="margin-bottom: 5px;"><input type="radio" id="AnnotateSaveOption2" name="saveOption" class="extension_reset_css SaveOption" value="create"><label for="AnnotateSaveOption2" class="extension_reset_css saveOptionLabel">Save new</label></div></div></div><div class="extension_reset_css"><div class="extension_reset_css" style="margin-bottom: 20px; padding-left: 10px;"><input type="radio" id="AnnotateApplyAnnotationOption1" name="applyAnnotationOption" class="extension_reset_css SaveOption" value="merge"><label for="AnnotateApplyAnnotationOption1" class="extension_reset_css saveOptionLabel">Merge with previous</label></div><div class="extension_reset_css" style="margin-bottom: 5px; padding-left: 10px;"><input type="radio" id="AnnotateApplyAnnotationOption2" name="applyAnnotationOption" class="extension_reset_css SaveOption" value="overwrite"><label for="AnnotateApplyAnnotationOption2" class="extension_reset_css saveOptionLabel">Overwrite previous</label></div></div><div class="extension_reset_css" style="position: relative; width: 105%; height: 5px; z-index: 1; box-shadow: rgba(0, 0, 0, 0.14) 0px 4px 5px 0px;"></div><div id="AnnotateWebAnnotationItemsContainer" class="extension_reset_css"></div><div class="extension_reset_css" id="AnnotateRecordingOptionContainer"><div class="extension_reset_css" style="margin-bottom: 20px;"><input type="radio" id="AnnotateRecordingOption1" name="recordingOption" class="extension_reset_css RecordingOption" value="a"><label for="AnnotateRecordingOption1" class="extension_reset_css recordingOptionLabel">Voice note</label></div><div class="extension_reset_css" style="margin-bottom: 20px;"><input type="radio" id="AnnotateRecordingOption2" name="recordingOption" class="extension_reset_css RecordingOption" value="av"><label for="AnnotateRecordingOption2" class="extension_reset_css recordingOptionLabel">Camera recording</label></div><div class="extension_reset_css" style="margin-bottom: 5px;"><input type="radio" id="AnnotateRecordingOption3" name="recordingOption" class="extension_reset_css RecordingOption" value="as"><label for="AnnotateRecordingOption3" class="extension_reset_css recordingOptionLabel">Screen recording</label></div></div><div id="AnnotateMsgDialogInputContainer" class="extension_reset_css" style="margin-bottom: 8px;"><div id="AnnotateMsgDialogInputLabel" class="extension_reset_css TextInputElementLabel">Name</div><div class="extension_reset_css" style="display: inline;"><input type="text" id="AnnotateMsgDialogInput" class="extension_reset_css TextInputElement" spellcheck="false"></div><br><div class="extension_reset_css" id="AnnotateMsgDialogInputErr"></div><div class="extension_reset_css" id="AnnotateMsgDialogInputInfo"></div></div><div id="AnnotateMsgDialogProgressBarContainer" class="extension_reset_css"><div id="AnnotateMsgDialogProgressBar" class="extension_reset_css"></div></div><div id="AnnotateMsgDialogCheckboxContainer" class="extension_reset_css"><input type="checkbox" id="AnnotateMsgDialogCheckbox" class="extension_reset_css"><label for="AnnotateMsgDialogCheckbox" class="extension_reset_css CheckboxLabel">Do not remind again</label></div><div id="AnnotateMsgDialogBtn1" class="extension_reset_css AnnotateMsgDialogBtn"></div><div id="AnnotateMsgDialogBtn2" class="extension_reset_css AnnotateMsgDialogBtn"></div><div id="AnnotateMsgDialogBtn3" class="extension_reset_css AnnotateMsgDialogBtn"></div><div id="AnnotateMsgDialogBtnDisabled" class="extension_reset_css AnnotateMsgDialogBtn AnnotateMsgDialogBtnDisabled"></div><div id="AnnotateMsgDialogTutorialDiv" class="extension_reset_css"></div><div style="height: 37px; width: 1px; display: block;"></div></div><div id="AnnotateImportPdfBtn" class="extension_reset_css " style="display: none; touch-action: none; right: 2px; top: 48px;"><div class="extension_reset_css " id="AnnotateImportPdfBtnDiv"><div class="extension_reset_css " style="width: 195px; margin: 0px;"><div class="extension_reset_css " id="AnnotateImportPdfBtnIcon" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsSAAALEgHS3X78AAACfklEQVRoge2asW/TUBDGvyZpExqkOEICxJCYBbFUeCiwQSRGlgJbB8jIGMQ/UAb2bN0QLIzQpQMDIkhZKhhSsSEBcQekMhCHAo1LW6N76qvtyKlb/M4OlX/SkyzHeXffe/fuTpbhOE7gAKABaAFwEh7kgzbSzwMEdMbAeTk6RxIAYG6MnJejHuRrBsEY8m61WkWv1xu5U1yDbJJtD3qQp6ME7KPrOjRNC3tMOWSTbIcRKmDcSQUkTSogaVIBSZMKIJY+/kHt+S8stAforO+omPLQ5KJO0Hxn48Hrgbh+u7aNR20b1VIG9ZlJNGbz0AoTrAIi78DchUmU8n4nzf6uEKIvbojd4SSyAL2UwdKdadybmRIr76VvO7j14jfqy5tsEiKHEFGr5MTA3nlovt8S4SR59mFLXD29eUKFOR/KsxCFVGu+iJe3p32hRSLokKuGLY1KIV4RdC66/V2ldljrgHEmK0R4WWjbSm2wFzISQQdcojorxVKJG7OuAMpMKotdLAJoF7xYtqNs7th6oUuns4d46uiwCrAG7kqvfuPpkdgEtNa2UW7+ELnfVJw6vSipxEHIdEm5//umP+YNheHEtgOap4Atf3LbCtkvqSpobAJqFXeVv1ius2eLE6JLPb+4AePJz8h22EJINnfYe7EpWfnqHmYV6ZRtByj3D7fXw3gL3L/CmkYvngqe/nolhzfzRTQu5yPbYAsh4r4xhVef/Qe4eaMgOlVVsAogR6+cy2J1fQePrxXw8Gr0FR+GVQCxcvck6/zpe6GkSQUkTSogaVIBSRMqoNvtwrKs2N0km2Q7jFGVeP+fpmmiXC7H5PaBdAJ/PJYfe/w3n9s4Dv4CmiVSwXi9N7YAAAAASUVORK5CYII=&quot;);"></div><div class="extension_reset_css " id="AnnotateImportPdfBtnText">Open with Annotate</div></div><div id="ImportPdfShowToolbarIcon" class="extension_reset_css ShowToolbarIcon ShowToolbarIconImportPdf extension_icon extension_icon-import_pdf" title="Import PDF into Content Library" style="color: rgb(0, 0, 0);"></div><div id="ImportPdfCloseIcon" class="extension_reset_css ShowToolbarIcon ImportPdfCloseIcon extension_icon extension_icon-close" title="Close" style="color: rgb(0, 0, 0);"></div></div></div><div id="AnnotateLoadAnnotationsBtn" class="extension_reset_css annotate-no-print " style="display: none; touch-action: none; right: 2px; top: 48px;"><div id="AnnotateLoadAnnotationsBtnDiv" class="extension_reset_css"><div class="extension_reset_css" style="width: 205px; margin: 0px;"><div class="extension_reset_css" id="AnnotateLoadAnnotationsBtnIcon" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsSAAALEgHS3X78AAACfklEQVRoge2asW/TUBDGvyZpExqkOEICxJCYBbFUeCiwQSRGlgJbB8jIGMQ/UAb2bN0QLIzQpQMDIkhZKhhSsSEBcQekMhCHAo1LW6N76qvtyKlb/M4OlX/SkyzHeXffe/fuTpbhOE7gAKABaAFwEh7kgzbSzwMEdMbAeTk6RxIAYG6MnJejHuRrBsEY8m61WkWv1xu5U1yDbJJtD3qQp6ME7KPrOjRNC3tMOWSTbIcRKmDcSQUkTSogaVIBSZMKIJY+/kHt+S8stAforO+omPLQ5KJO0Hxn48Hrgbh+u7aNR20b1VIG9ZlJNGbz0AoTrAIi78DchUmU8n4nzf6uEKIvbojd4SSyAL2UwdKdadybmRIr76VvO7j14jfqy5tsEiKHEFGr5MTA3nlovt8S4SR59mFLXD29eUKFOR/KsxCFVGu+iJe3p32hRSLokKuGLY1KIV4RdC66/V2ldljrgHEmK0R4WWjbSm2wFzISQQdcojorxVKJG7OuAMpMKotdLAJoF7xYtqNs7th6oUuns4d46uiwCrAG7kqvfuPpkdgEtNa2UW7+ELnfVJw6vSipxEHIdEm5//umP+YNheHEtgOap4Atf3LbCtkvqSpobAJqFXeVv1ius2eLE6JLPb+4AePJz8h22EJINnfYe7EpWfnqHmYV6ZRtByj3D7fXw3gL3L/CmkYvngqe/nolhzfzRTQu5yPbYAsh4r4xhVef/Qe4eaMgOlVVsAogR6+cy2J1fQePrxXw8Gr0FR+GVQCxcvck6/zpe6GkSQUkTSogaVIBSRMqoNvtwrKs2N0km2Q7jFGVeP+fpmmiXC7H5PaBdAJ/PJYfe/w3n9s4Dv4CmiVSwXi9N7YAAAAASUVORK5CYII=&quot;);"></div><div class="extension_reset_css" id="AnnotateLoadAnnotationsBtnText">Load previous annotations</div></div><div id="LoadAnnotationsShowToolbarIcon" class="extension_reset_css ShowToolbarIcon ShowToolbarIconLoadAnnotations extension_icon extension_icon-annotation_toolbar" title="Show annotation toolbar" style="color: rgb(0, 0, 0);"></div><div id="LoadAnnotationsCloseIcon" class="extension_reset_css ShowToolbarIcon LoadAnnotationsCloseIcon extension_icon extension_icon-close" title="Close" style="color: rgb(0, 0, 0);"></div></div></div><div class="extension_reset_css AnnotateNet_widget" data-id="Toast" id="AnnotateExtensionToastDiv" style="left: 449.2px;"><div class="extension_reset_css AnnotateNet_widget annotateellipsis" data-id="Toast_ExtensionWidget" style="display: block;"><div class="extension_reset_css AnnotateNet_widget annotateclickable" data-id="Widget" title="Resize" style="z-index: 8; display: none;"></div></div><div class="extension_reset_css AnnotateNet_widget annotateclickable" data-id="Toast_ExtensionWidget" style="display: none; text-align: center; color: rgb(33, 150, 243); width: 48px; height: 36px; line-height: 36px;"><div class="extension_reset_css AnnotateNet_widget annotateclickable" data-id="Widget" title="Resize" style="z-index: 8; display: none;"></div></div></div><div class="extension_reset_css AnnotateNet_widget annotate-modal" data-id="LoaderMessageDialog" style="display: none; width: 420px; height: 110px; left: 239px; top: 253px;"><div class="annotate-modal-header" style="display: none;"><div class="annotate-modal-header-close extension_icon extension_icon-close" style="display: none;"></div><div class="annotate-modal-header-text"></div></div><div class="extension_reset_css annotate-loader-modal-content" style="height: 110px;"><div class="extension_reset_css AnnotateDivElement AnnotateLoading" style="height: 36px; width: 36px; left: 24px; top: 0px;"></div><div class="extension_reset_css AnnotateDivElement annotate-wrap-text" style="height: auto; width: 356px; left: 40px; top: 0px;">Loading...</div></div><div class="annotate-modal-footer" style="display: none;"></div></div><iframe name="cnftComm" style="display: none; position: fixed; left: -999px; top: -999px; width: 0px; height: 0px;"></iframe><div id="chat-widget-container" style="opacity: 1; visibility: visible; z-index: 2147483639; position: fixed; bottom: 0px; width: 84px; height: 84px; max-width: 100%; max-height: calc(100% + 0px); min-height: 0px; min-width: 0px; background-color: transparent; border: 0px; overflow: hidden; right: 0px; transition: none 0s ease 0s !important;"><iframe allow="autoplay; microphone *; camera *; display-capture *; picture-in-picture *; fullscreen *;" src="https://secure.livechatinc.com/customer/action/open_chat?license_id=16690533&amp;group=5&amp;embedded=1&amp;widget_version=3&amp;unique_groups=0" allowtransparency="true" id="chat-widget" name="chat-widget" title="LiveChat chat widget" scrolling="no" style="width: 100%; height: 100%; min-height: 0px; min-width: 0px; margin: 0px; padding: 0px; background-image: none; background-position: 0% 0%; background-size: initial; background-attachment: scroll; background-origin: initial; background-clip: initial; background-color: rgba(0, 0, 0, 0); border-width: 0px; float: none; color-scheme: normal; position: absolute; inset: 0px; transition: none 0s ease 0s !important; display: none; visibility: hidden;"></iframe><iframe allowtransparency="true" id="chat-widget-minimized" name="chat-widget-minimized" title="LiveChat chat widget" scrolling="no" style="width: 100%; height: 100%; min-height: 0px; min-width: 0px; margin: 0px; padding: 0px; background-image: none; background-position: 0% 0%; background-size: initial; background-attachment: scroll; background-origin: initial; background-clip: initial; background-color: rgba(0, 0, 0, 0); border-width: 0px; float: none; color-scheme: normal; display: block;"></iframe></div><iframe src="https://s.amazon-adsystem.com/iu3?cm3ppd=1&amp;d=dtb-pub&amp;csif=t&amp;gdpr=0&amp;dl=n-Azerion" style="display: none;"></iframe><iframe src="https://www.google.com/recaptcha/api2/aframe" width="0" height="0" style="display: none;"></iframe></body><div id="vimeo-record-extension"></div><iframe name="goog_topics_frame" src="https://securepubads.g.doubleclick.net/static/topics/topics_frame.html" style="display: none;"></iframe><iframe sandbox="allow-scripts allow-same-origin" id="504b224b5fc032e" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://sdk.streamrail.com/cs-config/cs.html?org=640896782563760001e2b39e&amp;tc=64634afa624941000166cbff&amp;as=64634afa624941000166cc01&amp;type=hb&amp;wd=cs.yellowblue.io&amp;domain=editpad.org">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="51c32b93e0a7c28" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://acdn.adnxs.com/dmp/async_usersync.html">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="5285d6341bbf512" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://js-sec.indexww.com/um/ixmatch.html">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="5328e8a2dc2a4cf" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://acdn.adnxs.com/dmp/async_usersync.html">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="548454ce52d41c" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://eb2.3lift.com/sync?us_privacy=1---&amp;">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="5533e6373eb41b9" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://snigel-d.openx.net/w/1.0/pd?gdpr=0&amp;gdpr_consent=&amp;us_privacy=1---">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="56460bc9e372d6b" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://onetag-sys.com/usync/?cb=1705022208259&amp;gdpr=0&amp;us_privacy=1---">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="57e8b1953ab8a2" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://sync.a-mo.net/isyn?__st=iframe&amp;gdpr=0&amp;gdpr_consent=&amp;us_privacy=1---_e=CuMBSg93d3cuZWRpdHBhZC5vcmdSC2Fhcy00YTJiZjk3WghwYmExLjMuMmoPd3d3LmVkaXRwYWQub3Jn-gEGNy41My4w6AIBiAOanqilBqgDUOoDJDBjYTU4NGI1LWFiZTAtNDFjOS04NTg0LTYxZjc1NzUyYjE1ZqoEB0lTUC9NT0KyBQNVU0TSBQkxMDUxOTkzNjXYBQDgBQHqBQdkZXNrdG9w-gUEZGMxM9IGIDE5NkYxRUM4QzZBNEE0NjUyNEJERjlCQjQ0NTk5OEQ2qgcDd2ViygcLZWRpdHBhZC5vcmfgBwE">
+      </iframe><iframe sandbox="allow-scripts allow-same-origin" id="58d34becfbe3ce8" frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0px;width:0px;display:none;" scrolling="no" src="https://csync.smilewanted.com?us_privacy=1---">
+      </iframe></html>
+
+      
+document.getElementById('imageInput').addEventListener('change', handleImage);
+
+function handleImage() {
+    const input = document.getElementById('imageInput');
+    const output = document.getElementById('output');
+
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+
+        img.onload = function() {
+            recognizeText(img)
+                .then(({ data: { text } }) => {
+                    output.innerText = text;
+                })
+                .catch(error => {
+                    console.error('Error al reconocer texto:', error);
+                });
+        };
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function recognizeText(image) {
+    return Tesseract.recognize(
+        image,
+        'spa', // Idioma español
+        {
+            logger: info => console.log(info),
+        }
+    );
+}
+
+
+</script>

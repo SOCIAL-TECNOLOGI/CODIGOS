@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Valor Posicional – Competencias</title>
+<style>
+  body{font-family:Arial, sans-serif; background:#f0f4f8; text-align:center; color:#333;}
+  h1{color:#0066cc;}
+  .number-table{display:flex; justify-content:center; margin:20px auto; flex-wrap:wrap; max-width:900px;}
+  .cell{
+    border:1px solid #999; padding:10px; margin:2px; min-width:50px;
+    border-radius:6px; background:#fff; cursor:pointer;
+    transition:0.3s;
+  }
+  .highlight{background:#fde68a;}
+  .correct{background:#bbf7d0 !important;}
+  .wrong{background:#fecaca !important;}
+  #feedback{margin:20px; font-size:1.1em; font-weight:bold;}
+  #contexto{margin-top:20px; padding:15px; background:#fff; border-radius:8px; display:none;}
+  button{margin-top:20px; padding:10px 20px; background:#0066cc; color:#fff; border:none; border-radius:8px; cursor:pointer;}
+  button:hover{background:#004a99;}
+</style>
+</head>
+<body>
+
+<h1>🎮 Juego de Valor Posicional – Por Competencias</h1>
+<p>Analiza el número, identifica la posición pedida y resuelve el problema.</p>
+
+<div id="ejercicio">
+  <h2 id="pregunta">👉 ¿Cuál es la cifra de las <b>centenas</b>?</h2>
+  <div class="number-table" id="tabla"></div>
+  <div id="feedback"></div>
+  <div id="contexto"></div>
+  <button onclick="siguiente()">➡️ Siguiente</button>
+</div>
+
+<script>
+const ejercicios = [
+  {
+    numero:"126346",
+    lugar:"centenas",
+    indice:3, // posición desde la derecha: 0=unidades,1=decenas,2=centenas...
+    contexto:"Este número representa la cantidad de boletos vendidos en un concierto. ¿Qué significa la cifra de las centenas?",
+    respuestaContexto:"La cifra 3 en las centenas significa que se vendieron 300 boletos adicionales."
+  },
+  {
+    numero:"33848590040",
+    lugar:"decenas de millar",
+    indice:4,
+    contexto:"Este número representa la población de un país ficticio. ¿Qué significa la cifra de las decenas de millar?",
+    respuestaContexto:"La cifra 9 en las decenas de millar significa que hay 90,000 personas en esa posición del número."
+  },
+  {
+    numero:"734623783774",
+    lugar:"unidades de millar de millón",
+    indice:9,
+    contexto:"Este número representa la producción anual de una fábrica. ¿Qué significa la cifra de las unidades de millar de millón?",
+    respuestaContexto:"La cifra 4 en las unidades de millar de millón significa 4,000,000,000 unidades producidas."
+  }
+];
+
+let actual=0;
+
+function cargarEjercicio(){
+  let ex=ejercicios[actual];
+  document.getElementById("pregunta").innerHTML="👉 ¿Cuál es la cifra de las <b>"+ex.lugar+"</b>?";
+  let tabla=document.getElementById("tabla");
+  tabla.innerHTML="";
+  let digitos=ex.numero.split("").reverse();
+  digitos.forEach((d,i)=>{
+    let div=document.createElement("div");
+    div.className="cell";
+    div.textContent=d;
+    if(i===ex.indice) div.classList.add("highlight");
+    div.onclick=()=>verificar(i,d,div);
+    tabla.appendChild(div);
+  });
+  document.getElementById("feedback").textContent="";
+  document.getElementById("contexto").style.display="none";
+}
+
+function verificar(i,d,div){
+  let ex=ejercicios[actual];
+  if(i===ex.indice){
+    div.classList.add("correct");
+    document.getElementById("feedback").textContent="✅ ¡Correcto! La cifra es "+d;
+    // Mostrar el contexto
+    let ctx=document.getElementById("contexto");
+    ctx.style.display="block";
+    ctx.innerHTML="<p><b>Contexto:</b> "+ex.contexto+"</p><p><i>Respuesta esperada:</i> "+ex.respuestaContexto+"</p>";
+  }else{
+    div.classList.add("wrong");
+    document.getElementById("feedback").textContent="❌ Intenta otra vez...";
+  }
+}
+
+function siguiente(){
+  actual++;
+  if(actual>=ejercicios.length){
+    document.getElementById("ejercicio").innerHTML="<h2>🎉 ¡Felicidades, terminaste todos los retos!</h2>";
+  }else{
+    cargarEjercicio();
+  }
+}
+
+cargarEjercicio();
+</script>
+</body>
+</html>

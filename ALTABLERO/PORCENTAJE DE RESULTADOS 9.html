@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Respuestas de Estudiantes</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: 90%;
+        max-width: 1200px;
+        overflow: hidden;
+        max-height: 80vh; /* Altura máxima del contenedor */
+        overflow-y: auto; /* Habilita el scroll vertical cuando el contenido excede la altura máxima */
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #04735f;
+    }
+
+    textarea {
+        width: calc(100% - 16px);
+        height: 120px;
+        margin-bottom: 10px;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+/* Estilos para los botones */
+button {
+            background-color: #649a7c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:focus {
+            outline: none;
+        }
+    .table-container {
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    table, th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    th {
+        background-color: #3498db;
+        color: white;
+        cursor: pointer;
+    }
+
+    th, td {
+        min-width: 80px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .correct {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .incorrect {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .chart-container {
+        width: 100%;
+        margin: 20px 0;
+    }
+
+
+
+    #search-student {
+        width: 100%;
+        margin: 20px 0;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    #student-list {
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .summary-table {
+        width: 100%;
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+
+    .summary-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .summary-table th, .summary-table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .summary-table th {
+        background-color: #34495e;
+        color: white;
+        cursor: pointer;
+    }
+
+    .summary-table th:hover {
+        background-color: #2c3e50;
+    }
+
+    /* Estilos para el botón flotante */
+    .restore-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+    }
+
+    .restore-button:hover {
+        background-color: #2980b9;
+    }
+
+    .restore-button i {
+        font-size: 24px;
+    }
+
+ 
+    .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .chart-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-container canvas {
+            display: inline-block;
+        }
+
+        .asc-icon::before {
+        content: "\f0de"; /* Icono de flecha hacia arriba */
+        margin-right: 4px;
+    }
+    .desc-icon::before {
+        content: "\f0dd"; /* Icono de flecha hacia abajo */
+        margin-right: 4px;
+    }
+
+
+</style>
+</head>
+
+
+<body>
+<div class="container">
+    <h1>Análisis de Respuestas de Estudiantes</h1>
+    <textarea id="survey-data" placeholder="Pegue los datos del encabezado y respuestas de los estudiantes aquí..."></textarea>
+
+    <button onclick="procesarDatos()">Procesar Datos</button>
+
+    <button id="toggle-general-results" onclick="toggleTableVisibility('results-table', this)">
+        <i class="fas fa-eye"></i> Ver Resultados Generales
+    </button>
+    
+    
+    <div class="table-container">
+        <table id="results-table" style="display: none;">
+            <thead id="table-head">
+                <!-- Encabezado de la tabla se generará dinámicamente -->
+            </thead>
+            <tbody id="table-body">
+                <!-- Cuerpo de la tabla se generará dinámicamente -->
+            </tbody>
+        </table>
+
+
+
+
+        
+        
+    </div>
+    <div class="chart-container">
+        <h2>Análisis General</h2>
+        <div class="chart-js-container">
+            <canvas id="chart"></canvas>
+            <button onclick="procesarDatos()"><i class="fas fa-redo"></i></button>
+
+            <button onclick="descargarGrafico('chart', 'AnalisisGeneral')">Descargar Gráfico</button>
+        </div>
+    </div>
+    <h2>Análisis Personalizado por Estudiante</h2>
+    <select id="student-list" onchange="mostrarGraficoEstudiante()">
+        <option value="">Seleccionar estudiante...</option>
+    </select>
+    <div id="student-chart-container" class="chart-container">
+        <div class="chart-js-container">
+            <canvas id="student-chart"></canvas>
+            <button onclick="descargarGrafico('student-chart', 'AnalisisEstudiante')">Descargar Gráfico</button>
+        </div>
+    </div>
+    
+    
+
+        
+    <div class="summary-table">
+        <h2>Resumen de Desempeño por Estudiante</h2>
+        <button onclick="ordenarTablaResumen()">Ordenar por Errores (Ascendente)</button>
+        
+        <button id="toggle-summary-results" onclick="toggleTableVisibility('summary-table', this)">
+            <i class="fas fa-eye"></i> Ver Resumen
+        </button>
+
+        <input type="text" id="student-filter" placeholder="Nombre del estudiante">
+        <button onclick="filtrarEstudiante()">Buscar</button>
+
+       
+
+        <table id="summary-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th onclick="ordenarTablaResumen()">Nombre</th>
+                    <th>% Aciertos</th>
+                    <th>% Errores</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body">
+                <!-- Contenido de la tabla de resumen se generará dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    
+
+
+  
+
+
+</div>
+
+
+
+<button class="restore-button" onclick="restaurarPagina()"><i class="fas fa-redo"></i></button>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+
+<script>
+    let estudiantes = [];
+    let preguntas = [];
+    let respuestasCorrectas = {};
+
+    function procesarDatos() {
+        const textarea = document.getElementById('survey-data');
+        const datos = textarea.value.trim().split('\n');
+
+        if (datos.length < 3) {
+            alert('Ingrese al menos un estudiante con sus respuestas después del estudiante guía.');
+            return;
+        }
+
+        const headers = datos[0].split('\t');
+        estudiantes = [];
+
+        for (let i = 2; i < datos.length; i++) {
+            const values = datos[i].split('\t');
+            const estudiante = {};
+            for (let j = 0; j < headers.length; j++) {
+                estudiante[headers[j]] = values[j];
+            }
+            estudiantes.push(estudiante);
+        }
+
+        // El estudiante guía con las respuestas correctas
+        respuestasCorrectas = {};
+        for (let j = 0; j < headers.length; j++) {
+            respuestasCorrectas[headers[j]] = datos[1].split('\t')[j];
+        }
+
+        preguntas = headers.filter(h => h.startsWith('Pregunta'));
+
+       // Luego de procesar datos
+    generarTablaResultados(estudiantes, preguntas, respuestasCorrectas);
+    generarGrafico(estudiantes, preguntas, respuestasCorrectas);
+    llenarListaDesplegable(estudiantes);
+    generarTablaResumen(estudiantes);
+}
+
+
+
+
+
+    function generarTablaResultados(estudiantes, preguntas, respuestasCorrectas) {
+        const tableHead = document.getElementById('table-head');
+        let headHTML = '<tr><th>Nombre</th>';
+        preguntas.forEach((pregunta, index) => {
+            headHTML += `<th>${pregunta}</th>`;
+        });
+        headHTML += '</tr>';
+        tableHead.innerHTML = headHTML;
+
+        const tableBody = document.getElementById('table-body');
+        let bodyHTML = '';
+
+        estudiantes.forEach(estudiante => {
+            bodyHTML += '<tr>';
+            bodyHTML += `<td>${estudiante['Nombres']} ${estudiante['Apellidos']}</td>`;
+            preguntas.forEach(pregunta => {
+                const respuestaEstudiante = estudiante[pregunta];
+                const respuestaCorrecta = respuestasCorrectas[pregunta];
+
+                if (respuestaEstudiante === respuestaCorrecta) {
+                    bodyHTML += `<td class="correct">${respuestaEstudiante}</td>`;
+                } else {
+                    bodyHTML += `<td class="incorrect">${respuestaEstudiante}</td>`;
+                }
+            });
+            bodyHTML += '</tr>';
+        });
+
+        tableBody.innerHTML = bodyHTML;
+    }
+  
+  
+    function generarGrafico(estudiantes, preguntas, respuestasCorrectas) {
+    const ctx = document.getElementById('chart').getContext('2d');
+    const correctas = new Array(preguntas.length).fill(0);
+    const incorrectas = new Array(preguntas.length).fill(0);
+
+    estudiantes.forEach(estudiante => {
+        preguntas.forEach((pregunta, index) => {
+            const respuestaEstudiante = estudiante[pregunta];
+            const respuestaCorrecta = respuestasCorrectas[pregunta];
+
+            if (respuestaEstudiante === respuestaCorrecta) {
+                correctas[index]++;
+            } else {
+                incorrectas[index]++;
+            }
+        });
+    });
+
+    const totalRespuestas = estudiantes.length;
+    const porcentajeCorrectas = correctas.map(c => (c / totalRespuestas) * 100);
+    const porcentajeIncorrectas = incorrectas.map(i => (i / totalRespuestas) * 100);
+
+    if (ctx.canvas.chart) {
+        ctx.canvas.chart.destroy(); // Destruir el gráfico anterior si existe
+    }
+
+    ctx.canvas.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: preguntas,
+            datasets: [{
+                label: '% Respuestas Correctas',
+                data: porcentajeCorrectas,
+                backgroundColor: '#4CAF50',
+                borderWidth: 1
+            }, {
+                label: '% Respuestas Incorrectas',
+                data: porcentajeIncorrectas,
+                backgroundColor: '#FF7F8A',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const totalEvaluados = `Total de evaluados: ${totalRespuestas}`;
+                            return tooltipItems[0].label + '\n' + totalEvaluados;
+                        },
+                        label: function(tooltipItem) {
+                            const dataset = tooltipItem.dataset;
+                            const index = tooltipItem.dataIndex;
+                            const label = dataset.label;
+                            const value = dataset.data[index];
+                            const respuestas = label.includes('Correctas') ? correctas[index] : incorrectas[index];
+                            return `${label}: ${value.toFixed(2)}% = ${respuestas} respuestas`;
+                        }
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    formatter: (value, context) => {
+                        const datasetLabel = context.dataset.label;
+                        const index = context.dataIndex;
+                        const respuestas = datasetLabel.includes('Correctas') ? correctas[index] : incorrectas[index];
+                        return `${value.toFixed(2)}% = ${respuestas} respuestas`;
+                    },
+                    anchor: 'end',
+                    align: 'end'
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+}
+
+
+
+
+    function llenarListaDesplegable(estudiantes) {
+        const select = document.getElementById('student-list');
+        let optionsHTML = '<option value="">Seleccionar estudiante...</option>';
+
+        estudiantes.forEach((estudiante, index) => {
+            optionsHTML += `<option value="${index}">${estudiante['Nombres']} ${estudiante['Apellidos']}</option>`;
+        });
+
+        select.innerHTML = optionsHTML;
+    }
+
+    
+ 
+    function mostrarGraficoEstudiante() {
+    const select = document.getElementById('student-list');
+    const studentIndex = select.value;
+
+    if (studentIndex === '') return;
+
+    const estudiante = estudiantes[studentIndex];
+
+    const labels = preguntas;
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Respuestas del Estudiante',
+            backgroundColor: [],
+            borderColor: [],
+            data: []
+        }]
+    };
+
+    labels.forEach(pregunta => {
+        const respuestaEstudiante = estudiante[pregunta];
+        const respuestaCorrecta = respuestasCorrectas[pregunta];
+        let color = respuestaEstudiante === respuestaCorrecta ? '#4CAF50' : '#FF7F8A';
+
+        // Ajuste para asegurar que se vean todas las barras
+        if (respuestaEstudiante === undefined) {
+            color = '#CCCCCC'; // Color gris para preguntas no respondidas
+        }
+
+        data.datasets[0].backgroundColor.push(color);
+        data.datasets[0].borderColor.push(color);
+        data.datasets[0].data.push(1); // Mostrar presencia de respuesta, se puede ajustar según la lógica deseada
+    });
+
+    const ctx = document.getElementById('student-chart').getContext('2d');
+
+    // Limpiar instancia previa de Chart si existe
+    if (window.chartInstance) {
+        window.chartInstance.destroy();
+    }
+
+    window.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    formatter: (value) => {
+                        return value === 1 ? 'Respondido' : 'No Respondido'; // Texto opcional para cada barra
+                    },
+                    color: '#fff',
+                    font: {
+                        weight: 'bold'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                },
+                y: {
+                    stacked: true
+                }
+            }
+        }
+    });
+}
+
+
+
+
+
+    function generarTablaResumen(estudiantes) {
+        const tableBody = document.getElementById('summary-body');
+        let bodyHTML = '';
+
+        estudiantes.forEach(estudiante => {
+            let correctCount = 0;
+            let incorrectCount = 0;
+
+            preguntas.forEach(pregunta => {
+                const respuestaEstudiante = estudiante[pregunta];
+                const respuestaCorrecta = respuestasCorrectas[pregunta];
+
+                if (respuestaEstudiante === respuestaCorrecta) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+            });
+
+            const totalRespuestas = preguntas.length;
+            const porcentajeAciertos = ((correctCount / totalRespuestas) * 100).toFixed(2);
+            const porcentajeErrores = ((incorrectCount / totalRespuestas) * 100).toFixed(2);
+
+            bodyHTML += `<tr><td>${estudiante['Nombres']} ${estudiante['Apellidos']}</td>`;
+            bodyHTML += `<td>${porcentajeAciertos}%</td>`;
+            bodyHTML += `<td>${porcentajeErrores}%</td></tr>`;
+        });
+
+        tableBody.innerHTML = bodyHTML;
+    }
+
+    let ordenAscendente = false; // Estado inicial de orden descendente
+
+function ordenarTablaResumen() {
+    const tableBody = document.getElementById('summary-body');
+    const rows = Array.from(tableBody.rows);
+
+    rows.sort((rowA, rowB) => {
+        const porcentajeErroresA = parseFloat(rowA.cells[2].innerText);
+        const porcentajeErroresB = parseFloat(rowB.cells[2].innerText);
+
+        if (ordenAscendente) {
+            return porcentajeErroresA - porcentajeErroresB; // Orden ascendente
+        } else {
+            return porcentajeErroresB - porcentajeErroresA; // Orden descendente
+        }
+    });
+
+    tableBody.innerHTML = '';
+    rows.forEach(row => tableBody.appendChild(row));
+
+    // Cambiar el estado de ordenamiento para el próximo clic
+    ordenAscendente = !ordenAscendente;
+}
+
+
+    function descargarGrafico(canvasId, filename) {
+        const canvas = document.getElementById(canvasId);
+        const url = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${filename}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function restaurarPagina() {
+        location.reload();
+    }
+
+// Función para filtrar estudiantes y mostrar % aciertos y % errores
+function filtrarEstudiante() {
+        const input = document.getElementById('student-filter');
+        const studentName = input.value.trim().toLowerCase();
+
+        // Obtener todas las filas de la tabla
+        const rows = document.querySelectorAll('#summary-body tr');
+
+        rows.forEach(row => {
+            const studentCell = row.cells[0].innerText.toLowerCase();
+
+            if (studentCell.includes(studentName)) {
+                // Mostrar fila correspondiente al estudiante buscado
+                row.style.display = '';
+            } else {
+                // Ocultar filas que no coincidan con el estudiante buscado
+                row.style.display = 'none';
+            }
+        });
+    }
+
+
+    
+
+    function toggleTableVisibility(tableId, button) {
+        const table = document.getElementById(tableId);
+        const icon = button.querySelector('i');
+
+        if (table.style.display === 'none' || table.style.display === '') {
+            table.style.display = 'table';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            button.innerHTML = icon.outerHTML + ' Ocultar ' + (tableId === 'results-table' ? 'Resultados Generales' : 'Tabla Resumen');
+        } else {
+            table.style.display = 'none';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            button.innerHTML = icon.outerHTML + ' Mostrar ' + (tableId === 'results-table' ? 'Resultados Generales' : 'Tabla Resumen');
+        }
+
+        // Mensaje de depuración
+        console.log(`Tabla ${tableId} está ahora: ${table.style.display}`);
+    }
+
+    // Inicialmente ocultar las tablas
+    document.getElementById('results-table').style.display = 'none';
+    document.getElementById('summary-table').style.display = 'none';
+
+</script>
+
+</body>
+</html>
+
+
+

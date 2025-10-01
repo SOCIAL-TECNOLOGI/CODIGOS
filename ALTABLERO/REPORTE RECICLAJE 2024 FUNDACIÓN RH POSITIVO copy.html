@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos de Reciclaje con Selector de Colores</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            resize: none;
+            font-family: monospace;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .controls label {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-left: 20px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        canvas {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gráficos de Reciclaje con Selector de Colores</h1>
+
+    <!-- Controles para Gráfico por Fecha -->
+    <h2>Reciclaje de Latas y Botellas por Fecha</h2>
+    <div class="controls">
+        <label for="colorLatasFecha">Color Latas:</label>
+        <input type="color" id="colorLatasFecha" value="#FFA500"> <!-- Anaranjado por defecto -->
+        <label for="colorBotellasFecha">Color Botellas:</label>
+        <input type="color" id="colorBotellasFecha" value="#2196F3"> <!-- Azul por defecto -->
+        <button onclick="generateFechaChart()">Generar Gráfico</button>
+    </div>
+    <textarea id="dataFecha" placeholder="Pega los datos por fecha aquí..."></textarea>
+    <canvas id="chartFecha"></canvas>
+
+    <!-- Controles para Gráfico por Estudiante -->
+    <h2>Reciclaje de Latas y Botellas por Estudiante</h2>
+    <div class="controls">
+        <label for="colorLatasEstudiante">Color Latas:</label>
+        <input type="color" id="colorLatasEstudiante" value="#FFA500"> <!-- Anaranjado por defecto -->
+        <label for="colorBotellasEstudiante">Color Botellas:</label>
+        <input type="color" id="colorBotellasEstudiante" value="#2196F3"> <!-- Azul por defecto -->
+        <button onclick="generateEstudianteChart()">Generar Gráfico</button>
+    </div>
+    <textarea id="dataEstudiante" placeholder="Pega los datos por estudiante aquí..."></textarea>
+    <canvas id="chartEstudiante"></canvas>
+
+    <script>
+        let fechaChart, estudianteChart;
+
+        // Función para generar el gráfico por Fecha
+        function generateFechaChart() {
+            const rawData = document.getElementById("dataFecha").value.trim();
+            const rows = rawData.split("\n");
+            const headers = rows[0].split("\t");
+            const labels = [];
+            const latas = [];
+            const botellas = [];
+
+            // Obtener colores seleccionados
+            const colorLatas = document.getElementById("colorLatasFecha").value;
+            const colorBotellas = document.getElementById("colorBotellasFecha").value;
+
+            for (let i = 1; i < rows.length; i++) {
+                const columns = rows[i].split("\t");
+                labels.push(columns[0]); // Fecha
+                latas.push(Number(columns[1])); // Latas de aluminio
+                botellas.push(Number(columns[2])); // Botellas plásticas
+            }
+
+            // Destruir gráfico previo si existe
+            if (fechaChart) fechaChart.destroy();
+
+            const ctx = document.getElementById("chartFecha").getContext("2d");
+            fechaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: headers[1], // Latas de aluminio
+                            data: latas,
+                            backgroundColor: colorLatas,
+                        },
+                        {
+                            label: headers[2], // Botellas plásticas
+                            data: botellas,
+                            backgroundColor: colorBotellas,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'RECICLAJE DE LATAS Y BOTELLAS POR FECHA',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+
+        // Función para generar el gráfico por Estudiante
+        function generateEstudianteChart() {
+            const rawData = document.getElementById("dataEstudiante").value.trim();
+            const rows = rawData.split("\n");
+            const headers = rows[0].split("\t");
+            const labels = [];
+            const latas = [];
+            const botellas = [];
+
+            // Obtener colores seleccionados
+            const colorLatas = document.getElementById("colorLatasEstudiante").value;
+            const colorBotellas = document.getElementById("colorBotellasEstudiante").value;
+
+            for (let i = 1; i < rows.length; i++) {
+                const columns = rows[i].split("\t");
+                labels.push(columns[0]); // Estudiante
+                latas.push(Number(columns[1])); // Latas de aluminio
+                botellas.push(Number(columns[2])); // Botellas plásticas
+            }
+
+            // Destruir gráfico previo si existe
+            if (estudianteChart) estudianteChart.destroy();
+
+            const ctx = document.getElementById("chartEstudiante").getContext("2d");
+            estudianteChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: headers[1], // Latas de aluminio
+                            data: latas,
+                            backgroundColor: colorLatas,
+                        },
+                        {
+                            label: headers[2], // Botellas plásticas
+                            data: botellas,
+                            backgroundColor: colorBotellas,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'RECICLAJE DE LATAS Y BOTELLAS POR ESTUDIANTE',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+    </script>
+</body>
+</html>

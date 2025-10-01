@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Constructor Dinámico de Cuestionarios - Exportable</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin:20px; }
+    .hidden { display:none; }
+    .container {
+  max-width: 860px; /* ligeramente más angosto */
+  margin: 0 auto 40px auto; /* agrega margen inferior */
+  padding-bottom: 40px;     /* espacio extra dentro del contenedor */
+}
+    button { padding:8px 16px; margin:4px; border:none; border-radius:4px; background:#25447e; color:#fff; cursor:pointer; }
+    button:hover { background:#1e3565; }
+    button:focus,
+    input:focus,
+    textarea:focus { outline: 3px solid #3366cc; outline-offset: 2px; }
+    .pregunta, .builder-form { border:1px solid #ccc; border-radius:8px; padding:12px; margin:12px 0; background:#f5f5f5; }
+    .opcion-builder { margin:6px 0; }
+    /* Lista de preguntas: márgen y accesibilidad manejada en HTML */
+    #lista-preguntas { margin-top: 12px; }
+    #preview-imagen { margin-top:8px; color:#999; font-style:italic; }
+    #preview-imagen i { margin-right:6px; color:#999; }
+       #lista-preguntas button { margin-left:8px; background:#e74c3c; }
+    #lista-preguntas button.btn-editar { background:#f39c12; }
+ 
+/* Nuevo: botón duplicar */
+#lista-preguntas button.btn-duplicar {
+  background: #7c6aa0;       
+  color: #fff;
+}
+#lista-preguntas button.btn-duplicar:hover {
+  background: #1e8449;       /* verde oscuro al pasar */
+}
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Constructor Dinámico de Cuestionarios</h1>
+  <button id="btn-abrir-builder" type="button">Crear Preguntas</button>
+
+  <div id="builder-container" class="builder-form hidden">
+    <h2>Agregar Nueva Pregunta</h2>
+    <label for="txt-enunciado">Enunciado:</label><br>
+    <textarea id="txt-enunciado" rows="3" style="width:100%;"></textarea><br>
+
+    <label for="file-imagen">Imagen (opcional):</label><br>
+    <input type="file" id="file-imagen" accept="image/*" aria-describedby="preview-imagen"><br>
+    <div id="preview-imagen" aria-live="polite"><i class="fas fa-camera"></i> Sin imagen seleccionada</div>
+
+    <label for="txt-explicacion">Explicación (opcional):</label><br>
+    <textarea id="txt-explicacion" rows="2" style="width:100%;"></textarea><br>
+    <label for="txt-refuerzo">Link Refuerzo (opcional):</label><br>
+    <input type="url" id="txt-refuerzo" style="width:100%;" placeholder="https://..."><br>
+
+    <div id="opciones-container"><h3>Opciones de Respuesta</h3></div>
+    <button id="btn-add-opcion" type="button" aria-label="Agregar una nueva opción de respuesta">+ Agregar Opción</button>
+    <button id="btn-save-pregunta" type="button">Guardar Pregunta</button>
+
+    <div id="lista-preguntas" role="region" aria-live="polite" aria-label="Listado de preguntas creadas"></div>
+
+    <button id="btn-finalizar" class="hidden" type="button">Finalizar y Preparar Exportación</button>
+  </div>
+
+  <div id="export-container" class="hidden">
+    <h2>Descargar Cuestionario</h2>
+    <button id="btn-export-word" type="button">Descargar Word</button>
+  </div>
+
+<div id="toast" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+background-color: #28a745; color: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+z-index: 9999; display: none; font-weight: bold;">
+  Pregunta eliminada correctamente
+</div>
+
+<div id="toast" style="position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+background-color: #28a745; color: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+z-index: 9999; display: none; font-weight: bold;">
+  Acción realizada correctamente
+</div>
+
+
+</div>
+
+
+
+
+<script>
+let preguntas = [];
+let editingIndex = null;
+
+const editor = document.getElementById('builder-container');
+const listaPreg = document.getElementById('lista-preguntas');
+const btnAbrir = document.getElementById('btn-abrir-builder');
+const btnAddOpt = document.getElementById('btn-add-opcion');
+const btnSave = document.getElementById('btn-save-pregunta');
+const btnFinal = document.getElementById('btn-finalizar');
+const exportCont = document.getElementById('export-container');
+const btnExportWord = document.getElementById('btn-export-word');
+
+btnAbrir.onclick = () => {
+  editor.classList.toggle('hidden');
+  cancelEdit();
+  refreshListaPreguntas();
+};
+
+btnAddOpt.onclick = () => {
+  const idx = document.querySelectorAll('.opcion-builder').length;
+  const div = document.createElement('div');
+  div.classList.add('opcion-builder');
+  div.innerHTML = `
+    <input type="radio" name="correcta" value="${idx}">
+    <input type="text" placeholder="Texto opción" style="width:70%;">
+    <button class="btn-remove-opcion" title="Eliminar opción" style="margin-left:6px; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:2px 8px; cursor:pointer;">❌</button>
+  `;
+  div.querySelector('.btn-remove-opcion').onclick = () => div.remove();
+  document.getElementById('opciones-container').appendChild(div);
+};
+
+ async function savePregunta() {
+  const enun = document.getElementById('txt-enunciado').value.trim();
+  if (!enun) { alert('Enunciado requerido.'); return; }
+  const exp = document.getElementById('txt-explicacion').value.trim();
+  const ref = document.getElementById('txt-refuerzo').value.trim();
+
+  let imgSrc = preguntas[editingIndex]?.imgSrc || '';
+  const imgFile = document.getElementById('file-imagen').files[0];
+  if (imgFile) {
+    if (!['image/jpeg','image/png','image/gif'].includes(imgFile.type)) {
+      alert('Formato de imagen no soportado.');
+      return;
+    }
+    if (imgFile.size > 2 * 1024 * 1024) {
+      alert('La imagen debe ser menor a 2MB');
+      return;
+    }
+    document.getElementById('preview-imagen').innerHTML = '';
+    imgSrc = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const DPI = 96;
+          const TARGET_CM = 17.5;
+          const MAX_WIDTH = (TARGET_CM / 2.54) * DPI;
+          const scale = Math.min(1, MAX_WIDTH / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const base64 = canvas.toDataURL("image/jpeg", 0.9);
+          resolve(base64);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(imgFile);
+    });
+  }
+
+  const opts = Array.from(document.querySelectorAll('.opcion-builder'))
+    .map(div => div.querySelector('input[type=text]').value.trim())
+    .filter(opt => opt !== "");
+
+  const sel = document.querySelector('input[name="correcta"]:checked');
+  if (opts.length < 2 || !sel) {
+    alert('Debe haber al menos 2 opciones válidas y una marcada como correcta.');
+    return;
+  }
+
+  const correctIdx = +sel.value;
+  const correctLetter = String.fromCharCode(97 + correctIdx);
+  const nueva = { enun, imgSrc, opts, correctIdx, correctLetter, exp, ref };
+  if (editingIndex === null) preguntas.push(nueva);
+  else preguntas[editingIndex] = nueva;
+
+mostrarToast('✅ Pregunta guardada correctamente');
+
+
+  // ⬇️ LÍNEAS CLAVE PARA MOSTRAR LOS BOTONES Y ACTUALIZAR LA LISTA ⬇️
+  refreshListaPreguntas();
+  btnFinal.classList.remove('hidden');
+  cancelEdit(); // Limpia el formulario después de guardar
+}
+
+
+
+btnSave.onclick = savePregunta;
+
+
+
+
+function refreshListaPreguntas() {
+  listaPreg.innerHTML = '';
+  preguntas.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `Pregunta ${i+1}: ${q.enun.substring(0,50)}... 
+      <button class="btn-editar" data-i="${i}">Editar</button> 
+      <button class="btn-eliminar" data-i="${i}">Eliminar</button>
+      <button class="btn-duplicar" data-i="${i}">Duplicar</button>`;
+    listaPreg.appendChild(div);
+  });
+
+  document.querySelectorAll('.btn-editar').forEach(b => 
+    b.addEventListener('click', () => startEdit(+b.dataset.i)));
+
+  document.querySelectorAll('.btn-eliminar').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = +b.dataset.i;
+      if (!confirm(`¿Estás seguro de que deseas eliminar la pregunta ${i + 1}?`)) return;
+
+      if (editingIndex === i || preguntas[i].imgSrc) {
+        document.getElementById('file-imagen').value = '';
+        document.getElementById('preview-imagen').innerHTML = '<i class="fas fa-camera"></i> Sin imagen seleccionada';
+      }
+
+      preguntas.splice(i, 1);
+      if (editingIndex === i) cancelEdit();
+      else if (editingIndex > i) editingIndex--;
+
+      refreshListaPreguntas();
+      mostrarToast(`✅ Pregunta ${i + 1} eliminada correctamente`);
+    })
+  );
+
+  document.querySelectorAll('.btn-duplicar').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = +b.dataset.i;
+      const original = preguntas[i];
+      const copia = JSON.parse(JSON.stringify(original));
+      copia.enun = "Copia de " + original.enun;
+      preguntas.splice(i + 1, 0, copia);
+      refreshListaPreguntas();
+    })
+  );
+
+  if (preguntas.length > 0) {
+    btnFinal.classList.remove('hidden');
+  }
+}
+
+
+
+function startEdit(i) {
+  const q = preguntas[i];
+  editingIndex = i;
+  document.getElementById('txt-enunciado').value = q.enun;
+  document.getElementById('txt-explicacion').value = q.exp;
+  document.getElementById('txt-refuerzo').value = q.ref;
+  document.getElementById('file-imagen').value = '';
+  const cont = document.getElementById('opciones-container');
+  cont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+  q.opts.forEach((opt, j) => {
+    const d = document.createElement('div');
+    d.classList.add('opcion-builder');
+    d.innerHTML = `
+      <input type="radio" name="correcta" value="${j}" ${j === q.correctIdx ? 'checked' : ''}>
+      <input type="text" style="width:70%;" value="${opt}">
+      <button class="btn-remove-opcion" title="Eliminar opción" style="margin-left:6px; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:2px 8px; cursor:pointer;">❌</button>
+    `;
+    d.querySelector('.btn-remove-opcion').onclick = () => d.remove();
+    cont.appendChild(d);
+  });
+  btnSave.textContent = 'Actualizar Pregunta';
+
+  const preview = document.getElementById('preview-imagen');
+  if (q.imgSrc) {
+    preview.innerHTML = `
+      <div style="position:relative; display:inline-block;">
+        <img src="${q.imgSrc}" style="max-width:200px; height:auto; border:1px solid #ccc;">
+        <button id="btn-remove-img" title="Quitar imagen" 
+          style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">×</button>
+      </div>
+    `;
+    document.getElementById('btn-remove-img').onclick = () => {
+      preguntas[i].imgSrc = '';
+      preview.innerHTML = `<i class="fas fa-camera"></i> Sin imagen seleccionada`;
+    };
+  } else {
+    preview.innerHTML = `<i class="fas fa-camera"></i> Sin imagen seleccionada`;
+  }
+}
+
+function cancelEdit() {
+  editingIndex = null;
+  btnSave.textContent = 'Guardar Pregunta';
+  document.getElementById('txt-enunciado').value = '';
+  document.getElementById('txt-explicacion').value = '';
+  document.getElementById('txt-refuerzo').value = '';
+  document.getElementById('file-imagen').value = '';
+  const cont = document.getElementById('opciones-container');
+  cont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+  for (let i = 0; i < 4; i++) btnAddOpt.onclick();
+  document.getElementById('preview-imagen').innerHTML = `<i class="fas fa-camera"></i> Sin imagen seleccionada`;
+}
+
+btnFinal.onclick = () => {
+  editor.classList.add('hidden');
+  exportCont.classList.remove('hidden');
+};
+
+
+
+function exportToWord() {
+  // Verifica que htmlDocx esté disponible globalmente
+  if (typeof window.htmlDocx === 'undefined') {
+    console.error('htmlDocx no está definido. ¿Cargaste el script UMD correctamente?');
+    alert('Error: html-docx-js no está cargado.');
+    return;
+  }
+
+  // Arma el HTML del documento
+  let html = '<h1 style="text-align:center;">Cuestionario</h1>';
+  preguntas.forEach((q, i) => {
+    html += `<h3>${i + 1}. ${q.enun}</h3>`;
+
+    if (q.imgSrc && q.imgSrc.startsWith('data:image/')) {
+      html += `
+        <div style="text-align:center; margin-bottom:8px;">
+          <img src="${q.imgSrc}"
+               style="width:15.5cm; height:auto; display:block; margin:0 auto;">
+        </div>`;
+    }
+
+    html += '<ul>';
+    q.opts.forEach((opt, j) => {
+      html += `<li>${String.fromCharCode(65 + j)}) ${opt}</li>`;
+    });
+    html += '</ul>';
+  });
+
+  // Convierte a Blob de Word y dispara la descarga
+  try {
+    const blob = window.htmlDocx.asBlob(html);
+    saveAs(blob, 'Cuestionario.docx');
+  } catch (e) {
+    console.error('Error al generar el .docx:', e);
+    alert('Ocurrió un error al generar el documento Word.');
+  }
+}
+
+
+
+
+
+btnExportWord.onclick = exportToWord;
+
+document.getElementById('file-imagen').addEventListener('change', function () {
+  const file = this.files[0];
+  const preview = document.getElementById('preview-imagen');
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        preview.innerHTML = `
+          <div style="position:relative; display:inline-block;">
+            <img src="${e.target.result}" style="max-width:200px; height:auto; border:1px solid #ccc;">
+            <button id="btn-remove-temp-img" title="Quitar imagen" 
+              style="position:absolute; top:2px; right:2px; background:#e74c3c; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">×</button>
+          </div>
+        `;
+        document.getElementById('btn-remove-temp-img').onclick = () => {
+          document.getElementById('file-imagen').value = '';
+          preview.innerHTML = `<i class="fas fa-camera"></i> Sin imagen seleccionada`;
+        };
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.innerHTML = `<i class="fas fa-camera"></i> Sin imagen seleccionada`;
+  }
+});
+
+
+function mostrarToast(mensaje = "Acción realizada correctamente") {
+  const toast = document.getElementById('toast');
+  toast.textContent = mensaje;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 4000); // Desaparece en 4 segundos
+}
+
+
+
+
+</script>
+
+</body>
+</html>

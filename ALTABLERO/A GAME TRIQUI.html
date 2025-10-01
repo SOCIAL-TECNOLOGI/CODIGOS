@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+     body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #282c35;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+}
+
+.player-input {
+    margin-bottom: 10px;
+    padding: 8px;
+    font-size: 16px;
+    border: 2px solid #61dafb;
+    border-radius: 4px;
+    background-color: #282c35;
+    color: #fff;
+}
+
+.game-container {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.cell {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background-color: #61dafb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    cursor: pointer;
+    border: 1px solid #61dafb;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.cell:hover {
+    background-color: #4fa3d1;
+}
+
+/* Estilo para las figuras ganadoras */
+.winning-cell {
+    font-weight: bold;
+    color: #4caf50; /* Verde */
+    background-color: #fff; /* Blanco */
+    transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Estilo para la tabla de puntuación */
+table {
+    border-collapse: collapse;
+    width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff; /* Cambiado a blanco */
+}
+
+th, td {
+    border: 1px solid #61dafb;
+    padding: 8px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+th {
+    background-color: #4fa3d1;
+    color: #fff;
+}
+
+/* Estilo para la línea ganadora */
+.line {
+    display: none;
+    position: absolute;
+    background-color: #4caf50;
+    border-radius: 5px;
+    transition: all 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Obtener todas las celdas del juego
+            const cells = document.querySelectorAll(".cell");
+
+            // Obtener los campos de entrada de nombre de jugador
+            const player1Input = document.getElementById("player1");
+            const player2Input = document.getElementById("player2");
+
+            // Obtener las etiquetas de puntuación
+            const scorePlayer1 = document.getElementById("scorePlayer1");
+            const scorePlayer2 = document.getElementById("scorePlayer2");
+
+            // Inicializar el jugador actual (X)
+            let currentPlayer = "X";
+
+            // Inicializar el tablero del juego
+            let gameBoard = ["", "", "", "", "", "", "", "", ""];
+
+            // Inicializar la puntuación de los jugadores
+            let score = {
+                "X": 0,
+                "O": 0
+            };
+
+            // Agregar un evento de clic a cada celda
+            cells.forEach(cell => {
+                cell.addEventListener("click", () => handleCellClick(cell));
+            });
+
+            // Función para manejar el clic en una celda
+            function handleCellClick(cell) {
+                // Obtener el índice de la celda clicada
+                const cellIndex = cell.dataset.index;
+
+                // Verificar si la celda está vacía
+                if (gameBoard[cellIndex] === "") {
+                    // Marcar la celda con el símbolo del jugador actual
+                    gameBoard[cellIndex] = currentPlayer;
+                    cell.textContent = currentPlayer;
+
+                    // Verificar si hay un ganador
+                    if (checkWinner()) {
+                        // Mostrar las celdas ganadoras durante 2 segundos y luego reiniciar el juego
+                        showWinningCells();
+                        updateScore();
+                        setTimeout(() => {
+                            resetGame();
+                        }, 2000);
+                    } else if (gameBoard.every(cell => cell !== "")) {
+                        // Si no hay ganador y todas las celdas están ocupadas, mostrar empate y reiniciar el juego
+                        alert("¡Empate!");
+                        resetGame();
+                    } else {
+                        // Cambiar al siguiente jugador
+                        currentPlayer = currentPlayer === "X" ? "O" : "X";
+                    }
+                }
+            }
+
+            // Función para verificar si hay un ganador
+            function checkWinner() {
+                const winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+
+                // Comprobar si alguna de las combinaciones de ganadores está presente en el tablero
+                return winPatterns.some(pattern => {
+                    const [a, b, c] = pattern;
+                    return gameBoard[a] !== "" && gameBoard[a] === gameBoard[b] && gameBoard[b] === gameBoard[c];
+                });
+            }
+
+            // Función para resaltar las celdas ganadoras
+            function showWinningCells() {
+                // Obtener la combinación ganadora
+                const winningPattern = getWinningPattern();
+
+                // Aplicar el estilo a las celdas ganadoras
+                winningPattern.forEach(index => {
+                    cells[index].classList.add("winning-cell");
+                });
+            }
+
+            // Función para obtener la combinación ganadora
+            function getWinningPattern() {
+                const winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+
+                // Encontrar la combinación ganadora en el tablero
+                return winPatterns.find(pattern => {
+                    const [a, b, c] = pattern;
+                    return gameBoard[a] !== "" && gameBoard[a] === gameBoard[b] && gameBoard[b] === gameBoard[c];
+                });
+            }
+
+            // Función para actualizar la puntuación de los jugadores
+            function updateScore() {
+                // Incrementar la puntuación del jugador actual
+                score[currentPlayer]++;
+
+                // Actualizar las etiquetas de puntuación en el HTML
+                scorePlayer1.textContent = `${player1Input.value}: ${score["X"]}`;
+                scorePlayer2.textContent = `${player2Input.value}: ${score["O"]}`;
+            }
+
+            // Función para reiniciar el juego
+            function resetGame() {
+                // Reiniciar el tablero y eliminar las clases de estilo de las celdas ganadoras
+                gameBoard = ["", "", "", "", "", "", "", "", ""];
+                currentPlayer = "X";
+                cells.forEach(cell => {
+                    cell.textContent = "";
+                    cell.classList.remove("winning-cell");
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- Campos para introducir el nombre de los jugadores -->
+    <input type="text" id="player1" class="player-input" placeholder="Nombre del Jugador 1">
+    <input type="text" id="player2" class="player-input" placeholder="Nombre del Jugador 2">
+
+    <!-- Contenedor del juego -->
+    <div class="game-container">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <!-- Tabla de puntuación -->
+    <table>
+        <thead>
+            <tr>
+                <th>Jugador 1</th>
+                <th>Jugador 2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="scorePlayer1">0</td>
+                <td id="scorePlayer2">0</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

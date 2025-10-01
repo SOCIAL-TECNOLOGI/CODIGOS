@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graficador de Respuestas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #contenedor {
+            border: 1px solid #ddd;
+            padding: 20px;
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        #datos {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #graficar {
+            margin-top: 10px;
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #grafica {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Graficador de Respuestas</h1>
+    <div id="contenedor">
+        <textarea id="datos" placeholder="Pega aquí la información de texto"></textarea>
+        <button id="graficar">Graficar</button>
+        <canvas id="grafica"></canvas>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("graficar").addEventListener("click", function () {
+                console.log("Botón clickeado");
+                graficar();
+            });
+        });
+
+        function graficar() {
+            // Obtener el texto del textarea
+            const texto = document.getElementById("datos").value;
+
+            // Dividir el texto en líneas
+            const lineas = texto.trim().split("\n");
+
+            // Obtener nombres de estudiantes y respuestas
+            const estudiantes = [];
+            const respuestas = [];
+
+            // Procesar las líneas de texto para extraer los nombres y las respuestas
+            for (let i = 0; i < lineas.length; i++) {
+                const partes = lineas[i].split("\t");
+                const estudiante = partes.shift(); // Remover el nombre y conservar las respuestas
+                estudiantes.push(estudiante);
+                respuestas.push(partes.slice(2)); // A partir de la tercera parte son las respuestas
+            }
+
+            // Obtener la cantidad de preguntas
+            const numPreguntas = respuestas[0].length;
+
+            // Inicializar datos para el gráfico
+            const datos = [];
+            for (let i = 0; i < numPreguntas; i++) {
+                const opciones = { A: [], B: [], C: [], D: [] };
+                // Contabilizar las respuestas de cada estudiante por pregunta
+                for (let j = 0; j < respuestas.length; j++) {
+                    const respuesta = respuestas[j][i];
+                    if (!opciones[respuesta]) {
+                        console.log("Valor de respuesta:", respuesta);
+                    }
+                    opciones[respuesta].push(estudiantes[j]);
+                }
+                // Preparar los datos para el gráfico
+                datos.push({
+                    label: `Pregunta ${i + 1}`,
+                    data: [opciones.A.length, opciones.B.length, opciones.C.length, opciones.D.length],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)', // A: rojo claro
+                        'rgba(54, 162, 235, 0.2)', // B: azul claro
+                        'rgba(255, 206, 86, 0.2)', // C: anaranjado
+                        'rgba(75, 192, 192, 0.2)' // D: verde claro
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)', // A: rojo claro
+                        'rgba(54, 162, 235, 1)', // B: azul claro
+                        'rgba(255, 206, 86, 1)', // C: anaranjado
+                        'rgba(75, 192, 192, 1)' // D: verde claro
+                    ],
+                    borderWidth: 1,
+                    estudiantes: opciones
+                });
+            }
+
+            // Crear la gráfica con Chart.js
+            const ctx = document.getElementById("grafica").getContext("2d");
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['A', 'B', 'C', 'D'],
+                    datasets: datos
+                },
+                options: {
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const preguntaIndex = context.datasetIndex;
+                                    const opcionIndex = context.dataIndex;
+                                    const estudiantes = context.dataset.estudiantes;
+                                    const opcion = context.label;
+                                    const estudiantesQueVotaron = estudiantes[opcion];
+                                    return estudiantesQueVotaron.join(", ");
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

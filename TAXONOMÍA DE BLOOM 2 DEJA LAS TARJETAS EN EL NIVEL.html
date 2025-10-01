@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taxonomía de Bloom – Selector Dimensión + Escalera</title>
+<style>
+  :root{
+    --bg:#0b1022; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+    --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#22d3ee; --vio:#a78bfa;
+    --saber:#38bdf8; --hacer:#fb923c; --ser:#34d399;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+    color:var(--txt); background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed;
+  }
+  header{padding:20px clamp(16px,4vw,40px)}
+  h1{margin:0 0 6px; font-size:clamp(22px,3.6vw,34px)}
+  .sub{margin:0; color:var(--muted); font-size:clamp(12px,2.4vw,14px)}
+
+  .wrap{display:grid; gap:clamp(12px,2vw,18px); grid-template-columns:1fr; padding:0 clamp(16px,4vw,40px) 26px}
+  @media(min-width:1200px){ .wrap{grid-template-columns:2.5fr 1.1fr} }
+
+  .panel{background:rgba(17,24,39,.6); border:1px solid var(--borde); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(6px)}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 16px; border-bottom:1px solid var(--borde); flex-wrap:wrap}
+  .hud{display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:13px}
+  .chip{padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800}
+  .chip.good{border-color:#14532d; background:#0b1c14}
+  .controls{display:flex; gap:8px; flex-wrap:wrap}
+  button{border:1px solid var(--borde); background:#0b1224; color:#e5e7eb; cursor:pointer; padding:8px 12px; border-radius:10px; font-weight:700}
+  button:hover{border-color:#334155; box-shadow:0 6px 16px rgba(34,211,238,.15), inset 0 1px 0 rgba(255,255,255,.04)}
+  .btn-lite{opacity:.9}
+  input, select{background:#0b1224; color:#e5e7eb; border:1px solid #334155; border-radius:10px; padding:6px 10px}
+
+  .board{padding:16px}
+
+  /* Encabezado activo de la dimensión */
+  .dim-header{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px; border-bottom:1px solid #223048; font-weight:900; letter-spacing:.02em}
+  .tag{padding:.2rem .6rem; border-radius:999px; font-size:.8rem; font-weight:800; border:1px solid #334155}
+  .tag.saber{color:#dff6ff; background:linear-gradient(90deg, rgba(56,189,248,.18), transparent)}
+  .tag.hacer{color:#fff3e6; background:linear-gradient(90deg, rgba(251,146,60,.18), transparent)}
+  .tag.ser{color:#eafff5; background:linear-gradient(90deg, rgba(52,211,153,.18), transparent)}
+
+  /* Escalera de niveles */
+  .stair-wrap{padding:14px}
+  .stair{position:relative; height:72px; margin-bottom:12px}
+  .step{
+    position:absolute; top:0; height:72px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:28px; color:#fff; box-shadow:0 6px 16px rgba(0,0,0,.35);
+    border:1px solid rgba(0,0,0,.25);
+  }
+  .step.s1{left:0%;   width:26%; background:#b91c1c;}   /* rojo */
+  .step.s2{left:24%;  width:26%; background:#d97706;}   /* naranja */
+  .step.s3{left:48%;  width:26%; background:#eab308;}   /* amarillo */
+  .step.s4{left:72%;  width:26%; background:#65a30d;}   /* verde */
+
+  /* Dropzones bajo cada peldaño */
+  .levels{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  .level{
+    border:1px dashed #2b3b57; border-radius:12px; padding:10px;
+    min-height:140px; /* ↑ para facilitar el drop */
+    position:relative; background:#0b1224
+  }
+  .level h4{margin:0 0 8px; font-size:14px; color:#cbd5e1}
+  .dropzone{display:flex; flex-wrap:wrap; gap:8px; min-height:64px}
+  .hint{position:absolute; inset:auto 10px 10px auto; color:#ffffff; font-size:clamp(12px,1.5vw,16px)}
+  .hint.hidden{display:none}
+
+  /* Resaltado del nivel al pasar el puntero (hover de drop) */
+  .level.hover{
+    outline:2px dashed var(--blue);
+    box-shadow:0 0 0 3px rgba(34,211,238,.15) inset;
+  }
+
+  /* Banco: ocupa todo el ancho en escritorio */
+  .bank{padding:12px 14px}
+  .bank h3{margin:0 0 8px; font-size:16px}
+  .bank-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    gap:12px; align-items:start; min-height:70px;
+  }
+  .bank-grid .card{width:100%; justify-content:center}
+
+  @media (min-width:1200px){
+    .wrap{ grid-template-columns: 2.5fr 1.1fr; }
+    .bank{ grid-column: 1 / -1; position:static; max-height:none; overflow:visible; margin-top:8px;}
+  }
+
+  /* Tarjetas */
+  .card{
+    --bgc:#0e162a;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 10px; border-radius:12px; border:1px solid #2a3a59;
+    background:var(--bgc); color:#e5e7eb; font-weight:800; letter-spacing:.01em;
+    box-shadow:0 4px 12px rgba(0,0,0,.35); user-select:none; touch-action:none;
+    transition:transform .1s ease, box-shadow .1s ease;
+    cursor:grab; will-change:left, top, transform;
+  }
+  .card[data-dim="saber"]{--bgc:rgba(56,189,248,.10); border-color:rgba(56,189,248,.35)}
+  .card[data-dim="hacer"]{--bgc:rgba(251,146,60,.10);  border-color:rgba(251,146,60,.35)}
+  .card[data-dim="ser"]  {--bgc:rgba(52,211,153,.10);  border-color:rgba(52,211,153,.35)}
+
+  /* Durante el arrastre: posición respecto al viewport y encima de todo */
+  .card.dragging{
+    position:fixed; z-index:10000; pointer-events:none;
+    cursor:grabbing;
+    /* NO definimos transform aquí: el JS lo controla (translate(-50%,-50%)) */
+    box-shadow:0 10px 22px rgba(0,0,0,.55);
+  }
+
+  .card.locked{
+    background:linear-gradient(180deg, rgba(34,197,94,.18), rgba(0,0,0,.04));
+    border-color:#14532d; color:#dcfce7
+  }
+
+  /* Lateral: Equipos y Cronómetro */
+  .side{position:sticky; top:16px}
+  .box{padding:12px 14px; border-bottom:1px solid var(--borde)}
+  .box h3{margin:0 0 8px; font-size:16px}
+  .flex{display:flex; gap:8px; flex-wrap:wrap}
+  .row{display:flex; align-items:center; gap:6px; margin-top:6px}
+  .timer{font-weight:900; font-size:22px; letter-spacing:.04em}
+  .timer.low{color:#ffd1d1}
+
+  .teams{display:grid; gap:8px}
+  .team{display:flex; align-items:center; justify-content:space-between; gap:8px;
+        background:#0b1224; border:1px solid #334155; border-radius:12px; padding:8px 10px}
+  .team.active{outline:2px solid var(--vio)}
+  .score{font-weight:900}
+
+  /* Modal final */
+  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.4); z-index:1001}
+  .card-modal{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:22px; max-width:560px; text-align:center}
+  .card-modal h3{margin:0 0 6px}
+  .card-modal p{margin:6px 0 12px; color:#cbd5e1}
+
+  /* Botones banco */
+  #sortAZ, #shuffleBank{
+    border:1px solid #334155; background:#0b1224; color:#e5e7eb;
+    cursor:pointer; padding:6px 10px; border-radius:8px; font-weight:700;
+  }
+  #sortAZ:hover, #shuffleBank:hover{
+    border-color:#475569; box-shadow:0 0 8px rgba(255,255,255,.1);
+  }
+</style>
+
+
+
+</head>
+<body>
+<header>
+  <h1>Taxonomía de Bloom – Equipos + Cronómetro + Examen</h1>
+  <p class="sub">Elige una <strong>dimensión</strong>, arrastra sus verbos a los <strong>niveles</strong> de la escalera.</p>
+</header>
+
+<div class="wrap">
+  <!-- TABLERO -->
+  <section class="panel">
+    <div class="top">
+      <div class="hud">
+        <span class="chip">Aciertos: <strong id="ok">0</strong>/<strong id="total">0</strong></span>
+        <span class="chip">Restantes: <strong id="left">0</strong></span>
+        <span class="chip" id="examBadge" style="display:none">Modo Examen</span>
+      </div>
+      <div class="controls">
+        <label for="dimSelect" class="chip">Dimensión</label>
+        <select id="dimSelect" title="Elegir dimensión">
+          <option value="saber">SABER (Cognitivo)</option>
+          <option value="hacer">HACER (Psicomotor)</option>
+          <option value="ser">SER (Afectivo)</option>
+        </select>
+        <button id="reshuffle">🔀 Reorganizar verbos</button>
+        <button id="reset">↻ Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="board">
+      <!-- Encabezado dinámico -->
+      <div class="dim-header">
+        <div>
+          <span id="dimTitle">📘 SABER (Cognitivo)</span>
+        </div>
+        <span id="dimTag" class="tag saber">Dimensión activa</span>
+      </div>
+
+      <!-- Escalera -->
+      <div class="stair-wrap">
+        <div class="stair" aria-hidden="true">
+          <div class="step s1">1</div>
+          <div class="step s2">2</div>
+          <div class="step s3">3</div>
+          <div class="step s4">4</div>
+        </div>
+
+        <!-- Niveles con dropzones -->
+        <div class="levels">
+          <div class="level" data-dim="saber" data-level="1">
+            <h4>Nivel 1 – Bajo</h4>
+            <div class="dropzone"></div>
+            <div class="hint" data-hint="1"></div>
+          </div>
+          <div class="level" data-dim="saber" data-level="2">
+            <h4>Nivel 2 – Básico</h4>
+            <div class="dropzone"></div>
+            <div class="hint" data-hint="2"></div>
+          </div>
+          <div class="level" data-dim="saber" data-level="3">
+            <h4>Nivel 3 – Alto</h4>
+            <div class="dropzone"></div>
+            <div class="hint" data-hint="3"></div>
+          </div>
+          <div class="level" data-dim="saber" data-level="4">
+            <h4>Nivel 4 – Superior</h4>
+            <div class="dropzone"></div>
+            <div class="hint" data-hint="4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BANCO -->
+    <div class="bank panel">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <h3 style="margin:0">🗂️ Verbos desordenados <small id="bankLabel" style="color:#9ca3af"></small></h3>
+        <div style="display:flex; gap:6px;">
+          <button id="sortAZ">🔤 Ordenar A–Z</button>
+          <button id="shuffleBank">🔀 Desordenar</button>
+        </div>
+      </div>
+      <div id="bank" class="bank-grid"></div>
+    </div>
+  </section>
+
+  <!-- LATERAL: EQUIPOS + TIMER + EXAMEN -->
+  <aside class="panel side">
+    <div class="box">
+      <h3>⏱️ Cronómetro</h3>
+      <div class="row">
+        <label>Min:</label><input type="number" id="min" value="5" min="1" style="width:64px">
+        <label>Seg:</label><input type="number" id="sec" value="0" min="0" max="59" style="width:64px">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <span id="timer" class="timer">05:00</span>
+      </div>
+      <div class="flex" style="margin-top:8px">
+        <button id="start" class="btn-lite">▶ Iniciar</button>
+        <button id="pause" class="btn-lite">⏸ Pausa</button>
+        <button id="restart" class="btn-lite">↺ Reiniciar</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label><input type="checkbox" id="exam"> Modo Examen</label>
+      </div>
+      <small class="muted">En examen: se ocultan pistas, -5 puntos por error y no se puede reordenar.</small>
+    </div>
+
+    <div class="box">
+      <h3>👥 Equipos</h3>
+      <div class="row">
+        <label>N° de equipos</label>
+        <select id="teamCount">
+          <option>2</option><option>3</option><option>4</option>
+        </select>
+        <button id="applyTeams" class="btn-lite">Aplicar</button>
+      </div>
+      <div class="teams" id="teams"></div>
+      <div class="flex" style="margin-top:10px">
+        <button id="prevTeam">◀ Anterior</button>
+        <button id="nextTeam">Siguiente ▶</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>📎 Ayuda</h3>
+      <small class="muted">Turno: el equipo activo recibe puntos al acertar. En error, puedes cambiar de turno.</small>
+    </div>
+  </aside>
+</div>
+
+<!-- MODAL FINAL -->
+<div class="modal" id="modal">
+  <div class="card-modal">
+    <h3>🎉 ¡Fin de la ronda!</h3>
+    <p id="finalMsg">Resultados…</p>
+    <button id="closeModal">Aceptar</button>
+  </div>
+</div>
+
+<script>
+/* ================== Ajustes de drag ================== */
+const CENTER_ON_POINTER = true;        // tarjeta centrada en el puntero
+const DRAG_ROOT = document.body;       // durante el drag, cuelga del body
+const HIT_PAD = 24;                    // tolerancia px para el drop
+const SNAP_DISTANCE = 40;              // px
+
+/* ================== Datos base ================== */
+const DATA = {
+  saber: {
+    4: ["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3: ["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2: ["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1: ["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4: ["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3: ["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2: ["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1: ["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser: {
+    4: ["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3: ["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2: ["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1: ["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+const bankEl = document.getElementById('bank');
+const okEl = document.getElementById('ok');
+const totalEl = document.getElementById('total');
+const leftEl = document.getElementById('left');
+const modal = document.getElementById('modal');
+const finalMsg = document.getElementById('finalMsg');
+const closeModal = document.getElementById('closeModal');
+const btnReset = document.getElementById('reset');
+const btnShuffle = document.getElementById('reshuffle');
+const dimSelect = document.getElementById('dimSelect');
+const dimTitle = document.getElementById('dimTitle');
+const dimTag = document.getElementById('dimTag');
+const bankLabel = document.getElementById('bankLabel');
+
+const timerEl = document.getElementById('timer');
+const minEl = document.getElementById('min');
+const secEl = document.getElementById('sec');
+const startBtn = document.getElementById('start');
+const pauseBtn = document.getElementById('pause');
+const restartBtn = document.getElementById('restart');
+const examChk = document.getElementById('exam');
+const examBadge = document.getElementById('examBadge');
+
+const teamsEl = document.getElementById('teams');
+const teamCountEl = document.getElementById('teamCount');
+const applyTeamsBtn = document.getElementById('applyTeams');
+const prevTeamBtn = document.getElementById('prevTeam');
+const nextTeamBtn = document.getElementById('nextTeam');
+
+/* ====== Audio mínimo (ding/buzz) ====== */
+let audioCtx;
+function ding(){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='triangle'; o.frequency.value=900; g.gain.value=0.001;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t=audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+  o.start(); o.stop(t+0.25);}catch(e){} }
+function buzz(){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sawtooth'; o.frequency.value=180; g.gain.value=0.001;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t=audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.38);
+  o.start(); o.stop(t+0.4);}catch(e){} }
+
+/* ====== Estado / tarjetas ====== */
+let CARDS = []; // tarjetas de la dimensión activa
+let currentDim = 'saber';
+function allVerbsOfDim(dim){
+  const list=[];
+  for(const lvl of Object.keys(DATA[dim])){
+    for(const v of DATA[dim][lvl]){
+      list.push({verb:v, dim, level:+lvl});
+    }
+  }
+  return list;
+}
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+/* Construye tarjetas SOLO de la dimensión activa */
+function buildCardsForDim(dim){
+  bankEl.innerHTML='';
+  CARDS = [];
+  const items = shuffle(allVerbsOfDim(dim));
+  for(const it of items){
+    const el = document.createElement('div');
+    el.className='card';
+    el.textContent = it.verb;
+    el.dataset.dim = it.dim;
+    el.dataset.level = String(it.level);
+    bankEl.appendChild(el);
+    CARDS.push({el, verb:it.verb, dim:it.dim, level:it.level, locked:false, homeParent:bankEl, placeholder:null});
+  }
+  updateCounters();
+}
+
+/* Actualiza pistas y atributos data-dim en los niveles */
+function applyDimToLevels(dim){
+  document.querySelectorAll('.level').forEach(level=>{
+    level.dataset.dim = dim;
+  });
+
+  // Pistas dinámicas (excluye ya colocadas)
+  refreshHintsForDim(dim);
+
+  const titleBy = {
+    saber:'📘 SABER (Cognitivo)',
+    hacer:'🛠️ HACER (Psicomotor)',
+    ser:'🤝 SER (Afectivo/Actitudinal)'
+  };
+  dimTitle.textContent = titleBy[dim];
+  dimTag.className = 'tag '+dim;
+  bankLabel.textContent = `(${titleBy[dim].replace(/^[^ ]+ /,'')})`;
+}
+
+/* Limpia dropzones */
+function clearDropzones(){
+  document.querySelectorAll('.dropzone').forEach(z=> z.innerHTML='');
+}
+
+/* ====== Placeholder para evitar "barajar" ====== */
+function insertPlaceholder(card, rect){
+  const ph = document.createElement('div');
+  ph.className = 'card';
+  ph.style.visibility = 'hidden';
+  ph.style.width  = rect.width  + 'px';
+  ph.style.height = rect.height + 'px';
+  card.placeholder = ph;
+  // Insertar ANTES de la tarjeta, así mantiene el índice exacto al mover la tarjeta
+  card.homeParent.insertBefore(ph, card.el);
+}
+function removePlaceholder(card){
+  if(card && card.placeholder && card.placeholder.parentNode){
+    card.placeholder.parentNode.removeChild(card.placeholder);
+  }
+  if(card) card.placeholder = null;
+}
+
+/* ====== Drag & Drop (Pointer Events) ====== */
+let dragging = null; // {card, dx, dy, lastPoint}
+let activePointerId = null;
+let hoverTarget = null;
+
+function setHover(t){
+  if (hoverTarget && hoverTarget.levelEl !== t?.levelEl){
+    hoverTarget.levelEl.classList.remove('hover');
+  }
+  if (t && hoverTarget?.levelEl !== t.levelEl){
+    t.levelEl.classList.add('hover');
+  }
+  hoverTarget = t || null;
+}
+
+function getLevelAt(x, y){
+  const levels = document.querySelectorAll('.level');
+  for (const levelEl of levels){
+    const r = levelEl.getBoundingClientRect();
+    const inside =
+      x >= r.left - HIT_PAD && x <= r.right + HIT_PAD &&
+      y >= r.top  - HIT_PAD && y <= r.bottom + HIT_PAD;
+    if (inside){
+      return {
+        levelEl,
+        zoneEl: levelEl.querySelector('.dropzone'),
+        dim: levelEl.dataset.dim,
+        level: +levelEl.dataset.level
+      };
+    }
+  }
+  return null;
+}
+
+document.addEventListener('pointerdown', onPointerDown, {passive:false});
+function onPointerDown(e){
+  const cardEl = e.target.closest('.card');
+  if(!cardEl) return;
+  const card = CARDS.find(c=>c.el===cardEl);
+  if(!card || card.locked) return;
+  if(e.pointerType==='mouse' && e.button!==0) return;
+  e.preventDefault();
+
+  activePointerId = e.pointerId ?? null;
+  try{ cardEl.setPointerCapture(activePointerId); }catch(_){}
+
+  const rect = cardEl.getBoundingClientRect();
+  const dx = CENTER_ON_POINTER ? rect.width/2  : (e.clientX - rect.left);
+  const dy = CENTER_ON_POINTER ? rect.height/2 : (e.clientY - rect.top);
+
+  // Guardar padre actual y crear placeholder ANTES de colgar al body
+  card.homeParent = card.el.parentElement;
+  insertPlaceholder(card, rect);
+
+  // Mover tarjeta al <body> (drag absoluto sin desfases)
+  DRAG_ROOT.appendChild(card.el);
+
+  dragging = { card, dx, dy, lastPoint:{x:e.clientX, y:e.clientY} };
+
+  cardEl.classList.add('dragging');
+  cardEl.style.width  = rect.width  + 'px';
+  cardEl.style.height = rect.height + 'px';
+  cardEl.style.transform = CENTER_ON_POINTER ? 'translate(-50%,-50%)' : '';
+
+  moveAt(e.clientX, e.clientY);
+
+  document.addEventListener('pointermove', onPointerMove, {passive:false});
+  document.addEventListener('pointerup', onPointerUp, {once:true});
+  document.addEventListener('pointercancel', onPointerCancel, {once:true});
+}
+
+/* === ÚNICA moveAt (no duplicar) === */
+function moveAt(x,y){
+  if(!dragging) return;
+  const {card, dx, dy} = dragging;
+
+  if (CENTER_ON_POINTER){
+    card.el.style.left = x + 'px';
+    card.el.style.top  = y + 'px';
+    card.el.style.transform = 'translate(-50%,-50%) translateZ(0)';
+  }else{
+    card.el.style.left = (x - dx) + 'px';
+    card.el.style.top  = (y - dy) + 'px';
+    card.el.style.transform = 'translateZ(0)';
+  }
+}
+
+function onPointerMove(e){
+  if(!dragging) return;
+  e.preventDefault();
+  dragging.lastPoint = {x:e.clientX, y:e.clientY};
+  moveAt(e.clientX, e.clientY);
+
+  // Resaltar nivel “debajo”
+  setHover(getLevelAt(e.clientX, e.clientY));
+}
+
+function onPointerUp(e){
+  if(!dragging) return;
+  const {card, lastPoint} = dragging;
+
+  // Quita la palabra correcta de la pista del nivel correspondiente
+  const updateHintFor = (card) => {
+    if (typeof currentDim !== 'undefined' && currentDim !== card.dim) return;
+    const hintEl = document.querySelector(`.hint[data-hint="${card.level}"]`);
+    if (!hintEl) return;
+    const items = hintEl.textContent.split(',').map(s=>s.trim()).filter(Boolean);
+    const idx = items.findIndex(t => t.localeCompare(card.verb, 'es', {sensitivity:'base'}) === 0);
+    if (idx !== -1){
+      items.splice(idx, 1);
+      hintEl.textContent = items.join(', ');
+    }
+    if (items.length === 0){
+      hintEl.classList.add('hidden');
+    }
+  };
+
+  const target = hoverTarget || getLevelAt(lastPoint.x, lastPoint.y);
+  setHover(null); // limpiar resaltado
+
+  const isCorrect = target && target.dim===card.dim && target.level===card.level;
+
+  // helper para colocar y puntuar
+  const placeCorrect = (zoneEl) => {
+    zoneEl.appendChild(card.el);
+    card.locked = true;
+    card.el.classList.remove('dragging');
+    card.el.classList.add('locked');
+    card.el.style.cssText='';
+    awardPoints(+POINT_CORRECT);
+    ding();
+    updateHintFor(card); // quitar de la pista
+    checkWin();
+    removePlaceholder(card); // limpiar hueco
+  };
+
+  if(isCorrect){
+    placeCorrect(target.zoneEl);
+  }else{
+    // --- SNAP: encajar si sueltas cerca del nivel correcto ---
+    const correctLevelEl = document.querySelector(`.level[data-dim="${card.dim}"][data-level="${card.level}"]`);
+    let snapped = false;
+    if (correctLevelEl){
+      const r = correctLevelEl.getBoundingClientRect();
+      const near =
+        lastPoint.x >= r.left - SNAP_DISTANCE && lastPoint.x <= r.right + SNAP_DISTANCE &&
+        lastPoint.y >= r.top  - SNAP_DISTANCE && lastPoint.y <= r.bottom + SNAP_DISTANCE;
+
+      if (near){
+        placeCorrect(correctLevelEl.querySelector('.dropzone'));
+        snapped = true;
+      }
+    }
+
+    if(!snapped){
+      // volver EXACTAMENTE al hueco original (sin barajar) y penalizar si procede
+      if (card.placeholder && card.placeholder.parentNode){
+        card.placeholder.replaceWith(card.el);
+      } else {
+        card.homeParent.appendChild(card.el);
+      }
+      card.el.classList.remove('dragging');
+      card.el.style.cssText='';
+      penalize();
+      buzz();
+      if(navigator.vibrate) navigator.vibrate(60);
+      removePlaceholder(card);
+    }
+  }
+
+  dragging = null;
+  document.removeEventListener('pointermove', onPointerMove);
+  updateCounters();
+}
+
+function onPointerCancel(){
+  if(!dragging) return;
+  const {card} = dragging;
+
+  // volver al hueco original sin reordenar
+  if (card.placeholder && card.placeholder.parentNode){
+    card.placeholder.replaceWith(card.el);
+  } else {
+    card.homeParent.appendChild(card.el);
+  }
+
+  card.el.classList.remove('dragging');
+  card.el.style.cssText='';
+  dragging = null;
+  setHover(null);
+  removePlaceholder(card);
+  document.removeEventListener('pointermove', onPointerMove);
+}
+
+/* ====== Contadores ====== */
+function updateCounters(){
+  const ok = CARDS.filter(c=>c.locked).length;
+  okEl.textContent = ok;
+  const total = CARDS.length;
+  totalEl.textContent = total;
+  leftEl.textContent = (total-ok);
+}
+
+/* ====== Equipos y Puntuación ====== */
+const POINT_CORRECT = 10;
+const PENALTY_WRONG = -5; // sólo en examen
+let teams = [];
+let activeTeam = 0;
+
+function renderTeams(){
+  teamsEl.innerHTML='';
+  teams.forEach((t,i)=>{
+    const row = document.createElement('div');
+    row.className = 'team'+(i===activeTeam ? ' active' : '');
+    row.innerHTML = `
+      <input value="${t.name}" data-idx="${i}" style="flex:1; min-width:120px">
+      <span class="score" id="score_${i}">${t.score}</span>
+    `;
+    teamsEl.appendChild(row);
+  });
+  teamsEl.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const idx = +e.target.dataset.idx;
+      teams[idx].name = e.target.value;
+    });
+  });
+}
+
+function setupTeams(n=2){
+  teams = Array.from({length:n}, (_,i)=>({name:'Equipo '+(i+1), score:0}));
+  activeTeam = 0;
+  renderTeams();
+}
+function setActive(idx){
+  activeTeam = (idx+teams.length)%teams.length;
+  renderTeams();
+}
+function nextTeam(){ setActive(activeTeam+1); }
+function prevTeam(){ setActive(activeTeam-1); }
+prevTeamBtn.addEventListener('click', prevTeam);
+nextTeamBtn.addEventListener('click', nextTeam);
+applyTeamsBtn.addEventListener('click', ()=>{
+  const n = Math.max(2, Math.min(4, +teamCountEl.value||2));
+  setupTeams(n);
+});
+
+/* Puntuación: acierto/penalización */
+function awardPoints(p){
+  if(!teams.length) return;
+  teams[activeTeam].score += p;
+  document.getElementById('score_'+activeTeam).textContent = teams[activeTeam].score;
+}
+function penalize(){
+  if(examChk.checked){
+    awardPoints(PENALTY_WRONG);
+    nextTeam(); // opcional: pasar turno tras error
+  }
+}
+
+/* ====== Cronómetro / Modo examen ====== */
+let timerId=null, timeLeft=300, running=false, finished=false;
+
+function setTimeFromInputs(){
+  const m = Math.max(0, +minEl.value|0);
+  const s = Math.max(0, Math.min(59, +secEl.value|0));
+  timeLeft = m*60 + s;
+  updateTimer();
+}
+function pad2(n){return String(n).padStart(2,'0')}
+function updateTimer(){
+  timerEl.textContent = `${pad2(Math.floor(timeLeft/60))}:${pad2(timeLeft%60)}`;
+  timerEl.classList.toggle('low', timeLeft<=10);
+}
+function startTimer(){
+  if(running) return;
+  running=true;
+  if(timerId) clearInterval(timerId);
+  timerId = setInterval(()=>{
+    timeLeft--;
+    updateTimer();
+    if(timeLeft<=0){
+      timeLeft=0; updateTimer();
+      endRound();
+    }
+  },1000);
+}
+function pauseTimer(){ running=false; if(timerId){clearInterval(timerId); timerId=null;} }
+function restartTimer(){ pauseTimer(); setTimeFromInputs(); updateTimer(); }
+
+startBtn.addEventListener('click', ()=>{ if(!finished) startTimer(); });
+pauseBtn.addEventListener('click', pauseTimer);
+restartBtn.addEventListener('click', ()=>{ restartTimer(); });
+
+minEl.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+secEl.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+
+examChk.addEventListener('change', ()=>{
+  examBadge.style.display = examChk.checked ? 'inline-block' : 'none';
+  document.querySelectorAll('.hint').forEach(h=> h.classList.toggle('hidden', examChk.checked));
+  btnShuffle.disabled = examChk.checked && running; // bloquear reordenar durante examen en marcha
+});
+
+/* ====== Fin de ronda y bonus por tiempo ====== */
+function endRound(){
+  if(finished) return;
+  finished = true;
+  pauseTimer();
+
+  const maxScore = Math.max(...teams.map(t=>t.score));
+  const winners = teams
+    .map((t,i)=>({i,score:t.score}))
+    .filter(t=>t.score===maxScore)
+    .map(t=>t.i);
+  const timeBonus = Math.floor(timeLeft/15); // 1 punto cada 15s restantes
+  winners.forEach(i=>{ teams[i].score += timeBonus; });
+  renderTeams();
+
+  const summary = teams.map(t=>`${t.name}: ${t.score} pts`).join(' · ');
+  finalMsg.textContent = `Tiempo agotado o actividad completa. ${summary}. ${winners.length>1 ? '¡Empate!' : '🏆 Ganador: '+teams[winners[0]].name}`;
+  modal.style.display='grid';
+}
+closeModal.addEventListener('click', ()=> modal.style.display='none');
+
+function checkWin(){
+  const okAll = CARDS.every(c=>c.locked);
+  if(okAll) endRound();
+}
+
+/* ====== Reset / Reordenar ====== */
+btnReset.addEventListener('click', resetBoard);
+btnShuffle.addEventListener('click', ()=>{
+  if(examChk.checked && running) return;
+  reshuffle();
+});
+function resetBoard(){
+  // Devolver tarjetas
+  for(const c of CARDS){
+    c.locked=false;
+    c.el.classList.remove('locked','dragging');
+    c.el.style.cssText='';
+    bankEl.appendChild(c.el);
+    removePlaceholder(c);
+  }
+  updateCounters();
+  // Reset tiempo / estado
+  finished=false; pauseTimer(); setTimeFromInputs(); updateTimer();
+  // Reset puntos
+  teams.forEach((t,i)=>{t.score=0; document.getElementById('score_'+i).textContent=t.score;});
+  // Limpiar zonas
+  clearDropzones();
+}
+function reshuffle(){
+  const arr = CARDS.filter(c=>!c.locked);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  bankEl.innerHTML='';
+  for(const c of arr){ bankEl.appendChild(c.el); }
+}
+
+/* ====== Inicialización + cambio de dimensión ====== */
+function switchDimension(dim){
+  currentDim = dim;
+  clearDropzones();               // limpiar zonas
+  buildCardsForDim(dim);          // construir tarjetas
+  applyDimToLevels(dim);          // aplicar pistas y etiquetas
+  document.querySelectorAll('.hint').forEach(h=> h.classList.toggle('hidden', examChk.checked));
+  updateCounters();
+  finished=false;                 // no tocamos el cronómetro
+}
+
+function init(){
+  setupTeams(2);
+  setTimeFromInputs(); updateTimer();
+  switchDimension('saber');
+}
+init();
+
+dimSelect.addEventListener('change', (e)=>{
+  switchDimension(e.target.value);
+});
+
+// === Ordenar A–Z ===
+document.getElementById('sortAZ').addEventListener('click', ()=>{
+  const arr = CARDS.filter(c=>!c.locked);
+  arr.sort((a,b)=> a.verb.localeCompare(b.verb,'es',{sensitivity:'base'}));
+  bankEl.innerHTML='';
+  for(const c of arr){ bankEl.appendChild(c.el); }
+});
+
+// === Desordenar ===
+document.getElementById('shuffleBank').addEventListener('click', ()=>{
+  const arr = CARDS.filter(c=>!c.locked);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  bankEl.innerHTML='';
+  for(const c of arr){ bankEl.appendChild(c.el); }
+});
+
+/* ====== Pistas dinámicas según colocados ====== */
+function getPlacedVerbsByLevel(dim, lvl){
+  return CARDS
+    .filter(c => c.locked && c.dim === dim && c.level === lvl)
+    .map(c => c.verb);
+}
+
+function refreshHintsForDim(dim){
+  for(let lvl=1; lvl<=4; lvl++){
+    const all = DATA[dim][lvl];
+    const placed = new Set(getPlacedVerbsByLevel(dim, lvl));
+    const remaining = all.filter(v => !placed.has(v));
+    const hintEl = document.querySelector(`.hint[data-hint="${lvl}"]`);
+    if (!hintEl) continue;
+    hintEl.textContent = remaining.join(', ');
+    hintEl.classList.toggle('hidden', remaining.length === 0);
+  }
+}
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarjetas DCE + Bloom + DBA</title>
+  
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+h1 { color: #1d4ed8; margin-bottom: 30px; }
+h2 { margin: 20px 0; }
+h3 { margin-bottom: 15px; }
+.area { display: none; flex-direction: column; align-items: center; }
+.area.active { display: flex; }
+.card-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.card {
+  width: 280px;
+  height: 220px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+.card.flipped .card-inner { transform: rotateY(180deg); }
+
+/* ===================== Caras generales ===================== */
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+  backface-visibility: hidden;
+  text-align: center;
+}
+
+/* Frontal: visible por defecto */
+.front {
+  transform: rotateY(0deg);
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Trasera: aparece al girar */
+.back {
+  transform: rotateY(180deg);
+}
+
+/* ===================== ÁREAS Y TARJETAS (FRONTALES) ===================== */
+
+/* 🌱 Ciencias Naturales */
+.nat-contenido .front { background: #4ade80; } /* verde claro */
+.nat-bloom .front     { background: #22c55e; } /* verde medio vivo */
+.nat-dce .front       { background: #14532d; } /* verde oscuro marcado */
+
+/* 📐 Matemáticas */
+.mat-contenido .front { background: #60a5fa; } /* azul claro */
+.mat-bloom .front     { background: #3b82f6; } /* azul medio vivo */
+.mat-dce .front       { background: #1e3a8a; } /* azul oscuro marcado */
+
+/* 📖 Lenguaje */
+.len-contenido .front { background: #fdba74; } /* naranja claro */
+.len-bloom .front     { background: #fb923c; } /* naranja medio vivo */
+.len-dce .front       { background: #7c2d12; } /* naranja oscuro marcado */
+
+/* 🌍 Sociales */
+.soc-contenido .front { background: #f87171; } /* rojo claro */
+.soc-bloom .front     { background: #ef4444; } /* rojo medio vivo */
+.soc-dce .front       { background: #7f1d1d; } /* rojo oscuro marcado */
+
+/* 🇬🇧 Inglés */
+.eng-contenido .front { background: #c084fc; } /* púrpura claro */
+.eng-bloom .front     { background: #a855f7; } /* púrpura medio vivo */
+.eng-dce .front       { background: #4c1d95; } /* púrpura oscuro marcado */
+
+
+/* ===================== ÁREAS Y TARJETAS (TRASERAS) ===================== */
+
+/* 🌱 Ciencias Naturales */
+.nat-contenido .back { background: #75dbb2; } /* verde claro */
+.nat-bloom .back     { background: #34d399; } /* verde medio */
+.nat-dce .back       { background: #047857; } /* verde oscuro */
+
+/* 📐 Matemáticas */
+.mat-contenido .back { background: #87b0de; } /* azul claro */
+.mat-bloom .back     { background: #3b82f6; } /* azul medio */
+.mat-dce .back       { background: #1e3a8a; } /* azul oscuro */
+
+/* 📖 Lenguaje */
+.len-contenido .back { background: #dcbc98; } /* naranja claro */
+.len-bloom .back     { background: #db8a48; } /* naranja medio */
+.len-dce .back       { background: #9a3412; } /* naranja oscuro */
+
+/* 🌍 Sociales */
+.soc-contenido .back { background: #de9797; } /* rojo claro */
+.soc-bloom .back     { background: #ef4444; } /* rojo medio */
+.soc-dce .back       { background: #7f1d1d; } /* rojo oscuro */
+
+/* 🇬🇧 Inglés */
+.eng-contenido .back { background: #b49acf; } /* púrpura claro */
+.eng-bloom .back     { background: #a855f7; } /* púrpura medio */
+.eng-dce .back       { background: #581c87; } /* púrpura oscuro */
+
+
+/* ===================== OTROS ===================== */
+.hidden { display: none; }
+button {
+  padding: 10px 20px;
+  margin-top: 15px;
+  background: #1d4ed8;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background: #2563eb; }
+hr {
+  border: 0;
+  border-top: 1px solid #fff;
+  margin: 6px 0 10px 0;
+  width: 100%;
+}
+
+/* Botón debajo de tarjetas */
+.area button {
+  margin-top: 60px;      /* separación con las tarjetas */
+  margin-bottom: 30px;   /* más aire antes de lo que sigue */
+  display: block;
+  margin-left: auto;     /* centra horizontalmente */
+  margin-right: auto;
+}
+
+/* Texto final (última área) */
+.area p {
+  margin-top: 60px;      /* espacio extra respecto a tarjetas */
+  font-weight: bold;
+  font-size: 18px;
+  color: #16a34a;        /* verde positivo */
+  text-align: center;    /* centrado */
+}
+
+
+
+</style>
+
+
+</head>
+<body>
+<h1>Secuencia: Contenido → Bloom → DCE (con DBA 7°)</h1>
+
+<!-- ========== CIENCIAS NATURALES ========== -->
+<div class="area active" id="area1">
+  <h2>🌱 Ciencias Naturales – Grado 7°</h2>
+
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-nat">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card nat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> La fotosíntesis 🌱
+            <hr>
+            <i><b>DBA 7.3:</b> Explica cómo los organismos vivos realizan funciones vitales y cómo estas se relacionan con el flujo de materia y energía en los ecosistemas.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card nat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Explica cómo la fotosíntesis influye en la cadena alimenticia” (comprender + aplicar).<br><br>↪ Coherente con DBA 7.3.</div>
+        </div>
+      </div>
+      <div class="card nat-dce" onclick="flip(this); showNext('ejemplo2-nat')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza un gráfico de concentración de oxígeno y justifica qué ocurre cuando disminuye la luz.<br><br>↪ Evidencia observable del DBA 7.3.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-nat" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card nat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Ciclo del agua 💧
+            <hr>
+            <i><b>DBA 7.4:</b> Describe e interpreta fenómenos naturales como el ciclo del agua y su relación con el ambiente y la vida.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card nat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Dibuja y describe las etapas del ciclo del agua” (recordar + comprender).<br><br>↪ Coherente con DBA 7.4.</div>
+        </div>
+      </div>
+      <div class="card nat-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Interpreta un caso de sequía y explica qué etapa del ciclo del agua se alteró y cómo afecta a la población.<br><br>↪ Evidencia observable del DBA 7.4.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(1)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== MATEMÁTICAS ========== -->
+<div class="area" id="area2">
+  <h2>📐 Matemáticas – Grado 7°</h2>
+
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-mat">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card mat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Proporciones 📊
+            <hr>
+            <i><b>DBA 7.5:</b> Aplica razones y proporciones en la solución de problemas de contexto.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card mat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Resuelve 3/4 = x/12” (aplicar).<br><br>↪ Coherente con DBA 7.5.</div>
+        </div>
+      </div>
+      <div class="card mat-dce" onclick="flip(this); showNext('ejemplo2-mat')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">En una encuesta, 3 de cada 4 estudiantes tienen celular. Si hay 36, ¿cuántos tienen? Explica tu razonamiento.<br><br>↪ Evidencia del DBA 7.5.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-mat" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card mat-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Estadística básica 📈
+            <hr>
+            <i><b>DBA 7.8:</b> Reconoce y utiliza medidas de tendencia central en situaciones de la vida cotidiana.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card mat-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Calcula el promedio de estas cinco notas” (aplicar).<br><br>↪ Coherente con DBA 7.8.</div>
+        </div>
+      </div>
+      <div class="card mat-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza los resultados de asistencia y propone una conclusión sobre hábitos de puntualidad.<br><br>↪ Evidencia observable del DBA 7.8.</div>
+        </div>
+      </div> <br>
+    </div>
+    <button onclick="nextArea(2)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== LENGUAJE ========== -->
+<div class="area" id="area3">
+  <h2>📖 Lenguaje – Grado 7°</h2>
+
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-len">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card len-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Tipos de textos narrativos 📖
+            <hr>
+            <i><b>DBA 7.2:</b> Identifica el narrador y la perspectiva en un texto narrativo.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card len-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Identifica el narrador en el cuento leído” (recordar + comprender).<br><br>↪ Coherente con DBA 7.2.</div>
+        </div>
+      </div>
+      <div class="card len-dce" onclick="flip(this); showNext('ejemplo2-len')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Reescribe un párrafo con otro narrador y analiza cómo cambia la interpretación.<br><br>↪ Evidencia observable del DBA 7.2.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-len" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card len-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Argumentación ✍️
+            <hr>
+            <i><b>DBA 7.6:</b> Reconoce la tesis en un texto argumentativo y los argumentos que la sustentan.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card len-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Señala la tesis en un texto argumentativo” (analizar).<br><br>↪ Coherente con DBA 7.6.</div>
+        </div>
+      </div>
+      <div class="card len-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Escribe un texto breve defendiendo una postura sobre el uso de celulares en clase, con dos razones.<br><br>↪ Evidencia observable del DBA 7.6.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(3)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CIENCIAS SOCIALES ========== -->
+<div class="area" id="area4">
+  <h2>🌍 Ciencias Sociales – Grado 7°</h2>
+
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-soc">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card soc-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Constitución de 1991 📜
+            <hr>
+            <i><b>DBA 7.4:</b> Reconoce los principios de la Constitución Política de 1991 y su importancia en la vida democrática.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card soc-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Menciona tres derechos fundamentales de la Constitución” (recordar).<br><br>↪ Coherente con DBA 7.4.</div>
+        </div>
+      </div>
+      <div class="card soc-dce" onclick="flip(this); showNext('ejemplo2-soc')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Lee un caso sobre violación de derechos y argumenta cuál derecho se vulnera y cómo debería actuar el Estado.<br><br>↪ Evidencia observable del DBA 7.4.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-soc" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card soc-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Globalización 🌐
+            <hr>
+            <i><b>DBA 7.7:</b> Explica fenómenos de globalización y sus impactos en la vida cotidiana y cultural.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card soc-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Define globalización y da un ejemplo” (comprender).<br><br>↪ Coherente con DBA 7.7.</div>
+        </div>
+      </div>
+      <div class="card soc-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Analiza cómo la globalización afecta la cultura gastronómica de tu región y sustenta con ejemplos.<br><br>↪ Evidencia observable del DBA 7.7.</div>
+        </div>
+      </div>
+    </div>
+    <button onclick="nextArea(4)">Siguiente área ➡️</button>
+  </div>
+</div>
+
+<!-- ========== INGLÉS ========== -->
+<div class="area" id="area5">
+  <h2>🇬🇧 Inglés – Grado 7°</h2>
+
+  <!-- Ejemplo 1 -->
+  <div id="ejemplo1-eng">
+    <h3>Ejemplo 1</h3>
+    <div class="card-row">
+      <div class="card eng-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Present simple vs. continuous ⏳
+            <hr>
+            <i><b>DBA 7.3:</b> Comprende y usa expresiones en presente simple y presente continuo en contextos comunicativos cotidianos.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card eng-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Completa oraciones con la forma verbal correcta” (aplicar).<br><br>↪ Coherente con DBA 7.3.</div>
+        </div>
+      </div>
+      <div class="card eng-dce" onclick="flip(this); showNext('ejemplo2-eng')">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Graba un audio en el que cuentes tu rutina diaria (present simple) y lo que estás haciendo ahora (present continuous).<br><br>↪ Evidencia observable del DBA 7.3.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ejemplo 2 -->
+  <div id="ejemplo2-eng" class="hidden">
+    <h3>Ejemplo 2</h3>
+    <div class="card-row">
+      <div class="card eng-contenido" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">CONTENIDO</div>
+          <div class="card-face back">
+            <b>Tema:</b> Vocabulary – Food and drinks 🍔🥤
+            <hr>
+            <i><b>DBA 7.5:</b> Reconoce y utiliza vocabulario relacionado con alimentos y bebidas en situaciones comunicativas.</i>
+          </div>
+        </div>
+      </div>
+      <div class="card eng-bloom" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">BLOOM</div>
+          <div class="card-face back">“Write 10 words related to food and drinks” (recordar).<br><br>↪ Coherente con DBA 7.5.</div>
+        </div>
+      </div>
+      <div class="card eng-dce" onclick="flip(this)">
+        <div class="card-inner">
+          <div class="card-face front">DCE</div>
+          <div class="card-face back">Diseña un menú para un restaurante imaginario en inglés y explícalo.<br><br>↪ Evidencia observable del DBA 7.5.</div>
+        </div>
+      </div>
+    </div>
+    <p>✅ Has completado todas las áreas.</p>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+
+<script>
+ // Función para girar la tarjeta
+function flip(card) {
+  card.classList.toggle("flipped");
+}
+
+// Mostrar el siguiente ejemplo dentro del área
+function showNext(nextId) {
+  document.getElementById(nextId).classList.remove("hidden");
+}
+
+// Pasar al siguiente bloque de área
+function nextArea(current) {
+  document.getElementById("area" + current).classList.remove("active");
+  document.getElementById("area" + (current + 1)).classList.add("active");
+}
+
+</script>
+
+</body>
+</html>

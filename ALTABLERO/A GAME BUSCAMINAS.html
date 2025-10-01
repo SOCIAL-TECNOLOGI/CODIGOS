@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Buscaminas</title>
+    <style>
+        body {
+            /* Configuración del cuerpo de la página */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #2c3e50; /* Color de fondo */
+            color: #ecf0f1; /* Color del texto */
+            font-family: 'Arial', sans-serif;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .minesweeper-container {
+            /* Contenedor del juego de Buscaminas */
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            /* Estilo de las celdas del juego */
+            width: 40px;
+            height: 40px;
+            background-color: #3498db; /* Color de fondo de la celda */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            border: 1px solid #2980b9; /* Color del borde de la celda */
+            transition: background-color 0.3s ease-in-out; /* Transición de color al pasar el ratón */
+        }
+
+        .cell:hover {
+            /* Estilo al pasar el ratón sobre la celda */
+            background-color: #a0c86e; /* Nuevo color de fondo al pasar el ratón */
+        }
+
+        .bomb {
+            /* Estilo de las celdas con bomba */
+            background-color: #c0392b; /* Color de fondo de la celda con bomba */
+            color: #fff; /* Color del texto en la celda con bomba */
+        }
+
+        .instructions {
+            /* Estilo de las instrucciones del juego */
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .score-inputs {
+            /* Contenedor de los campos de puntuación */
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 390px;
+            margin-bottom: 20px;
+        }
+
+        .player-score-input {
+            /* Estilo de los campos de puntuación de los jugadores */
+            width: 38%;
+        }
+
+        .player-name {
+            /* Estilo de los nombres de los jugadores */
+            font-size: 14px;
+            color: #ecf0f1; /* Color del texto de los nombres de los jugadores */
+            text-align: center; /* Alineación a la derecha */
+            width: 48%;
+            margin-top: 3px;
+        }
+
+        .game-over-message,
+        .win-message {
+            /* Estilo de los mensajes de juego terminado o ganador */
+            margin-top: 20px;
+            font-size: 18px;
+            color: #e74c3c; /* Color del texto de los mensajes */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Juego de Buscaminas</h1>
+    <div class="instructions">
+        <p>Bienvenido al Juego de Buscaminas. Haz clic en una celda para revelarla. Si revelas una bomba, el juego termina. Si revelas todas las celdas sin bombas, ¡ganarás!</p>
+    </div>
+    <div class="score-inputs">
+        <div class="player-name">ISA</div>
+        <input type="number" id="scorePlayer1" class="player-score-input" placeholder="Puntos">
+        <div class="player-name">PROFE MARIO</div>
+        <input type="number" id="scorePlayer2" class="player-score-input" placeholder="Puntos">
+        
+    </div>
+    <div class="minesweeper-container"></div>
+    <div class="game-over-message"></div>
+    <div class="win-message"></div>
+    <script>
+        class Minesweeper {
+            constructor(gridSize, bombCount) {
+                this.gridSize = gridSize;
+                this.bombCount = bombCount;
+                this.grid = [];
+            }
+
+            createGrid() {
+                for (let row = 0; row < this.gridSize; row++) {
+                    this.grid[row] = [];
+                    for (let col = 0; col < this.gridSize; col++) {
+                        this.grid[row][col] = {
+                            isBomb: false,
+                            isRevealed: false,
+                            adjacentBombs: 0
+                        };
+                    }
+                }
+
+                for (let i = 0; i < this.bombCount; i++) {
+                    let randomRow, randomCol;
+                    do {
+                        randomRow = Math.floor(Math.random() * this.gridSize);
+                        randomCol = Math.floor(Math.random() * this.gridSize);
+                    } while (this.grid[randomRow][randomCol].isBomb);
+
+                    this.grid[randomRow][randomCol].isBomb = true;
+                }
+
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (!this.grid[row][col].isBomb) {
+                            this.grid[row][col].adjacentBombs = this.countAdjacentBombs(row, col);
+                        }
+                    }
+                }
+            }
+
+            countAdjacentBombs(row, col) {
+                const directions = [
+                    { row: -1, col: -1 }, { row: -1, col: 0 }, { row: -1, col: 1 },
+                    { row: 0, col: -1 },                        { row: 0, col: 1 },
+                    { row: 1, col: -1 }, { row: 1, col: 0 }, { row: 1, col: 1 }
+                ];
+
+                let count = 0;
+                for (const direction of directions) {
+                    const newRow = row + direction.row;
+                    const newCol = col + direction.col;
+
+                    if (this.isValidCell(newRow, newCol) && this.grid[newRow][newCol].isBomb) {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+
+            isValidCell(row, col) {
+                return row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize;
+            }
+
+            renderGrid() {
+                const container = document.querySelector(".minesweeper-container");
+                container.innerHTML = "";
+
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const cell = document.createElement("div");
+                        cell.classList.add("cell");
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        container.appendChild(cell);
+                    }
+                }
+            }
+
+            clickCell(row, col) {
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+
+                if (!this.grid[row][col].isRevealed) {
+                    this.grid[row][col].isRevealed = true;
+
+                    if (this.grid[row][col].isBomb) {
+                        this.revealAllBombs();
+                        document.querySelector(".game-over-message").textContent = "¡Boom! Juego terminado.";
+                        setTimeout(() => {
+                            this.restartGame();
+                        }, 1000);
+                    } else {
+                        cell.textContent = this.grid[row][col].adjacentBombs;
+
+                        if (this.grid[row][col].adjacentBombs === 0) {
+                            this.revealAdjacentCells(row, col);
+                        }
+                    }
+                }
+
+                if (this.checkWin()) {
+                    document.querySelector(".win-message").textContent = "¡Felicidades! Has ganado.";
+                    setTimeout(() => {
+                        this.restartGame();
+                    }, 1000);
+                }
+            }
+
+            revealAdjacentCells(row, col) {
+                const directions = [
+                    { row: -1, col: -1 }, { row: -1, col: 0 }, { row: -1, col: 1 },
+                    { row: 0, col: -1 },                        { row: 0, col: 1 },
+                    { row: 1, col: -1 }, { row: 1, col: 0 }, { row: 1, col: 1 }
+                ];
+
+                for (const direction of directions) {
+                    const newRow = row + direction.row;
+                    const newCol = col + direction.col;
+
+                    if (this.isValidCell(newRow, newCol) && !this.grid[newRow][newCol].isBomb && !this.grid[newRow][newCol].isRevealed) {
+                        this.clickCell(newRow, newCol);
+                    }
+                }
+            }
+
+            revealAllBombs() {
+                const container = document.querySelector(".minesweeper-container");
+
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.grid[row][col].isBomb) {
+                            const bombCell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                            bombCell.textContent = "💣";
+                            bombCell.classList.add("bomb");
+                        }
+                    }
+                }
+            }
+
+            checkWin() {
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (!this.grid[row][col].isBomb && !this.grid[row][col].isRevealed) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            restartGame() {
+                setTimeout(() => {
+                    this.createGrid();
+                    this.renderGrid();
+                    document.querySelector(".game-over-message").textContent = "";
+                    document.querySelector(".win-message").textContent = "";
+                }, 1000);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const minesweeper = new Minesweeper(10, 10);
+            minesweeper.createGrid();
+            minesweeper.renderGrid();
+
+            const container = document.querySelector(".minesweeper-container");
+            container.addEventListener("click", function (event) {
+                const cell = event.target;
+                const rowIndex = parseInt(cell.dataset.row);
+                const colIndex = parseInt(cell.dataset.col);
+                minesweeper.clickCell(rowIndex, colIndex);
+            });
+        });
+
+
+
+
+
+
+
+
+
+        
+    </script>
+</body>
+</html>

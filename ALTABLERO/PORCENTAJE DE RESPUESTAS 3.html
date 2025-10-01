@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística por preguntas: errores vs aciertos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            text-align: center; /* Centra todo el contenido del body */
+        }
+        .grafico-container {
+            width: 1000px;
+            height: 350px;
+            margin: 20px auto;
+        }
+        #chartContainer {
+            height: 100%;
+            width: 100%;
+        }
+        .boton-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .boton {
+            margin: 0 5px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6ca9d4; /* Azul moderno */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .boton:hover {
+            background-color: #f1d9a9; /* Color de fondo al pasar el ratón */
+            color: black; /* Cambia el color del texto a negro */
+        }
+        .file-upload-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .file-upload {
+            display: none;
+        }
+        .file-upload-label {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6ca9d4; /* Azul moderno */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px; /* Ajuste de margen */
+        }
+        .file-upload-label:hover {
+            background-color: #f1d9a9; /* Color de fondo al pasar el ratón */
+            color: black; /* Cambia el color del texto a negro */
+        }
+        #datos {
+            width: 100%;
+            height: 80px;
+            display: none; /* Inicialmente oculto */
+            margin-top: 10px;
+        }
+        table {
+            width: 90%; /* Ancho del 80% del contenedor */
+            margin: 20px auto; /* Centrar la tabla con un margen superior */
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2; /* Color tenue para filas pares */
+        }
+        /* Estilos para el encabezado de la tabla */
+        table th {
+            background-color: #1a5276; /* Azul oscuro */
+            color: white; /* Texto blanco */
+            font-weight: bold; /* Texto en negrita */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.3.2/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <h1>Estadística por preguntas: errores vs aciertos</h1>
+    <div class="grafico-container">
+        <canvas id="chartContainer"></canvas>
+    </div>
+    <div class="boton-container">
+        <button id="toggleTextAreaButton" class="boton" onclick="toggleTextArea()">
+            <i id="toggleIcon" class="fas fa-eye-slash"></i> Área de Texto</button>
+
+        <input type="file" id="fileUpload" class="file-upload" accept=".xlsx" onchange="handleFile()">
+        <label for="fileUpload" class="file-upload-label"><i class="fas fa-file-import"></i> Subir Archivos</label>
+
+        <button class="boton" onclick="descargarGrafico()"><i class="far fa-save"></i> Gráfico</button>
+        <button class="boton" onclick="generarTablaResumen()"><i class="fas fa-list"></i> Resumen</button>
+        <button class="boton" onclick="descargarExcel()"><i class="fas fa-cloud-download-alt"></i> Resumen</button>
+        <button class="boton" onclick="limpiar()"> <i class="fas fa-undo"></i> Reiniciar</button>
+    </div>
+   
+    <textarea id="datos" style="display: none;" placeholder="Pega aquí los datos de la encuesta" oninput="generarGrafico()"></textarea>
+    
+    <div id="tablaResumenContainer" style="display: none;">
+        <div id="tablaResumen"></div>
+    </div>
+
+    <script>
+        let myChart;
+        const totalPreguntas = 55;
+
+        window.onload = function() {
+            generarGrafico();
+        };
+
+        function toggleTextArea() {
+            const textarea = document.getElementById('datos');
+            textarea.style.display = textarea.style.display === 'none' ? 'block' : 'none';
+            const toggleIcon = document.getElementById('toggleIcon');
+            toggleIcon.classList.toggle('fa-eye-slash');
+            toggleIcon.classList.toggle('fa-eye');
+        }
+
+        function processDatos(datos) {
+            const lineas = datos.trim().split("\n");
+            const respuestasPorPregunta = new Array(totalPreguntas).fill(null).map(() => ({ correctas: 0, incorrectas: 0 }));
+            const encabezados = lineas[0].split("\t");
+
+            for (let i = 1; i < lineas.length; i++) {
+                const respuestas = lineas[i].split("\t");
+
+                for (let j = 0; j < encabezados.length; j += 2) {
+                    const respuestaEstudiante = respuestas[j].trim().toUpperCase();
+                    const respuestaCorrecta = respuestas[j + 1].trim().toUpperCase();
+
+                    if (respuestaEstudiante !== '' && respuestaCorrecta !== '') {
+                        if (respuestaEstudiante === respuestaCorrecta) {
+                            respuestasPorPregunta[j / 2].correctas++;
+                        } else {
+                            respuestasPorPregunta[j / 2].incorrectas++;
+                        }
+                    }
+                }
+            }
+
+            return respuestasPorPregunta;
+        }
+
+        function generarGrafico() {
+            const datos = document.getElementById("datos").value;
+            const respuestasPorPregunta = processDatos(datos);
+
+            const labels = Array.from({ length: totalPreguntas }, (_, i) => (i + 1).toString());
+            const datasets = [];
+            const backgroundColors = ['#7ebf80', '#f08080']; // Verde pastel y Rojo pastel
+            const datasetLabels = ['Respuestas Correctas', 'Respuestas Incorrectas'];
+
+            datasetLabels.forEach((label, index) => {
+                const data = respuestasPorPregunta.map(r => index === 0 ? r.correctas : r.incorrectas);
+                const backgroundColor = backgroundColors[index];
+
+                datasets.push({
+                    label: label,
+                    backgroundColor: backgroundColor,
+                    data: data
+                });
+            });
+
+            const ctx = document.getElementById('chartContainer').getContext('2d');
+            if (myChart instanceof Chart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets.filter(dataset => dataset.data.some(value => value > 0))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Preguntas del Cuestionario',
+                                font: {
+                                    weight: 'bold' // Texto en negrita
+                                }
+                            },
+                            ticks: {
+                                autoSkip: false // Mostrar todas las etiquetas
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Estudiantes',
+                                font: {
+                                    weight: 'bold' // Texto en negrita
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    if (tooltipItem.raw === 0) {
+                                        return '';
+                                    }
+                                    return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        
+        function limpiar() {
+    // Limpiar el área de texto
+    document.getElementById('datos').value = '';
+
+    // Limpiar la tabla de resumen
+    const tablaResumen = document.getElementById('tablaResumen');
+    tablaResumen.innerHTML = '';
+
+    // Destruir el gráfico actual si existe
+    if (myChart instanceof Chart) {
+        myChart.destroy();
+    }
+
+    // Mostrar el gráfico vacío con nombres de ejes
+    const ctx = document.getElementById('chartContainer').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Preguntas del Cuestionario',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Estudiantes',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Ocultar el área de texto si está visible
+    const toggleIcon = document.getElementById('toggleIcon');
+    if (toggleIcon.classList.contains('fa-eye')) {
+        toggleTextArea();
+    }
+}
+
+
+
+
+
+
+        function generarTablaResumen() {
+            const datos = document.getElementById("datos").value;
+            const respuestasPorPregunta = processDatos(datos);
+
+            const resultados = [];
+
+            respuestasPorPregunta.forEach((pregunta, index) => {
+                const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+                const porcentajeAciertos = totalRespuestas > 0 ? ((pregunta.correctas / totalRespuestas) * 100).toFixed(2) : '0.00';
+                const porcentajeErrores = totalRespuestas > 0 ? ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2) : '0.00';
+
+                resultados.push({
+                    Cuestionario: `Pregunta ${index + 1}`,
+                    'Aciertos': pregunta.correctas,
+                    '% de Aciertos': `${porcentajeAciertos}%`,
+                    'Errores': pregunta.incorrectas,
+                    '% de Errores': `${porcentajeErrores}%`
+                });
+            });
+
+            const tablaResumen = document.getElementById('tablaResumen');
+            tablaResumen.innerHTML = '';
+            
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <tr>
+                    <th>Cuestionario</th>
+                    <th>Aciertos</th>
+                    <th>% de Aciertos</th>
+                    <th>Errores</th>
+                    <th>% de Errores</th>
+                </tr>
+            `;
+
+            resultados.forEach(result => {
+                const row = document.createElement('tr');
+                Object.values(result).forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            tablaResumen.appendChild(table);
+            document.getElementById('tablaResumenContainer').style.display = 'block';
+        }
+
+        function descargarGrafico() {
+            html2canvas(document.getElementById('chartContainer')).then(canvas => {
+                canvas.toBlob(function(blob) {
+                    saveAs(blob, 'grafico.png');
+                });
+            });
+        }
+
+       
+        function descargarExcel() {
+    const datos = document.getElementById("datos").value;
+    const respuestasPorPregunta = processDatos(datos);
+
+    const wb = XLSX.utils.book_new();
+    const wsData = [['CUESTIONARIO', 'ACIERTOS', '% DE ACIERTOS', 'ERRORES', '% DE ERRORES']];
+
+    respuestasPorPregunta.forEach((pregunta, index) => {
+        const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+        const porcentajeAciertos = totalRespuestas > 0 ? ((pregunta.correctas / totalRespuestas) * 100).toFixed(2) : '0.00';
+        const porcentajeErrores = totalRespuestas > 0 ? ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2) : '0.00';
+
+        wsData.push([
+            `Pregunta ${index + 1}`,
+            pregunta.correctas,
+            `${porcentajeAciertos}%`,
+            pregunta.incorrectas,
+            `${porcentajeErrores}%`
+        ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Configurar estilos para centrar datos en todas las celdas
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cell_address = { r: R, c: C };
+            const cell_ref = XLSX.utils.encode_cell(cell_address);
+            const cell = ws[cell_ref];
+            if (cell && typeof cell.v === 'string') {
+                cell.s = {
+                    alignment: { horizontal: 'center' }
+                };
+            }
+        }
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Resumen');
+    XLSX.writeFile(wb, 'resumen.xlsx');
+}
+
+       
+       
+       
+        function handleFile() {
+            const file = document.getElementById('fileUpload').files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                let textareaData = '';
+                for (let i = 0; i < jsonData.length; i++) {
+                    textareaData += jsonData[i].join('\t') + '\n';
+                }
+
+                document.getElementById('datos').value = textareaData.trim();
+                generarGrafico();
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>

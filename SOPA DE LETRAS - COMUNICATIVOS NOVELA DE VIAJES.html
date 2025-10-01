@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sopa de Letras – Glosario de Palabras</title>
+<style>
+/* ==== Colores y estilos base ==== */
+:root{
+  --panel:#111827; --borde:#1f2937; --texto:#e5e7eb; --suave:#9ca3af;
+  --p0:#22d3ee; --p1:#a78bfa; --ok:#34d399; --warn:#f59e0b; --danger:#ef4444;
+  --found-grad:linear-gradient(135deg,rgba(167,139,250,.18),rgba(34,211,238,.18));
+  --select-grad:linear-gradient(135deg,rgba(34,211,238,.35),rgba(52,211,153,.35));
+  --hint-grad:linear-gradient(135deg,rgba(245,158,11,.45),rgba(234,179,8,.35));
+}
+body{margin:0;background:#0b1022;color:var(--texto);font-family:system-ui,sans-serif;}
+header{padding:20px;}
+h1{margin:0 0 6px;font-size:24px;color:#38bdf8;}
+.sub{margin:0;color:var(--suave);font-size:14px;}
+.envoltorio{display:grid;gap:20px;grid-template-columns:1fr;padding:0 20px 40px;}
+@media(min-width:980px){.envoltorio{grid-template-columns:1fr minmax(340px,460px);}}
+
+/* Paneles */
+.panel{background:rgba(17,24,39,.6);border:1px solid var(--borde);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.45);backdrop-filter:blur(6px);}
+.superior{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--borde);}
+.controles{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+input,button{font-weight:600;border-radius:8px;padding:6px 10px;}
+input{background:#0c1428;border:1px solid var(--borde);color:var(--texto);}
+button{border:1px solid var(--borde);background:#0b1224;color:var(--texto);cursor:pointer;font-size:13px;}
+button:hover{border-color:#334155;}
+
+/* Jugadores */
+.jugadores{display:flex;gap:8px;flex-wrap:wrap;}
+.tag{padding:4px 8px;border-radius:999px;border:1px solid var(--borde);display:flex;align-items:center;gap:6px;background:#0b1224;font-weight:700;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.p0{color:var(--p0)}.p0 .dot{background:var(--p0)}
+.p1{color:var(--p1)}.p1 .dot{background:var(--p1)}
+.turno{border-color:#334155;box-shadow:0 0 0 2px rgba(255,255,255,.05) inset,0 0 0 4px rgba(34,211,238,.12);}
+
+/* Tablero */
+.sopa{padding:12px;}
+.grid{display:grid;gap:6px;grid-template-columns:repeat(var(--cols),1fr);max-width:960px;margin:0 auto;touch-action:none;}
+.celda{aspect-ratio:1/1;display:grid;place-items:center;border:1px solid rgba(148,163,184,.17);border-radius:8px;font-weight:800;background:#111827;color:var(--texto);user-select:none;text-transform:uppercase;}
+.celda.seleccion{background:var(--select-grad);}
+.celda.acertada{background:var(--found-grad);}
+.celda.acertada.owner0{box-shadow:inset 0 0 0 2px var(--p0);}
+.celda.acertada.owner1{box-shadow:inset 0 0 0 2px var(--p1);}
+.celda.hint{background:var(--hint-grad);color:#0b1224;}
+
+/* Lista de palabras */
+.lado{position:sticky;top:16px;}
+.lista{padding:14px 16px;border-bottom:1px solid var(--borde);}
+.palabras{display:grid;gap:6px;grid-template-columns:1fr 1fr;}
+.palabras button{background:#0c1428;border:1px solid rgba(148,163,184,.18);padding:6px;border-radius:8px;font-size:12px;display:flex;justify-content:space-between;align-items:center;}
+.palabras button.encontrada{color:#9ef0c6;text-decoration:line-through;}
+.def-panel{padding:14px 16px;}
+
+/* HUD flotante */
+.hud{position:fixed;top:12px;right:12px;z-index:1000;display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--borde);background:rgba(17,24,39,.8);backdrop-filter:blur(6px);}
+.hud .indicadores{font-size:13px;color:#fff!important;}
+#turnoLbl.turno-p0{color:var(--p0);}
+#turnoLbl.turno-p1{color:var(--p1);}
+#timerLbl.ok{color:var(--ok);}#timerLbl.warn{color:var(--warn);}#timerLbl.danger{color:var(--danger);}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sopa de Letras – Glosario de Palabras</h1>
+  <p class="sub">Encuentra las palabras del glosario y aprende su significado. Juego de 2 jugadores con tiempo y puntaje.</p>
+</header>
+
+<div class="envoltorio">
+  <!-- Tablero -->
+  <section class="panel">
+    <div class="superior">
+      <div class="jugadores">
+        <span class="tag p0" id="tagP0"><span class="dot"></span><span id="nombreP0">Jugador 1</span> · <span id="puntajeP0">0</span></span>
+        <span class="tag p1" id="tagP1"><span class="dot"></span><span id="nombreP1">Jugador 2</span> · <span id="puntajeP1">0</span></span>
+      </div>
+      <div class="controles">
+        <input id="inpP0" type="text" placeholder="Jugador 1"/>
+        <input id="inpP1" type="text" placeholder="Jugador 2"/>
+        <input id="inpTiempo" type="number" min="5" max="120" value="30"/>
+        <button id="btnIniciar">▶ Iniciar</button>
+        <button id="btnReiniciar">↻ Reiniciar</button>
+      </div>
+    </div>
+    <div class="sopa"><div id="grid" class="grid" style="--cols:20"></div></div>
+  </section>
+
+  <!-- Lista y definiciones -->
+  <aside class="panel lado">
+    <div class="lista"><h2>Lista de palabras</h2><div id="listaPalabras" class="palabras"></div></div>
+    <div class="def-panel"><h3>Último hallazgo</h3><div id="defTitulo">—</div><p id="defTexto">Busca una palabra…</p></div>
+  </aside>
+</div>
+
+<!-- HUD -->
+<div class="hud">
+  <span class="indicadores" id="contador">Encontradas: 0 / 0</span>
+  <span class="indicadores">Turno: <strong id="turnoLbl">Jugador 1</strong></span>
+  <span class="indicadores">Tiempo: <strong id="timerLbl">00:30</strong></span>
+</div>
+
+<script>
+// ===== Glosario de palabras =====
+const definiciones = [
+  { termino:'Travesia', definicion:'Viaje por mar o aire, largo o con dificultades.' },
+  { termino:'Latitud', definicion:'Distancia respecto al ecuador, en grados.' },
+  { termino:'Deplorable', definicion:'Muy malo, lamentable.' },
+  { termino:'Columbraron', definicion:'Ver o distinguir algo a lo lejos, confusamente.' },
+  { termino:'Leguas', definicion:'Antigua medida de distancia, ~5 km.' },
+  { termino:'Buque', definicion:'Barco grande, de carga o guerra.' },
+  { termino:'Perecerian', definicion:'Morirían o dejarían de existir.' },
+  { termino:'Ventura', definicion:'Suerte o destino, generalmente favorable.' },
+  { termino:'Suscito', definicion:'Provocó o causó algo.' },
+  { termino:'Derroteros', definicion:'Rutas o caminos de barcos en el mar.' },
+  { termino:'Fusiforme', definicion:'Forma alargada y estrecha en los extremos.' },
+  { termino:'Locomocion', definicion:'Movimiento o capacidad de desplazarse.' },
+  { termino:'Imputaban', definicion:'Atribuían o adjudicaban algo.' },
+  { termino:'Ictiologos', definicion:'Científicos que estudian los peces.' },
+  { termino:'Escollo', definicion:'Roca o peligro oculto en el mar.' },
+  { termino:'Cetaceo', definicion:'Mamífero marino como ballena o delfín.' },
+  { termino:'Tajamar', definicion:'Parte delantera del barco que corta las olas.' },
+  { termino:'Codaste', definicion:'Parte trasera del barco con el timón.' },
+  { termino:'Sensacionalismo', definicion:'Forma exagerada de presentar noticias.' },
+  { termino:'Hiperboreas', definicion:'Regiones frías y lejanas del norte.' }
+];
+
+// ==== Utilidades ====
+const sinAcentos = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const aClave = s => sinAcentos(s).toUpperCase().replace(/\s+/g,'');
+
+// ==== Palabras a colocar ====
+const PALABRAS = definiciones.map(d=>({termino:d.termino,clave:aClave(d.termino),definicion:d.definicion}));
+
+// ==== Parámetros del tablero ====
+const COLS=20,FILAS=20,ABC="ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
+const DIRECCIONES=[{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1},{dx:1,dy:1},{dx:-1,dy:-1},{dx:1,dy:-1},{dx:-1,dy:1}];
+
+// === Estado básico ===
+let matriz=[]; let encontrados=new Set();
+let celdasDOM=[];
+
+// ==== DOM ====
+const gridEl=document.getElementById("grid");
+const listaEl=document.getElementById("listaPalabras");
+const defTituloEl=document.getElementById("defTitulo");
+const defTextoEl=document.getElementById("defTexto");
+const contadorEl=document.getElementById("contador");
+
+// ==== Funciones principales ====
+function crearMatriz(f,c,val=""){return Array.from({length:f},()=>Array(c).fill(val));}
+function aleatorio(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function cabe(pal,x0,y0,dx,dy){
+  for(let i=0;i<pal.length;i++){
+    const x=x0+i*dx,y=y0+i*dy;
+    if(x<0||y<0||x>=COLS||y>=FILAS) return false;
+    if(matriz[y][x] && matriz[y][x]!==pal[i]) return false;
+  }
+  return true;
+}
+function colocarPalabra(pal){
+  for(let t=0;t<500;t++){
+    const d=DIRECCIONES[aleatorio(0,DIRECCIONES.length-1)];
+    const x=aleatorio(0,COLS-1),y=aleatorio(0,FILAS-1);
+    if(cabe(pal,x,y,d.dx,d.dy)){
+      for(let i=0;i<pal.length;i++)matriz[y+i*d.dy][x+i*d.dx]=pal[i];
+      return true;
+    }
+  }
+  return false;
+}
+function generarSopa(){
+  matriz=crearMatriz(FILAS,COLS,"");
+  encontrados.clear();
+  for(const p of PALABRAS)colocarPalabra(p.clave);
+  for(let y=0;y<FILAS;y++)for(let x=0;x<COLS;x++)if(!matriz[y][x])matriz[y][x]=ABC[aleatorio(0,ABC.length-1)];
+}
+function renderGrid(){
+  gridEl.innerHTML="";celdasDOM=[];
+  for(let y=0;y<FILAS;y++){
+    for(let x=0;x<COLS;x++){
+      const d=document.createElement("div");
+      d.className="celda";d.textContent=matriz[y][x];d.dataset.x=x;d.dataset.y=y;
+      gridEl.appendChild(d);celdasDOM.push(d);
+    }
+  }
+}
+function construirLista(){
+  listaEl.innerHTML="";
+  PALABRAS.forEach(p=>{
+    const b=document.createElement("button");
+    b.textContent=p.termino;
+    b.onclick=()=>{defTituloEl.textContent=p.termino;defTextoEl.textContent=p.definicion;};
+    listaEl.appendChild(b);
+  });
+}
+function actualizarContador(){contadorEl.textContent=`Encontradas: ${encontrados.size} / ${PALABRAS.length}`;}
+
+// === Inicialización ===
+document.addEventListener("DOMContentLoaded",()=>{
+  generarSopa();renderGrid();construirLista();actualizarContador();
+});
+</script>
+</body>
+</html>

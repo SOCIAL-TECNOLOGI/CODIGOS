@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Visor de Descriptores – Bloom</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; }
+  h1 { text-align: center; color: #003366; }
+  .filtros { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 20px; }
+  label { font-weight: bold; }
+  select { padding: 8px; border-radius: 6px; border: 1px solid #999; margin-left: 5px; }
+  .resultado { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.2); max-width: 900px; margin: auto; }
+  .resultado h2 { color: #006699; margin-top:0; }
+  .campo { margin: 10px 0; }
+  .campo strong { color: #333; }
+</style>
+</head>
+<body>
+
+<h1>Visor Interactivo de Descriptores y Bloom</h1>
+
+<div class="filtros">
+  <label>Área:
+    <select id="areaSelect"><option value="">-- Seleccionar --</option></select>
+  </label>
+  <label>Grado:
+    <select id="gradoSelect"><option value="">-- Seleccionar --</option></select>
+  </label>
+  <label>Nivel:
+    <select id="nivelSelect"><option value="">-- Seleccionar --</option></select>
+  </label>
+</div>
+
+<div id="resultado" class="resultado">
+  <h2>Resultados</h2>
+  <div class="campo"><strong>Descriptor oficial:</strong> <span id="descriptor"></span></div>
+  <div class="campo"><strong>Verbo Bloom:</strong> <span id="bloom"></span></div>
+  <div class="campo"><strong>Tarea/Pregunta:</strong> <span id="tarea"></span></div>
+  <div class="campo"><strong>Actividades/Refuerzos:</strong> <span id="actividades"></span></div>
+</div>
+
+<script>
+// ====================== DATASET COMPLETO ======================
+const data = [
+
+  {
+    "Área": "Lenguaje",
+    "Grado": "3°",
+    "Nivel": 1,
+    "Descriptor oficial": "Identifica palabras y elementos literales básicos (quién habla, dónde ocurre).",
+    "Verbo Bloom": "Reconocer / Identificar",
+    "Tarea/Pregunta": "¿Quién es el narrador en este cuento?",
+    "Actividades/Refuerzos": "Subraya los nombres de los personajes; Dibuja dónde ocurre la historia; Ordena imágenes según la secuencia; Completa frases: 'El personaje es ___', 'El lugar es ___'."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "3°",
+    "Nivel": 2,
+    "Descriptor oficial": "Ubica información explícita (personajes, tiempo, lugar).",
+    "Verbo Bloom": "Comprender / Describir",
+    "Tarea/Pregunta": "¿Dónde ocurre la historia y qué personajes participan?",
+    "Actividades/Refuerzos": "Elabora un mapa del cuento; Responde: '¿Qué hizo primero el personaje?, ¿qué hizo después?'; Une con flechas personajes y acciones."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "3°",
+    "Nivel": 3,
+    "Descriptor oficial": "Reconoce causas, conectores y tema del texto.",
+    "Verbo Bloom": "Analizar / Comparar",
+    "Tarea/Pregunta": "¿Por qué ocurrió este hecho en el cuento?",
+    "Actividades/Refuerzos": "Busca conectores como 'porque', 'entonces'; Haz un diagrama de causa y efecto; Completa: 'Esto pasó porque ___'."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "3°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa argumentos simples y propósito del texto.",
+    "Verbo Bloom": "Evaluar / Argumentar",
+    "Tarea/Pregunta": "¿Cuál es la enseñanza del cuento? ¿Estás de acuerdo?",
+    "Actividades/Refuerzos": "Escribe un consejo al personaje; Debate: ¿actuó bien el protagonista?; Elabora un cartel con el mensaje central."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "5°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce vocabulario y narrador.",
+    "Verbo Bloom": "Recordar / Reconocer",
+    "Tarea/Pregunta": "Haz un listado de palabras nuevas y su significado.",
+    "Actividades/Refuerzos": "Busca sinónimos y antónimos; Crea un glosario ilustrado; Relaciona cada palabra con una imagen."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "5°",
+    "Nivel": 2,
+    "Descriptor oficial": "Reconoce funciones textuales.",
+    "Verbo Bloom": "Explicar / Clasificar",
+    "Tarea/Pregunta": "¿Qué función cumple este párrafo?",
+    "Actividades/Refuerzos": "Clasifica párrafos en inicio, desarrollo y cierre; Ordena oraciones para armar un texto coherente; Subraya frases que muestran el propósito del texto."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "5°",
+    "Nivel": 3,
+    "Descriptor oficial": "Infiere intención comunicativa.",
+    "Verbo Bloom": "Inferir / Interpretar",
+    "Tarea/Pregunta": "¿Qué quiso expresar el autor al usar esta expresión?",
+    "Actividades/Refuerzos": "Escribe qué emoción transmite el texto; Cambia el final del cuento y compáralo; Debate: ¿por qué el autor eligió este título?"
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "5°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa ideas y relaciona textos.",
+    "Verbo Bloom": "Evaluar / Justificar",
+    "Tarea/Pregunta": "Compara dos noticias sobre el mismo tema. ¿Cuál es más clara?",
+    "Actividades/Refuerzos": "Haz un cuadro comparativo de dos textos; Señala qué noticia tiene más argumentos; Elabora tu propia conclusión a partir de ambas fuentes."
+  },
+
+  {
+    "Área": "Lenguaje",
+    "Grado": "7°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce información literal en textos narrativos e informativos.",
+    "Verbo Bloom": "Recordar / Identificar",
+    "Tarea/Pregunta": "Busca en el texto quién es el personaje principal.",
+    "Actividades/Refuerzos": "Elabora una lista de hechos mencionados; Ordena cronológicamente tres eventos; Responde: '¿Qué pasó primero?, ¿qué pasó después?'."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "7°",
+    "Nivel": 2,
+    "Descriptor oficial": "Identifica relaciones explícitas y vocabulario.",
+    "Verbo Bloom": "Comprender / Relacionar",
+    "Tarea/Pregunta": "Explica la relación entre estas dos ideas del texto.",
+    "Actividades/Refuerzos": "Une con flechas ideas relacionadas; Sustituye palabras por sinónimos; Dibuja un mapa de relaciones del texto."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "7°",
+    "Nivel": 3,
+    "Descriptor oficial": "Infiere significados e intenciones comunicativas.",
+    "Verbo Bloom": "Analizar / Interpretar",
+    "Tarea/Pregunta": "¿Qué intención tiene el autor al usar esta frase?",
+    "Actividades/Refuerzos": "Escribe qué quiso decir con otras palabras; Debate: ¿qué opinarías si fueras el personaje?; Predice qué pasará en el siguiente párrafo."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "7°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa argumentos y estrategias discursivas.",
+    "Verbo Bloom": "Evaluar / Argumentar",
+    "Tarea/Pregunta": "¿Qué tan efectivo es el argumento de este artículo?",
+    "Actividades/Refuerzos": "Haz una lista de razones a favor y en contra; Debate con tus compañeros sobre el texto; Escribe una reseña crítica."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "9°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce información literal básica en textos extensos.",
+    "Verbo Bloom": "Recordar / Localizar",
+    "Tarea/Pregunta": "Encuentra en el texto el lugar donde ocurre la acción principal.",
+    "Actividades/Refuerzos": "Resalta frases que hablen del lugar; Dibuja el escenario descrito; Responde: '¿Qué palabras ayudan a ubicar la acción?'."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "9°",
+    "Nivel": 2,
+    "Descriptor oficial": "Organiza información explícita y reconoce relaciones.",
+    "Verbo Bloom": "Comprender / Organizar",
+    "Tarea/Pregunta": "Haz un esquema con las ideas principales y secundarias.",
+    "Actividades/Refuerzos": "Elabora un mapa conceptual; Ordena frases desorganizadas; Relaciona con flechas las ideas clave."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "9°",
+    "Nivel": 3,
+    "Descriptor oficial": "Interpreta significados implícitos y reconoce estrategias discursivas.",
+    "Verbo Bloom": "Analizar / Inferir",
+    "Tarea/Pregunta": "¿Qué quiso decir el autor con esta metáfora?",
+    "Actividades/Refuerzos": "Explica metáforas con ejemplos propios; Busca expresiones implícitas en el texto; Debate qué significa el mensaje oculto."
+  },
+  {
+    "Área": "Lenguaje",
+    "Grado": "9°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa críticamente textos argumentativos.",
+    "Verbo Bloom": "Evaluar / Crear",
+    "Tarea/Pregunta": "Redacta una contraargumentación frente al texto leído.",
+    "Actividades/Refuerzos": "Escribe un artículo de opinión alterno; Debate oral: ¿estás de acuerdo con el autor?; Diseña un póster con tu postura crítica."
+  },
+
+
+  {
+    "Área": "Matemáticas",
+    "Grado": "3°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce números naturales y resuelve sumas/restas simples.",
+    "Verbo Bloom": "Recordar / Aplicar",
+    "Tarea/Pregunta": "Resuelve 23 + 15.",
+    "Actividades/Refuerzos": "Usa regletas o fichas para representar la suma; Completa series: 10, 20, 30…; Juega al mercado: 'Compra 2 frutas de $15 cada una, ¿cuánto gastaste?'"
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "3°",
+    "Nivel": 2,
+    "Descriptor oficial": "Usa equivalencias y patrones simples.",
+    "Verbo Bloom": "Identificar / Clasificar",
+    "Tarea/Pregunta": "Completa: 2, 4, 6, __, __.",
+    "Actividades/Refuerzos": "Crea tu propia secuencia; Une objetos en parejas (2–4–6); Representa el patrón con palitos o bloques."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "3°",
+    "Nivel": 3,
+    "Descriptor oficial": "Reconoce fracciones simples y secuencias geométricas.",
+    "Verbo Bloom": "Aplicar / Representar",
+    "Tarea/Pregunta": "Dibuja ½ de una pizza.",
+    "Actividades/Refuerzos": "Usa papel para doblar en fracciones; Colorea ⅓ o ¼ de un dibujo; Ordena figuras por número de lados."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "3°",
+    "Nivel": 4,
+    "Descriptor oficial": "Resuelve problemas multiplicativos simples.",
+    "Verbo Bloom": "Resolver / Justificar",
+    "Tarea/Pregunta": "Si un bus lleva 25 niños y hay 4 buses, ¿cuántos niños son?",
+    "Actividades/Refuerzos": "Haz una tabla de multiplicación; Representa con dibujos de buses; Explica con tus palabras cómo lo resolviste."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "5°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce operaciones básicas en contextos simples.",
+    "Verbo Bloom": "Recordar / Ejecutar",
+    "Tarea/Pregunta": "Calcula 120 ÷ 10.",
+    "Actividades/Refuerzos": "Divide dulces entre 10 niños; Completa tablas de multiplicar y dividir; Relaciona con repartir objetos en partes iguales."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "5°",
+    "Nivel": 2,
+    "Descriptor oficial": "Aplica proporcionalidad en situaciones básicas.",
+    "Verbo Bloom": "Aplicar / Comparar",
+    "Tarea/Pregunta": "Si 2 cuadernos valen $4000, ¿cuánto valen 5?",
+    "Actividades/Refuerzos": "Resuelve problemas de recetas; Juega a la tienda: calcula precios; Haz tablas de 'si… entonces…'"
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "5°",
+    "Nivel": 3,
+    "Descriptor oficial": "Resuelve problemas con fracciones y medidas.",
+    "Verbo Bloom": "Resolver / Explicar",
+    "Tarea/Pregunta": "Un terreno mide ¾ ha. ¿Cuántos m² son?",
+    "Actividades/Refuerzos": "Representa con figuras geométricas; Usa recipientes con agua (½ litro, ¼ litro); Haz problemas con cintas métricas."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "5°",
+    "Nivel": 4,
+    "Descriptor oficial": "Modela y resuelve problemas complejos.",
+    "Verbo Bloom": "Modelar / Argumentar",
+    "Tarea/Pregunta": "Plantea una ecuación para este problema de compras.",
+    "Actividades/Refuerzos": "Haz gráficos con datos; Resuelve con diferentes métodos; Explica a un compañero cómo llegaste al resultado."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "7°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce operaciones y representaciones simples.",
+    "Verbo Bloom": "Reconocer / Calcular",
+    "Tarea/Pregunta": "Ubica el número -3 en la recta numérica.",
+    "Actividades/Refuerzos": "Dibuja la recta y coloca puntos; Relaciona con temperaturas bajo cero; Juega con tarjetas de positivos/negativos."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "7°",
+    "Nivel": 2,
+    "Descriptor oficial": "Resuelve problemas rutinarios con enteros y fracciones.",
+    "Verbo Bloom": "Aplicar / Resolver",
+    "Tarea/Pregunta": "Calcula el promedio de 3.0, 4.0, 5.0.",
+    "Actividades/Refuerzos": "Haz encuestas y saca promedios; Resuelve divisiones de pizzas; Relaciona con notas reales del salón."
+  },
+
+
+
+  {
+    "Área": "Matemáticas",
+    "Grado": "7°",
+    "Nivel": 3,
+    "Descriptor oficial": "Modela relaciones algebraicas y geométricas.",
+    "Verbo Bloom": "Modelar / Representar",
+    "Tarea/Pregunta": "Expresa el perímetro de un triángulo como 2x + 3.",
+    "Actividades/Refuerzos": "Representa con figuras y variables; Usa geoplano para construir; Formula ecuaciones con ejemplos reales."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "7°",
+    "Nivel": 4,
+    "Descriptor oficial": "Resuelve problemas no rutinarios.",
+    "Verbo Bloom": "Resolver / Justificar",
+    "Tarea/Pregunta": "Diseña 2 estrategias distintas para este problema.",
+    "Actividades/Refuerzos": "Comparar soluciones de varios grupos; Resolver con dibujos y ecuaciones; Debatir cuál estrategia es más eficiente."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "9°",
+    "Nivel": 1,
+    "Descriptor oficial": "Maneja operaciones básicas con enteros y fracciones.",
+    "Verbo Bloom": "Calcular / Aplicar",
+    "Tarea/Pregunta": "Resuelve -12 + 8.",
+    "Actividades/Refuerzos": "Juega con tarjetas de positivos/negativos; Usa termómetro para ilustrar; Relaciona con pérdidas y ganancias."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "9°",
+    "Nivel": 2,
+    "Descriptor oficial": "Resuelve problemas con proporcionalidad y geometría básica.",
+    "Verbo Bloom": "Aplicar / Comparar",
+    "Tarea/Pregunta": "Si la maqueta está a escala 1:100, ¿qué mide 5 cm?",
+    "Actividades/Refuerzos": "Haz un plano de la escuela a escala; Calcula proporciones de dibujos; Relaciona con mapas reales."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "9°",
+    "Nivel": 3,
+    "Descriptor oficial": "Modela situaciones algebraicas y de probabilidad.",
+    "Verbo Bloom": "Modelar / Analizar",
+    "Tarea/Pregunta": "Pedro tiene el doble de la edad de Ana, represéntalo.",
+    "Actividades/Refuerzos": "Haz tablas de edades; Resuelve con ecuaciones; Representa con diagrama de árbol en probabilidad."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "9°",
+    "Nivel": 4,
+    "Descriptor oficial": "Argumenta y valida resultados en problemas complejos.",
+    "Verbo Bloom": "Justificar / Evaluar",
+    "Tarea/Pregunta": "Comprueba tu solución al sistema de ecuaciones.",
+    "Actividades/Refuerzos": "Resolver con 2 métodos distintos; Revisar con sustitución; Presentar justificación en grupo."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "3°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce hechos y conceptos simples.",
+    "Verbo Bloom": "Reconocer / Identificar",
+    "Tarea/Pregunta": "Nombra 3 animales que viven en el agua.",
+    "Actividades/Refuerzos": "Clasifica imágenes de animales; Juego de memoria con hábitats; Haz un mural de animales acuáticos."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "3°",
+    "Nivel": 2,
+    "Descriptor oficial": "Describe procesos naturales cotidianos.",
+    "Verbo Bloom": "Describir / Explicar",
+    "Tarea/Pregunta": "Describe cómo crece una planta.",
+    "Actividades/Refuerzos": "Dibuja la secuencia de germinación; Haz un experimento con frijoles; Narra oralmente los pasos."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "3°",
+    "Nivel": 3,
+    "Descriptor oficial": "Relaciona explicaciones con teorías escolares.",
+    "Verbo Bloom": "Relacionar / Explicar",
+    "Tarea/Pregunta": "Explica cómo ocurre la lluvia.",
+    "Actividades/Refuerzos": "Dibuja el ciclo del agua; Representa con botellas de agua y calor; Completa frases: 'Llueve porque ___'."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "3°",
+    "Nivel": 4,
+    "Descriptor oficial": "Argumenta fenómenos con principios científicos.",
+    "Verbo Bloom": "Argumentar / Evaluar",
+    "Tarea/Pregunta": "¿Por qué el sol parece moverse?",
+    "Actividades/Refuerzos": "Observa sombras durante el día; Debate en grupos; Explica con un modelo de la Tierra."
+  },
+
+
+
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "5°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce características básicas de seres vivos.",
+    "Verbo Bloom": "Reconocer / Identificar",
+    "Tarea/Pregunta": "Señala las partes de la flor.",
+    "Actividades/Refuerzos": "Colorea un dibujo de la flor; Relaciona cada parte con su función; Clasifica hojas, tallos y raíces."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "5°",
+    "Nivel": 2,
+    "Descriptor oficial": "Describe procesos naturales conocidos.",
+    "Verbo Bloom": "Describir / Explicar",
+    "Tarea/Pregunta": "Explica cómo respiran los seres humanos.",
+    "Actividades/Refuerzos": "Dibuja aparato respiratorio; Haz un esquema de entrada/salida de aire; Demuestra respiración con globos."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "5°",
+    "Nivel": 3,
+    "Descriptor oficial": "Explica fenómenos con base en teorías científicas.",
+    "Verbo Bloom": "Explicar / Analizar",
+    "Tarea/Pregunta": "Explica cómo ocurre la digestión.",
+    "Actividades/Refuerzos": "Haz un cartel con las etapas; Compara digestión humana y animal; Responde: '¿Qué pasaría si…?'"
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "5°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa fenómenos aplicando principios científicos.",
+    "Verbo Bloom": "Evaluar / Argumentar",
+    "Tarea/Pregunta": "¿Por qué debemos reducir la contaminación?",
+    "Actividades/Refuerzos": "Debate escolar; Diseña un afiche de concienciación; Redacta 3 acciones que cambiarías."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "7°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce hechos y conceptos básicos.",
+    "Verbo Bloom": "Definir / Identificar",
+    "Tarea/Pregunta": "Define ecosistema.",
+    "Actividades/Refuerzos": "Haz un glosario; Clasifica seres vivos; Relaciona con ejemplos locales."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "7°",
+    "Nivel": 2,
+    "Descriptor oficial": "Describe procesos naturales con ejemplos.",
+    "Verbo Bloom": "Describir / Explicar",
+    "Tarea/Pregunta": "Describe la fotosíntesis.",
+    "Actividades/Refuerzos": "Dibuja proceso; Haz experimento con hojas; Explica en voz alta con apoyo visual."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "7°",
+    "Nivel": 3,
+    "Descriptor oficial": "Aplica teorías científicas para explicar fenómenos.",
+    "Verbo Bloom": "Aplicar / Analizar",
+    "Tarea/Pregunta": "¿Por qué ocurre un eclipse?",
+    "Actividades/Refuerzos": "Haz maqueta con linterna y pelotas; Debate sobre mitos y ciencia; Explica con un esquema."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "7°",
+    "Nivel": 4,
+    "Descriptor oficial": "Argumenta fenómenos en distintos contextos.",
+    "Verbo Bloom": "Argumentar / Evaluar",
+    "Tarea/Pregunta": "Defiende la importancia de la biodiversidad.",
+    "Actividades/Refuerzos": "Debate con roles; Elabora un mural ambiental; Escribe un ensayo corto."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "9°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce hechos y conceptos básicos.",
+    "Verbo Bloom": "Identificar / Recordar",
+    "Tarea/Pregunta": "Menciona 3 planetas del sistema solar.",
+    "Actividades/Refuerzos": "Completa crucigrama científico; Juego de tarjetas de planetas; Ordena los planetas en fila."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "9°",
+    "Nivel": 2,
+    "Descriptor oficial": "Describe fenómenos cotidianos.",
+    "Verbo Bloom": "Describir / Explicar",
+    "Tarea/Pregunta": "Explica por qué se forma el arco iris.",
+    "Actividades/Refuerzos": "Experimento con prisma o CD; Dibujo de refracción; Completa frases: 'El arco iris ocurre porque ___'."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "9°",
+    "Nivel": 3,
+    "Descriptor oficial": "Explica fenómenos con teorías científicas.",
+    "Verbo Bloom": "Explicar / Analizar",
+    "Tarea/Pregunta": "Explica la teoría de la evolución.",
+    "Actividades/Refuerzos": "Haz línea de tiempo; Debate científico; Relaciona con ejemplos de animales."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "9°",
+    "Nivel": 4,
+    "Descriptor oficial": "Argumenta con principios científicos.",
+    "Verbo Bloom": "Evaluar / Argumentar",
+    "Tarea/Pregunta": "¿Qué evidencia apoya el Big Bang?",
+    "Actividades/Refuerzos": "Investiga fuentes; Elabora presentación; Debate en clase."
+  },
+
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "3°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce normas básicas de convivencia.",
+    "Verbo Bloom": "Reconocer / Aceptar",
+    "Tarea/Pregunta": "Escribe 3 normas de tu salón.",
+    "Actividades/Refuerzos": "Dibuja cartel de normas; Juego de dramatización; Debate: ¿Qué pasa si no se cumplen?"
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "3°",
+    "Nivel": 2,
+    "Descriptor oficial": "Identifica consecuencias de acciones simples.",
+    "Verbo Bloom": "Identificar / Relacionar",
+    "Tarea/Pregunta": "¿Qué pasa si no haces la fila?",
+    "Actividades/Refuerzos": "Escenificación; Lluvia de ideas; Completa: 'Si hago ___ pasa ___'."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "3°",
+    "Nivel": 3,
+    "Descriptor oficial": "Explica situaciones de convivencia.",
+    "Verbo Bloom": "Explicar / Valorar",
+    "Tarea/Pregunta": "Cuenta una situación donde ayudaste a un compañero.",
+    "Actividades/Refuerzos": "Dramatiza; Haz mural de convivencia; Escribe un relato personal."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "3°",
+    "Nivel": 4,
+    "Descriptor oficial": "Argumenta postura crítica frente a situaciones sociales.",
+    "Verbo Bloom": "Argumentar / Transformar",
+    "Tarea/Pregunta": "¿Qué harías si un compañero es excluido?",
+    "Actividades/Refuerzos": "Debate grupal; Escribe propuesta de acción; Haz un afiche inclusivo."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "5°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce normas cotidianas.",
+    "Verbo Bloom": "Reconocer / Cumplir",
+    "Tarea/Pregunta": "Haz un cartel con las reglas del colegio.",
+    "Actividades/Refuerzos": "Lluvia de normas; Juego de roles; Explica con dibujos."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "5°",
+    "Nivel": 2,
+    "Descriptor oficial": "Identifica consecuencias de acciones.",
+    "Verbo Bloom": "Relacionar / Explicar",
+    "Tarea/Pregunta": "¿Qué pasa si no cuidamos la basura?",
+    "Actividades/Refuerzos": "Dramatiza; Completa frases; Debate en grupos."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "5°",
+    "Nivel": 3,
+    "Descriptor oficial": "Analiza situaciones ciudadanas.",
+    "Verbo Bloom": "Analizar / Argumentar",
+    "Tarea/Pregunta": "¿Cómo resolverías un conflicto entre amigos?",
+    "Actividades/Refuerzos": "Juego de roles; Redacción de soluciones; Debate guiado."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "5°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa y propone soluciones críticas.",
+    "Verbo Bloom": "Evaluar / Liderar",
+    "Tarea/Pregunta": "Diseña una campaña para mejorar la convivencia.",
+    "Actividades/Refuerzos": "Elaboración de afiches; Exposición grupal; Implementación piloto en el salón."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "7°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce normas de convivencia escolar.",
+    "Verbo Bloom": "Reconocer / Aceptar",
+    "Tarea/Pregunta": "Menciona 3 normas de tu colegio.",
+    "Actividades/Refuerzos": "Debate de normas; Juego de sanciones; Cartel colaborativo."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "7°",
+    "Nivel": 2,
+    "Descriptor oficial": "Analiza consecuencias de acciones.",
+    "Verbo Bloom": "Analizar / Explicar",
+    "Tarea/Pregunta": "¿Qué consecuencias trae el bullying?",
+    "Actividades/Refuerzos": "Lluvia de ideas; Dramatiza casos; Debate de causas y efectos."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "7°",
+    "Nivel": 3,
+    "Descriptor oficial": "Explica situaciones ciudadanas.",
+    "Verbo Bloom": "Explicar / Valorar",
+    "Tarea/Pregunta": "¿Qué argumentos darías contra la discriminación?",
+    "Actividades/Refuerzos": "Debate guiado; Ensayo corto; Cartel de inclusión."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "7°",
+    "Nivel": 4,
+    "Descriptor oficial": "Propone posturas críticas sobre problemas sociales.",
+    "Verbo Bloom": "Evaluar / Liderar",
+    "Tarea/Pregunta": "Organiza un debate sobre igualdad de género.",
+    "Actividades/Refuerzos": "Investigación previa; Debate con roles; Redacta conclusiones."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "9°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce normas y consecuencias.",
+    "Verbo Bloom": "Reconocer / Aceptar",
+    "Tarea/Pregunta": "Escribe 3 normas de tu barrio.",
+    "Actividades/Refuerzos": "Mapa de normas locales; Debate: ¿por qué existen?; Juego de tarjetas."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "9°",
+    "Nivel": 2,
+    "Descriptor oficial": "Relaciona acciones con consecuencias sociales.",
+    "Verbo Bloom": "Relacionar / Explicar",
+    "Tarea/Pregunta": "¿Qué pasa si no cuidamos el río?",
+    "Actividades/Refuerzos": "Investigación local; Debate; Lluvia de consecuencias."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "9°",
+    "Nivel": 3,
+    "Descriptor oficial": "Explica situaciones ciudadanas.",
+    "Verbo Bloom": "Explicar / Argumentar",
+    "Tarea/Pregunta": "¿Qué soluciones propondrías a la inseguridad?",
+    "Actividades/Refuerzos": "Debate; Esquema de soluciones; Dramatización."
+  },
+  {
+    "Área": "Competencias Ciudadanas",
+    "Grado": "9°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa y toma postura crítica frente a problemáticas.",
+    "Verbo Bloom": "Evaluar / Liderar",
+    "Tarea/Pregunta": "Redacta un ensayo sobre participación juvenil.",
+    "Actividades/Refuerzos": "Escribir ensayo; Debate público; Presentación en feria escolar."
+  }
+
+];
+
+
+
+// =============================================================
+
+// ======= Rellenar menús desplegables =======
+const areaSelect = document.getElementById("areaSelect");
+const gradoSelect = document.getElementById("gradoSelect");
+const nivelSelect = document.getElementById("nivelSelect");
+
+const uniqueAreas = [...new Set(data.map(d => d["Área"]))];
+uniqueAreas.forEach(a => areaSelect.innerHTML += `<option value="${a}">${a}</option>`);
+
+areaSelect.addEventListener("change", ()=>{
+  gradoSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
+  nivelSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
+  const grados = [...new Set(data.filter(d=>d["Área"]===areaSelect.value).map(d=>d["Grado"]))];
+  grados.forEach(g => gradoSelect.innerHTML += `<option value="${g}">${g}</option>`);
+});
+
+gradoSelect.addEventListener("change", ()=>{
+  nivelSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
+  const niveles = [...new Set(data.filter(d=>d["Área"]===areaSelect.value && d["Grado"]===gradoSelect.value).map(d=>d["Nivel"]))];
+  niveles.forEach(n => nivelSelect.innerHTML += `<option value="${n}">${n}</option>`);
+});
+
+nivelSelect.addEventListener("change", ()=>{
+  const registro = data.find(d=> d["Área"]===areaSelect.value && d["Grado"]===gradoSelect.value && String(d["Nivel"])===nivelSelect.value);
+  document.getElementById("descriptor").textContent = registro ? registro["Descriptor oficial"] : "";
+  document.getElementById("bloom").textContent = registro ? registro["Verbo Bloom"] : "";
+  document.getElementById("tarea").textContent = registro ? registro["Tarea/Pregunta"] : "";
+  document.getElementById("actividades").textContent = registro ? registro["Actividades/Refuerzos"] : "";
+});
+</script>
+
+</body>
+</html>

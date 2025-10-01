@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Capacitores - Completo</title>
+<style>
+  body {
+    background: #0c1a0c;
+    font-family: "Segoe UI", sans-serif;
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 { color: #00ffcc; text-shadow: 0 0 8px #00ffaa; }
+
+  /* Placa PCB */
+  #circuito {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: #004d00;
+    border: 4px solid #0f0;
+    border-radius: 12px;
+    padding: 30px;
+    gap: 60px;
+    margin: 20px auto;
+    min-height: 240px;
+    position: relative;
+  }
+
+  /* LED físico */
+  .led {
+    width: 40px; height: 40px;
+    background: #444;
+    border-radius: 50%;
+    border: 3px solid #222;
+    box-shadow: 0 0 10px #000;
+    transition: background 0.5s, box-shadow 0.5s;
+  }
+  .led.on { background: yellow; box-shadow: 0 0 25px yellow; }
+
+  /* Batería */
+  .bateria {
+    width: 60px; height: 100px;
+    background: linear-gradient(#111,#555);
+    border: 3px solid #999;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: bold; color: #fff;
+    box-shadow: inset 0 0 12px #0f0;
+  }
+
+  /* Capacitores */
+  .cap { cursor: pointer; position: relative; margin: 10px; }
+  .electrolitico { width: 60px; height: 120px; background: linear-gradient(180deg,#222,#555); border: 3px solid #888; border-radius: 12px; }
+  .ceramico { width: 70px; height: 70px; background: orange; border: 3px solid #cc6600; border-radius: 50%; }
+  .mica { width: 80px; height: 60px; background: #999; border: 3px solid #555; border-radius: 6px; }
+  .tantalo { width: 60px; height: 100px; background: purple; border: 3px solid #a64ca6; border-radius: 10px; }
+  .variable { width: 100px; height: 100px; background: #0066cc; border: 3px solid #004080; border-radius: 50%; }
+
+  /* Barra de carga */
+  .barra { width: 80%; height: 10px; background: #333; border: 2px solid #00ffaa; margin: 10px auto; border-radius: 5px; overflow: hidden; }
+  .energia { height: 100%; width: 0; background: linear-gradient(90deg,#00ff99,#00cc66); transition: width 0.5s; }
+
+  /* Terminales */
+  .terminal { width: 6px; height: 25px; background: silver; position: absolute; bottom: -25px; border-radius: 2px; }
+  .terminal.left { left: 10px; }
+  .terminal.right { right: 10px; }
+  .terminal.wide-left { left: 20px; }
+  .terminal.wide-right { right: 20px; }
+
+  /* Símbolos */
+  .capacitor-container { display: flex; flex-direction: column; align-items: center; }
+  .simbolo { margin-top: 6px; font-size: 1em; color: #ffcc00; font-family: monospace; }
+
+  /* Narración arcade */
+  #narracion {
+    margin:20px auto; padding:15px;
+    background:black; color:#00ff00;
+    font-family:"Press Start 2P",monospace;
+    font-size:14px; border:2px solid #0f0;
+    border-radius:6px; width:80%; min-height:60px;
+    text-align:left; white-space:pre-wrap;
+  }
+
+  /* SVG esquema */
+  #esquema {
+    margin: 20px auto;
+    padding: 15px;
+    max-width: 700px;
+    background: #112;
+    border-radius: 10px;
+    border: 2px solid #0f0;
+  }
+  svg { width: 100%; height: auto; }
+  .line { stroke:#0f0; stroke-width:2; opacity:0.3; stroke-dasharray:6 6; }
+  .comp { fill:none; stroke:#0f0; stroke-width:3; }
+  .ledSym { stroke:red; fill:none; stroke-width:2; opacity:0.3; transition:opacity 0.5s, stroke 0.5s; }
+  .active { opacity:1 !important; stroke:#0ff !important; animation: corriente 1s linear infinite; }
+  .ledOn { opacity:1 !important; stroke:yellow !important; }
+
+  @keyframes corriente {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -12; }
+  }
+
+  /* Slider variable */
+  #controlVar { margin-top: 15px; }
+  input[type=range] { width: 60%; }
+</style>
+</head>
+<body>
+
+<h1>🔌 Juego de Capacitores - Placa + Esquema SVG</h1>
+<p id="nivel">Nivel 1: Electrolítico</p>
+<p id="puntaje">Puntaje: 0</p>
+<div id="circuito"></div>
+<div id="narracion"></div>
+<div id="esquema"></div>
+<div id="controlVar"></div>
+
+<!-- Sonidos arcade -->
+<audio id="sndCarga" src="beep.mp3"></audio>
+<audio id="sndDescarga" src="powerup.mp3"></audio>
+<audio id="sndLed" src="ping.mp3"></audio>
+
+<button id="btnReiniciar">Reiniciar Juego</button>
+
+<script>
+let nivel=1,puntaje=0;
+const circuito=document.getElementById("circuito");
+const narracion=document.getElementById("narracion");
+const esquema=document.getElementById("esquema");
+const nivelTxt=document.getElementById("nivel");
+const puntajeTxt=document.getElementById("puntaje");
+const controlVar=document.getElementById("controlVar");
+
+function typeWriter(texto,sonido=null){
+  narracion.textContent=""; let i=0;
+  const intervalo=setInterval(()=>{ narracion.textContent+=texto[i]; i++; if(i>=texto.length) clearInterval(intervalo); },40);
+  if(sonido){ const audio=document.getElementById(sonido); audio.currentTime=0; audio.play(); }
+}
+
+function iluminarCircuito(){
+  const paths = esquema.querySelectorAll(".line");
+  paths.forEach((p,i)=>setTimeout(()=>p.classList.add("active"),i*120));
+  const ledSvg = esquema.querySelector(".ledSym");
+  if(ledSvg){ 
+    setTimeout(()=>{
+      ledSvg.classList.add("ledOn");
+      const ping=document.getElementById("sndLed"); 
+      ping.currentTime=0; ping.play();
+    },1000); 
+  }
+}
+
+function renderNivel(){
+  circuito.innerHTML=""; esquema.innerHTML=""; controlVar.innerHTML="";
+  if(nivel===1){ nivelTxt.textContent="Nivel 1: Electrolítico"; crearPlaca("electrolitico"," |‖ + "); esquema.innerHTML=svgBasico();
+  } else if(nivel===2){ nivelTxt.textContent="Nivel 2: Cerámicos en paralelo"; crearPlacaDoble("ceramico"," |‖ "); esquema.innerHTML=svgParalelo();
+  } else if(nivel===3){ nivelTxt.textContent="Nivel 3: Micas en serie"; crearPlacaDoble("mica"," |‖ "); esquema.innerHTML=svgSerie();
+  } else if(nivel===4){ nivelTxt.textContent="Nivel 4: Tántalo con resistencia"; crearPlaca("tantalo"," |‖ + ",true); esquema.innerHTML=svgRC();
+  } else if(nivel===5){ nivelTxt.textContent="Nivel 5: Variable"; crearPlacaVariable(); esquema.innerHTML=svgVariable();
+  } else { nivelTxt.textContent="🎉 Juego completado"; typeWriter("🏆 Has completado el juego. Puntaje: "+puntaje); }
+}
+
+function crearPlaca(tipo,simbolo,retardo=false){
+  const bat=document.createElement("div"); bat.classList.add("bateria"); bat.textContent="⚡";
+  const cont=document.createElement("div"); cont.classList.add("capacitor-container");
+  const cap=document.createElement("div"); cap.classList.add("cap",tipo);
+
+  // Barra de carga
+  const barra=document.createElement("div"); barra.classList.add("barra");
+  const energia=document.createElement("div"); energia.classList.add("energia"); barra.appendChild(energia); cap.appendChild(barra);
+
+  // Terminales
+  cap.appendChild(Object.assign(document.createElement("div"),{className:"terminal left"}));
+  cap.appendChild(Object.assign(document.createElement("div"),{className:"terminal right"}));
+
+  cont.appendChild(cap);
+  const simb=document.createElement("div"); simb.classList.add("simbolo"); simb.textContent=simbolo;
+  cont.appendChild(simb);
+  const led=document.createElement("div"); led.classList.add("led");
+  circuito.appendChild(bat); circuito.appendChild(cont); circuito.appendChild(led);
+
+  cap.addEventListener("click",()=>{
+    energia.style.width="100%"; typeWriter("⚡ El capacitor se carga desde la batería...","sndCarga");
+    setTimeout(()=>{
+      energia.style.width="0";
+      setTimeout(()=>{
+        led.classList.add("on");
+        typeWriter("🔋 El capacitor descarga su energía y el LED se enciende.","sndDescarga");
+        iluminarCircuito();
+        puntaje+=100; puntajeTxt.textContent="Puntaje: "+puntaje;
+        setTimeout(()=>{nivel++;renderNivel();},3000);
+      }, retardo?1500:0);
+    },2000);
+  });
+}
+
+function crearPlacaDoble(tipo,simbolo){
+  const bat=document.createElement("div"); bat.classList.add("bateria"); bat.textContent="⚡";
+  const cap1=document.createElement("div"); cap1.classList.add("cap",tipo);
+  const cap2=document.createElement("div"); cap2.classList.add("cap",tipo);
+
+  cap1.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-left"}));
+  cap1.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-right"}));
+  cap2.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-left"}));
+  cap2.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-right"}));
+
+  const led=document.createElement("div"); led.classList.add("led");
+  circuito.appendChild(bat); circuito.appendChild(cap1); circuito.appendChild(cap2); circuito.appendChild(led);
+
+  cap1.addEventListener("click",()=>typeWriter("⚡ Capacitor A cargado...","sndCarga"));
+  cap2.addEventListener("click",()=>{led.classList.add("on"); led.style.background="lime"; typeWriter("🔋 Ambos descargan: LED responde distinto.","sndDescarga"); iluminarCircuito(); puntaje+=150; puntajeTxt.textContent="Puntaje: "+puntaje; setTimeout(()=>{nivel++;renderNivel();},3000);});
+}
+
+function crearPlacaVariable(){
+  const bat=document.createElement("div"); bat.classList.add("bateria"); bat.textContent="⚡";
+  const cap=document.createElement("div"); cap.classList.add("cap","variable");
+  cap.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-left"}));
+  cap.appendChild(Object.assign(document.createElement("div"),{className:"terminal wide-right"}));
+  const led=document.createElement("div"); led.classList.add("led");
+  circuito.appendChild(bat); circuito.appendChild(cap); circuito.appendChild(led);
+
+  controlVar.innerHTML=`<label>Ajusta la capacitancia:</label><br><input type="range" id="slider" min="0" max="100" value="50">`;
+  const slider=document.getElementById("slider");
+  slider.addEventListener("input",()=>{
+    let val=slider.value;
+    let brillo=Math.floor(val*2.55);
+    led.style.background=`rgb(${brillo},${brillo},0)`;
+    led.style.boxShadow=`0 0 ${brillo/5}px yellow`;
+    typeWriter("📻 Ajustando capacitancia del variable... nivel "+val);
+  });
+}
+
+/* SVG esquemas */
+function svgBasico(){ return `
+<svg viewBox="0 0 400 200">
+  <line x1="20" y1="100" x2="60" y2="100" class="line"/>
+  <line x1="60" y1="80" x2="60" y2="120" class="comp"/>
+  <line x1="70" y1="70" x2="70" y2="130" class="comp"/>
+  <line x1="70" y1="100" x2="120" y2="100" class="line"/>
+  <polygon points="120,80 140,100 120,120" class="ledSym"/>
+  <line x1="140" y1="100" x2="200" y2="100" class="line"/>
+  <line x1="200" y1="100" x2="200" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="200" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="20" y2="100" class="line"/>
+</svg>`;}
+function svgParalelo(){ return `
+<svg viewBox="0 0 400 200">
+  <line x1="20" y1="100" x2="80" y2="100" class="line"/>
+  <line x1="80" y1="70" x2="80" y2="130" class="comp"/>
+  <line x1="100" y1="70" x2="100" y2="130" class="comp"/>
+  <line x1="80" y1="100" x2="100" y2="100" class="line"/>
+  <line x1="120" y1="70" x2="120" y2="130" class="comp"/>
+  <line x1="140" y1="70" x2="140" y2="130" class="comp"/>
+  <line x1="120" y1="100" x2="140" y2="100" class="line"/>
+  <line x1="140" y1="100" x2="200" y2="100" class="line"/>
+  <polygon points="200,80 220,100 200,120" class="ledSym"/>
+  <line x1="220" y1="100" x2="280" y2="100" class="line"/>
+  <line x1="280" y1="100" x2="280" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="280" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="20" y2="100" class="line"/>
+</svg>`;}
+function svgSerie(){ return `
+<svg viewBox="0 0 400 200">
+  <line x1="20" y1="100" x2="80" y2="100" class="line"/>
+  <line x1="80" y1="70" x2="80" y2="130" class="comp"/>
+  <line x1="100" y1="70" x2="100" y2="130" class="comp"/>
+  <line x1="100" y1="100" x2="140" y2="100" class="line"/>
+  <line x1="140" y1="70" x2="140" y2="130" class="comp"/>
+  <line x1="160" y1="70" x2="160" y2="130" class="comp"/>
+  <line x1="160" y1="100" x2="200" y2="100" class="line"/>
+  <polygon points="200,80 220,100 200,120" class="ledSym"/>
+  <line x1="220" y1="100" x2="280" y2="100" class="line"/>
+  <line x1="280" y1="100" x2="280" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="280" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="20" y2="100" class="line"/>
+</svg>`;}
+function svgRC(){ return `
+<svg viewBox="0 0 400 200">
+  <line x1="20" y1="100" x2="60" y2="100" class="line"/>
+  <line x1="60" y1="70" x2="60" y2="130" class="comp"/>
+  <line x1="80" y1="70" x2="80" y2="130" class="comp"/>
+  <line x1="80" y1="100" x2="140" y2="100" class="line"/>
+  <line x1="140" y1="80" x2="160" y2="120" class="line"/>
+  <line x1="160" y1="120" x2="180" y2="80" class="line"/>
+  <line x1="180" y1="80" x2="200" y2="120" class="line"/>
+  <line x1="200" y1="100" x2="240" y2="100" class="line"/>
+  <polygon points="240,80 260,100 240,120" class="ledSym"/>
+  <line x1="260" y1="100" x2="300" y2="100" class="line"/>
+  <line x1="300" y1="100" x2="300" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="300" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="20" y2="100" class="line"/>
+</svg>`;}
+function svgVariable(){ return `
+<svg viewBox="0 0 400 200">
+  <line x1="20" y1="100" x2="60" y2="100" class="line"/>
+  <line x1="60" y1="70" x2="60" y2="130" class="comp"/>
+  <line x1="80" y1="70" x2="80" y2="130" class="comp"/>
+  <line x1="70" y1="60" x2="100" y2="40" class="line"/>
+  <line x1="80" y1="100" x2="140" y2="100" class="line"/>
+  <polygon points="140,80 160,100 140,120" class="ledSym"/>
+  <line x1="160" y1="100" x2="200" y2="100" class="line"/>
+  <line x1="200" y1="100" x2="200" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="200" y2="160" class="line"/>
+  <line x1="20" y1="160" x2="20" y2="100" class="line"/>
+</svg>`;}
+
+document.getElementById("btnReiniciar").addEventListener("click",()=>{nivel=1;puntaje=0;puntajeTxt.textContent="Puntaje: 0";renderNivel();});
+renderNivel();
+</script>
+</body>
+</html>

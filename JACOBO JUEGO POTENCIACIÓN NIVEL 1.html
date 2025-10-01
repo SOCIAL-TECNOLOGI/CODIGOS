@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potenciación – Nivel 1</title>
+<style>
+    body {
+    background:#0f172a; color:white; font-family:Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100vh; margin:0;
+  }
+  h1 { margin-bottom:20px; color:#22d3ee; }
+  #potencia {
+    font-size:60px; margin:20px; position:relative;
+  }
+  sup { font-size:40px; color:#facc15; }
+
+  .dropzones {
+    display:flex; gap:20px; margin:20px;
+  }
+  .dropzone {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    margin:10px; padding:15px 20px;
+    border:2px dashed #64748b; border-radius:6px; min-width:120px; min-height:80px;
+    text-align:center; font-size:18px;
+  }
+  .correct { background:#16a34a; color:white; border:none; }
+  .wrong { background:#dc2626; color:white; border:none; }
+
+  .labels {
+    display:flex; gap:15px; flex-wrap:wrap; margin:20px; justify-content:center;
+  }
+  .label {
+    padding:10px 20px; background:#3b82f6; border-radius:8px;
+    cursor:grab; font-weight:bold; font-size:22px;
+  }
+
+  #feedback { margin-top:20px; font-size:20px; }
+  button {
+    margin-top:20px; padding:10px 20px; font-size:18px;
+    background:#22d3ee; border:none; border-radius:6px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+  <h1>🔢 Juego de Potenciación – Nivel 1</h1>
+
+  <div id="potencia"></div>
+
+  <div class="dropzones">
+    <div id="baseZone" class="dropzone" data-filled="0">Aquí va la Base</div>
+    <div id="expZone"  class="dropzone" data-filled="0">Aquí va el Exponente</div>
+  </div>
+
+  <div class="labels" id="labelsContainer"></div>
+
+  <div id="feedback">Arrastra cada número a su recuadro correcto.</div>
+  <button id="btnNueva">➡️ Nueva Potencia</button>
+
+<script>
+let base, exp;
+let placed = { base:false, exp:false };
+let usadas = []; // historial de potencias jugadas
+const MAX_BASE = 10, MIN_BASE = 2;
+const MAX_EXP = 5, MIN_EXP = 2;
+const TOTAL_COMB = (MAX_BASE - MIN_BASE + 1) * (MAX_EXP - MIN_EXP + 1);
+
+const potEl   = document.getElementById('potencia');
+const baseEl  = document.getElementById('baseZone');
+const expEl   = document.getElementById('expZone');
+const labelsC = document.getElementById('labelsContainer');
+const fbEl    = document.getElementById('feedback');
+const hudEl   = document.getElementById('hud');
+const btnNew  = document.getElementById('btnNueva');
+
+btnNew.addEventListener('click', nuevaPotencia);
+
+function actualizarHUD(){
+  hudEl.textContent = `Progreso: ${usadas.length} / ${TOTAL_COMB} potencias resueltas · Restantes: ${TOTAL_COMB - usadas.length}`;
+}
+
+function nuevaPotencia(){
+  // Si ya se usaron todas → felicitar
+  if(usadas.length >= TOTAL_COMB){
+    potEl.innerHTML = "🎉";
+    baseEl.style.display = "none";
+    expEl.style.display = "none";
+    labelsC.innerHTML = "";
+    fbEl.innerHTML = "🎊 ¡Felicidades! Has completado todas las combinaciones posibles.<br>Haz clic en el botón para reiniciar.";
+    btnNew.textContent = "🔄 Reiniciar juego";
+    usadas = []; // limpiar historial
+    actualizarHUD();
+    return;
+  }
+
+  // generar potencia nueva que no esté repetida
+  do {
+    base = randInt(MIN_BASE, MAX_BASE);
+    exp  = randInt(MIN_EXP, MAX_EXP);
+  } while (usadas.some(p => p.base === base && p.exp === exp));
+
+  usadas.push({base, exp});
+
+  // mostrar
+  potEl.innerHTML = `${base}<sup>${exp}</sup>`;
+  baseEl.style.display = "flex";
+  expEl.style.display = "flex";
+  btnNew.textContent = "➡️ Nueva Potencia";
+  resetZones();
+  generarFichas();
+  actualizarHUD();
+}
+
+function resetZones(){
+  placed.base = placed.exp = false;
+  baseEl.className='dropzone'; baseEl.dataset.filled='0'; baseEl.textContent='Aquí va la Base';
+  expEl.className ='dropzone'; expEl.dataset.filled='0';  expEl.textContent='Aquí va el Exponente';
+  fbEl.textContent = 'Arrastra cada número a su recuadro correcto.';
+  labelsC.innerHTML='';
+}
+
+function generarFichas(){
+  let d1, d2;
+  do { d1 = randInt(MIN_BASE, MAX_BASE); } while (d1===base || d1===exp);
+  do { d2 = randInt(MIN_BASE, MAX_BASE); } while (d2===base || d2===exp || d2===d1);
+
+  const fichas = [
+    {valor: base}, {valor: exp}, {valor: d1}, {valor: d2}
+  ].sort(()=>Math.random()-0.5);
+
+  fichas.forEach(f=>{
+    const div = document.createElement('div');
+    div.className='label';
+    div.textContent = String(f.valor);
+    div.draggable = true;
+    div.dataset.valor = String(f.valor);
+    div.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('valor', div.dataset.valor);
+      e.dataTransfer.setData('elemId', setTempId(div));
+    });
+    labelsC.appendChild(div);
+  });
+}
+
+function setTempId(el){
+  if(!el.id){
+    el.id = 'f_'+Math.random().toString(36).slice(2);
+  }
+  return el.id;
+}
+
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+[baseEl,expEl].forEach(zone=>{
+  zone.addEventListener('dragover', e=> e.preventDefault());
+  zone.addEventListener('drop', e=>{
+    e.preventDefault();
+    if(zone.dataset.filled==='1') return;
+
+    const valor = Number(e.dataTransfer.getData('valor'));
+    const elemId = e.dataTransfer.getData('elemId');
+    const fichaEl = document.getElementById(elemId);
+
+    const expected = (zone===baseEl) ? base : exp;
+
+    if(valor === expected){
+      zone.textContent = String(valor);
+      zone.classList.remove('wrong');
+      zone.classList.add('correct','filled');
+      zone.dataset.filled='1';
+      if(fichaEl) fichaEl.remove();
+
+      if(zone===baseEl) placed.base=true; else placed.exp=true;
+      fbEl.textContent = (base===exp)
+        ? '✅ Correcto. Como base y exponente son iguales, cualquiera de las fichas sirve.'
+        : (zone===baseEl ? '✅ Muy bien, esa es la BASE.' : '✅ Correcto, ese es el EXPONENTE.');
+
+      if(placed.base && placed.exp){
+        fbEl.textContent = '🎉 ¡Excelente! Base y exponente identificados. Solo quedan los distractores.';
+        [...labelsC.querySelectorAll('.label')].forEach(l=> l.draggable=false);
+      }
+    }else{
+      zone.classList.remove('correct');
+      zone.classList.add('wrong');
+      fbEl.textContent = (zone===baseEl)
+        ? '❌ Ese número no es la base.'
+        : '❌ Ese número no es el exponente.';
+      setTimeout(()=> zone.classList.remove('wrong'), 700);
+    }
+  });
+});
+
+nuevaPotencia();
+
+
+</script>
+</body>
+</html>

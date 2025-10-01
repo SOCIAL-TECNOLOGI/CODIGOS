@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gráfico de Asistencia y Ausentismo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container {
+            width: 80%; /* Ajusta el ancho del contenedor del gráfico */
+            margin: 20px auto;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Gráfico de Asistencia y Ausentismo</h2>
+    <textarea id="dataInput" placeholder="Pega la información aquí..."></textarea>
+    <button onclick="crearGrafico()">Crear Gráfico</button>
+    <button id="downloadBtn" style="display: none;" onclick="descargarGrafico()">Descargar Gráfico</button>
+    <div id="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        let myChart; // Variable global para almacenar el gráfico
+
+        function crearGrafico() {
+            // Obtener los datos del textarea
+            let inputData = document.getElementById('dataInput').value.trim();
+            let rows = inputData.split('\n');
+
+            // Eliminar la primera fila que es el encabezado
+            rows.shift();
+
+            // Preparar arrays para almacenar datos
+            let fechas = [];
+            let ausentismoMasculino = [];
+            let asistenciaMasculina = [];
+            let ausentismoFemenino = [];
+            let asistenciaFemenina = [];
+
+            // Recorrer cada fila de datos
+            rows.forEach(row => {
+                let cols = row.split('\t');
+                fechas.push(cols[0]);
+                ausentismoMasculino.push(parseFloat(cols[1]));
+                asistenciaMasculina.push(parseFloat(cols[2]));
+                ausentismoFemenino.push(parseFloat(cols[3]));
+                asistenciaFemenina.push(parseFloat(cols[4]));
+            });
+
+            // Calcular porcentajes y formatear etiquetas
+            let totalMasculino = ausentismoMasculino.map((value, index) => value + asistenciaMasculina[index]);
+            let totalFemenino = ausentismoFemenino.map((value, index) => value + asistenciaFemenina[index]);
+
+            let datasets = [
+                {
+                    label: 'Ausentismo Masculino',
+                    data: ausentismoMasculino,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Asistencia Masculina',
+                    data: asistenciaMasculina,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Ausentismo Femenino',
+                    data: ausentismoFemenino,
+                    backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Asistencia Femenina',
+                    data: asistenciaFemenina,
+                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }
+            ];
+
+            // Crear el gráfico usando Chart.js
+            let ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1 // Ajuste para mostrar de 1 en 1 en el eje Y
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Asistencia y Ausentismo por Fecha',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    let datasetLabel = tooltipItem.dataset.label || '';
+                                    let value = tooltipItem.raw.toFixed(2);
+                                    let percentage = ((tooltipItem.raw / (datasetLabel.includes('Masculina') ? totalMasculino[tooltipItem.dataIndex] : totalFemenino[tooltipItem.dataIndex])) * 100).toFixed(2);
+                                    return `${datasetLabel}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mostrar botón de descarga
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+        }
+
+        function descargarGrafico() {
+            // Obtener el canvas del gráfico
+            let canvas = document.getElementById('myChart');
+
+            // Crear un canvas temporal con fondo blanco
+            let tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            let tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Dibujar el gráfico en el canvas temporal
+            tempCtx.drawImage(canvas, 0, 0);
+
+            // Crear un enlace temporal para descargar la imagen
+            let downloadLink = document.createElement('a');
+            downloadLink.href = tempCanvas.toDataURL('image/png');
+            downloadLink.download = 'grafico.png';
+            document.body.appendChild(downloadLink); // Necesario para Firefox
+
+            // Simular clic en el enlace para descargar
+            downloadLink.click();
+
+            // Limpiar el enlace después de la descarga
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>

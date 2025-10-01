@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrador de Encuesta</title>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2 { text-align: center; }
+    button { padding: 10px 20px; margin: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .question, .results { margin-bottom: 20px; }
+    .option { margin: 5px 0; }
+    input[type="text"] { padding: 5px; width: 80%; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Administrador de Encuesta</h1>
+  
+  <!-- Login de Firebase -->
+  <div id="login-container">
+    <button id="login-btn">Iniciar sesión</button>
+    <button id="logout-btn" style="display:none;">Cerrar sesión</button>
+  </div>
+
+  <div id="survey-container" style="display:none;">
+    <button id="add-question-btn">Agregar Pregunta</button>
+    <form id="survey-form"></form>
+    <button id="publish-btn">Publicar Encuesta</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      databaseURL: "TU_DATABASE_URL",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // Variables
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const surveyContainer = document.getElementById('survey-container');
+    const addQuestionBtn = document.getElementById('add-question-btn');
+    const surveyForm = document.getElementById('survey-form');
+    const publishBtn = document.getElementById('publish-btn');
+    const resultsDiv = document.getElementById('results');
+    let surveyData = [];
+
+    // Función para iniciar sesión
+    loginBtn.addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = 'inline-block';
+          surveyContainer.style.display = 'block';
+          console.log(result.user.displayName);
+        })
+        .catch((error) => {
+          alert('Error de inicio de sesión: ' + error.message);
+        });
+    });
+
+    // Función para cerrar sesión
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut()
+        .then(() => {
+          loginBtn.style.display = 'inline-block';
+          logoutBtn.style.display = 'none';
+          surveyContainer.style.display = 'none';
+        })
+        .catch((error) => {
+          alert('Error al cerrar sesión: ' + error.message);
+        });
+    });
+
+    // Función para agregar una pregunta
+    addQuestionBtn.addEventListener('click', () => {
+      const questionDiv = document.createElement('div');
+      questionDiv.className = 'question';
+      const questionIndex = surveyForm.children.length;
+      questionDiv.innerHTML = `
+        <h3>Pregunta ${questionIndex + 1}</h3>
+        <input type="text" placeholder="Escribe tu pregunta aquí" required>
+        <div class="options">
+          <button type="button" class="add-option-btn">Agregar Opción</button>
+        </div>
+      `;
+      surveyForm.appendChild(questionDiv);
+
+      const addOptionBtn = questionDiv.querySelector('.add-option-btn');
+      addOptionBtn.addEventListener('click', () => {
+        const optionsDiv = questionDiv.querySelector('.options');
+        const optionInput = document.createElement('div');
+        optionInput.className = 'option';
+        optionInput.innerHTML = `
+          <input type="text" placeholder="Escribe una opción" required>
+        `;
+        optionsDiv.insertBefore(optionInput, addOptionBtn);
+      });
+    });
+
+    // Publicar encuesta
+    publishBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      surveyData = [];
+      const questions = surveyForm.querySelectorAll('.question');
+
+      questions.forEach((question) => {
+        const questionText = question.querySelector('input[type="text"]').value;
+        const options = question.querySelectorAll('.option input');
+        const questionData = {
+          text: questionText,
+          options: Array.from(options).map((option) => ({
+            text: option.value,
+            votes: 0
+          }))
+        };
+        surveyData.push(questionData);
+      });
+
+      firebase.database().ref('survey').set(surveyData);
+      alert('Encuesta publicada con éxito.');
+    });
+
+    // Mostrar resultados en tiempo real
+    firebase.database().ref('survey').on('value', (snapshot) => {
+      const survey = snapshot.val();
+      resultsDiv.innerHTML = '<h2>Resultados en tiempo real</h2>';
+      if (survey) {
+        survey.forEach((question, index) => {
+          const questionDiv = document.createElement('div');
+          questionDiv.innerHTML = `<h3>${question.text}</h3>`;
+          question.options.forEach((option) => {
+            const totalVotes = question.options.reduce((sum, opt) => sum + opt.votes, 0);
+            const percentage = totalVotes
+              ? ((option.votes / totalVotes) * 100).toFixed(1)
+              : 0;
+            questionDiv.innerHTML += `
+              <p>${option.text}: ${option.votes} votos (${percentage}%)</p>
+            `;
+          });
+          resultsDiv.appendChild(questionDiv);
+        });
+      }
+    });
+
+    // Función para votar
+    function voteOnSurvey(questionIndex, optionIndex) {
+      const userId = auth.currentUser.uid;
+      const votesRef = firebase.database().ref('votes/' + userId);
+      votesRef.set({
+        questionIndex: questionIndex,
+        optionIndex: optionIndex
+      });
+    }
+  </script>
+</body>
+</html>

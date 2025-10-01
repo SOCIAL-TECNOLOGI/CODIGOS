@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Tabla</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #data-table th, #data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        #data-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .alta { background-color: #ffcccc; }
+        .moderada { background-color: #ffffcc; }
+        .baja { background-color: #ccffcc; }
+        #chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+        #legend {
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Ingrese la evaluación en el formato adecuado</h2>
+<textarea id="input-text" rows="20" cols="100" placeholder="Pegue aquí la evaluación..."></textarea>
+<br>
+<button onclick="generateTable()">Generar Tabla</button>
+<button onclick="sortTableByComplexity()">Ordenar por Complejidad</button>
+<button onclick="downloadTableAsXLSX()">Descargar Tabla en XLSX</button>
+<button onclick="downloadTableAsImage()">Descargar Tabla como Imagen</button>
+<button onclick="clearInputs()">Limpiar Todo</button>
+<button onclick="createChart()">Crear Gráfico</button>
+<button onclick="downloadChartAsImage()">Descargar Gráfico como Imagen</button>
+
+<h2>Tabla Generada</h2>
+<table id="data-table">
+    <thead>
+        <tr>
+            <th>Pregunta</th>
+            <th>Promedio</th>
+            <th>Mediana</th>
+            <th>Desviación estándar</th>
+            <th>Varianza</th>
+            <th>Complejidad</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div id="chart-container">
+    <canvas id="myChart" style="display:none;"></canvas>
+</div>
+
+<div id="legend" style="display:none;">
+    <strong>Leyenda:</strong>
+    <span class="legend-item" style="background-color: #ffcccc;"></span> Alta
+    <span class="legend-item" style="background-color: #ffffcc;"></span> Moderada
+    <span class="legend-item" style="background-color: #ccffcc;"></span> Baja
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+function generateTable() {
+    const inputText = document.getElementById("input-text").value.trim();
+    const tableBody = document.querySelector("#data-table tbody");
+    tableBody.innerHTML = "";
+
+    // Dividir el texto en secciones para cada pregunta
+    const questionSections = inputText.split(/Pregunta\s+\d+\s+Respuesta\s+\d+:\s*\n+/);
+
+    // Filtrar secciones válidas
+    questionSections.forEach((section, index) => {
+        section = section.trim();
+        if (!section) return;  // Ignorar secciones vacías
+
+        // Extraer los valores mediante una expresión regular
+        const regex = /Range\s+Mean\s+Median\s+Standard\s+Deviation\s+Variance\s*\nFrom\s+To\s*\n(\d+)\s+(\d+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)/;
+        const match = regex.exec(section);
+
+        if (match) {
+            const [_, min, max, mean, median, stdDev, variance] = match;
+            const promedio = parseFloat(mean.replace(',', '.'));
+
+            let complejidad;
+            if (promedio < 2) complejidad = 'Alta';
+            else if (promedio < 2.6) complejidad = 'Moderada';
+            else complejidad = 'Baja';
+
+            const row = document.createElement("tr");
+            row.classList.add(complejidad.toLowerCase());
+            row.setAttribute("data-complexity", complejidad);
+
+            row.innerHTML = `
+                <td>Pregunta ${index + 1}</td>
+                <td>${promedio.toFixed(2)}</td>
+                <td>${parseFloat(median.replace(',', '.')).toFixed(2)}</td>
+                <td>${parseFloat(stdDev.replace(',', '.')).toFixed(2)}</td>
+                <td>${parseFloat(variance.replace(',', '.')).toFixed(2)}</td>
+                <td>${complejidad}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+    });
+}
+
+function sortTableByComplexity() {
+    const tableBody = document.querySelector("#data-table tbody");
+    const rows = Array.from(tableBody.rows);
+
+    const complexityOrder = { "Alta": 1, "Moderada": 2, "Baja": 3 };
+
+    rows.sort((a, b) => {
+        const complexityA = a.getAttribute("data-complexity");
+        const complexityB = b.getAttribute("data-complexity");
+        return complexityOrder[complexityA] - complexityOrder[complexityB];
+    });
+
+    tableBody.innerHTML = "";
+    rows.forEach(row => tableBody.appendChild(row));
+}
+
+function downloadTableAsXLSX() {
+    const table = document.getElementById("data-table");
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(table);
+    XLSX.utils.book_append_sheet(wb, ws, "Tabla");
+    XLSX.writeFile(wb, "tabla_complejidad.xlsx");
+}
+
+function downloadTableAsImage() {
+    const table = document.getElementById("data-table");
+
+    html2canvas(table).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "tabla_complejidad.png";
+        link.click();
+    });
+}
+
+function clearInputs() {
+    document.getElementById("input-text").value = "";
+    document.querySelector("#data-table tbody").innerHTML = "";
+    document.getElementById("myChart").style.display = 'none';
+    document.getElementById("legend").style.display = 'none';
+}
+
+function createChart() {
+    const tableBody = document.querySelector("#data-table tbody");
+
+    if (tableBody.rows.length === 0) {
+        alert("Es necesario primero pegar la información en el área de texto y crear la tabla para que se pueda generar el gráfico.");
+        return;
+    }
+
+    const labels = [];
+    const data = [];
+    const colors = [];
+
+    for (const row of tableBody.rows) {
+        labels.push(row.cells[0].innerText);
+        data.push(parseFloat(row.cells[1].innerText));
+
+        const complexity = row.cells[5].innerText;
+        if (complexity === 'Alta') colors.push('#ffcccc');
+        else if (complexity === 'Moderada') colors.push('#ffffcc');
+        else colors.push('#ccffcc');
+    }
+
+    const ctx = document.getElementById("myChart").getContext("2d");
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Promedio por Pregunta',
+                data: data,
+                backgroundColor: colors,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    document.getElementById("myChart").style.display = 'block';
+    document.getElementById("legend").style.display = 'block';
+
+    alert("El gráfico ha sido creado exitosamente.");
+}
+
+function downloadChartAsImage() {
+    const tableBody = document.querySelector("#data-table tbody");
+
+    if (tableBody.rows.length === 0) {
+        alert("Es necesario primero pegar la información en el área de texto y crear la tabla para poder descargar el gráfico.");
+        return;
+    }
+
+    const canvas = document.getElementById("myChart");
+    html2canvas(canvas).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "grafico_promedio.png";
+        link.click();
+    });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pizarra en Línea con Diapositivas de Imágenes</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <!-- Agrega Font Awesome para los íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+
+
+<style>
+/* Estilo del botón "Mostrar Panel" */
+#showPanelButton {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 5px;
+}
+
+/* Estilo del panel de control */
+#controlPanel {
+    background-color: #efefef;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: 50px; /* Ajusta la posición vertical según tu diseño */
+    right: 10px; /* Ajusta la posición horizontal según tu diseño */
+    padding: 10px;
+    display: none; /* Inicialmente oculto */
+}
+/* Estilo del botón "Anterior" */
+#previousButton {
+    background-color: #117e61;
+}
+
+/* Estilo del botón "Siguiente" */
+#nextButton {
+    background-color: #117e61;
+}
+
+/* Estilo del botón "Limpiar" */
+#clearButton {
+    background-color: #9e7903;
+}
+
+/* Estilo del botón "Guardar" */
+#saveButton {
+    background-color: #9e07cd;
+}
+
+/* Estilo del botón "Deshacer" */
+#undoButton {
+    background-color: #ab4444;
+}
+
+/* Estilo del botón "Rehacer" */
+#redoButton {
+    background-color: #ab4444;
+}
+
+/* Estilo del botón "Iniciar Cronómetro" */
+#startTimerButton {
+    background-color: #000000;
+}
+
+/* Estilo del botón "Reiniciar Cronómetro" */
+#resetTimerButton {
+    background-color: #000000;
+}
+
+/* Estilo del botón de carga de imagen */
+#imageInput {
+    background-color: #117e61;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 12px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+/* Estilo del botón de carga de imagen en hover */
+#imageInput:hover {
+    background-color: #2980b9;
+}
+
+/* Estilo de los botones ovalados */
+button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+    border-radius: 25px; /* Valor alto para hacer que los botones sean ovalados */
+}
+
+
+    #timerDisplay {
+    position: fixed;
+    top: 14%;
+    left: 50%;
+    transform: translate(130%, -180%);
+    text-align: left;
+    font-size: 20px; /* Ajusta el tamaño del texto según tus preferencias */
+}
+
+
+
+
+
+
+/* Estilo del texto dentro del contenedor */
+#textoContenedor p {
+    font-size: 28px;
+    color: #333;
+    font-weight: bold;
+    /* No es necesario centrar verticalmente ya que el contenedor se ajusta automáticamente */
+}
+
+
+    #textoContenedor {
+        background-color: #ffffff;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+        /* Centra el texto horizontalmente */
+        position: relative; /* Permite posicionar elementos hijos relativos a este contenedor */
+    }
+
+    #logoContainer {
+        position: absolute;
+        top: 0; /* Ajusta la posición vertical según tu diseño */
+        right: 0; /* Coloca el logotipo en el lado derecho del contenedor */
+    }
+
+    #logoContainer img {
+        width: 300px; /* Ajusta el ancho del logotipo según tus necesidades */
+        height: auto; /* Mantiene la proporción original */
+    }
+
+
+
+
+
+    body {
+        background-image: url('https://cdn.pixabay.com/photo/2018/04/06/00/25/trees-3294681_640.jpg'); /* Ruta de la imagen de fondo */
+        background-size: cover; /* Ajusta el tamaño de la imagen para cubrir todo el fondo */
+        background-repeat: no-repeat; /* Evita la repetición de la imagen */
+        background-attachment: fixed; /* Fija la imagen en su lugar mientras se desplaza la página */
+    }
+    
+    /* Otras reglas de estilo CSS aquí... */
+
+/* Estilo para el rango de tamaño del pincel */
+#brushSizeInput {
+      width: 10%; /* Modifica el ancho a tu preferencia, por ejemplo, 80% del contenedor */
+    }
+
+/* Estilo para el selector de color */
+#colorPicker {
+      width: 25px; /* Cambia el valor del ancho según tus preferencias */
+    }
+
+ /* Estilo para ocultar el input de color */
+ #colorPicker {
+      display: none;
+    }
+    
+    /* Estilo para el ícono de lápiz */
+    #colorIcon {
+      cursor: pointer;
+    }
+
+
+
+
+</style>
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+   
+    <button id="showPanelButton">☰</button>
+
+   
+    <div id="controlPanel">
+        
+
+            <input type="color" id="colorPicker" value="#000000"> <!-- Selector de color -->
+        <input type="range" id="brushSizeInput" min="1" max="10" value="5"> <!-- Rango de tamaño del pincel --> 
+        <input type="number" id="timerInput" placeholder="Tiempo (s)" style="width: 90px; font-size: 15px;">
+        <button id="startTimerButton"><i class="fas fa-clock"></i></button>
+        <button id="resetTimerButton"><i class="fas fa-sync"></i></button>
+            
+
+        
+        <div class="controls">
+           
+            
+            
+            
+           
+            
+            
+        
+            <button id="clearButton"><i class="fas fa-eraser"></i></button>
+            <button id="saveButton"><i class="fas fa-save"></i></button>
+            <button id="undoButton"><i class="fas fa-undo"></i></button>
+            <button id="redoButton"><i class="fas fa-redo"></i></button>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+            <button id="previousButton"><i class="fas fa-chevron-left"></i></button>
+            <button id="nextButton"><i class="fas fa-chevron-right"></i></button>  
+            <STrong><div id="timerDisplay" style="color: rgb(4, 73, 129);">Tiempo restante: <span id="timerValue">0</span> segundos</div></STrong>
+
+           
+        </div>
+        
+
+     
+        <audio id="timerSound">
+            <source src="sound.mp3" type="audio/mpeg">
+            Tu navegador no soporta el elemento de audio.
+        </audio>
+        
+
+        <canvas id="whiteboard" width="800" height="500"></canvas>
+<br><br><br><br>
+
+        
+    
+        <input type="file" id="pdfInput" accept=".pdf"><br>
+    
+
+
+    <script src="script.js"></script>
+           
+        </div>
+        <div id="textoContenedor">
+            <p>PROGRAMA TRUEQUE AMBIENTAL LOS TUTORES</p>
+    
+            <div id="logoContainer"> <img src="https://www.fedusocial.org/LOGO%20PARTNERS%20SURVEY.png" alt="Logotipo">
+        
+    </div>
+    <!-- Resto de tu contenido aquí -->
+    <br><br><br>
+
+    
+    
+    
+
+<script>
+// Obtén referencias a los elementos del botón y el panel de control
+const showPanelButton = document.getElementById('showPanelButton');
+const controlPanel = document.getElementById('controlPanel');
+
+// Agrega un manejador de eventos al botón "Mostrar Panel"
+showPanelButton.addEventListener('click', () => {
+    if (controlPanel.style.display === 'none') {
+        controlPanel.style.display = 'block'; // Muestra el panel de control
+    } else {
+        controlPanel.style.display = 'none'; // Oculta el panel de control
+    }
+});
+
+
+
+const canvas = document.getElementById('whiteboard');
+const ctx = canvas.getContext('2d');
+const imageInput = document.getElementById('imageInput');
+const previousButton = document.getElementById('previousButton');
+const nextButton = document.getElementById('nextButton');
+const clearButton = document.getElementById('clearButton');
+const saveButton = document.getElementById('saveButton');
+const undoButton = document.getElementById('undoButton');
+const redoButton = document.getElementById('redoButton');
+// Obtén referencias a los elementos relacionados con el cronómetro
+const timerInput = document.getElementById('timerInput');
+const startTimerButton = document.getElementById('startTimerButton');
+const resetTimerButton = document.getElementById('resetTimerButton');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerValue = document.getElementById('timerValue');
+
+
+
+
+
+canvas.width = 1400; // Ancho del lienzo
+canvas.height = 630; // Alto del lienzo
+
+let imageLoaded = false;
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let brushColor = '#000000'; // Color del pincel
+let brushSize = 5; // Tamaño del pincel
+let drawingHistory = [];
+let historyIndex = -1;
+let currentImageIndex = -1;
+let images = [];
+let currentImage = new Image();
+let timerInterval; // Variable para el intervalo del cronómetro
+let remainingTime = 0; // Tiempo restante en segundos
+let soundPlayed = false; // Bandera para controlar si se ha reproducido el sonido
+
+
+// Función para guardar el dibujo como imagen
+
+saveButton.addEventListener('click', () => {
+    saveDrawing();
+});
+
+
+function saveDrawing() {
+    console.log("Guardando el dibujo"); // Agregar mensaje de depuración
+    const dataURL = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'drawing.png';
+    a.click();
+}
+
+
+
+
+
+
+
+// Obtén la URL de la imagen dibujada en el lienzo
+const dataURL = canvas.toDataURL('image/png');
+
+    
+
+
+
+
+
+
+
+
+// Función para cargar una imagen
+function loadNewImage(file) {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            currentImage.src = event.target.result;
+            currentImage.onload = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+                imageLoaded = true;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Función para deshacer el último paso
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawingHistory = [];
+    historyIndex = -1;
+    imageLoaded = false;
+    imageInput.value = ''; // Limpiar el input de carga de imagen
+    images = []; // Limpiar la lista de imágenes
+    currentImageIndex = -1;
+});
+
+
+
+// Función para deshacer el último paso
+undoButton.addEventListener('click', () => {
+    if (historyIndex > 0) {
+        historyIndex--;
+        redraw();
+    }
+});
+
+// Función para rehacer el último paso
+redoButton.addEventListener('click', () => {
+    if (historyIndex < drawingHistory.length - 1) {
+        historyIndex++;
+        redraw();
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// Manejador de eventos para cargar imágenes
+imageInput.addEventListener('change', (e) => {
+    images = Array.from(e.target.files);
+    currentImageIndex = 0;
+    loadNewImage(images[currentImageIndex]);
+});
+
+// Función para redibujar el lienzo
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (imageLoaded) {
+        ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+    }
+
+    for (let i = 0; i <= historyIndex; i++) {
+        ctx.putImageData(drawingHistory[i], 0, 0);
+    }
+}
+
+// Función para manejar el dibujo
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mousemove', draw);
+
+function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = [e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top];
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+
+    if (historyIndex < drawingHistory.length - 1) {
+        drawingHistory = drawingHistory.slice(0, historyIndex + 1);
+    }
+}
+
+function stopDrawing() {
+    isDrawing = false;
+    ctx.closePath();
+
+    const drawingData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    drawingHistory.push(drawingData);
+    historyIndex = drawingHistory.length - 1;
+}
+
+function draw(e) {
+    if (isDrawing) {
+        const x = e.clientX - canvas.getBoundingClientRect().left;
+        const y = e.clientY - canvas.getBoundingClientRect().top;
+        ctx.strokeStyle = brushColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        [lastX, lastY] = [x, y];
+    }
+}
+
+// Manejadores de eventos para la navegación de imágenes
+previousButton.addEventListener('click', () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+nextButton.addEventListener('click', () => {
+    if (currentImageIndex < images.length - 1) {
+        currentImageIndex++;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+
+// Obtén referencias a los elementos de color y tamaño del pincel
+const colorPicker = document.getElementById('colorPicker');
+const brushSizeInput = document.getElementById('brushSizeInput');
+
+// Agrega manejadores de eventos para cambios en el color y el tamaño del pincel
+colorPicker.addEventListener('input', (e) => {
+    brushColor = e.target.value;
+    ctx.strokeStyle = brushColor;
+});
+
+brushSizeInput.addEventListener('input', (e) => {
+    brushSize = e.target.value;
+    ctx.lineWidth = brushSize;
+});
+
+
+
+
+
+function updateTimerDisplay() {
+    timerValue.textContent = remainingTime;
+}
+
+
+startTimerButton.addEventListener('click', () => {
+    const newTime = parseInt(timerInput.value);
+    if (!isNaN(newTime) && newTime > 0) {
+        clearInterval(timerInterval); // Detener el cronómetro anterior
+        remainingTime = newTime;
+        updateTimerDisplay();
+        soundPlayed = false; // Restablecer soundPlayed a false al iniciar el cronómetro
+
+
+// Iniciar el nuevo cronómetro
+timerInterval = setInterval(() => {
+            if (remainingTime > 0) {
+                remainingTime--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+});
+
+     
+
+resetTimerButton.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    remainingTime = 0;
+    timerInput.value = ''; // Limpiar el input de configuración
+    updateTimerDisplay();
+});
+
+// Llamar a updateTimerDisplay inicialmente para mostrar "0 segundos"
+updateTimerDisplay();
+
+
+
+// Función para actualizar la visualización del cronómetro
+function updateTimerDisplay() {
+    timerValue.textContent = remainingTime;
+
+    if (remainingTime === 0 && !soundPlayed) {
+        // Reproducir el sonido cuando el cronómetro llega a cero
+        const timerSound = document.getElementById('timerSound');
+        timerSound.play();
+        soundPlayed = true;
+    }
+
+    if (remainingTime < 0) {
+        clearInterval(timerInterval);
+        timerValue.textContent = '0';
+    }
+}
+
+
+
+function loadNewImage(file) {
+    if (file) {
+        const fileType = file.type;
+        if (fileType === 'image/jpeg' || fileType === 'image/png') {
+            // Si es una imagen, carga como antes
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                currentImage.src = event.target.result;
+                currentImage.onload = function () {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+                    imageLoaded = true;
+                };
+            };
+            reader.readAsDataURL(file);
+        } else if (fileType === 'application/pdf') {
+            // Si es un PDF, utiliza PDF.js para mostrarlo
+            // Debes incluir PDF.js en tu proyecto
+            const pdfUrl = URL.createObjectURL(file);
+            PDFJS.getDocument(pdfUrl).promise.then(function (pdf) {
+                pdf.getPage(1).then(function (page) {
+                    const viewport = page.getViewport({ scale: 1 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    page.render({
+                        canvasContext: ctx,
+                        viewport: viewport,
+                    });
+                });
+            });
+        }
+    }
+}
+
+
+// Función para mostrar el selector de color al hacer clic en el ícono
+function updateColor() {
+      var colorPicker = document.getElementById("colorPicker");
+      var colorIcon = document.getElementById("colorIcon");
+      colorPicker.click(); // Abre el selector de color
+    }
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

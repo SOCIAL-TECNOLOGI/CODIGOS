@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Invaders 🚀</title>
+<style>
+  body {
+    background: black;
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  h1 { color: #00ffcc; text-shadow: 2px 2px #ff00ff; }
+
+  .pared {
+    margin: 20px auto;
+    width: 220px; min-height: 220px;
+    background: #222; border: 4px solid #00ffcc;
+    display: flex; flex-wrap: wrap;
+    justify-content: center; align-items: center;
+    font-size: 20px; font-weight: bold;
+    transition: box-shadow 0.3s ease;
+  }
+  .pared.glow {
+    animation: glowEfecto 2s ease-in-out 3;
+  }
+  @keyframes glowEfecto {
+    0% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+    50% { box-shadow: 0 0 30px #00ffcc, 0 0 60px #ff00ff; }
+    100% { box-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff; }
+  }
+
+  .nave {
+    font-size: 60px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .nave:hover { transform: scale(1.2); }
+  .laser {
+    width: 5px; height: 0;
+    background: #ff00ff; margin: 0 auto;
+    transition: height 1s ease-out;
+  }
+
+  .ladrillo {
+    width: 60px; height: 30px; border-radius: 5px;
+    font-weight: bold; color: black;
+    display: flex; justify-content: center; align-items: center;
+    cursor: grab; position: absolute;
+    animation: flotar 4s infinite alternate ease-in-out;
+  }
+  .p2 { background: #00ffcc; }
+  .p3 { background: #ff00ff; }
+  .p5 { background: #ffff00; }
+  .p7 { background: #ff6600; }
+
+  @keyframes flotar {
+    from { transform: translateY(0px) rotate(0deg); }
+    to   { transform: translateY(-30px) rotate(10deg); }
+  }
+
+  #mensajePotencia {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #00ffcc;
+    text-shadow: 1px 1px #ff00ff;
+    display: none;
+  }
+
+  /* 👽 Marciano animado */
+  #marciano {
+    font-size: 60px;
+    opacity: 0;
+    margin-top: 20px;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    animation: flotarMarciano 3s infinite ease-in-out;
+    z-index: 10;
+  }
+  #marciano.visible { opacity: 1; }
+
+  @keyframes flotarMarciano {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .brazo {
+    display: inline-block;
+    transform-origin: bottom right;
+    animation: saludar 1s infinite alternate;
+  }
+  @keyframes saludar {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(30deg); }
+  }
+
+  #fraseMarciano {
+    font-size: 14px;
+    color: #00ffcc;
+    text-shadow: 1px 1px #ff00ff;
+  }
+
+  /* 🛸 Platillos voladores */
+  .platillo {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0;
+    animation: flotarPlatillo 4s infinite ease-in-out;
+    transition: opacity 1s ease-in-out;
+  }
+  .platillo.visible { opacity: 1; }
+
+  @keyframes flotarPlatillo {
+    0%   { transform: translateY(0px) rotate(0deg); }
+    50%  { transform: translateY(-15px) rotate(10deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+  }
+</style>
+</head>
+<body>
+  <h1>🚀 Prime Invaders</h1>
+  <p>Haz clic en la nave para disparar y traer los ladrillos desde el espacio</p>
+
+  <div class="nave" onclick="disparar()">🚀</div>
+  <div class="laser" id="laser"></div>
+  <div class="pared" id="pared">84</div>
+
+  <p id="mensaje"></p>
+  <p id="mensajePotencia">✨ Con la potencia de GPT-4 la pared vuelve a levantarse ✨</p>
+  
+  <!-- 👽 Marciano -->
+  <div id="marciano">
+    <div>
+      <span>👽</span>
+      <span class="brazo">👋</span>
+    </div>
+    <p id="fraseMarciano"></p>
+  </div>
+
+  <!-- 🛸 Platillos flotando -->
+  <div id="platillos"></div>
+
+  <!-- 🎵 Sonidos -->
+  <audio id="sndLaser" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="sndExplode" src="https://actions.google.com/sounds/v1/explosions/explosion.ogg"></audio>
+  <audio id="sndPlace" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+  <audio id="sndMission" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+<script>
+  let numero = 84;
+  let factores = [];
+  let colocados = [];
+
+  const frases = [
+    "Bien hecho, terrícola",
+    "Has salvado la galaxia",
+    "Excelente trabajo, humano",
+    "Misión cumplida con éxito",
+    "Tus cálculos son cósmicos",
+    "Los números primos te obedecen"
+  ];
+
+  function factoresPrimos(n) {
+    const factores = [];
+    let divisor = 2;
+    while (n > 1) {
+      while (n % divisor === 0) {
+        factores.push(divisor);
+        n /= divisor;
+      }
+      divisor++;
+    }
+    return factores;
+  }
+
+  function disparar() {
+    const laser = document.getElementById("laser");
+    const pared = document.getElementById("pared");
+    const mensaje = document.getElementById("mensaje");
+
+    laser.style.height = "0";
+    pared.innerHTML = "💥";
+    pared.style.background = "#222";
+    mensaje.textContent = "";
+    document.getElementById("mensajePotencia").style.display = "none";
+    colocados = [];
+    document.getElementById("marciano").classList.remove("visible");
+    document.getElementById("platillos").innerHTML = "";
+
+    document.getElementById("sndLaser").play();
+    laser.style.height = "150px";
+
+    setTimeout(() => {
+      document.getElementById("sndExplode").play();
+      factores = factoresPrimos(numero);
+      pared.ondrop = soltar;
+      pared.ondragover = permitirDrop;
+      document.getElementById("sndMission").play();
+
+      factores.forEach((f, i) => {
+        const ladrillo = document.createElement("div");
+        ladrillo.classList.add("ladrillo", "p" + f);
+        ladrillo.textContent = f;
+        ladrillo.draggable = true;
+        ladrillo.id = "l" + i;
+        ladrillo.ondragstart = arrastrar;
+
+        ladrillo.style.left = Math.random() * (window.innerWidth - 80) + "px";
+        ladrillo.style.top = Math.random() * (window.innerHeight - 150) + "px";
+
+        document.body.appendChild(ladrillo);
+      });
+
+    }, 1000);
+  }
+
+  function arrastrar(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+  }
+
+  function permitirDrop(ev) {
+    ev.preventDefault();
+  }
+
+  function soltar(ev) {
+    ev.preventDefault();
+    const data = ev.dataTransfer.getData("text");
+    const ladrillo = document.getElementById(data);
+
+    if (ev.target.id === "pared" || ev.target.classList.contains("pared")) {
+      const brick = document.createElement("div");
+      brick.classList.add("ladrillo", "p" + ladrillo.textContent);
+      brick.textContent = ladrillo.textContent;
+      brick.style.position = "relative";
+      ev.target.appendChild(brick);
+
+      ladrillo.remove();
+      document.getElementById("sndPlace").play();
+      colocados.push(parseInt(brick.textContent));
+
+      document.getElementById("mensajePotencia").style.display = "block";
+      verificar();
+    }
+  }
+
+  function verificar() {
+    if (colocados.length === factores.length) {
+      const producto = colocados.reduce((a, b) => a * b, 1);
+      if (producto === numero) {
+        const conteo = {};
+        colocados.forEach(f => { conteo[f] = (conteo[f] || 0) + 1; });
+        let conPotencias = Object.keys(conteo)
+          .map(p => conteo[p] > 1 ? `${p}^${conteo[p]}` : p)
+          .join(" × ");
+
+        document.getElementById("mensaje").textContent =
+          `🎉 ¡Misión cumplida! ${numero} = ${colocados.join(" × ")} = ${conPotencias}`;
+
+        const pared = document.getElementById("pared");
+        pared.classList.add("glow");
+        setTimeout(() => pared.classList.remove("glow"), 6000);
+
+        const frase = frases[Math.floor(Math.random() * frases.length)];
+        document.getElementById("fraseMarciano").textContent = frase;
+
+        const voz = new SpeechSynthesisUtterance(frase);
+        voz.lang = "es-ES";
+        voz.pitch = 0.4;
+        voz.rate = 0.8;
+        speechSynthesis.speak(voz);
+
+        const marciano = document.getElementById("marciano");
+        marciano.classList.add("visible");
+        setTimeout(() => marciano.classList.remove("visible"), 6000);
+
+        // 🛸 Generar platillos flotantes
+        const platillosDiv = document.getElementById("platillos");
+        for (let i = 0; i < 5; i++) {
+          const platillo = document.createElement("div");
+          platillo.textContent = "🛸";
+          platillo.classList.add("platillo", "visible");
+          platillo.style.left = Math.random() * (window.innerWidth - 50) + "px";
+          platillo.style.top = Math.random() * (window.innerHeight - 200) + "px";
+          platillosDiv.appendChild(platillo);
+        }
+        setTimeout(() => { platillosDiv.innerHTML = ""; }, 6000);
+
+      } else {
+        document.getElementById("mensaje").textContent =
+          "❌ La reconstrucción no es correcta, inténtalo de nuevo.";
+      }
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RECICLAJE</title>
+</head>
+<body>
+    <h1>CANTIDADES</h1>
+
+    <label for="cantidad_latas">Cantidad de latas de aluminio:</label>
+    <input type="number" id="cantidad_latas" placeholder="0"><br><br>
+
+    <label for="cantidad_cuadernos">Cantidad de cuadernos:</label>
+    <input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+
+    <label for="cantidad_botellas">Cantidad de botellas plásticas:</label>
+    <input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+
+    <label for="consumoEnergia">Consumo de energía (kWh):</label>
+    <input type="number" id="consumoEnergia" placeholder="0"><br><br>
+
+    <label for="consumoAgua">Consumo de agua (litros):</label>
+    <input type="number" id="consumoAgua" placeholder="0"><br><br>
+
+    <label for="emisionesCO2">Emisiones de CO2 (kg):</label>
+    <input type="number" id="emisionesCO2" placeholder="0"><br><br>
+
+    <button onclick="calcularImpacto()">Calcular Impacto</button>
+
+    <h1>IMPACTO CANTIDADES:</h1>
+    <p id="resultado_cantidades"></p>
+
+    <h1>HECTÁREAS GLOBALES:</h1>
+    <p id="resultado_hectareas"></p>
+
+    <h1>Resultados en forma de tabla:</h1>
+    <table>
+        <tr>
+            <th>Categoría</th>
+            <th>Energía (kWh)</th>
+            <th>Agua (litros)</th>
+            <th>CO2 (kg)</th>
+            <th>Unidades Material Reciclado</th>
+        </tr>
+        <tr>
+            <td>Impacto Ambiental</td>
+            <td id="cantidadesEnergia"></td>
+            <td id="cantidadesAgua"></td>
+            <td id="cantidadesCO2"></td>
+            <td id="cantidadesTotal"></td>
+        </tr>
+        <tr>
+            <td>LATAS RECICLADAS</td>
+            <td id="consumosEnergia"></td>
+        </tr>
+        <tr>
+            <td>CUADERNOS RECICLADOS</td>
+            <td id="consumosEnergia"></td>
+        </tr>
+        <tr>
+            <td>BOTELLAS RECICLADAS</td>
+            <td id="consumosEnergia"></td>
+
+        </tr>
+        <tr>
+            <td>HECTÁREAS GLOBALES</td>
+            <td colspan="4" id="resultado_hectareas"></td>
+        </tr>
+    </table>
+
+    <script>
+        function calcularImpacto() {
+            var cantidadLatas = parseFloat(document.getElementById("cantidad_latas").value) || 0;
+            var cantidadCuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value) || 0;
+            var cantidadBotellas = parseFloat(document.getElementById("cantidad_botellas").value) || 0;
+
+            var impactoLata = { energia: 15, agua: 1.5, co2: 2.7 };
+            var impactoCuaderno = { energia: 2, agua: 10, co2: 1.5 };
+            var impactoBotella = { energia: 1.9, agua: 3, co2: 0.9 };
+
+            var impactoTotal = {
+                energia: (cantidadLatas * impactoLata.energia + cantidadCuadernos * impactoCuaderno.energia + cantidadBotellas * impactoBotella.energia).toFixed(2),
+                agua: (cantidadLatas * impactoLata.agua + cantidadCuadernos * impactoCuaderno.agua + cantidadBotellas * impactoBotella.agua).toFixed(2),
+                co2: (cantidadLatas * impactoLata.co2 + cantidadCuadernos * impactoCuaderno.co2 + cantidadBotellas * impactoBotella.co2).toFixed(2)
+            };
+
+            // Actualizar valores en la tabla
+            document.getElementById("cantidadesEnergia").textContent = impactoTotal.energia;
+            document.getElementById("cantidadesAgua").textContent = impactoTotal.agua;
+            document.getElementById("cantidadesCO2").textContent = impactoTotal.co2;
+
+            var consumoEnergia = parseFloat(document.getElementById("consumoEnergia").value) || 0;
+            var consumoAgua = parseFloat(document.getElementById("consumoAgua").value) || 0;
+            var emisionesCO2 = parseFloat(document.getElementById("emisionesCO2").value) || 0;
+
+            var consumoTotal = consumoEnergia + consumoAgua + emisionesCO2;
+
+            // Actualizar valores de consumo en la tabla
+            document.getElementById("consumosEnergia").textContent = consumoEnergia;
+            document.getElementById("consumosAgua").textContent = consumoAgua;
+            document.getElementById("consumosCO2").textContent = emisionesCO2;
+            document.getElementById("consumosTotal").textContent = consumoTotal;
+
+            var hectareasGlobales = calcularHectareasGlobales(consumoEnergia, consumoAgua, emisionesCO2);
+
+            document.getElementById("resultado_hectareas").textContent = hectareasGlobales;
+        }
+
+        function calcularHectareasGlobales(consumoEnergia, consumoAgua, emisionesCO2) {
+            // Define factores de conversión realistas
+            var factorEnergia = 0.002; // Ejemplo de factor de conversión (ajusta según tus datos)
+            var factorAgua = 0.01;    // Ejemplo de factor de conversión (ajusta según tus datos)
+            var factorCO2 = 0.5;     // Ejemplo de factor de conversión (ajusta según tus datos)
+
+            // Realiza los cálculos
+            var hectareasEnergia = consumoEnergia * factorEnergia;
+            var hectareasAgua = consumoAgua * factorAgua;
+            var hectareasCO2 = emisionesCO2 * factorCO2;
+
+            // Suma los resultados para obtener el total de hectáreas globales
+            var totalHectareasGlobales = hectareasEnergia + hectareasAgua + hectareasCO2;
+
+            // Devuelve el resultado
+            return totalHectareasGlobales;
+        }
+    </script>
+</body>
+</html>

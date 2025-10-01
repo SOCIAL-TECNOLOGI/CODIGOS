@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Tabla Periódica</title>
+</head>
+<body>
+
+<style>
+
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f8f8;
+}
+
+#tabla-periodica {
+    display: grid;
+    grid-template-columns: repeat(18, 50px);
+    gap: 4px;
+    padding: 20px;
+    justify-content: center;
+}
+
+.elemento {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #3498db;
+    border: 1px solid #2980b9;
+    color: #ecf0f1;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px #154360;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.elemento:hover {
+    background-color: #2980b9;
+    transition: background-color 0.3s ease-in-out;
+}
+
+
+
+</style>
+
+
+
+    <div id="tabla-periodica"></div>
+    <script src="script.js"></script>
+
+
+
+
+    <script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const tablaPeriodica = document.getElementById("tabla-periodica");
+
+    const elementos = [
+        "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
+        "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
+        "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr",
+        "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd",
+        "In", "Sn", "Sb", "Te", "I", "Xe",
+        "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy",
+        "Ho", "Er", "Tm", "Yb", "Lu",
+        "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi",
+        "Po", "At", "Rn",
+        "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf",
+        "Es", "Fm", "Md", "No", "Lr",
+        "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc",
+        "Lv", "Ts", "Og"
+    ];
+
+    elementos.forEach(simbolo => {
+        const elemento = document.createElement("div");
+        elemento.className = "elemento";
+        elemento.textContent = simbolo;
+
+        elemento.addEventListener("click", function () {
+            mostrarInfo(simbolo);
+        });
+
+        tablaPeriodica.appendChild(elemento);
+    });
+
+    function mostrarInfo(simbolo) {
+        // Implementa la lógica para mostrar información del elemento
+        alert("Haz clic en " + simbolo);
+    }
+});
+
+
+
+
+    </script>
+
+</body>
+</html>

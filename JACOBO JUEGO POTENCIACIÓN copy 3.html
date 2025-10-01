@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potencias – Fusionar Fichas</title>
+<style>
+  body {
+    background:#0f172a; color:white;
+    font-family:Arial, sans-serif; text-align:center;
+    padding:20px;
+  }
+  h1 { color:#22d3ee; }
+  .zona {
+    display:flex; flex-wrap:wrap; justify-content:center;
+    gap:10px; margin:20px auto; padding:20px;
+    border:2px dashed #3b82f6; border-radius:8px; min-height:140px;
+    width:700px; background:#1e293b;
+  }
+  .ficha {
+    padding:12px 18px; font-size:20px;
+    background:#3b82f6; color:white;
+    border-radius:8px; cursor:grab;
+    user-select:none; transition:transform .2s;
+  }
+  .ficha:active { transform:scale(1.1); }
+  .resultado { margin-top:20px; font-size:22px; color:#facc15; }
+  button {
+    margin-top:20px; padding:10px 18px;
+    border:none; border-radius:6px;
+    background:#22d3ee; color:#0f172a;
+    font-size:16px; font-weight:bold; cursor:pointer;
+  }
+  button:hover { background:#06b6d4; }
+</style>
+</head>
+<body>
+
+<h1>🧩 Fusiona Potencias</h1>
+<p>Une fichas de la misma base para crear potencias y llegar al resultado final.</p>
+
+<div id="expresion"></div>
+<div id="zona" class="zona"></div>
+<div class="resultado" id="resultado"></div>
+
+<button onclick="nuevaOperacion()">🔄 Nueva Potencia</button>
+
+<script>
+let base, exp, fichas = [];
+
+function nuevaOperacion(){
+  base = Math.floor(Math.random()*4)+2; // base entre 2 y 5
+  exp = Math.floor(Math.random()*5)+3;  // exponente entre 3 y 7
+  fichas = Array(exp).fill().map(()=>({b:base, e:1}));
+  document.getElementById("expresion").innerHTML =
+    `<h2>${base}<sup>${exp}</sup></h2>`;
+  render();
+  document.getElementById("resultado").innerHTML="";
+}
+
+function render(){
+  const zona=document.getElementById("zona");
+  zona.innerHTML="";
+  fichas.forEach((f,i)=>{
+    const div=document.createElement("div");
+    div.className="ficha";
+    div.textContent = f.e===1 ? `${f.b}` : `${f.b}^${f.e}`;
+    div.draggable=true;
+    div.dataset.idx=i;
+    div.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",i));
+    zona.appendChild(div);
+  });
+}
+
+const zona=document.getElementById("zona");
+zona.addEventListener("dragover",e=>e.preventDefault());
+zona.addEventListener("drop",e=>{
+  e.preventDefault();
+  const from=parseInt(e.dataTransfer.getData("text/plain"));
+  const target=e.target;
+  if(!target.classList.contains("ficha")) return;
+  const to=parseInt(target.dataset.idx);
+  if(from===to) return;
+
+  const f1=fichas[from], f2=fichas[to];
+  if(f1.b===f2.b){
+    const nuevo={b:f1.b, e:f1.e+f2.e};
+    fichas.splice(Math.max(from,to),1);
+    fichas.splice(Math.min(from,to),1,nuevo);
+    document.getElementById("resultado").innerHTML=
+      `Uniste: ${f1.b}^${f1.e} × ${f2.b}^${f2.e} = ${nuevo.b}^${nuevo.e}`;
+    render();
+    verificarFin();
+  }
+});
+
+function verificarFin(){
+  if(fichas.length===1){
+    const f=fichas[0];
+    const valor=Math.pow(f.b,f.e);
+    document.getElementById("resultado").innerHTML+=
+      `<br>🎉 ¡Completaste la potencia! ${f.b}^${f.e} = ${valor}`;
+  }
+}
+
+nuevaOperacion();
+</script>
+</body>
+</html>

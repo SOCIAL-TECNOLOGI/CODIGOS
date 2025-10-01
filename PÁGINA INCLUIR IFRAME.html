@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acordeón con iframes</title>
+    <style>
+        /* Estilos básicos para el acordeón */
+        .accordion {
+            display: flex;
+            flex-direction: column;
+            width: 97%;
+            margin: 20px;
+        }
+
+        .accordion-section {
+            border: 1px solid #ccc;
+            margin-bottom: 5px;
+        }
+
+        .accordion-section-header {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ccc;
+            font-weight: bold; 
+        }
+
+        .accordion-section-content {
+            display: none;
+            padding: 10px;
+        }
+
+
+
+
+
+
+
+
+        
+    </style>
+</head>
+
+<body>
+
+    <div class="accordion">
+        <div class="accordion-section">
+            <div class="accordion-section-header" onclick="toggleSection(1)">DIAGNÓSTICO DE LECTURA</div>
+            <div class="accordion-section-content" id="section1">
+                <iframe src="https://academia.lostutores.co/zs/a0CNEI" frameborder='0' style='height:700px;width:100%;' marginwidth='0' marginheight='0' scrolling='auto' allow='geolocation'></iframe>
+            </div>
+        </div>
+
+        <div class="accordion-section">
+            <div class="accordion-section-header" onclick="toggleSection(2)">DIAGNÓSTICO DE MATEMÁTICAS</div>
+            <div class="accordion-section-content" id="section2">
+                <iframe src="https://academia.lostutores.co/zs/a0CNEI" frameborder='0' style='height:700px;width:100%;' marginwidth='0' marginheight='0' scrolling='auto' allow='geolocation'></iframe>
+            </div>
+        </div>
+
+        <div class="accordion-section">
+            <div class="accordion-section-header" onclick="toggleSection(3)">DIAGNÓSTICO DE INGLÉS</div>
+            <div class="accordion-section-content" id="section3">
+                <iframe src="https://academia.lostutores.co/zs/a0CNEI" frameborder='0' style='height:700px;width:100%;' marginwidth='0' marginheight='0' scrolling='auto' allow='geolocation'></iframe>
+            </div>
+        </div>
+
+        <!-- Puedes agregar más secciones según sea necesario -->
+
+    </div>
+
+    <script>
+        function toggleSection(sectionNumber) {
+            var section = document.getElementById('section' + sectionNumber);
+            var style = window.getComputedStyle(section);
+            var display = style.getPropertyValue('display');
+            section.style.display = (display === 'none' || display === '') ? 'block' : 'none';
+        }
+    </script>
+
+</body>
+
+</html>

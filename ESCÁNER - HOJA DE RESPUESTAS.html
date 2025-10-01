@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escáner de hojas de respuestas</title>
+    <style>
+        #hojaRespuestas {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+
+        .burbuja {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border: 1px solid #000;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #nombre, #fecha, #codigo {
+            position: absolute;
+            border: 1px solid #000;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="hojaRespuestas">
+        <!-- Campos adicionales -->
+        <div id="nombre" style="top: 10px; left: 10px;">Nombre: <input type="text"></div>
+        <div id="fecha" style="top: 30px; left: 10px;">Fecha: <input type="text"></div>
+        <div id="codigo" style="top: 50px; left: 10px;">Código: <input type="text"></div>
+
+        <!-- Burbujas simuladas -->
+        <div class="burbuja" data-opcion="A" style="top: 100px; left: 100px;"></div>
+        <div class="burbuja" data-opcion="B" style="top: 100px; left: 150px;"></div>
+        <div class="burbuja" data-opcion="C" style="top: 100px; left: 200px;"></div>
+        <div class="burbuja" data-opcion="D" style="top: 100px; left: 250px;"></div>
+    </div>
+
+    <script>
+        // Función para detectar marcas en la hoja de respuestas
+        function detectarMarcas() {
+            const marcas = [];
+            const burbujas = document.querySelectorAll('.burbuja');
+            
+            burbujas.forEach(burbuja => {
+                const rect = burbuja.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                const valor = burbuja.getAttribute('data-opcion');
+                marcas.push({ x, y, valor });
+            });
+
+            // También puedes incluir la lógica para detectar y extraer el texto de los campos adicionales
+            const nombre = document.getElementById('nombre').querySelector('input').value;
+            const fecha = document.getElementById('fecha').querySelector('input').value;
+            const codigo = document.getElementById('codigo').querySelector('input').value;
+
+            return { marcas, nombre, fecha, codigo };
+        }
+
+        // Función para manejar la selección de respuestas al hacer clic
+        function manejarSeleccionRespuesta() {
+            const burbujas = document.querySelectorAll('.burbuja');
+
+            burbujas.forEach(burbuja => {
+                burbuja.addEventListener('click', () => {
+                    // Simulación de selección: cambiar color de fondo al hacer clic
+                    const colorActual = burbuja.style.backgroundColor;
+                    const nuevoColor = colorActual === 'rgb(255, 255, 255)' ? 'lightgreen' : 'rgb(255, 255, 255)';
+                    burbuja.style.backgroundColor = nuevoColor;
+                });
+            });
+        }
+
+        // ... (código existente) ...
+
+        // Función principal después de cargar la imagen
+        img.onload = function() {
+            // ... (código existente) ...
+
+            // Detectar marcas y campos adicionales en la hoja de respuestas
+            const { marcas, nombre, fecha, codigo } = detectarMarcas();
+
+            // Extraer información y calificar respuestas
+            const resultados = extraerYCalificarRespuestas(marcas);
+
+            // Mostrar resultados al usuario
+            mostrarResultados(resultados);
+
+            // Mostrar información de campos adicionales
+            alert(`Nombre: ${nombre}\nFecha: ${fecha}\nCódigo: ${codigo}`);
+        };
+
+        // ... (código existente) ...
+    </script>
+</body>
+</html>

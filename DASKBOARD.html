@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Gestión de Residuos Sólidos</title>
+    <link rel="stylesheet" href="estilos.css">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+}
+
+.contenedor {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.panel {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 10px;
+    flex: 1;
+}
+
+#grafico-recoleccion,
+#grafico-clasificacion,
+#grafico-disposicion {
+    width: 100%;
+    height: 300px;
+}
+
+
+/* Estilos responsivos para gráficos */
+@media (max-width: 768px) {
+    #grafico-recoleccion,
+    #grafico-clasificacion,
+    #grafico-disposicion {
+        height: 200px;
+    }
+}
+
+
+/* Estilos para el panel de estadísticas */
+#panel-estadisticas {
+    background-color: #f2f2f2;
+}
+
+/* Estilos para el panel de comentarios */
+#panel-comentarios {
+    background-color: #fff;
+    padding: 15px;
+}
+
+#lista-comentarios {
+    list-style-type: none;
+    padding: 0;
+}
+
+#nuevo-comentario {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#agregar-comentario {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#agregar-comentario:hover {
+    background-color: #0056b3;
+}
+
+
+</style>
+
+
+
+</head>
+<body>
+
+    <div class="panel" id="panel-estadisticas">
+        <h2>Estadísticas Generales</h2>
+        <div id="grafico-estadisticas"></div>
+    </div>
+    <div class="panel" id="panel-comentarios">
+        <h2>Comentarios</h2>
+        <ul id="lista-comentarios">
+            <!-- Los comentarios se agregarán dinámicamente aquí -->
+        </ul>
+        <textarea id="nuevo-comentario" placeholder="Añadir comentario"></textarea>
+        <button id="agregar-comentario">Agregar</button>
+    </div>
+    
+
+
+
+
+
+
+
+
+
+    <header>
+        <h1>Tablero de Gestión de Residuos Sólidos</h1>
+    </header>
+    <div class="contenedor">
+        <div class="panel" id="panel-recoleccion">
+            <h2>Recolección de Residuos</h2>
+            <div id="grafico-recoleccion"></div>
+        </div>
+        <div class="panel" id="panel-clasificacion">
+            <h2>Clasificación de Residuos</h2>
+            <div id="grafico-clasificacion"></div>
+        </div>
+        <div class="panel" id="panel-disposicion">
+            <h2>Disposición de Residuos</h2>
+            <div id="grafico-disposicion"></div>
+        </div>
+    </div>
+
+    <form id="filtro">
+        <label for="categoria">Seleccionar Categoría:</label>
+        <select id="categoria">
+            <option value="plastico">Plástico</option>
+            <option value="papel">Papel</option>
+            <option value="vidrio">Vidrio</option>
+            <option value="organico">Orgánico</option>
+        </select>
+    </form>
+    
+    <table id="tabla-detalles">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Categoría</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se agregarán filas dinámicamente -->
+        </tbody>
+    </table>
+    
+
+
+
+
+
+
+
+
+
+
+
+    <script src="script.js">
+
+// Simula datos de ejemplo para los gráficos
+const datosRecoleccion = [20, 30, 15, 35];
+const datosClasificacion = [10, 40, 25, 25];
+const datosDisposicion = [15, 25, 30, 30];
+
+// Crea gráficos utilizando una biblioteca como Chart.js
+// Asegúrate de incluir Chart.js en tu proyecto
+const ctxRecoleccion = document.getElementById('grafico-recoleccion').getContext('2d');
+const ctxClasificacion = document.getElementById('grafico-clasificacion').getContext('2d');
+const ctxDisposicion = document.getElementById('grafico-disposicion').getContext('2d');
+
+new Chart(ctxRecoleccion, {
+    type: 'bar',
+    data: {
+        labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves'],
+        datasets: [{
+            label: 'Recolección de Residuos',
+            data: datosRecoleccion,
+            backgroundColor: 'blue'
+        }]
+    }
+});
+
+new Chart(ctxClasificacion, {
+    type: 'pie',
+    data: {
+        labels: ['Plástico', 'Papel', 'Vidrio', 'Orgánico'],
+        datasets: [{
+            data: datosClasificacion,
+            backgroundColor: ['red', 'green', 'blue', 'yellow']
+        }]
+    }
+});
+
+new Chart(ctxDisposicion, {
+    type: 'line',
+    data: {
+        labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves'],
+        datasets: [{
+            label: 'Disposición de Residuos',
+            data: datosDisposicion,
+            borderColor: 'purple',
+            fill: false
+        }]
+    }
+});
+
+
+
+// Función para generar datos aleatorios
+function generarDatosAleatorios() {
+    return [Math.floor(Math.random() * 50), Math.floor(Math.random() * 50), Math.floor(Math.random() * 50), Math.floor(Math.random() * 50)];
+}
+
+// Actualizar los gráficos con nuevos datos cada 5 segundos
+setInterval(() => {
+    const nuevosDatosRecoleccion = generarDatosAleatorios();
+    const nuevosDatosClasificacion = generarDatosAleatorios();
+    const nuevosDatosDisposicion = generarDatosAleatorios();
+
+    // Actualizar los gráficos con los nuevos datos
+    // Esto depende de cómo estén configurados tus gráficos y de las bibliotecas que estés utilizando
+}, 5000); // Actualiza cada 5 segundos
+
+
+
+// Escucha los cambios en el filtro y actualiza los gráficos en función de las selecciones
+document.getElementById('categoria').addEventListener('change', () => {
+    const categoriaSeleccionada = document.getElementById('categoria').value;
+    // Filtra y actualiza los datos en función de la categoría seleccionada
+});
+
+
+// Función para agregar filas a la tabla de detalles
+function agregarFilaDetalle(fecha, categoria, cantidad) {
+    const tbody = document.getElementById('tabla-detalles').getElementsByTagName('tbody')[0];
+    const newRow = tbody.insertRow();
+    const newCell1 = newRow.insertCell(0);
+    const newCell2 = newRow.insertCell(1);
+    const newCell3 = newRow.insertCell(2);
+    newCell1.innerHTML = fecha;
+    newCell2.innerHTML = categoria;
+    newCell3.innerHTML = cantidad;
+}
+
+// Llama a la función agregarFilaDetalle para agregar datos a la tabla
+
+// Agrega un evento de clic a un gráfico (por ejemplo, al gráfico de recolección)
+ctxRecoleccion.canvas.addEventListener('click', (event) => {
+    const activePoint = chart.getElementAtEvent(event)[0];
+
+    if (activePoint) {
+        const dataset = activePoint._datasetIndex;
+        const dataPoint = activePoint._index;
+        const valor = chart.data.datasets[dataset].data[dataPoint];
+
+        // Muestra el valor en algún lugar de la página
+        document.getElementById('info-recoleccion').textContent = `Valor: ${valor}`;
+    }
+});
+
+
+new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+        labels: ['Área 1', 'Área 2', 'Área 3', 'Área 4'],
+        datasets: [{
+            label: 'Eficiencia',
+            data: [80, 65, 90, 75],
+            borderColor: 'orange',
+            fill: true
+        }]
+    }
+});
+
+
+// Función para agregar comentarios
+document.getElementById('agregar-comentario').addEventListener('click', () => {
+    const nuevoComentario = document.getElementById('nuevo-comentario').value;
+    if (nuevoComentario) {
+        const listaComentarios = document.getElementById('lista-comentarios');
+        const nuevoElemento = document.createElement('li');
+        nuevoElemento.textContent = nuevoComentario;
+        listaComentarios.appendChild(nuevoElemento);
+        document.getElementById('nuevo-comentario').value = '';
+    }
+});
+
+// Datos de ejemplo para estadísticas generales
+const datosEstadisticas = [30, 20, 25, 15];
+
+// Gráfico de pastel para estadísticas generales
+const ctxEstadisticas = document.getElementById('grafico-estadisticas').getContext('2d');
+new Chart(ctxEstadisticas, {
+    type: 'doughnut',
+    data: {
+        labels: ['Reciclado', 'Incinerado', 'Vertido', 'Compost'],
+        datasets: [{
+            data: datosEstadisticas,
+            backgroundColor: ['#00ff00', '#ff0000', '#0000ff', '#ffaa00']
+        }]
+    }
+});
+
+
+    </script>
+</body>
+</html>

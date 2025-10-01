@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    <meta charset="UTF-8">
+    <title>Preguntas de Matemáticas y Reciclaje</title>
+    <head>
+        <!-- Otros elementos head -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Agrega esto en la sección <head> de tu HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/rgbcolor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/canvg.min.js"></script>
+<!-- Agrega esto en la sección <head> de tu HTML -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  
+
+
+      </head>
+      
+<style>
+
+/* Estilo para el contenedor de registro */
+#registro-container {
+    display: block;
+    margin: 50px auto;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 88%;
+    background-color: #f5f5f5;
+}
+
+/* Estilo para el contenedor de cuestionario (inicialmente oculto) */
+#cuestionario-container {
+    display: none;
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 93%;
+    background-color: #f5f5f5;
+}
+
+/* Estilo para centrar el título */
+#cuestionario-container h1 {
+    text-align: center;
+}
+
+/* Preguntas */
+.pregunta {
+    margin: 20px 0;
+}
+.pregunta p {
+    font-size: 16px;
+}
+
+/* Retroalimentación y explicación ocultas por defecto */
+#retroalimentacion, #explicacion {
+    display: none;
+}
+
+/* Botones generales */
+button {
+    padding: 10px 20px;
+    background-color: #101b5a;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+/* Botones específicos */
+button#comprobar { background-color: #28A745; }
+button#limpiar   { background-color: #141860; }
+button#explicacion { background-color: #FFC107; }
+
+/* Retroalimentación */
+#retroalimentacion {
+    font-weight: bold;
+}
+#retroalimentacion.respuesta-correcta { color: #28A745; }
+#retroalimentacion.respuesta-incorrecta { color: #DC3545; }
+
+/* Contenedor principal */
+body {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Contenedor de retroalimentación */
+.retroalimentacion-container {
+    padding: 10px;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* Explicaciones */
+.explicacion {
+    display: none;
+}
+
+/* Popup gráfico */
+#popup-container {
+    display: none;
+    position: fixed;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 100%;
+    max-height: 100%;
+    text-align: center;
+}
+#popup-container .cerrar-btn,
+#popup-container .descargar-btn {
+    position: fixed !important;
+    padding: 5px 10px;
+    background-color: #ccc;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #000;
+}
+#popup-container .cerrar-btn { top: 10px; right: 10px; }
+#popup-container .descargar-btn { bottom: 10px; left: 10px; }
+
+/* Menú flotante */
+.menu-contenedor {
+    position: fixed;       /* ahora fijo para seguir el scroll */
+    top: 80px;             /* distancia desde arriba */
+    left: 20px;            /* distancia desde la izquierda */
+    background-color: #f5f5f5;
+    border: 2px solid #ccc;
+    border-radius: 18px;
+    padding: 10px;
+    display: none;         /* se muestra/oculta con JS */
+    z-index: 1000;
+    max-height: 70vh;
+    overflow: auto;
+}
+
+/* Botones dentro del menú */
+#menuContenedor button {
+    background-color: #25447e;
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+#menuContenedor button:hover {
+    background-color: #3366cc;
+}
+
+/* Botón hamburguesa */
+#menuIcon {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #25447e;
+    color: #ffffff;
+    border-radius: 10px;
+    z-index: 1001;
+}
+#menuIcon:hover {
+    background-color: #3366cc;
+    color: #ffffff;
+    border-radius: 25px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .menu-contenedor {
+        top: 70px;
+        left: 10px;
+        right: 10px;
+    }
+}
+
+/* Animación de ocultar/mostrar con el scroll */
+#menuIcon,
+.menu-contenedor {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+#menuIcon.oculto,
+.menu-contenedor.oculto {
+  transform: translateY(-120%);
+  opacity: 0;
+  pointer-events: none; /* evita clics mientras está oculto */
+}
+
+
+
+
+</style>
+
+
+
+
+</head>
+<body>
+
+    <div id="registro-container">
+        <h2>Registro</h2>
+        <form id="registro-form">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required><br><br>
+
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" required><br>
+
+            <button id="iniciar-cuestionario">Iniciar Cuestionario</button>
+        </form>
+    </div>
+
+
+ <div id="cuestionario-container" style="display: none;">
+
+    <div>    
+        <!-- Agrega esto donde desees que aparezca el ícono del menú y el menú -->
+        <button id="menuIcon" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i> <!-- Ícono de menú (FontAwesome) -->
+        </button>
+    
+        <div id="menuContenedor" class="menu-contenedor oculto">
+            <!-- Agrega aquí todos los botones del menú -->
+            <button class="boton" onclick="verificarRespuestas()">Comprobar</button>
+            <button class="boton" id="toggleExplicaciones" onclick="toggleExplicaciones()">Explicaciones</button>
+            <button class="boton" id="calcularPuntaje" onclick="calcularPuntaje()">Ver Puntaje</button>
+            <button class="boton" onclick="reiniciarEvaluacion()">Reiniciar</button>
+            <button onclick="mostrarGrafico()">Ver Gráfico</button>
+    
+
+        </div>
+    </div>
+
+    <h1 id="tituloEvaluacion">Preguntas de Matemáticas y Reciclaje</h1>
+
+
+    <div class="pregunta">
+        <img src="data:image/jpeg;base64,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" alt="Imagen de la pregunta 1" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://es.123rf.com/</em></label>
+        </div>
+        <p><strong><em>1. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 40 kg de papel reciclado por una bicicleta ecológica. Si una persona recicla 80 kg de papel, ¿cuántas bicicletas ecológicas recibiría?</em></strong></p>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="a"> a) 1 bicicleta
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="b"> b) 2 bicicletas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="c"> c) 3 bicicletas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="d"> d) 4 bicicletas
+        </div>
+        <div class="retroalimentacion-container"></div>
+
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN 1:</strong> Para obtener bicicletas, una persona debe entregar 40 kg de papel reciclado por bicicleta. En este caso, si se reciclan 80 kg de papel, se obtendrían 80 kg / 40 kg por bicicleta = 2 bicicletas ecológicas.</p>
+            <p><strong>PROCEDIMIENTO PREGUNTA 1:</strong></p>
+            <pre>
+            40 kg de papel reciclado        1 bicicleta ecológica
+            ------------------------   =   ------------------------  = 2 bicicletas
+            80 kg de papel reciclado             x bicicletas
+        
+            Donde x representa la cantidad de bicicletas ecológicas que recibiría la persona por reciclar 80 kg de papel.
+            </pre>
+            <p><strong> Temas matemáticos relacionados:</strong><span style="color: rgb(15, 83, 14);"> <em> PROPORCIONES Y REGLA DE TRES</em></span></p>
+            <p><strong>Respuesta correcta:</strong> 2 bicicletas</p>
+        </div>
+        
+
+        <a href="https://es.khanacademy.org/math" class="reforzar-tema-link" id="reforzarTemaLink" onclick="abrirEnlaceReforzarTema(); return false;" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"> Reforzar tema pregunta 1 <span class="icon">&#8599;&#xFE0F;</span></a>
+
+       
+
+</div>
+    </div>
+
+
+
+    <div class="pregunta">
+        <p><strong><em>2. En un centro de reciclaje, se recolectaron inicialmente 500 botellas de vidrio. Si se reciclan 80 botellas de vidrio por semana, ¿cuánto tiempo tomaría reciclar todas las botellas?</em></strong></p>
+        <div class="opcion">
+            <img src="data:image/jpeg;base64,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" alt="Imagen de la pregunta 2" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://img.freepik.com</em></label>
+        </div>
+            <input type="radio" name="respuesta2" value="a"> a) 5 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="b"> b) 7 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="c"> c) 8 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="d"> d) 10 semanas
+        </div>
+      
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN 2:</strong> Para reciclar todas las botellas, necesitas 500 botellas / 80 botellas por semana = 6.25 semanas. Dado que no se pueden tener semanas fraccionadas, tomaría 7 semanas para reciclar todas las botellas.</p>
+            <p><strong>PROCEDIMIENTO PREGUNTA 2:</strong></p>
+            <pre>
+            500 botellas           1 semana
+            -------------   =   --------------    7 semanas
+             80 botellas           x semanas
+        
+            Donde x representa la cantidad de semanas necesarias para reciclar todas las botellas.
+            </pre>
+            <p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p>
+            <p><strong>Respuesta correcta:</strong> 7 semanas.</p>
+        </div>
+        
+
+
+
+        <a href="https://es.khanacademy.org/math" class="reforzar-tema-link" id="reforzarTemaLink" onclick="abrirEnlaceReforzarTema(); return false;" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;">Reforzar tema pregunta 2 <span class="icon">&#8599;&#xFE0F;</span></a>
+
+</div>
+    </div>
+       
+    <div class="pregunta">
+        <p><strong><em>3. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 25 kg de plástico reciclado por un árbol para reforestar. Si una persona desea obtener 5 árboles, ¿cuántos kilogramos de plástico debe entregar?</em></strong></p>
+        <div class="opcion">
+            <img src="https://assets.weforum.org/article/image/responsive_big_webp_QMzw2szzLJcJo8Qff_N3btsSPDFxhk9RVFzWzBGOP34.webp" alt="Imagen de la pregunta 3" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.plastico.com/es</em></label>
+        </div>
+            <input type="radio" name="respuesta3" value="a"> a) 1 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="b"> b) 5 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="c"> c) 10 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="d"> d) 125 kg
+        </div>
+        <div class="retroalimentacion-container"></div>
+   
+
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong><em>SOLUCIÓN 3:</em></strong> Para obtener 5 árboles, una persona debe entregar 25 kg de plástico reciclado por árbol. En este caso, se necesitarían 5 árboles * 25 kg por árbol = 125 kg de plástico reciclado.</p>
+            <p><strong>PROCEDIMIENTO PREGUNTA 3:</strong></p>
+            <pre>
+            25 kg de plástico                  1 árbol
+            --------------------   =   ---------------------  =   125 kg
+                  x kg                         5 árboles
+        
+            Donde x representa la cantidad de kilogramos de plástico que debe entregar la persona para obtener 5 árboles.
+            </pre>
+            <p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PROPORCIONES Y REGLA DE TRES</em></span></p>
+            <p><strong>Respuesta correcta:</strong> 125 kg</p>
+        </div>
+        
+        
+
+        <a href="https://es.khanacademy.org/math" class="reforzar-tema-link" id="reforzarTemaLink" onclick="abrirEnlaceReforzarTema(); return false;" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;">Reforzar tema pregunta 3 <span class="icon">&#8599;&#xFE0F;</span></a>
+        
+</div>
+    </div>
+        
+
+    <div class="pregunta">
+        <p><strong><em>4. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 30 latas de aluminio recicladas por un libro educativo. Si una persona recicla 120 latas de aluminio, ¿cuántos libros educativos recibiría?</em></strong></p>
+        <div class="opcion">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSihUtJU7cZaCMuu8eky_jyOydMsLQdUUTGLg&usqp=CAU" alt="Imagen de la pregunta 4" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://es.pngtree.com</em></label>
+        </div>
+            <input type="radio" name="respuesta4" value="a"> a) 2 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="b"> b) 4 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="c"> c) 6 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="d"> d) 8 libros
+        </div>
+      
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN 4:</strong> Para obtener libros educativos, una persona debe entregar 30 latas de aluminio recicladas por libro. En este caso, si recicla 120 latas de aluminio, obtendría 120 latas / 30 latas por libro = 4 libros educativos.</p>
+            <p><strong>PROCEDIMIENTO PREGUNTA 4:</strong></p>
+            <pre>
+            30 latas de aluminio             1 libro educativo
+            ----------------------   =   -------------------------  =   4 libros educativos
+               120 latas de aluminio        x libros educativos
+        
+            Donde x representa la cantidad de libros educativos que recibiría la persona por reciclar 120 latas de aluminio.
+            </pre>
+            <p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PROPORCIONES Y REGLA DE TRES</em></span></p>
+            <p><strong>Respuesta correcta:</strong> 4 libros educativos</p>
+        </div>
+        
+
+ <a href="https://es.khanacademy.org/math" class="reforzar-tema-link" id="reforzarTemaLink" onclick="abrirEnlaceReforzarTema(); return false;" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;">Reforzar tema pregunta 4 <span class="icon">&#8599;&#xFE0F;</span></a>
+
+</div>
+    </div>
+       
+
+    <div class="pregunta">
+        <p><strong><em>5. En un centro de reciclaje, se recolectaron inicialmente 800 botellas de plástico. Si se reciclan 100 botellas de plástico cada día, ¿cuántos días tomaría reciclar todas las botellas?</em></strong></p>
+        <div class="opcion">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2dMKO6W5Q95KrOoTelRMiz70OE3CaJ_UwtA&usqp=CAU" alt="Imagen de la pregunta 5" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://larepublica.pe</em></label>
+        </div>
+            <input type="radio" name="respuesta5" value="a"> a) 4 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="b"> b) 8 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="c"> c) 10 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="d"> d) 16 días
+        </div>
+        
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong><em>SOLUCIÓN 5:</em></strong> Si se reciclan 100 botellas de plástico cada día, y se tienen inicialmente 800 botellas, tomaría 800 botellas / 100 botellas por día = 8 días para reciclar todas las botellas.</p>
+            <p><strong>PROCEDIMIENTO PREGUNTA 5:</strong></p>
+            <pre>
+            100 botellas de plástico               1 día
+            ------------------------   =   -----------------------  =   8 días
+                  x botellas                       8 días
+        
+            Donde x representa la cantidad de días que tomaría reciclar todas las 800 botellas de plástico.
+            </pre>
+            <p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PROPORCIONES Y REGLA DE TRES</em></span></p>
+            <p><strong>Respuesta correcta:</strong>  8 días.</p>
+        </div>
+        
+
+
+        <a href="https://es.khanacademy.org/math" class="reforzar-tema-link" id="reforzarTemaLink" onclick="abrirEnlaceReforzarTema(); return false;" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;">Reforzar tema pregunta 5 <span class="icon">&#8599;&#xFE0F;</span></a>
+
+       
+        
+        
+</div>
+    </div>
+
+   
+<!-- Contenedor para el gráfico (emergente) -->
+<div id="popup-container">
+    <button class="cerrar-btn" onclick="cerrarPopup()">Cerrar</button>
+    <button class="descargar-btn" onclick="descargarGrafico()">Descargar</button>
+
+    <canvas id="grafico"></canvas>
+</div>
+
+
+
+<script>
+
+// Condiciones para formulario
+var formulario = document.getElementById('registro-form');
+        var cuestionarioContainer = document.getElementById('cuestionario-container');
+
+        formulario.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+
+            var nombre = document.getElementById('nombre').value;
+            var email = document.getElementById('email').value;
+
+            if (nombre.trim() === '' || email.trim() === '') {
+                alert('Por favor, completa todos los campos obligatorios.');
+            } else {
+                // Cambia el display para mostrar el cuestionario
+                document.getElementById('registro-container').style.display = 'none';
+                cuestionarioContainer.style.display = 'block';
+            }
+        });
+
+
+        // Función para mostrar u ocultar las explicaciones
+function toggleExplicaciones() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var todasContestadas = true;
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        if (respuestaSeleccionada === '') {
+            todasContestadas = false;
+            alert('Por favor, responde todas las preguntas antes de ver las explicaciones.');
+            break;
+        }
+    }
+
+    if (todasContestadas) {
+        var explicaciones = document.getElementsByClassName('explicacion');
+        var botonExplicaciones = document.getElementById('toggleExplicaciones');
+
+        for (var i = 0; i < explicaciones.length; i++) {
+            if (explicaciones[i].style.display === 'none') {
+                explicaciones[i].style.display = 'block';
+                botonExplicaciones.innerText = 'Ocultar Explicaciones';
+            } else {
+                explicaciones[i].style.display = 'none';
+                botonExplicaciones.innerText = 'Mostrar Explicaciones';
+            }
+        }
+    }
+}
+
+        // Función para verificar respuestas
+        function verificarRespuestas() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var respuestasCorrectas = ["b", "c", "c", "b", "b"]; // Respuestas correctas de cada pregunta
+    var todasCorrectas = true;
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+
+
+
+
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+
+        if (respuestaSeleccionada === '') {
+            todasCorrectas = false;
+            alert('Por favor, responde todas las preguntas antes de verificar.');
+            break;
+        }
+
+        var retroalimentacion = preguntas[i].getElementsByClassName('retroalimentacion-container')[0]; // Nuevo contenedor para retroalimentación
+        var reforzarTemaLink = preguntas[i].getElementsByClassName('reforzar-tema-link')[0];
+
+        if (respuestaSeleccionada === respuestasCorrectas[i]) {
+            retroalimentacion.innerHTML = 'RESPUESTA CORRECTA';
+            retroalimentacion.style.color = '#FFFFFF';
+            retroalimentacion.style.backgroundColor = '#0f530e';
+            retroalimentacion.style.borderRadius = '20px';
+            reforzarTemaLink.style.display = 'none'; // Oculta el enlace si la respuesta es correcta
+        } else {
+            retroalimentacion.innerHTML = 'RESPUESTA INCORRECTA';
+            retroalimentacion.style.color = '#FFFFFF';
+            retroalimentacion.style.backgroundColor = '#FF0000';
+            retroalimentacion.style.borderRadius = '20px';
+            todasCorrectas = false;
+            reforzarTemaLink.style.display = 'inline-block'; // Muestra el enlace si la respuesta es incorrecta
+        }
+    }
+
+    if (todasCorrectas) {
+        alert('¡Todas las respuestas son correctas!');
+    }
+}
+
+
+
+// Función para calcular el puntaje total en porcentaje
+function calcularPuntaje() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var respuestasCorrectas = ["b", "c", "c", "b", "b"];
+    var puntuacion = 0;
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        if (respuestaSeleccionada === '') {
+            alert('Por favor, responde todas las preguntas antes de ver el puntaje.');
+            return; // Sale de la función si hay preguntas sin responder
+        }
+
+        if (respuestaSeleccionada === respuestasCorrectas[i]) {
+            puntuacion++;
+        }
+    }
+
+    var aciertosTotal = puntuacion + "/" + preguntas.length;
+    var porcentaje = (puntuacion / preguntas.length) * 100;
+
+    // Modifica el mensaje de alerta
+    var confirmarDescarga = confirm('TU PUNTAJE ES: ' + aciertosTotal + ' (' + porcentaje + '%). ¿Quieres descargar los resultados de esta evaluación?');
+
+    // Si el usuario confirma, llama a la función que genera el archivo Excel
+    if (confirmarDescarga) {
+        generarArchivoExcel(aciertosTotal, porcentaje);
+    }
+}
+
+
+
+        // Función para reiniciar
+        function reiniciarEvaluacion() {
+    var preguntas = document.getElementsByClassName('pregunta');
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+
+        for (var j = 0; j < opciones.length; j++) {
+            var input = opciones[j].querySelector('input');
+            input.checked = false;
+        }
+
+        var retroalimentacionContainer = preguntas[i].getElementsByClassName('retroalimentacion-container')[0];
+        retroalimentacionContainer.innerHTML = '';
+        retroalimentacionContainer.style.color = '';
+        retroalimentacionContainer.style.backgroundColor = '';
+        retroalimentacionContainer.style.borderRadius = '';
+
+        var explicacion = preguntas[i].getElementsByClassName('explicacion')[0];
+
+        if (explicacion) {
+            explicacion.style.display = 'none';
+        }
+
+        var botonExplicacion = preguntas[i].querySelector('.ver-explicacion-button');
+
+        if (botonExplicacion) {
+            botonExplicacion.innerText = 'Ver Explicación';
+        }
+
+        var reforzarTemaLink = preguntas[i].getElementsByClassName('reforzar-tema-link')[0];
+
+        if (reforzarTemaLink) {
+            reforzarTemaLink.style.display = 'none';
+        }
+    }
+
+// Ocultar el cuestionario y mostrar el formulario de registro
+document.getElementById('cuestionario-container').style.display = 'none';
+    document.getElementById('registro-container').style.display = 'block';
+
+
+}
+
+
+
+// Función para abrir el enlace en una ventana nueva
+function abrirEnlaceReforzarTema() {
+            // Obtener el enlace
+            var enlaceReforzarTema = document.getElementById('reforzarTemaLink');
+
+            // Verificar si el enlace existe y tiene un href
+            if (enlaceReforzarTema && enlaceReforzarTema.href) {
+                // Abrir el enlace en una nueva ventana
+                window.open(enlaceReforzarTema.href, '_blank');
+            }
+        }
+
+
+// ARCHIVO DESCARGABLE
+
+// Función para generar el archivo Excel
+function generarArchivoExcel(aciertosTotal, porcentajeTotal) {
+    // Obtiene las respuestas y otra información relevante
+    var preguntas = document.getElementsByClassName('pregunta');
+    var respuestasCorrectas = ["b", "c", "c", "b", "b"];
+    var nombreEvaluacion = document.getElementById('tituloEvaluacion').innerText;
+
+    // Crea una matriz para almacenar los datos del archivo Excel, incluyendo el nuevo encabezado
+    var datosExcel = [
+        ["NOMBRE DE LA EVALUACIÓN", "ESTUDIANTE", "Fecha"],
+        [nombreEvaluacion, document.getElementById('nombre').value, new Date().toLocaleDateString()],
+        [], // Agrega una fila vacía para separar el encabezado de los datos de la pregunta
+        ["Pregunta", "Tu Respuesta", "Opción Correcta", "Calificación", "Puntuación", "Porcentaje", "Refuerzo del Tema"]
+    ];
+    // Variables para llevar el total de preguntas correctas y la sumatoria del porcentaje total
+    var totalPreguntasCorrectas = 0;
+    var sumatoriaPorcentajeTotal = 0;
+
+    // Itera sobre cada pregunta y recopila la información
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        var retroalimentacion = preguntas[i].getElementsByClassName('retroalimentacion-container')[0];
+        var reforzarTemaLink = preguntas[i].getElementsByClassName('reforzar-tema-link')[0];
+
+        // Comprueba si la respuesta es correcta e incluye el enlace solo si es incorrecta
+        var esCorrecta = respuestaSeleccionada === respuestasCorrectas[i];
+        var enlaceRefuerzo = esCorrecta ? '' : 'https://es.khanacademy.org/math';
+
+        // Calcula la puntuación y porcentaje por pregunta
+        var puntuacionPorPregunta = esCorrecta ? 1 : 0;
+        var porcentajePorPregunta = (puntuacionPorPregunta / 1) * 20;
+
+        // Agrega los datos de la pregunta a la matriz
+        datosExcel.push([
+            "Pregunta " + (i + 1),
+            respuestaSeleccionada,
+            respuestasCorrectas[i],
+            esCorrecta ? "Correcta" : { v: "Incorrecta", s: { bold: true, color: { rgb: 'FF0000' } } }, // Aplica negrita y color rojo si la respuesta es incorrecta
+            puntuacionPorPregunta + "/1",
+            porcentajePorPregunta.toFixed(2) + "%",
+            enlaceRefuerzo
+        ]);
+
+        // Actualiza el total de preguntas correctas y la sumatoria del porcentaje total
+        totalPreguntasCorrectas += puntuacionPorPregunta;
+        sumatoriaPorcentajeTotal += porcentajePorPregunta;
+    }
+
+    // Calcula el porcentaje total y agrega una fila al final con la suma total
+    var porcentajeTotal = (totalPreguntasCorrectas / preguntas.length) * 100;
+    datosExcel.push([
+        "Calificación",
+        "",
+        "",
+        "",
+        totalPreguntasCorrectas + "/" + preguntas.length,
+        sumatoriaPorcentajeTotal.toFixed(2) + "%",
+        ""
+    ]);
+
+    // Crea un libro de trabajo y hoja de cálculo utilizando SheetJS
+    var libro = XLSX.utils.book_new();
+    var hoja = XLSX.utils.aoa_to_sheet(datosExcel);
+
+    // Agrega la hoja al libro
+    XLSX.utils.book_append_sheet(libro, hoja, 'Resultados');
+
+    // Obtiene el nombre del cuestionario para incluirlo en el nombre del archivo
+    var nombreCuestionario = nombreEvaluacion.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+    // Obtiene la fecha y hora actual para incluir en el nombre del archivo
+    var fechaActual = new Date();
+    var fechaFormato = fechaActual.getFullYear() + "_" + (fechaActual.getMonth() + 1) + "_" + fechaActual.getDate();
+    var horaFormato = fechaActual.getHours() + "_" + fechaActual.getMinutes();
+
+    // Construye el nombre del archivo con el título del cuestionario, fecha y hora
+    var nombreArchivo = "Resultados_de:" + nombreCuestionario + "_" + fechaFormato + "_Hora_" + horaFormato + ".xlsx";
+
+    // Descarga el archivo con el nombre personalizado
+    XLSX.writeFile(libro, nombreArchivo);
+}
+
+
+// DIAGRAMA DE TORTA
+
+var myPieChart;
+
+// Nueva función para generar y actualizar el gráfico de torta
+function generarGrafico() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var respuestasCorrectas = ["b", "c", "c", "b", "b"];
+    var respuestasUsuario = [];
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        respuestasUsuario.push(respuestaSeleccionada);
+    }
+
+    // Cuenta las respuestas correctas e incorrectas
+    var respuestasCorrectasCount = 0;
+    var respuestasIncorrectasCount = 0;
+
+    for (var k = 0; k < respuestasUsuario.length; k++) {
+        if (respuestasUsuario[k] === respuestasCorrectas[k]) {
+            respuestasCorrectasCount++;
+        } else {
+            respuestasIncorrectasCount++;
+        }
+    }
+
+    // Destruye el gráfico existente si hay uno
+    if (myPieChart) {
+        myPieChart.destroy();
+    }
+
+   // Utiliza Chart.js para generar el gráfico de torta con opciones personalizadas
+var ctx = document.getElementById('grafico').getContext('2d');
+myPieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: ['Respuestas Correctas', 'Respuestas Incorrectas'],
+        datasets: [{
+            data: [respuestasCorrectasCount, respuestasIncorrectasCount],
+            backgroundColor: ['#0f530e', '#FF0000'],
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        responsive: true,
+        legend: {
+            position: 'bottom',
+        },
+        // Establece el fondo del gráfico en blanco
+        plugins: {
+            datalabels: {
+                display: true,
+                color: 'white',
+            },
+        },
+        elements: {
+            arc: {
+                backgroundColor: 'white', // Fondo blanco para cada sector del gráfico
+            },
+        },
+        // Otros estilos y opciones que desees añadir
+    },
+});
+
+}
+
+
+
+// Nueva función para mostrar el gráfico emergente
+function mostrarGrafico() {
+    // Muestra el contenedor emergente
+    document.getElementById('popup-container').style.display = 'block';
+
+    // Verifica si el gráfico ya ha sido generado
+    if (myPieChart) {
+        // Si ya ha sido generado, destrúyelo antes de recrearlo con las nuevas respuestas
+        myPieChart.destroy();
+    }
+
+    // Llama a la función que genera el gráfico
+    generarGrafico();
+}
+
+
+
+
+// Nueva función para ajustar el tamaño del contenedor
+function ajustarTamanoContenedor() {
+    var popupContainer = document.getElementById('popup-container');
+    var windowHeight = window.innerHeight;
+    var windowWidth = window.innerWidth;
+
+    // Define el nuevo tamaño del contenedor (ajustado para una torta más pequeña)
+    var nuevoAncho = Math.min(windowWidth - 40, 400); // 40 es el espacio adicional, y 400 es el ancho máximo
+    var nuevoAlto = Math.min(windowHeight - 40, 300); // 40 es el espacio adicional, y 300 es el alto máximo
+
+    // Aplica el nuevo tamaño al contenedor
+    popupContainer.style.width = nuevoAncho + 'px';
+    popupContainer.style.height = nuevoAlto + 'px';
+}
+
+
+
+
+
+// Nueva función para cerrar el gráfico emergente
+function cerrarPopup() {
+    document.getElementById('popup-container').style.display = 'none';
+}
+
+
+// Nueva función para descargar el gráfico como imagen
+function descargarGrafico() {
+    // Verifica si el gráfico ya ha sido generado
+    if (myPieChart) {
+        // Obtiene el título del cuestionario desde el elemento h1
+        var tituloCuestionario = document.title.trim();
+
+        // Obtiene la fecha actual
+        var fechaActual = new Date();
+        var fechaFormato = fechaActual.getFullYear() + "_" + (fechaActual.getMonth() + 1) + "_" + fechaActual.getDate();
+
+        // Obtiene la hora actual
+        var horaFormato = fechaActual.getHours() + "_" + fechaActual.getMinutes();
+
+        // Crea el nombre del archivo personalizado
+        var nombreArchivo = tituloCuestionario + "_" + fechaFormato + "_Hora_" + horaFormato + ".png";
+
+        // Crea un enlace temporal para descargar el gráfico
+        var enlaceDescarga = document.createElement('a');
+
+        // Convierte el gráfico en una imagen URL (data URL)
+        var graficoDataURL = myPieChart.toBase64Image();
+
+        // Configura el enlace de descarga con el nombre personalizado del archivo
+        enlaceDescarga.href = graficoDataURL;
+        enlaceDescarga.download = nombreArchivo;
+
+        // Agrega el enlace al documento y haz clic en él para iniciar la descarga
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+
+        // Elimina el enlace después de la descarga
+        document.body.removeChild(enlaceDescarga);
+    }
+}
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+        // Oculta el menú al cargar la página
+        var menuContenedor = document.getElementById('menuContenedor');
+        menuContenedor.style.display = 'none';
+    });
+
+    function toggleMenu() {
+        var menuContenedor = document.getElementById('menuContenedor');
+        menuContenedor.style.display = menuContenedor.style.display === 'none' ? 'block' : 'none';
+    }
+
+  
+// Ocultar al bajar / mostrar al subir (ignora si el menú está abierto)
+(function() {
+  let lastScroll = 0;
+  const icon = document.getElementById('menuIcon');
+  const menu = document.getElementById('menuContenedor');
+
+  window.addEventListener('scroll', () => {
+    const current = window.pageYOffset || document.documentElement.scrollTop;
+    const bajando = current > lastScroll && current > 80; // umbral para no esconder de inmediato
+    const menuAbierto = menu && menu.style.display === 'block';
+
+    if (!menuAbierto) {
+      if (bajando) {
+        icon.classList.add('oculto');
+        menu.classList.add('oculto');
+      } else {
+        icon.classList.remove('oculto');
+        menu.classList.remove('oculto');
+      }
+    }
+    lastScroll = current <= 0 ? 0 : current;
+  }, { passive: true });
+
+  // Asegura que al abrir el menú se vea siempre
+  const _toggleMenu = window.toggleMenu;
+  window.toggleMenu = function() {
+    if (typeof _toggleMenu === 'function') _toggleMenu();
+    icon.classList.remove('oculto');
+    menu.classList.remove('oculto');
+  };
+})();
+
+  
+    </script>
+</body>
+</html>

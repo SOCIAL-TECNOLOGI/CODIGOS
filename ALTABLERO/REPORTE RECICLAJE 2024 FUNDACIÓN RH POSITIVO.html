@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos de Reciclaje</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            resize: none;
+            font-family: monospace;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        canvas {
+            margin: 20px 0;
+        }
+
+        .container {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gráficos de Reciclaje</h1>
+
+    <!-- Área de Reciclaje por Fecha -->
+    <div class="container">
+        <h2>Reciclaje por Fecha</h2>
+        <textarea id="dataFecha" placeholder="Pega los datos por fecha aquí..."></textarea>
+        <button onclick="generateFechaChart()">Generar Gráfico</button>
+        <canvas id="chartFecha"></canvas>
+    </div>
+
+    <!-- Área de Reciclaje por Estudiante -->
+    <div class="container">
+        <h2>Reciclaje por Estudiante</h2>
+        <textarea id="dataEstudiante" placeholder="Pega los datos por estudiante aquí..."></textarea>
+        <button onclick="generateEstudianteChart()">Generar Gráfico</button>
+        <canvas id="chartEstudiante"></canvas>
+    </div>
+
+    <script>
+        let fechaChart, estudianteChart;
+
+        // Función para generar el gráfico por Fecha
+        function generateFechaChart() {
+            const rawData = document.getElementById("dataFecha").value.trim();
+            const rows = rawData.split("\n");
+            const headers = rows[0].split("\t");
+            const labels = [];
+            const latas = [];
+            const botellas = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const columns = rows[i].split("\t");
+                labels.push(columns[0]); // Fecha
+                latas.push(Number(columns[1])); // Latas de aluminio
+                botellas.push(Number(columns[2])); // Botellas plásticas
+            }
+
+            // Destruir gráfico previo si existe
+            if (fechaChart) fechaChart.destroy();
+
+            const ctx = document.getElementById("chartFecha").getContext("2d");
+            fechaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: headers[1], // Latas de aluminio
+                            data: latas,
+                            backgroundColor: '#4CAF50',
+                        },
+                        {
+                            label: headers[2], // Botellas plásticas
+                            data: botellas,
+                            backgroundColor: '#2196F3',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'RECICLAJE DE LATAS Y BOTELLAS POR FECHA', // Título del gráfico
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+
+        // Función para generar el gráfico por Estudiante
+        function generateEstudianteChart() {
+            const rawData = document.getElementById("dataEstudiante").value.trim();
+            const rows = rawData.split("\n");
+            const headers = rows[0].split("\t");
+            const labels = [];
+            const latas = [];
+            const botellas = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const columns = rows[i].split("\t");
+                labels.push(columns[0]); // Estudiante
+                latas.push(Number(columns[1])); // Latas de aluminio
+                botellas.push(Number(columns[2])); // Botellas plásticas
+            }
+
+            // Destruir gráfico previo si existe
+            if (estudianteChart) estudianteChart.destroy();
+
+            const ctx = document.getElementById("chartEstudiante").getContext("2d");
+            estudianteChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: headers[1], // Latas de aluminio
+                            data: latas,
+                            backgroundColor: '#4CAF50',
+                        },
+                        {
+                            label: headers[2], // Botellas plásticas
+                            data: botellas,
+                            backgroundColor: '#2196F3',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'RECICLAJE DE LATAS Y BOTELLAS POR ESTUDIANTE', // Título del gráfico
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                }
+            });
+        }
+    </script>
+</body>
+</html>

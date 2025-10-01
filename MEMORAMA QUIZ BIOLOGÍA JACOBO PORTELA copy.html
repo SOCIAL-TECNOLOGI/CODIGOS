@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sopa de Letras – Sistema Solar (Mouse Friendly)</title>
+<style>
+  :root{
+    --bg:#0b1022; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+    --accent:#22d3ee; --good:#34d399; --warn:#f59e0b; --bad:#ef4444;
+    --found:#22c55e; --sel:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed; color:var(--txt); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial; user-select:none}
+  header{padding:20px clamp(16px,4vw,40px)}
+  h1{margin:0 0 6px; font-size:clamp(22px,3.6vw,34px)}
+  .sub{margin:0; color:var(--muted); font-size:clamp(12px,2.4vw,14px)}
+
+  .wrap{display:grid; gap:clamp(14px,2vw,22px); grid-template-columns:1fr; padding:0 clamp(16px,4vw,40px) 40px}
+  @media(min-width:1200px){ .wrap{grid-template-columns:2fr 1fr} }
+
+  .panel{background:rgba(17,24,39,.6); border:1px solid var(--borde); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(6px)}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 16px; border-bottom:1px solid var(--borde); flex-wrap:wrap}
+  .controls{display:flex; gap:8px; flex-wrap:wrap}
+  button{border:1px solid var(--borde); background:#0b1224; color:#e5e7eb; cursor:pointer; padding:8px 12px; border-radius:10px; font-weight:700}
+  button:hover{border-color:#334155; box-shadow:0 6px 16px rgba(34,211,238,.15), inset 0 1px 0 rgba(255,255,255,.04)}
+  .hud{display:flex; gap:14px; align-items:center; font-size:13px; color:var(--muted)}
+  .hud strong{color:#e5e7eb}
+  .timer{padding:6px 10px; border-radius:999px; border:1px solid #334155; background:#0b1224; font-weight:800}
+  .timer.low{color:#fff; border-color:#7f1d1d; background:#1f0b0b}
+  .score{padding:6px 10px; border-radius:999px; border:1px solid #334155; background:#0b1224; font-weight:800}
+
+  .board{padding:16px}
+  .grid{--size:20; display:grid; grid-template-columns:repeat(var(--size), minmax(26px,1fr)); gap:4px; max-width:760px; margin:0 auto; touch-action:none}
+  .cell{aspect-ratio:1/1; display:grid; place-items:center; border:1px solid #334155; border-radius:8px; background:#0b1224; user-select:none; font-weight:900; letter-spacing:.02em}
+  .cell.sel{background:#0e1c33; box-shadow:0 0 0 2px var(--sel) inset; color:#cfe7ff}
+  .cell.found{background:#0d2a1a; box-shadow:0 0 0 2px var(--found) inset; color:#dcfce7}
+  .disabled .cell{pointer-events:none; opacity:.6}
+
+  .side{position:sticky; top:16px}
+  .side .box{padding:14px 16px; border-bottom:1px solid var(--borde)}
+  .side h2{margin:0 0 8px; font-size:16px}
+  .list{display:grid; gap:8px}
+  .w{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border:1px solid #334155; border-radius:10px; background:#0b1224}
+  .w small{color:var(--muted)}
+  .w.done{border-color:#14532d; background:linear-gradient(180deg, rgba(16,185,129,.15), rgba(0,0,0,.05)); color:#bbf7d0}
+
+  /* Toast info */
+  .toasts{position:fixed; bottom:16px; right:16px; display:grid; gap:10px; z-index:999}
+  .toast{background:#0b1224; border:1px solid #334155; border-radius:12px; padding:10px 12px; max-width:360px; box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast strong{color:#e5e7eb}
+  .toast small{color:#9ca3af}
+
+  /* Modal final */
+  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.4); z-index:1000}
+  .modal .card{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:20px; max-width:420px; text-align:center}
+  .modal h3{margin:0 0 6px}
+  .modal p{margin:6px 0 12px; color:#cbd5e1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sopa de Letras – Sistema Solar</h1>
+  <p class="sub">Encuentra todas las palabras (horizontal, vertical y diagonal). ¡Modo examen con cronómetro y puntuación!</p>
+</header>
+
+<div class="wrap">
+  <section class="panel">
+    <div class="top">
+      <div class="hud">
+        <span>Encontradas: <strong id="found">0</strong> / <strong id="total">0</strong></span>
+        <span class="score">Puntos: <strong id="score">0</strong></span>
+        <span class="timer" id="timer">03:00</span>
+      </div>
+      <div class="controls">
+        <button id="start">▶ Iniciar</button>
+        <button id="pause">⏸ Pausa</button>
+        <button id="restart">↻ Reiniciar</button>
+        <button id="shuffle">🔀 Nueva sopa</button>
+        <button id="clear">🧹 Limpiar selección</button>
+      </div>
+    </div>
+    <div class="board">
+      <div id="grid" class="grid"></div>
+    </div>
+  </section>
+
+  <aside class="panel side">
+    <div class="box">
+      <h2>Lista de palabras</h2>
+      <div id="list" class="list"></div>
+    </div>
+    <div class="box">
+      <h2>Consejos</h2>
+      <div class="list">
+        <div class="w"><small>• Palabras también pueden estar al revés.</small></div>
+        <div class="w"><small>• Mantén seleccionada una recta (horizontal/vertical/diagonal).</small></div>
+        <div class="w"><small>• Pausa si necesitas explicar algo en clase.</small></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <h3>🎉 ¡Tiempo!</h3>
+    <p id="finalStats">Resultados aquí…</p>
+    <button id="closeModal">Aceptar</button>
+  </div>
+</div>
+
+<script>
+// ===== Palabras =====
+const WORDS = [
+  "SOL","MERCURIO","VENUS","TIERRA","MARTE","JUPITER","SATURNO","URANO","NEPTUNO",
+  "ORBITA","ROTACION","TRASLACION","ATMOSFERA","SATELITE","ANILLOS","ASTEROIDE","COMETA","GRAVEDAD","ECLIPSE"
+];
+const SHOW = [
+  "SOL","MERCURIO","VENUS","TIERRA","MARTE","JÚPITER","SATURNO","URANO","NEPTUNO",
+  "ÓRBITA","ROTACIÓN","TRASLACIÓN","ATMÓSFERA","SATÉLITE","ANILLOS","ASTEROIDE","COMETA","GRAVEDAD","ECLIPSE"
+];
+const INFO = {
+  SOL:"Estrella central: fuente principal de luz y calor del Sistema Solar.",
+  MERCURIO:"1° planeta: el más cercano al Sol y el más pequeño.",
+  VENUS:"2° planeta: atmósfera muy densa; efecto invernadero extremo.",
+  TIERRA:"3° planeta: agua líquida en superficie y vida conocida.",
+  MARTE:"4° planeta: llamado 'planeta rojo' por el óxido de hierro.",
+  JUPITER:"5° planeta y el más grande; famosa Gran Mancha Roja.",
+  SATURNO:"6° planeta: anillos espectaculares visibles desde la Tierra.",
+  URANO:"7° planeta: eje muy inclinado; parece rotar de costado.",
+  NEPTUNO:"8° planeta: vientos supersónicos, los más rápidos.",
+  ORBITA:"Trayectoria que sigue un cuerpo alrededor de otro por gravedad.",
+  ROTACION:"Giro de un cuerpo sobre su propio eje; en la Tierra dura ~24 h.",
+  TRASLACION:"Movimiento de un cuerpo alrededor del Sol; la Tierra tarda ~365 días.",
+  ATMOSFERA:"Capa de gases que rodea un planeta; protege y regula temperatura.",
+  SATELITE:"Cuerpo que orbita un planeta (natural como la Luna o artificial).",
+  ANILLOS:"Estructuras de partículas de hielo y roca que rodean algunos planetas.",
+  ASTEROIDE:"Cuerpo rocoso pequeño que orbita el Sol, principalmente en el cinturón de asteroides.",
+  COMETA:"Cuerpo de hielo y polvo con cola brillante cuando se acerca al Sol.",
+  GRAVEDAD:"Fuerza que atrae los cuerpos con masa; mantiene unidas las órbitas.",
+  ECLIPSE:"Alineación de cuerpos que produce sombra: puede ser solar o lunar."
+};
+
+const SIZE = 20;
+const POINT_PER_WORD = 10;
+const BONUS_ALL = 20;
+const START_TIME = 180; // 3:00
+
+let board = [], placements = {}, found = new Set();
+let selecting = false, path = [];
+let score = 0, time = START_TIME, timerId = null, paused = true;
+
+const gridEl = document.getElementById('grid');
+const listEl = document.getElementById('list');
+const foundEl = document.getElementById('found');
+const totalEl = document.getElementById('total');
+const btnStart = document.getElementById('start');
+const btnPause = document.getElementById('pause');
+const btnRestart = document.getElementById('restart');
+const btnShuffle = document.getElementById('shuffle');
+const btnClear = document.getElementById('clear');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+const toasts = document.getElementById('toasts');
+const modal = document.getElementById('modal');
+const finalStats = document.getElementById('finalStats');
+const closeModal = document.getElementById('closeModal');
+
+const DIRS = [[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+function rand(n){ return Math.floor(Math.random()*n); }
+function inBounds(r,c){ return r>=0 && c>=0 && r<SIZE && c<SIZE; }
+function pad(n){ return String(n).padStart(2,'0'); }
+
+let audioCtx;
+function ding(){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='triangle'; o.frequency.value=880; g.gain.value=0.001; o.connect(g); g.connect(audioCtx.destination); const t=audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.25); o.start(); o.stop(t+0.28); }catch(e){} }
+function buzz(){ try{ audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sawtooth'; o.frequency.value=200; g.gain.value=0.001; o.connect(g); g.connect(audioCtx.destination); const t=audioCtx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.4); o.start(); o.stop(t+0.42); }catch(e){} }
+
+function showToast(title, text){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<strong>${title}</strong><div><small>${text}</small></div>`;
+  toasts.appendChild(el);
+  setTimeout(()=>{
+    el.style.transition='opacity .4s ease, transform .4s ease';
+    el.style.opacity='0'; el.style.transform='translateY(10px)';
+    setTimeout(()=> el.remove(), 450);
+  }, 3500);
+}
+
+// ===== Tablero =====
+function emptyBoard(){ board = Array.from({length:SIZE}, ()=> Array(SIZE).fill('')); }
+function canPlace(word, r, c, dr, dc){
+  for(let i=0;i<word.length;i++){
+    const rr=r+i*dr, cc=c+i*dc;
+    if(!inBounds(rr,cc)) return false;
+    const ch = board[rr][cc];
+    if(ch && ch!==word[i]) return false;
+  }
+  return true;
+}
+function placeWord(word){
+  for(let t=0;t<1500;t++){
+    const [dr,dc] = DIRS[rand(DIRS.length)];
+    const r = rand(SIZE), c = rand(SIZE);
+    if(!canPlace(word,r,c,dr,dc)) continue;
+    const coords = [];
+    for(let i=0;i<word.length;i++){
+      const rr=r+i*dr, cc=c+i*dc;
+      board[rr][cc] = word[i];
+      coords.push({r:rr, c:cc});
+    }
+    placements[word] = coords;
+    return true;
+  }
+  return false;
+}
+function fillRandom(){
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(!board[r][c]) board[r][c] = letters[rand(letters.length)];
+}
+function renderGrid(){
+  gridEl.style.setProperty('--size', SIZE);
+  gridEl.innerHTML='';
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const cell = document.createElement('div');
+      cell.className='cell';
+      cell.dataset.r=r; cell.dataset.c=c;
+      cell.textContent = board[r][c];
+      // Pointer (cuando está disponible)
+      cell.addEventListener('pointerdown', startSel, {passive:false});
+      cell.addEventListener('pointerenter', extendSel, {passive:false});
+      // Mouse explícito (para navegadores con pointer inconsistente)
+      cell.addEventListener('mousedown', startSel, {passive:false});
+      cell.addEventListener('mouseenter', extendSel, {passive:false});
+      gridEl.appendChild(cell);
+    }
+  }
+  gridEl.addEventListener('pointermove', moveSel, {passive:false});
+  gridEl.addEventListener('mousemove', moveSel, {passive:false});
+  gridEl.addEventListener('pointerleave', cancelSel, {passive:false});
+  gridEl.addEventListener('mouseleave', cancelSel, {passive:false});
+}
+function renderList(){
+  listEl.innerHTML = SHOW.map((w,i)=>{
+    const key = WORDS[i];
+    const ok = found.has(key);
+    return `<div class="w ${ok?'done':''}" data-w="${key}"><strong>${w}</strong><small>${ok?'¡Encontrada!':'—'}</small></div>`;
+  }).join('');
+  foundEl.textContent = String(found.size);
+  totalEl.textContent = String(WORDS.length);
+}
+function newBoard(){
+  emptyBoard();
+  placements = {};
+  found.clear();
+  score = 0; updateScore();
+  const wordsShuffled = WORDS.slice().sort(()=>Math.random()-0.5);
+  for(const w0 of wordsShuffled){
+    let w = w0;
+    if(Math.random()<0.5){ w = w.split('').reverse().join(''); }
+    const ok = placeWord(w);
+    if(ok){
+      const coords = placements[w];
+      if(w!==w0){ placements[w0] = coords.slice().reverse(); delete placements[w]; }
+      else{ placements[w0] = coords; }
+    }
+  }
+  fillRandom();
+  renderGrid();
+  renderList();
+}
+
+// ===== Selección Mouse/Táctil super robusta =====
+let raf = null;
+function startSel(e){
+  if(paused) return;
+  e.preventDefault();
+  selecting = true;
+  path = [];
+  clearSelection();
+  addCell(e.currentTarget);
+  // enganchar listeners globales hasta soltar
+  document.addEventListener('mouseup', endSel, {once:true});
+  document.addEventListener('pointerup', endSel, {once:true});
+  document.addEventListener('mousemove', moveSel, {passive:false});
+  document.addEventListener('pointermove', moveSel, {passive:false});
+}
+function extendSel(e){
+  if(!selecting || paused) return;
+  addCell(e.currentTarget);
+}
+function moveSel(e){
+  if(!selecting || paused) return;
+  e.preventDefault();
+  if(raf) cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(()=>{
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if(el && el.classList && el.classList.contains('cell')) addCell(el);
+  });
+}
+function endSel(){
+  if(!selecting) return;
+  selecting = false;
+  // quitar globales
+  document.removeEventListener('mousemove', moveSel);
+  document.removeEventListener('pointermove', moveSel);
+  checkPath();
+  path = [];
+}
+function cancelSel(){
+  if(!selecting) return;
+  selecting = false;
+  document.removeEventListener('mousemove', moveSel);
+  document.removeEventListener('pointermove', moveSel);
+  clearSelection();
+}
+function addCell(cell){
+  const r = +cell.dataset.r, c = +cell.dataset.c;
+  if(path.length && path[path.length-1].el===cell) return;
+  path.push({r,c,el:cell});
+  cell.classList.add('sel');
+}
+function clearSelection(){ document.querySelectorAll('.cell.sel').forEach(el=>el.classList.remove('sel')); }
+
+function checkPath(){
+  if(path.length<2){ clearSelection(); return; }
+  const dr = path[1].r - path[0].r;
+  const dc = path[1].c - path[0].c;
+  const gcd = (x,y)=> y?gcd(y, x%y):Math.abs(x);
+  const g = gcd(Math.abs(dr), Math.abs(dc)) || 1;
+  const sdr = dr/g, sdc = dc/g;
+  for(let i=2;i<path.length;i++){
+    if(path[i].r - path[i-1].r !== sdr || path[i].c - path[i-1].c !== sdc){
+      clearSelection(); return;
+    }
+  }
+  const letters = path.map(p=> board[p.r][p.c]).join('');
+  const rev = letters.split('').reverse().join('');
+  let matchedKey = null;
+  for(const w of WORDS){
+    if(found.has(w)) continue;
+    const coords = placements[w]; if(!coords) continue;
+    const lettersW = coords.map(p=> board[p.r][p.c]).join('');
+    if(letters===lettersW || rev===lettersW){ matchedKey = w; break; }
+  }
+  if(matchedKey){
+    found.add(matchedKey);
+    for(const p of placements[matchedKey]){
+      const idx = p.r*SIZE + p.c;
+      const el = gridEl.children[idx];
+      el.classList.remove('sel');
+      el.classList.add('found');
+    }
+    score += POINT_PER_WORD; updateScore(); ding();
+    const label = SHOW[WORDS.indexOf(matchedKey)] || matchedKey;
+    showToast(`✔ ${label}`, INFO[matchedKey] || '');
+    renderList();
+    if(found.size===WORDS.length){
+      score += BONUS_ALL; updateScore();
+      endGame(true);
+    }
+  }
+  clearSelection();
+}
+
+// ===== Cronómetro =====
+function pad2(n){ return String(n).padStart(2,'0'); }
+function formatTime(s){ return `${pad2(Math.floor(s/60))}:${pad2(s%60)}`; }
+function updateTimer(){
+  timerEl.textContent = formatTime(time);
+  timerEl.classList.toggle('low', time<=10);
+}
+function updateScore(){ scoreEl.textContent = String(score); }
+function startTimer(){
+  if(timerId) clearInterval(timerId);
+  timerId = setInterval(()=>{
+    if(paused) return;
+    time -= 1;
+    updateTimer();
+    if(time<=0){
+      time = 0; updateTimer();
+      endGame(false);
+    }
+  }, 1000);
+}
+function endGame(completed){
+  paused = true;
+  selecting = false;
+  gridEl.classList.add('disabled');
+  if(timerId){ clearInterval(timerId); timerId = null; }
+  const msg = completed ? "¡Excelente! Completaste todas las palabras." : "Se acabó el tiempo.";
+  finalStats.textContent = `${msg} Palabras: ${found.size}/${WORDS.length} · Puntos: ${score}`;
+  modal.style.display='grid';
+}
+function resetGame(fullReset=false){
+  clearSelection();
+  gridEl.classList.remove('disabled');
+  if(fullReset){ newBoard(); }
+  found.clear();
+  score = 0; updateScore();
+  time = START_TIME; updateTimer();
+  paused = true;
+  if(timerId){ clearInterval(timerId); timerId = null; }
+}
+
+// ===== Botones =====
+btnStart.addEventListener('click', ()=>{ paused = false; startTimer(); });
+btnPause.addEventListener('click', ()=>{ paused = !paused; if(!paused) startTimer(); });
+btnRestart.addEventListener('click', ()=>{ resetGame(true); });
+btnShuffle.addEventListener('click', ()=>{ newBoard(); resetGame(false); });
+btnClear.addEventListener('click', clearSelection);
+closeModal.addEventListener('click', ()=>{ modal.style.display='none'; });
+
+function init(){
+  newBoard();
+  resetGame(false);
+  updateTimer();
+}
+init();
+</script>
+</body>
+</html>

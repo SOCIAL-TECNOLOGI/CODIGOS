@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Huella de Carbono</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e8f0fe; 
+        }
+
+        h1 {
+            text-align: center; 
+            margin-bottom: 20px; 
+            color: #333; 
+        }
+
+        #calculadora {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        #calculadora:hover {
+            transform: scale(1.02); 
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            color: #333; 
+        }
+
+        input[type="number"] {
+            width: calc(100% - 22px);
+            height: 40px;
+            padding: 10px;
+            border: 2px solid #4CAF50; 
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="number"]:focus {
+            border-color: #3e8e41; 
+            outline: none; 
+        }
+
+        .botones {
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 20px; 
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex; /* Para el botón de reiniciar con icono */
+            align-items: center; /* Alinear el contenido verticalmente */
+        }
+
+        button:hover {
+            background-color: #45a049; 
+            transform: scale(1.05); 
+        }
+
+        #resultado {
+            display: none; 
+            position: fixed;
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background-color: #4CAF50; 
+            color: white; 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000; 
+            text-align: center;
+            font-size: 15px; 
+            transition: opacity 0.5s ease;
+            opacity: 0; 
+        }
+
+        #resultado.visible {
+            display: block; 
+            opacity: 1; 
+        }
+
+        .accordion {
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .accordion-item {
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .accordion-header {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #4CAF50; 
+            color: white; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-content {
+            display: none; 
+            padding: 15px;
+            background-color: white; 
+        }
+
+        .accordion-content.active {
+            display: block; 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Calculadora de Huella de Carbono</h1>
+    
+    <form id="calculadora">
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Ingrese Cantidades</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="cantCuadernos">Cantidad de Cuadernos:</label>
+                    <input type="number" id="cantCuadernos" step="1" placeholder="Ej. 10"><br><br>
+                    
+                    <label for="cantBotellas">Cantidad de Botellas:</label>
+                    <input type="number" id="cantBotellas" step="1" placeholder="Ej. 10"><br><br>
+                    
+                    <label for="cantLatas">Cantidad de Latas:</label>
+                    <input type="number" id="cantLatas" step="1" placeholder="Ej. 10"><br><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Peso de Materiales (kg)</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="pesoCuadernos">Peso de Cuadernos:</label>
+                    <input type="number" id="pesoCuadernos" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    
+                    <label for="pesoBotellas">Peso de Botellas:</label>
+                    <input type="number" id="pesoBotellas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    
+                    <label for="pesoLatas">Peso de Latas:</label>
+                    <input type="number" id="pesoLatas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="botones">
+            <button type="submit">Calcular Huella de Carbono</button>
+            <button type="button" id="reiniciar" onclick="reiniciarFormulario()">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </form>
+
+    <div id="resultado" class="resultado hidden"></div>
+
+    <script>
+        // Pesos de cada elemento en gramos
+        const pesoCuaderno = 190; // 190 g
+        const pesoBotella = 13; // 13 g
+        const pesoLata = 12; // 12 g
+
+        // Elemento para mostrar el resultado
+        const resultadoDiv = document.getElementById('resultado');
+
+        // Calcular huella de carbono
+        document.getElementById('calculadora').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Obtener las cantidades ingresadas
+            const cuadernosCantidad = parseFloat(document.getElementById('cantCuadernos').value) || 0;
+            const botellasCantidad = parseFloat(document.getElementById('cantBotellas').value) || 0;
+            const latasCantidad = parseFloat(document.getElementById('cantLatas').value) || 0;
+
+            // Obtener los pesos ingresados (en kg) y convertir a gramos
+            const cuadernosPeso = (parseFloat(document.getElementById('pesoCuadernos').value) || 0) * 1000; // Convertir a gramos
+            const botellasPeso = (parseFloat(document.getElementById('pesoBotellas').value) || 0) * 1000; // Convertir a gramos
+            const latasPeso = (parseFloat(document.getElementById('pesoLatas').value) || 0) * 1000; // Convertir a gramos
+
+            // Calcular la cantidad total de cuadernos, botellas y latas
+            const totalCuadernos = cuadernosCantidad + (cuadernosPeso / pesoCuaderno);
+            const totalBotellas = botellasCantidad + (botellasPeso / pesoBotella);
+            const totalLatas = latasCantidad + (latasPeso / pesoLata);
+
+            // Calcular huella de carbono evitada
+            const huellaEvitada = (totalCuadernos * 0.26 + totalBotellas * 0.0195 + totalLatas * 0.108).toFixed(4); // kg CO₂ evitados
+
+            // Mostrar resultado
+            mostrarResultado(`Al reciclar, evitas las emisiones de: ${huellaEvitada} kg CO₂`);
+        });
+
+        // Función para mostrar el resultado
+        const mostrarResultado = (mensaje) => {
+            resultadoDiv.textContent = mensaje;
+            resultadoDiv.classList.add('visible');
+        };
+
+        // Función para alternar el acordeón
+        function toggleAccordion(event) {
+            const header = event.currentTarget;
+            const content = header.nextElementSibling;
+            const isActive = content.classList.contains('active');
+
+            // Cerrar todos los contenidos del acordeón
+            const allContents = document.querySelectorAll('.accordion-content');
+            allContents.forEach((c) => {
+                c.classList.remove('active');
+                c.style.display = 'none';
+                header.querySelector('span:last-child').textContent = '+';
+            });
+
+            // Abrir el contenido seleccionado
+            if (!isActive) {
+                content.classList.add('active');
+                content.style.display = 'block'; 
+                header.querySelector('span:last-child').textContent = '-';
+            } 
+        }
+
+        // Función para reiniciar el formulario
+        function reiniciarFormulario() {
+            document.getElementById('calculadora').reset(); // Restablecer el formulario
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.classList.remove('visible'); // Ocultar resultado
+            const allContents = document.querySelectorAll('.accordion-content');
+            allContents.forEach((c) => {
+                c.classList.remove('active');
+                c.style.display = 'none'; 
+                const header = c.previousElementSibling;
+                header.querySelector('span:last-child').textContent = '+';
+            });
+        }
+    </script>
+
+</body>
+</html>

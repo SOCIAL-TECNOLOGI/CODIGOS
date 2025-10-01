@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Juego Bloom Docente</title>
+
+<!-- Librerías -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root{ --txt:#fff; --borde:#334155; --panel:#111827; --bg:#0b1022; }
+body{ margin:0; background:var(--bg); color:var(--txt);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;}
+header{padding:16px; text-align:center}
+h1{margin:0; font-size:20px}
+button{ border:1px solid var(--borde); background:#1f2937; color:var(--txt);
+  padding:8px 12px; border-radius:8px; font-weight:700; cursor:pointer; margin:4px 2px; }
+.panel{background:var(--panel); border:1px solid var(--borde);
+  border-radius:12px; padding:12px; margin:12px}
+.bank{padding:12px}
+
+/* Tarjeta con borde morado y brillo */
+.card{
+  padding:12px; background:#1e293b;
+  border:2px solid #a78bfa;           /* 💜 borde morado siempre */
+  border-radius:14px; text-align:center; font-weight:700;
+  margin-bottom:10px; font-size:20px; color:#fff;
+  transition: all .3s ease;
+  box-shadow:0 0 6px rgba(167,139,250,.5); /* brillo suave por defecto */
+}
+.card.active-border{                   /* al tocarla: más brillo + zoom */
+  box-shadow:0 0 18px rgba(167,139,250,.9);
+  transform:scale(1.03);
+}
+
+.levels{display:grid; gap:10px; margin:12px}
+.lvl{padding:10px; border-radius:12px; border:2px dashed var(--borde);}
+.lvl h4{margin:0 0 4px; font-size:14px}
+.lvl ul{margin:4px 0 0 14px; padding:0; font-size:16px; line-height:1.4;
+  column-count:2; column-gap:20px; list-style:disc}
+.lvl[data-level="1"]{border-color:#ef4444}
+.lvl[data-level="2"]{border-color:#f79c00}
+.lvl[data-level="3"]{border-color:#ffee52}
+.lvl[data-level="4"]{border-color:#22c55e}
+
+/* Botones de nivel */
+.level-buttons{ display:flex; justify-content:center; gap:12px; margin:10px 0; }
+.btn-lvl{ width:55px; height:55px; border:none; border-radius:10px;
+  font-weight:700; font-size:18px; color:#fff; cursor:pointer; transition:all .3s ease; }
+.btn1{background:#ef4444}
+.btn2{background:#f79c00}
+.btn3{background:#ffee52; color:#000}  /* amarillo con texto negro */
+.btn4{background:#22c55e}
+
+/* Modal */
+.modal{position:fixed; inset:0; display:none; place-items:center;
+  background:rgba(0,0,0,.6); z-index:1000}
+.modal-card{background:#1e293b; border:1px solid #334155; border-radius:14px;
+  padding:20px; max-width:95%; max-height:90%; overflow:auto; color:#fff}
+
+/* Instrucción sobre los botones */
+.level-instruction{
+  text-align:center; margin:8px 0; font-size:15px; font-weight:600; color:#fff;
+}
+
+
+
+
+/* 🔆 Efecto visual en botones */
+.btn-flash{
+  transform: scale(1.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-ok{
+  box-shadow: 0 0 12px 4px rgba(34,197,94,0.9); /* verde */
+}
+.btn-bad{
+  box-shadow: 0 0 12px 4px rgba(239,68,68,0.9); /* rojo */
+}
+
+
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 Juego Bloom Docente</h1>
+  <p>Clasifica verbos en niveles de Bloom: SABER → HACER → SER</p>
+</header>
+
+<!-- Gate de nombre -->
+<div id="gate" class="panel">
+  <h3>👤 Ingrese su nombre</h3>
+  <input id="teacherName" placeholder="Nombre completo"
+         style="padding:8px;width:90%;border-radius:6px;border:1px solid #555">
+  <button onclick="startGame()">Comenzar</button>
+</div>
+
+<!-- Juego -->
+<div id="game" style="display:none">
+  <div class="panel bank">
+    <h3 id="dimTitle">📘 SABER</h3>
+    <div id="bank"></div>
+
+    <!-- Instrucción SOLO al inicio -->
+    <div class="level-instruction" id="instruction" style="display:none;">
+      🎯 Toca un botón de nivel para categorizar este verbo
+    </div>
+
+    <!-- Botones de nivel -->
+    <div class="level-buttons">
+      <button class="btn-lvl btn1" onclick="pressBtn(1)">1</button>
+      <button class="btn-lvl btn2" onclick="pressBtn(2)">2</button>
+      <button class="btn-lvl btn3" onclick="pressBtn(3)">3</button>
+      <button class="btn-lvl btn4" onclick="pressBtn(4)">4</button>
+    </div>
+
+    <button onclick="skipCard()">⏭️ Saltar tarjeta</button>
+  </div>
+
+  <div class="panel">
+    <div class="levels" id="levels"></div>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="endRound()">Finalizar Ronda</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal resultados -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <h3>📊 Resultados</h3>
+    <div id="summary"></div>
+    <canvas id="chartResumen" style="max-height:240px;margin:10px 0"></canvas>
+    <div style="margin-top:10px;text-align:center">
+      <button onclick="showErrors()">📊 Ver errores por dimensión</button>
+      <button onclick="downloadExcel()">📥 Excel</button>
+      <button onclick="downloadPDF()">📄 PDF</button>
+      <button onclick="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Errores -->
+<div class="modal" id="modalErrores">
+  <div class="modal-card">
+    <h3>❌ Errores por dimensión</h3>
+    <div id="erroresWrap"></div>
+    <canvas id="chartComp" style="max-height:240px;margin:10px 0"></canvas>
+    <div style="margin-top:10px;text-align:center">
+      <button onclick="closeErrores()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== Datos ===================== */
+const DATA = {
+  saber:{4:["Evaluar","Argumentar","Justificar"],3:["Aplicar","Analizar"],2:["Comprender","Describir"],1:["Recordar","Nombrar"]},
+  hacer:{4:["Automatizar","Optimizar"],3:["Coordinar","Implementar"],2:["Ejecutar","Practicar"],1:["Imitar","Copiar"]},
+  ser:{4:["Interiorizar","Liderar"],3:["Valorar","Promover"],2:["Responder","Participar"],1:["Atender","Escuchar"]}
+};
+const DIM_ORDER=["saber","hacer","ser"];
+const TITLE={saber:"📘 SABER",hacer:"🛠️ HACER",ser:"🤝 SER"};
+
+let teacher="", currentDim=0, queue=[], current=null, STATS={};
+let chartCompInstance=null;
+let firstRound = true;
+
+/* ===================== Flujo ===================== */
+function startGame(){
+  teacher=document.getElementById("teacherName").value||"Docente";
+  document.getElementById("gate").style.display="none";
+  document.getElementById("game").style.display="block";
+  startDimension(0);
+}
+
+function startDimension(i){
+  currentDim=i;
+  document.getElementById("dimTitle").textContent=TITLE[DIM_ORDER[i]];
+  buildQueue();
+  renderCard();
+  buildLevels();
+  // instrucción solo en la primera ronda
+  document.getElementById("instruction").style.display = firstRound ? "block" : "none";
+}
+
+function buildQueue(){
+  const dim=DIM_ORDER[currentDim]; queue=[];
+  Object.keys(DATA[dim]).forEach(lvl=>{
+    DATA[dim][lvl].forEach(v=>{
+      queue.push({verb:v,level:+lvl});
+      STATS[dim] ??= {};
+      STATS[dim][v]={wrong:0,placed:false,level:+lvl};
+    });
+  });
+  shuffle(queue);
+}
+
+function renderCard(){
+  const bank=document.getElementById("bank"); bank.innerHTML="";
+  if(queue.length===0){ bank.innerHTML="<em>Sin tarjetas</em>"; return; }
+  current=queue[0];
+  const c=document.createElement("div");
+  c.className="card";
+  c.textContent=current.verb;
+  // brillo/zoom al tocar la tarjeta
+  c.addEventListener("click", ()=>{
+    c.classList.add("active-border");
+    setTimeout(()=>c.classList.remove("active-border"), 400);
+  });
+  bank.appendChild(c);
+}
+
+function buildLevels(){
+  const lvls=document.getElementById("levels"); lvls.innerHTML="";
+  for(let i=1;i<=4;i++){
+    const box=document.createElement("div"); box.className="lvl"; box.dataset.level=i;
+    const h=document.createElement("h4"); h.textContent="Nivel "+i;
+    const list=document.createElement("ul"); list.id="list"+i;
+    box.appendChild(h); box.appendChild(list);
+    box.onclick=()=>tryPlace(i,box);
+    lvls.appendChild(box);
+  }
+}
+
+function tryPlace(lvl,box){
+  if(!current) return;
+  const card=document.querySelector(".card");
+
+  if(current.level===lvl){
+    // acierto
+    const li=document.createElement("li");
+    li.textContent=current.verb;
+    document.getElementById("list"+lvl).appendChild(li);
+    STATS[DIM_ORDER[currentDim]][current.verb].placed=true;
+    queue.shift();
+    playFeedback(true, lvl);       // 🔊✅
+    renderCard();
+
+    if(firstRound){                // ocultar instrucción tras el primer acierto
+      document.getElementById("instruction").style.display="none";
+      firstRound=false;
+    }
+  }else{
+    // error
+    STATS[DIM_ORDER[currentDim]][current.verb].wrong++;
+    playFeedback(false, lvl);      // 🔊❌
+  }
+}
+
+function pressBtn(nivel){
+  const box=document.querySelector(`.lvl[data-level="${nivel}"]`);
+  if(box) tryPlace(nivel, box);
+}
+
+function skipCard(){ if(queue.length>1){ queue.push(queue.shift()); renderCard(); } }
+
+function endRound(){ document.getElementById("modal").style.display="grid"; renderSummary(); }
+
+/* ===================== Sonido & Vibración ===================== */
+
+  function playFeedback(success, nivel){
+  // Activa audio tras un gesto del usuario
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if(!AudioCtx) return;
+  const ctx = new AudioCtx();
+
+  if(success){
+    // ✅ Acierto → "tin-tin" mágico
+    const freqs = [1000, 1500];
+    freqs.forEach((f,i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = f;
+      const t0 = ctx.currentTime + i*0.15;
+      gain.gain.setValueAtTime(0.3, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0+0.2);
+      osc.start(t0); osc.stop(t0+0.2);
+    });
+  }else{
+    // ❌ Error → bajo fuerte
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = 150;
+    gain.gain.setValueAtTime(0.6, ctx.currentTime); // más fuerte
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+0.5);
+  }
+
+  // 📳 Vibración
+  if(navigator.vibrate){
+    navigator.vibrate(success ? [60,60,60] : 300);
+  }
+
+  // ✨ Feedback visual en botón
+  const btn = document.querySelector(`.btn-lvl.btn${nivel}`);
+  if(btn){
+    btn.classList.add("btn-flash", success ? "btn-ok" : "btn-bad");
+    setTimeout(()=> btn.classList.remove("btn-flash","btn-ok","btn-bad"), 300);
+  }
+}
+
+/* ===================== Resumen / Errores ===================== */
+function renderSummary(){
+  const sum=document.getElementById("summary"); sum.innerHTML="";
+  let total=0, aciertos=0, errores=0;
+  DIM_ORDER.forEach(dim=>{
+    Object.values(STATS[dim]||{}).forEach(st=>{
+      total++; if(st.placed) aciertos++; errores+=st.wrong;
+    });
+  });
+  sum.innerHTML=`<p>Profesor ${teacher}, completaste <strong>${aciertos}/${total}</strong> verbos. Errores: <strong>${errores}</strong></p>`;
+  const ctx=document.getElementById("chartResumen");
+  new Chart(ctx,{type:"doughnut",
+    data:{labels:["Aciertos","Errores"],
+      datasets:[{data:[aciertos,errores],backgroundColor:["#22c55e","#ef4444"]}]},
+    options:{plugins:{legend:{labels:{color:"#fff"}}}}});
+}
+
+function showErrors(){
+  document.getElementById("modal").style.display="none";
+  document.getElementById("modalErrores").style.display="grid";
+  const wrap=document.getElementById("erroresWrap"); wrap.innerHTML="";
+  DIM_ORDER.forEach(dim=>{
+    const d=document.createElement("div");
+    d.innerHTML=`<h4>${TITLE[dim]}</h4>`;
+    Object.keys(DATA[dim]).forEach(l=>{
+      const ul=document.createElement("ul");
+      ul.style.border="2px dashed "+(l==1?"#ef4444":l==2?"#f59e0b":l==3?"#eab308":"#22c55e");
+      DATA[dim][l].forEach(v=>{
+        const st=STATS[dim][v]; if(st && st.wrong>0){
+          const li=document.createElement("li"); li.textContent=`${v} → ${st.wrong} errores`;
+          ul.appendChild(li);
+        }
+      });
+      if(ul.children.length>0) d.appendChild(ul);
+    });
+    wrap.appendChild(d);
+  });
+  renderCompChart();
+}
+
+function renderCompChart(){
+  const ctx=document.getElementById("chartComp").getContext("2d");
+  if(chartCompInstance) chartCompInstance.destroy();
+  const labels=["Nivel 1","Nivel 2","Nivel 3","Nivel 4"];
+  const saber=[0,0,0,0], hacer=[0,0,0,0], ser=[0,0,0,0];
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(l=>{
+      DATA[dim][l].forEach(v=>{
+        const st=STATS[dim][v]; if(st && st.wrong>0){
+          const i=(+l)-1;
+          if(dim==="saber") saber[i]+=st.wrong;
+          if(dim==="hacer") hacer[i]+=st.wrong;
+          if(dim==="ser")   ser[i]+=st.wrong;
+        }
+      });
+    });
+  });
+  chartCompInstance=new Chart(ctx,{type:"bar",
+    data:{labels,datasets:[
+      {label:"SABER",data:saber,backgroundColor:"#38bdf8"},
+      {label:"HACER",data:hacer,backgroundColor:"#fb923c"},
+      {label:"SER",data:ser,backgroundColor:"#34d399"}]},
+    options:{plugins:{legend:{labels:{color:"#fff"}}},
+      scales:{x:{ticks:{color:"#fff"}},y:{ticks:{color:"#fff"}}}}});
+}
+
+function closeModal(){document.getElementById("modal").style.display="none";}
+function closeErrores(){document.getElementById("modalErrores").style.display="none";}
+
+function downloadExcel(){
+  const wb=XLSX.utils.book_new(); const rows=[["Dimensión","Nivel","Verbo","Errores"]];
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(l=>{
+      DATA[dim][l].forEach(v=>{
+        const st=STATS[dim][v]||{wrong:0};
+        rows.push([dim,l,v,st.wrong]);
+      });
+    });
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb,ws,"Errores");
+  XLSX.writeFile(wb,`Informe_Bloom_${teacher}.xlsx`);
+}
+
+async function downloadPDF(){
+  const { jsPDF }=window.jspdf; const doc=new jsPDF();
+  doc.setFontSize(14); doc.text(`Informe Bloom – ${teacher}`,14,20);
+  const rows=[]; DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(l=>{
+      DATA[dim][l].forEach(v=>{
+        const st=STATS[dim][v]||{wrong:0}; if(st.wrong>0) rows.push([dim,l,v,st.wrong]);
+      });
+    });
+  });
+  doc.autoTable({head:[["Dim","Nivel","Verbo","Errores"]],body:rows,startY:30});
+  doc.save(`Informe_Bloom_${teacher}.pdf`);
+}
+
+/* Util */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+</script>
+</body>
+</html>

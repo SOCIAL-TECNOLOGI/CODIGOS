@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Árbol de Problemas – Mal Manejo de Residuos</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom, #e0f7fa, #f1f8e9);
+    text-align: center;
+    padding: 30px;
+    color: #333;
+  }
+  h1 { color: #065f46; margin-bottom: 20px; }
+
+  .arbol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  /* Tronco */
+  .tronco {
+    width: 140px;
+    height: 200px;
+    background: linear-gradient(to top, #6d4c41, #8d6e63);
+    border-radius: 20px;
+    margin: 20px 0;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .tronco:hover { transform: scale(1.05); background: #5d4037; }
+
+  /* Hojas (consecuencias) */
+  .hojas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: -40px;
+    z-index: 1;
+  }
+  .hoja {
+    background: #81c784;
+    border-radius: 30px;
+    padding: 15px 20px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    transition: transform 0.3s;
+    cursor: pointer;
+  }
+  .hoja:hover { transform: scale(1.05); background: #66bb6a; }
+
+  /* Raíces (causas) */
+  .raices {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-top: -30px;
+  }
+  .raiz {
+    background: #90a4ae;
+    border-radius: 8px;
+    padding: 12px 18px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    transition: transform 0.3s;
+    cursor: pointer;
+  }
+  .raiz:hover { transform: scale(1.05); background: #78909c; }
+
+  /* Conexión visual */
+  .linea {
+    width: 4px;
+    height: 40px;
+    background: #6d4c41;
+    margin: -20px 0;
+  }
+
+  /* Botón metacognición */
+  .boton {
+    background: #2563eb;
+    color: white;
+    font-size: 18px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    margin-top: 30px;
+  }
+  .boton:hover { background: #1d4ed8; transform: scale(1.05); }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-contenido {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 600px;
+    text-align: left;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: aparecer 0.3s ease;
+  }
+  @keyframes aparecer {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #065f46;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .modal button:hover { background: #047857; }
+
+  .autor { font-weight: bold; color: #2563eb; margin-top: 12px; }
+
+
+
+/* Ajustes para el modal cuando muestre preguntas */
+.modal-contenido h2 {
+  font-size: 1.6em;   /* aumenta el tamaño del título */
+  color: #065f46;     /* verde oscuro elegante */
+  margin-bottom: 10px;
+}
+
+.modal-contenido p {
+  font-size: 1.3em;   /* aumenta el tamaño del texto */
+  line-height: 1.6;   /* espacio entre líneas para mejor lectura */
+  color: #333;        /* texto en gris oscuro */
+  font-weight: 500;   /* seminegrita para resaltar */
+}
+
+
+
+</style>
+</head>
+<body>
+
+<h1>🌳 Árbol de Problemas: Mal Manejo de Residuos Sólidos</h1>
+
+<div class="arbol">
+
+  <!-- Hojas -->
+  <div class="hojas">
+    <div class="hoja" onclick="mostrarModal('La acumulación de residuos contamina los suelos y cuerpos de agua.')">🌍 Contaminación de suelos y ríos</div>
+    <div class="hoja" onclick="mostrarModal('Los desechos atraen mosquitos, ratas y cucarachas que transmiten enfermedades.')">🦟 Proliferación de vectores</div>
+    <div class="hoja" onclick="mostrarModal('El mal manejo de residuos provoca enfermedades respiratorias y gastrointestinales.')">🏥 Problemas de salud pública</div>
+    <div class="hoja" onclick="mostrarModal('Las basuras generan un impacto visual negativo en barrios y comunidades.')">🌳 Degradación paisajística</div>
+    <div class="hoja" onclick="mostrarModal('La descomposición de residuos libera metano y CO₂, gases de efecto invernadero.')">🔥 Gases de efecto invernadero</div>
+    <div class="hoja" onclick="mostrarModal('El mal manejo de basuras genera conflictos sociales entre comunidad y autoridades.')">🤝 Conflictos comunitarios</div>
+    <div class="hoja" onclick="mostrarModal('Mayor presión sobre rellenos sanitarios que llegan rápidamente a su límite.')">🏗️ Presión sobre rellenos sanitarios</div>
+  </div>
+
+  <div class="linea"></div>
+
+  <!-- Tronco -->
+  <div class="tronco" onclick="mostrarModal('El problema central consiste en la inadecuada gestión de los residuos sólidos: sin separación en la fuente, con deficiencia en recolección y sin corresponsabilidad ciudadana.')">
+    🚮<br>Mal manejo<br>de residuos sólidos
+  </div>
+
+  <div class="linea"></div>
+
+  <!-- Raíces -->
+  <div class="raices">
+    <div class="raiz" onclick="mostrarModal('Sin educación ambiental, las personas desconocen cómo separar y reducir residuos.')">❌ Falta de educación ambiental</div>
+    <div class="raiz" onclick="mostrarModal('No separar en la fuente dificulta el reciclaje y aumenta la contaminación.')">❌ Ausencia de separación en la fuente</div>
+    <div class="raiz" onclick="mostrarModal('La recolección pública es insuficiente y deja residuos expuestos en calles.')">❌ Deficiencia en la recolección pública</div>
+    <div class="raiz" onclick="mostrarModal('PRAE y PGIRS no se aplican de forma adecuada en instituciones educativas y municipios.')">❌ Escasa implementación de PRAE / PGIRS</div>
+    <div class="raiz" onclick="mostrarModal('El uso masivo de plásticos de un solo uso incrementa la acumulación de basura.')">❌ Uso excesivo de plásticos</div>
+    <div class="raiz" onclick="mostrarModal('Falta de compromiso ciudadano en la gestión adecuada de residuos.')">❌ Falta de corresponsabilidad ciudadana</div>
+  </div>
+</div>
+
+<!-- Botón Metacognición -->
+<button class="boton" onclick="mostrarAutores()">📘 Metacognición</button>
+<button class="boton" onclick="mostrarPreguntaProblematica()">❓ Ver pregunta problémica</button>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-contenido">
+    <p id="textoModal"></p>
+    <button onclick="cerrarModal()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+function mostrarModal(texto){
+  document.getElementById("textoModal").innerHTML=texto;
+  document.getElementById("modal").style.display="flex";
+}
+
+function cerrarModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+
+
+function mostrarAutores(){
+  let contenido = `
+    <h2>📚 Autores clave de la Metacognición</h2>
+
+    <p class="autor">John Flavell (1976, 1979)</p>
+    <p>Es el primero en introducir formalmente el término <b>metacognición</b>.</p>
+    <p>Define que el aprendizaje ocurre de manera más efectiva cuando el estudiante es consciente de sus procesos cognitivos, los regula y los ajusta.</p>
+    <p><i>Frase clave:</i> “Metacognición es el conocimiento que uno tiene sobre sus propios procesos cognitivos y el control que puede ejercer sobre ellos.”</p>
+
+    <p class="autor">David Ausubel (1963, 1983)</p>
+    <p>En su teoría del <b>aprendizaje significativo</b>, afirma que el aprendizaje ocurre cuando el estudiante es consciente de lo que ya sabe y lo relaciona con lo nuevo.</p>
+    <p><i>Frase clave:</i> “El factor más importante que influye en el aprendizaje es lo que el alumno ya sabe. Averígüese esto y enséñese consecuentemente.”</p>
+    <p>→ Aquí aparece la consciencia del propio proceso.</p>
+
+    <p class="autor">Lev Vygotsky (1934, 1978)</p>
+    <p>Desde la perspectiva socio-constructivista, habla de la <b>autorregulación</b> y de cómo el aprendizaje ocurre cuando el estudiante pasa de la regulación externa (maestro) a la <b>autorregulación consciente</b> de su propio aprendizaje.</p>
+
+    <p class="autor">Donald Schön (1983)</p>
+    <p>Con su concepto de <b>“el profesional reflexivo”</b>, señala que el aprendizaje profundo surge cuando la persona reflexiona de manera consciente sobre lo que hace mientras lo hace (<i>reflection-in-action</i>).</p>
+  `;
+  mostrarModal(contenido);
+}
+
+function mostrarPreguntaProblematica(){
+  let contenido = `
+    <h2>❓ Pregunta problémica</h2>
+    <p><b>¿Cómo pueden las instituciones educativas implementar estrategias de separación en la fuente, reducción y manejo responsable de los residuos sólidos,</b> 
+    de manera que se disminuyan los impactos ambientales, sociales y de salud asociados al mal manejo de basuras?</p>
+  `;
+  mostrarModal(contenido);
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acordeones en Tres Columnas</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+      .container {
+          display: flex;
+          justify-content: space-between; /* Cambiar de 'center' a 'space-between' */
+          align-items: flex-start;
+          gap: 20px;
+      }
+      
+      .column {
+          flex: 1; /* Mantener esto para que ocupen el espacio de manera equitativa */
+          padding: 20px;
+          border: 1px solid #e0e0e0;
+          background-color: #f7f7f7;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+          text-align: center;
+          transition: transform 0.2s;
+          background: linear-gradient(135deg, #ff6b6b, #4f3ba9);
+          color: white;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      
+      .column:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+      
+      h2 {
+          font-size: 1.5rem;
+          margin: 0;
+      }
+      
+      .accordion {
+          margin-top: 20px;
+          text-align: left;
+      }
+      
+      .accordion-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          font-size: 1rem;
+          color: #fafafa;
+          display: block;
+          width: 100%;
+          text-align: left;
+          padding: 10px 0;
+          border-bottom: 1px solid #ccc;
+          position: relative;
+      }
+      
+      .accordion-button::after {
+          content: '▼';
+          position: absolute;
+          right: 0;
+          transition: transform 0.2s;
+      }
+      
+      .accordion-button.active::after {
+          transform: rotate(180deg);
+      }
+      
+      .accordion-content {
+          display: none;
+          padding: 20px 0;
+          font-size: 0.9rem;
+      }
+      
+      /* Estilos para alternar colores de fondo de las filas de acordeón */
+      .accordion-content:nth-child(odd) {
+          background: linear-gradient(135deg, #ff6b6b, #4f3ba9);
+          color: white;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      
+      /* Estilos para resaltar el botón activo */
+      .accordion-button.active {
+          font-weight: bold;
+          color: #ff6b6b;
+      }
+      
+      </style>
+      
+
+</head>
+<body>
+
+
+<div>
+
+
+<div class="accordion-general">
+    <button class="accordion-button">TRUEQUE AMBIENTAL</button>
+  <div class="accordion-content">
+       
+   
+      <div class="container">
+            <div class="column">
+              <h2>LATAS DE ALUMINIO</h2>
+                  <div class="accordion">
+                    <button class="accordion-button">Calcular Impacto</button>
+                            <div class="accordion-content">
+                              <div class="column">
+                                <img src="data:image/jpeg;base64,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" alt="Imagen 1" style="width: 250px; height: 150px;"> <!-- Ajusta el tamaño de la imagen 1 -->
+                                            
+                    
+                                
+                    
+                                  <div class="clearfix"></div>
+                                </div>
+                    
+                    
+                                <div class="clearfix"></div>
+                                <div class="contenido-ancho-total">
+                                    <p><div class="container-below">
+                                            <!-- BOTONES DE CALCULAR Y REINICIAR -->
+                        <span class="BOTONES">
+                    
+                          <p style='font-size: 16px;   margin-top: 6px; margin-bottom: 12px;text-align: center;'><strong>Ingrese cantidad</strong></p>
+                        <input
+                          type="number"
+                          id="cantidad_latas"
+                          placeholder="0"
+                          style="display: block; margin: 0 auto; font-size: 16px;"><br><br>
+                    
+                          <button style="font-size: 16px;" onclick="calcularImpacto()"><strong>Calcular</strong></button>
+                          <button style="font-size: 16px;" onclick="reiniciarCalculadora()"><strong>Reiniciar</strong></button><br>
+                          
+                    
+                        </span><br>
+                    
+                    
+                        
+                                         
+                                              <table>
+                                                <tr>
+                                                  <th class="total_energia">Ahorro de Energía</th>
+                                                  <th class="total_agua">Ahorro de Agua</th>
+                                                  <th class="total_co2">CO2 No Emitido</th>
+                                                  <th class="peso_total">Peso Total</th>
+                                                </tr>
+                                                <tr>
+                                                  <td><strong style="color: rgb(220, 148, 3);"><span id="total_energia">0.00</span> kWh</strong></td>
+                                                  <td><strong style="color: rgb(0, 13, 255);"><span id="total_agua">0.00</span> L</strong></td>
+                                                  <td><strong style="color: rgb(12, 127, 2);"><span id="total_co2">0.00</span> Kg</strong></td>
+                                                  <td id="peso_latas"><strong style="color: rgba(158, 3, 185, 0.781);"><span id="peso_total">0.00</span> g</strong></td>
+                    
+                    
+                                                </tr>
+                                              </table>  <br>
+                    
+                                                </div>
+                    
+                             <div class="text-container"><br>
+                            
+                    
+                                            <p id="huella_ecologica">
+                                            <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                                            <span id="resultado_hectareas" class="resultado-span">0.00</span>
+                                            
+                                        <strong class="titulo-strong">Hectáreas Globales</strong><br><br>
+                    
+                            </div>
+                    
+                    
+                    <script>
+                      function calcularImpacto() {
+                        var cantidad_latas = parseFloat(document.getElementById("cantidad_latas").value);
+                    
+                        if (!isNaN(cantidad_latas) && cantidad_latas >= 0) {
+                          // Calcular el impacto de las latas
+                          var lata_energia = cantidad_latas * 0.18; // Consumo de energía en kWh por lata
+                          var lata_agua = cantidad_latas * 1.01; // Consumo de agua en litros por lata
+                          var lata_co2 = cantidad_latas * 0.08; // Emisiones de CO2 en kg por lata
+                    
+                          // CALCULO DE LA TABLA DE PESOS
+                          const pesoLatas = cantidad_latas * 11; // Peso promedio de lata de aluminio
+                          const pesoTotal = pesoLatas;
+                    
+                          // Mostrar los resultados en el HTML
+                          document.getElementById("total_energia").textContent = lata_energia.toFixed(2);
+                          document.getElementById("total_agua").textContent = lata_agua.toFixed(2);
+                          document.getElementById("total_co2").textContent = lata_co2.toFixed(2); 
+                          document.getElementById("peso_total").textContent = pesoTotal.toFixed(2);
+                    
+                          // Calcular la huella ecológica en hectáreas globales
+                          var hectareas_globales = lata_co2 / 2.7; // Valor de conversión (ajusta según sea necesario)
+                          document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+                    
+                          // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                          const pesoTotalElement = document.getElementById("peso_total");
+                          pesoTotalElement.innerHTML = "<strong style='color:  rgb(168, 3, 197);'>" + pesoTotal;
+                    
+                          // Ocultar la tabla de recomendaciones si no se cumplen las condiciones
+                          document.querySelector(".recomendaciones").style.display = "none";
+                        }
+                      }
+                    
+                    
+                    
+                    
+                      // Obtener todos los elementos del acordeón
+                      // const acordeonItems = document.querySelectorAll('.acordeon-item');
+                    
+                      // Agregar un evento de clic a cada título del acordeón
+                      acordeonItems.forEach((item) => {
+                        const titulo = item.querySelector('.acordeon-titulo');
+                        const contenido = item.querySelector('.acordeon-contenido');
+                    
+                        titulo.addEventListener('click', () => {
+                          if (contenido.style.display === 'block') {
+                            contenido.style.display = 'none';
+                          } else {
+                            contenido.style.display = 'block';
+                          }
+                        });
+                      });
+                    
+                    
+                    function reiniciarCalculadora() {
+                      // Restablecer el valor de cantidad_latas a 0
+                      document.getElementById("cantidad_latas").value = "0";
+                    
+                      // Restablecer las variables a 0
+                      document.getElementById("total_energia").textContent = "0.00";
+                      document.getElementById("total_agua").textContent = "0.00";
+                      document.getElementById("total_co2").textContent = "0.00";
+                      document.getElementById("resultado_hectareas").textContent = "0.00";
+                     
+                      document.getElementById("peso_total").textContent = "0.00";
+                    
+                      // Restablecer la variable pesoTotal a 0
+                      var pesoTotal = 0;
+                    
+                      // Mostrar la tabla de recomendaciones
+                      document.querySelector(".recomendaciones").style.display = "block";
+                    
+                      // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                      const pesoTotalElement = document.getElementById("peso_total");
+                      pesoTotalElement.innerHTML = "<strong style='color: blue;'>0 g</strong>";
+                    
+                      // ... Más código de reinicio ...
+                    }
+                    
+                    
+                    
+                    
+                    </script>
+                    
+                            </div>
+                 </div>
+            </div>
+      </div>
+
+
+      <div class="container">
+        <div class="column">
+          <h2>CUADERNOS</h2>
+              <div class="accordion">
+                <button class="accordion-button">Calcular Impacto</button>
+                        <div class="accordion-content">
+                          <div class="column">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScxVEpoR3bIZFcvBesZIcdQgRusfmSuaDn9A&usqp=CAU" alt="Imagen 1" style="width: 250px; height: 150px;"> <!-- Ajusta el tamaño de la imagen 1 -->
+                                        
+                
+                            
+                
+                              <div class="clearfix"></div>
+                            </div>
+                
+                
+                            <div class="clearfix"></div>
+                            <div class="contenido-ancho-total">
+                                <p><div class="container-below">
+                                        <!-- BOTONES DE CALCULAR Y REINICIAR -->
+                    <span class="BOTONES">
+                
+                      <p style='font-size: 16px;   margin-top: 6px; margin-bottom: 12px;text-align: center;'><strong>Ingrese cantidad</strong></p>
+                    <input
+                      type="number"
+                      id="cantidad_cuadernos"
+                      placeholder="0"
+                      style="display: block; margin: 0 auto; font-size: 16px;"><br><br>
+                
+                      <button style="font-size: 16px;" onclick="calcularImpacto()"><strong>Calcular</strong></button>
+                      <button style="font-size: 16px;" onclick="reiniciarCalculadora()"><strong>Reiniciar</strong></button><br>
+                      
+                
+                    </span><br>
+                
+                
+                    
+                                     
+                                          <table>
+                                            <tr>
+                                              <th class="total_energia">Ahorro de Energía</th>
+                                              <th class="total_agua">Ahorro de Agua</th>
+                                              <th class="total_co2">CO2 No Emitido</th>
+                                              <th class="peso_total">Peso Total</th>
+                                            </tr>
+                                            <tr>
+                                              <td><strong style="color: rgb(220, 148, 3);"><span id="total_energia">0.00</span> kWh</strong></td>
+                                              <td><strong style="color: rgb(0, 13, 255);"><span id="total_agua">0.00</span> L</strong></td>
+                                              <td><strong style="color: rgb(12, 127, 2);"><span id="total_co2">0.00</span> Kg</strong></td>
+                                              <td id="peso_botellas"><strong style="color: rgba(158, 3, 185, 0.781);"><span id="peso_total">0.00</span> g</strong></td>
+                
+                
+                                            </tr>
+                                          </table>  <br>
+                
+                                            </div>z
+                
+                         <div class="text-container"><br>
+                        
+                
+                                        <p id="huella_ecologica">
+                                        <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                                        <span id="resultado_hectareas" class="resultado-span">0.00</span>
+                                        
+                                    <strong class="titulo-strong">Hectáreas Globales</strong><br><br>
+                
+                        </div>
+                
+                
+                <script>
+                  function calcularImpacto() {
+                    var cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value);
+                
+                    if (!isNaN(cantidad_cuadernos) && cantidad_cuadernos >= 0) {
+                      // Calcular el impacto de las latas
+                      var cuadernos_energia = cantidad_cuadernos * 0.66; // Consumo de energía en kWh por botella
+                      var cuadernos_agua = cantidad_cuadernos * 4.32; // Consumo de agua en litros por botella
+                      var cuadernos_co2 = cantidad_cuadernos * 0.37; // Emisiones de CO2 en kg por botella
+                
+                
+                      // CALCULO DE LA TABLA DE PESOS
+                      const pesoCuadernos = cantidad_cuadernos * 160; // Peso promedio de botella
+                      const pesoTotal = pesoCuadernos;
+                
+                      // Mostrar los resultados en el HTML
+                      document.getElementById("total_energia").textContent = cuadernos_energia.toFixed(2);
+                      document.getElementById("total_agua").textContent = cuadernos_agua.toFixed(2);
+                      document.getElementById("total_co2").textContent = cuadernos_co2.toFixed(2); 
+                      document.getElementById("peso_total").textContent = pesoTotal.toFixed(2);
+                
+                      // Calcular la huella ecológica en hectáreas globales
+                      var hectareas_globales = cuadernos_co2 / 2.7; // Valor de conversión (ajusta según sea necesario)
+                      document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+                
+                      // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                      const pesoTotalElement = document.getElementById("peso_total");
+                      pesoTotalElement.innerHTML = "<strong style='color:  rgb(168, 3, 197);'>" + pesoTotal;
+                
+                      // Ocultar la tabla de recomendaciones si no se cumplen las condiciones
+                      document.querySelector(".recomendaciones").style.display = "none";
+                    }
+                  }
+                
+                
+                
+                
+                  // Obtener todos los elementos del acordeón
+                  // const acordeonItems = document.querySelectorAll('.acordeon-item');
+                
+                  // Agregar un evento de clic a cada título del acordeón
+                  acordeonItems.forEach((item) => {
+                    const titulo = item.querySelector('.acordeon-titulo');
+                    const contenido = item.querySelector('.acordeon-contenido');
+                
+                    titulo.addEventListener('click', () => {
+                      if (contenido.style.display === 'block') {
+                        contenido.style.display = 'none';
+                      } else {
+                        contenido.style.display = 'block';
+                      }
+                    });
+                  });
+                
+                
+                function reiniciarCalculadora() {
+                  // Restablecer el valor de cantidad_latas a 0
+                  document.getElementById("cantidad_cuadernos").value = "0";
+                
+                  // Restablecer las variables a 0
+                  document.getElementById("total_energia").textContent = "0.00";
+                  document.getElementById("total_agua").textContent = "0.00";
+                  document.getElementById("total_co2").textContent = "0.00";
+                  document.getElementById("resultado_hectareas").textContent = "0.00";
+                 
+                  document.getElementById("peso_total").textContent = "0.00";
+                
+                  // Restablecer la variable pesoTotal a 0
+                  var pesoTotal = 0;
+                
+                  // Mostrar la tabla de recomendaciones
+                  document.querySelector(".recomendaciones").style.display = "block";
+                
+                  // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                  const pesoTotalElement = document.getElementById("peso_total");
+                  pesoTotalElement.innerHTML = "<strong style='color: blue;'>0 g</strong>";
+                
+                  // ... Más código de reinicio ...
+                }
+                
+                
+                
+                
+                </script>
+                        </div>
+             </div>
+        </div>
+  </div>
+
+
+<div class="container">
+      <div class="column">
+        <h2>BOTELLAS</h2>
+            <div class="accordion">
+              <button class="accordion-button">Calcular Impacto</button>
+                      <div class="accordion-content">
+                        <div class="column">
+                          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyWggOejQ39UhGciKwdzdqdlqsH-E6SNu8fw&usqp=CAU" alt="Imagen 1" style="width: 250px; height: 150px;"> <!-- Ajusta el tamaño de la imagen 1 -->
+                                      
+              
+                          
+              
+                            <div class="clearfix"></div>
+                          </div>
+              
+              
+                          <div class="clearfix"></div>
+                          <div class="contenido-ancho-total">
+                              <p><div class="container-below">
+                                      <!-- BOTONES DE CALCULAR Y REINICIAR -->
+                  <span class="BOTONES">
+              
+                    <p style='font-size: 16px;   margin-top: 6px; margin-bottom: 12px;text-align: center;'><strong>Ingrese cantidad</strong></p>
+                  <input
+                    type="number"
+                    id="cantidad_botellas"
+                    placeholder="0"
+                    style="display: block; margin: 0 auto; font-size: 16px;"><br><br>
+              
+                    <button style="font-size: 16px;" onclick="calcularImpacto()"><strong>Calcular</strong></button>
+                    <button style="font-size: 16px;" onclick="reiniciarCalculadora()"><strong>Reiniciar</strong></button><br>
+                    
+              
+                  </span><br>
+              
+              
+                  
+                                   
+                                        <table>
+                                          <tr>
+                                            <th class="total_energia">Ahorro de Energía</th>
+                                            <th class="total_agua">Ahorro de Agua</th>
+                                            <th class="total_co2">CO2 No Emitido</th>
+                                            <th class="peso_total">Peso Total</th>
+                                          </tr>
+                                          <tr>
+                                            <td><strong style="color: rgb(220, 148, 3);"><span id="total_energia">0.00</span> kWh</strong></td>
+                                            <td><strong style="color: rgb(0, 13, 255);"><span id="total_agua">0.00</span> L</strong></td>
+                                            <td><strong style="color: rgb(12, 127, 2);"><span id="total_co2">0.00</span> Kg</strong></td>
+                                            <td id="peso_botellas"><strong style="color: rgba(158, 3, 185, 0.781);"><span id="peso_total">0.00</span> g</strong></td>
+              
+              
+                                          </tr>
+                                        </table>  <br>
+              
+                                          </div>
+              
+                       <div class="text-container"><br>
+                      
+              
+                                      <p id="huella_ecologica">
+                                      <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                                      <span id="resultado_hectareas" class="resultado-span">0.00</span>
+                                      
+                                  <strong class="titulo-strong">Hectáreas Globales</strong><br><br>
+              
+                      </div>
+              
+              
+              <script>
+                function calcularImpacto() {
+                  var cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+              
+                  if (!isNaN(cantidad_botellas) && cantidad_botellas >= 0) {
+                    // Calcular el impacto de las latas
+                    var botella_energia = cantidad_botellas * 0.06; // Consumo de energía en kWh por botella
+                    var botella_agua = cantidad_botellas * 0.43; // Consumo de agua en litros por botella
+                    var botella_co2 = cantidad_botellas * 0.03; // Emisiones de CO2 en kg por botella
+              
+              
+                    // CALCULO DE LA TABLA DE PESOS
+                    const pesoBotellas = cantidad_botellas * 11; // Peso promedio de botella
+                    const pesoTotal = pesoBotellas;
+              
+                    // Mostrar los resultados en el HTML
+                    document.getElementById("total_energia").textContent = botella_energia.toFixed(2);
+                    document.getElementById("total_agua").textContent = botella_agua.toFixed(2);
+                    document.getElementById("total_co2").textContent = botella_co2.toFixed(2); 
+                    document.getElementById("peso_total").textContent = pesoTotal.toFixed(2);
+              
+                    // Calcular la huella ecológica en hectáreas globales
+                    var hectareas_globales = botella_co2 / 2.7; // Valor de conversión (ajusta según sea necesario)
+                    document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+              
+                    // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                    const pesoTotalElement = document.getElementById("peso_total");
+                    pesoTotalElement.innerHTML = "<strong style='color:  rgb(168, 3, 197);'>" + pesoTotal;
+              
+                    // Ocultar la tabla de recomendaciones si no se cumplen las condiciones
+                    document.querySelector(".recomendaciones").style.display = "none";
+                  }
+                }
+              
+              
+              
+              
+                // Obtener todos los elementos del acordeón
+                const acordeonItems = document.querySelectorAll('.acordeon-item');
+              
+                // Agregar un evento de clic a cada título del acordeón
+                acordeonItems.forEach((item) => {
+                  const titulo = item.querySelector('.acordeon-titulo');
+                  const contenido = item.querySelector('.acordeon-contenido');
+              
+                  titulo.addEventListener('click', () => {
+                    if (contenido.style.display === 'block') {
+                      contenido.style.display = 'none';
+                    } else {
+                      contenido.style.display = 'block';
+                    }
+                  });
+                });
+              
+              
+              function reiniciarCalculadora() {
+                // Restablecer el valor de cantidad_latas a 0
+                document.getElementById("cantidad_botellas").value = "0";
+              
+                // Restablecer las variables a 0
+                document.getElementById("total_energia").textContent = "0.00";
+                document.getElementById("total_agua").textContent = "0.00";
+                document.getElementById("total_co2").textContent = "0.00";
+                document.getElementById("resultado_hectareas").textContent = "0.00";
+               
+                document.getElementById("peso_total").textContent = "0.00";
+              
+                // Restablecer la variable pesoTotal a 0
+                var pesoTotal = 0;
+              
+                // Mostrar la tabla de recomendaciones
+                document.querySelector(".recomendaciones").style.display = "block";
+              
+                // Aplicar etiquetas <strong> y estilo de color azul al resultado
+                const pesoTotalElement = document.getElementById("peso_total");
+                pesoTotalElement.innerHTML = "<strong style='color: blue;'>0 g</strong>";
+              
+                // ... Más código de reinicio ...
+              }
+              
+              
+              
+              
+              </script>
+                      </div>
+           </div>
+      </div>
+</div>
+
+
+
+  </div> 
+
+ 
+  
+</div>
+
+    
+
+    <script src="script.js"></script>
+
+
+<script>
+const accordionButtons = document.querySelectorAll('.accordion-button');
+
+accordionButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const content = button.nextElementSibling;
+
+        if (content.style.display === 'block') {
+            content.style.display = 'none';
+        } else {
+            content.style.display = 'block';
+        }
+    });
+});
+
+
+
+
+
+</script>
+
+
+
+</body>
+</html>
+
+
+
+
+
+

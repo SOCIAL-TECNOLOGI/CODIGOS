@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis de Respuestas de Estudiantes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+
+</head>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: 90%;
+        max-width: 1200px;
+        overflow: hidden;
+        max-height: 90vh; /* Altura máxima del contenedor */
+        overflow-y: auto; /* Habilita el scroll vertical cuando el contenido excede la altura máxima */
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #04735f;
+    }
+
+    textarea {
+        width: calc(100% - 16px);
+        height: 120px;
+        margin-bottom: 10px;
+        padding: 9px;
+        box-sizing: border-box;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+/* Estilos para los botones */
+button {
+            background-color: #649a7c;
+            color: white;
+            border: none;
+            padding: 5px 10px; /* Relleno interno más pequeño */
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:focus {
+            outline: none;
+        }
+    .table-container {
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    table, th, td {
+        border: 2px solid #ccc;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    th {
+        background-color: #3498db;
+        color: white;
+        cursor: pointer;
+    }
+
+    th, td {
+        min-width: 80px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .correct {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .incorrect {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .chart-container {
+        width: 100%;
+        margin: 20px 0;
+    }
+
+
+
+    #search-student {
+        width: 100%;
+        margin: 20px 0;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #student-list {
+        width: 60%;
+        margin: 10px 0;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .summary-table {
+        width: 100%;
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+
+    .summary-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .summary-table th, .summary-table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .summary-table th {
+        background-color: #34495e;
+        color: white;
+        cursor: pointer;
+    }
+
+    .summary-table th:hover {
+        background-color: #2c3e50;
+    }
+
+    
+
+/* Estilos para el botón flotante */
+.reiniciarPagina {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #2b83bd;
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease;
+    }
+
+
+
+
+
+    .reiniciarPagina:hover {
+        background-color: #bdaa34;
+    }
+
+    .reiniciarPagina i {
+        font-size: 24px;
+    }
+    
+
+
+
+    .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+    
+
+        .asc-icon::before {
+        content: "\f0de"; /* Icono de flecha hacia arriba */
+        margin-right: 4px;
+    }
+    .desc-icon::before {
+        content: "\f0dd"; /* Icono de flecha hacia abajo */
+        margin-right: 4px;
+    }
+ 
+
+    .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button-container button, .button-container input, .button-container label, .button-container select {
+            margin: 5px;
+        }
+
+        /* Estilos para el contenedor del gráfico */
+    .chart-container {
+        width: 100%; /* Ancho completo del contenedor */
+        text-align: center; /* Centra el contenido del contenedor */
+        margin-bottom: 20px; /* Margen inferior */
+        border: 1px solid #ccc; /* Borde del contenedor */
+        padding: 4px; /* Espaciado interior del contenedor */
+    }
+
+    /* Estilos específicos para el canvas del gráfico dentro del contenedor */
+    .chart-container canvas {
+        display: inline-block; /* Asegura que el canvas se muestre en línea */
+    }
+
+    .correcta {
+    background-color: #4CAF50; /* Verde para correctas */
+    color: #fff; /* Color de texto opcional */
+}
+
+.incorrecta {
+    background-color: #FF7F8A; /* Rojo para incorrectas */
+    color: #fff; /* Color de texto opcional */
+}
+
+
+.no-respondida {
+    background-color: #CCCCCC; /* Gris para no respondidas */
+    color: #fff; /* Color de texto opcional */
+    border: 1px solid #fff; /* Borde blanco */
+}
+
+/* Estilos para las celdas de la segunda columna */
+table td:nth-child(2) {
+    background-color: transparent; /* Sin color de fondo */
+    color: black; /* Color de texto negro */
+}
+
+
+
+
+
+</style>
+</head>
+
+
+<body>
+<div class="container">
+    <h1>Análisis de Respuestas de Estudiantes</h1>
+  
+
+    <button id="toggle-textarea" onclick="toggleTextareaVisibility()" style=" font-size: 13px;">
+        <i id="eye-icon" class="fas fa-eye"></i> Ocultar Área de Texto
+    </button>
+
+    <textarea id="survey-data" placeholder="Pegue los datos del encabezado y respuestas de los estudiantes aquí..." style="display: block; width: 101%; height: 100px;"></textarea>
+    
+    <h2>Análisis General</h2>
+    <div class="button-container">
+        <button onclick="procesarDatos()" style=" font-size: 13px;">
+            <i class="fas fa-chart-bar"></i> Procesar Datos
+        </button>
+        <button id="toggle-general-results" onclick="toggleTableVisibility('results-table', this)" style=" font-size: 13px;">
+            <i class="fas fa-eye"></i> Ver Tabla
+        </button>
+    
+        <button id="sort-errors" onclick="ordenarPorDesaciertos()" style=" font-size: 13px;">
+            <i class="fas fa-arrow-down"></i> Ordenar por desaciertos
+        </button>
+       
+    </div>
+    
+    <div class="table-container">
+        <table id="results-table" style="display: none;">
+            <thead id="table-head">
+                <!-- Encabezado de la tabla se generará dinámicamente -->
+            </thead>
+            <tbody id="table-body">
+                <!-- Cuerpo de la tabla se generará dinámicamente -->
+            </tbody>
+        </table>
+
+
+
+        
+    </div>
+ 
+    <div class="chart-container" style="position: relative;">
+        <div class="chart-js-container">
+           <!-- Canvas para el gráfico general -->
+<canvas id="grafico" width="400" height="150"></canvas>
+
+
+
+        </div>
+        <button onclick="descargarGrafico('chart', 'AnalisisGeneral')" style="position: absolute; top: 6px; right: 20px; font-size: 13px; padding: 6px;">
+            <i class="fas fa-download"></i> Gráfico
+        </button>
+    </div>
+    
+
+
+    <h2>Análisis Personalizado por Estudiante</h2>
+    <div class="button-container">
+        <select id="student-list" onchange="mostrarGraficoEstudiante()" style=" font-size: 13px;">
+            <option value="">Seleccionar estudiante...</option>
+            <!-- Opciones serán llenadas dinámicamente -->
+        </select>
+        <label for="modoDescarga"> Descargar</label>
+        <select id="modoDescarga">
+            <option value="todos">todos los informes</option>
+            <option value="seleccionado">informe individual</option>
+        </select>
+        <button onclick="descargarInforme()" style=" font-size: 13px;">
+            <i class="fas fa-download"></i>
+        </button>
+    </div>
+   
+           
+
+
+    <div id="student-chart-container" class="chart-container" style="border: 1px solid #ccc; padding: 4px; margin-right: 7px; position: relative;">
+        <div class="chart-js-container">
+          <!-- Canvas para el gráfico de respuestas de estudiante -->
+<canvas id="student-chart" width="400" height="150"></canvas>
+        </div>
+    
+    
+        <button onclick="descargarGrafico('student-chart', 'AnalisisEstudiante')" style="position: absolute; top: 6px; right: 20px; font-size: 13px; padding: 6px; margin-right: 10px;">
+            <i class="fas fa-download"></i> Gráfico
+        </button>
+        
+       
+        
+    </div>
+    
+   
+    <div id="student-responses-chart-container" class="chart-container" style="border: 1px solid #ccc; padding: 4px; margin-right: 7px; position: relative;">
+        <h2>Respuestas de Estudiante: <span id="student-name"></span></h2>
+        <div class="chart-js-container">
+         <!-- Canvas para el gráfico de torta de respuestas del estudiante -->
+<canvas id="student-responses-chart" width="400" height="200"></canvas>
+        </div>
+        <button onclick="descargarGrafico('student-responses-chart', 'RespuestasEstudiante')" style="position: absolute; top: 6px; right: 20px; font-size: 13px; padding: 6px;">
+            <i class="fas fa-download"></i> Gráfico de Respuestas
+        </button>
+    </div>
+
+   
+    
+ 
+
+    <div class="summary-table">
+        <h2>Resumen de Desempeño por Estudiante</h2>
+        <div class="button-container">
+            <button onclick="ordenarTablaResumen()" style=" font-size: 13px;">
+                <i class="fas fa-arrow-down"></i> Ordenar
+            </button>
+            <button id="toggle-summary-results" onclick="toggleTableVisibility('summary-table', this)" style=" font-size: 13px;">
+                <i class="fas fa-eye"></i> Ver Resumen
+            </button>
+            <label for="student-filter"></label>
+            <input type="text" id="student-filter" placeholder="Escribir apellidos">
+            <button onclick="filtrarEstudiante()" style=" font-size: 13px;">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+            
+        </div>
+      
+       
+
+        <table id="summary-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th onclick="ordenarTablaResumen()" style=" font-size: 13px;">Nombre</th>
+                    <th>% Aciertos</th>
+                    <th>% Errores</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body">
+                <!-- Contenido de la tabla de resumen se generará dinámicamente -->
+            </tbody>
+        </table>
+
+    </div>
+
+
+
+</div>
+
+
+<button class="reiniciarPagina"onclick="reiniciarPagina()" style=" font-size: 13px;"><i class="fas fa-redo"></i></button>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+
+<script>
+   
+let estudiantes = [];
+let preguntas = [];
+let respuestasCorrectas = {};
+
+function procesarDatos() {
+    const textarea = document.getElementById('survey-data');
+    const datos = textarea.value.trim().split('\n');
+
+    if (datos.length < 3) {
+        alert('Ingrese al menos un estudiante con sus respuestas después del estudiante guía.');
+        return;
+    }
+
+    // Leer encabezados y estudiante guía
+    const headers = datos[0].split('\t');
+    estudiantes = [];
+
+    // Configurar el Estudiante Guía y respuestas correctas
+    const guiaValues = datos[1].split('\t');
+    respuestasCorrectas = {};
+    for (let j = 1; j < headers.length; j++) {  // Comienza en 1 para evitar 'NOMBRE DEL ESTUDIANTE'
+        respuestasCorrectas[headers[j]] = guiaValues[j];
+    }
+
+    // Extraer preguntas (columnas que comienzan con 'PREGUNTA')
+    preguntas = headers.slice(1);  // Excluye 'NOMBRE DEL ESTUDIANTE'
+
+    // Procesar estudiantes (desde el índice 2)
+    for (let i = 2; i < datos.length; i++) {  // Comienza en 2 para saltar el estudiante guía
+        const values = datos[i].split('\t');
+        if (values.length < headers.length) continue; // Ignora filas incompletas
+        
+        const estudiante = {};
+        for (let j = 0; j < headers.length; j++) {
+            estudiante[headers[j]] = values[j];
+        }
+        estudiantes.push(estudiante);
+    }
+
+    // Llamar a las funciones para generar los resultados
+    generarTablaResultados(estudiantes, preguntas, respuestasCorrectas);
+    generarGrafico(estudiantes, preguntas, respuestasCorrectas);
+    llenarListaDesplegable(estudiantes);
+    generarTablaResumen(estudiantes);
+}
+
+
+
+
+// Función para generar la tabla de resultados  
+function generarTablaResultados(estudiantes, preguntas, respuestasCorrectas) {
+    const tablaResultados = document.getElementById('results-table');
+    tablaResultados.innerHTML = ''; // Limpiar contenido previo
+
+    // Crear cabecera de la tabla
+    const thead = tablaResultados.createTHead();
+    const row = thead.insertRow();
+    row.insertCell().textContent = 'Nombre';
+    preguntas.forEach(pregunta => {
+        const cell = row.insertCell();
+        cell.textContent = pregunta;
+    });
+
+    // Crear cuerpo de la tabla
+    const tbody = tablaResultados.createTBody();
+    estudiantes.forEach(estudiante => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = estudiante.Nombres;
+
+        
+        preguntas.forEach(pregunta => {
+            const cell = row.insertCell();
+            const respuesta = estudiante[pregunta];
+            const respuestaCorrecta = respuestasCorrectas[pregunta];
+            
+            if (respuesta === respuestaCorrecta) {
+                cell.textContent = respuesta;
+                cell.classList.add('correcta'); // Clase para respuestas correctas
+            } else if (!respuesta) {
+                cell.textContent = ''; // Dejar la celda en blanco para no respondidas
+                cell.classList.add('no-respondida');
+            } else {
+                cell.textContent = respuesta;
+                cell.classList.add('incorrecta'); // Clase para respuestas incorrectas
+            }
+        });
+    });
+}
+
+function generarGrafico(estudiantes, preguntas, respuestasCorrectas) {
+    const respuestasCorrectasPorPregunta = [];
+    const respuestasErradasPorPregunta = [];
+    const etiquetas = [];
+
+    // Asegurarse de que solo procesemos las preguntas reales, excluyendo los encabezados
+    const preguntasReales = preguntas.filter(pregunta => pregunta.startsWith("PREGUNTA"));
+
+    // Inicializar los arreglos con ceros para las preguntas reales
+    preguntasReales.forEach((pregunta, i) => {
+        respuestasCorrectasPorPregunta.push(0);
+        respuestasErradasPorPregunta.push(0);
+        etiquetas.push(`Pregunta ${i + 1}`);
+    });
+
+    // Procesar las respuestas de los estudiantes
+    estudiantes.forEach(estudiante => {
+        preguntasReales.forEach((pregunta, index) => {
+            const respuestaEstudiante = estudiante[pregunta];
+            const respuestaCorrecta = respuestasCorrectas[pregunta];
+            // Verificar si la respuesta es correcta o errada
+            if (respuestaEstudiante === respuestaCorrecta) {
+                respuestasCorrectasPorPregunta[index]++;
+            } else {
+                respuestasErradasPorPregunta[index]++;
+            }
+        });
+    });
+
+    // Total de evaluados (número de estudiantes)
+    const totalEvaluados = estudiantes.length;
+
+    // Crear el gráfico de barras con dos barras por cada pregunta
+    const ctx = document.getElementById('grafico').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: etiquetas, // Etiquetas para cada pregunta
+            datasets: [
+                {
+                    label: 'Correctas', // Barra para respuestas correctas
+                    data: respuestasCorrectasPorPregunta, // Datos de correctas
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // Color de la barra correcta
+                    borderColor: 'rgba(75, 192, 192, 1)',       // Borde de la barra correcta
+                    borderWidth: 1
+                },
+                {
+                    label: 'Erradas',   // Barra para respuestas erradas
+                    data: respuestasErradasPorPregunta, // Datos de erradas
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)', // Color de la barra errada
+                    borderColor: 'rgba(255, 99, 132, 1)',       // Borde de la barra errada
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Respuestas'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        // Personalización de los tooltips
+                        title: function(tooltipItems) {
+                            return `Total de evaluados: ${totalEvaluados}`;
+                        },
+                        label: function(tooltipItem) {
+                            const dataset = tooltipItem.dataset;
+                            const index = tooltipItem.dataIndex;
+                            const label = dataset.label;
+                            const value = tooltipItem.raw;
+                            const totalRespuestas = totalEvaluados;
+                            
+                            // Calcular el porcentaje
+                            const porcentaje = (value / totalRespuestas) * 100;
+                            const respuestas = label === 'Correctas' ? respuestasCorrectasPorPregunta[index] : respuestasErradasPorPregunta[index];
+
+                            return `${label}: ${porcentaje.toFixed(2)}% (${respuestas} respuestas)`;
+                        }
+                    }
+                },
+                datalabels: {
+                    display: true,
+                    formatter: (value, context) => {
+                        const datasetLabel = context.dataset.label;
+                        const index = context.dataIndex;
+                        const totalRespuestas = totalEvaluados;
+                        const porcentaje = (value / totalRespuestas) * 100;
+                        const respuestas = datasetLabel === 'Correctas' ? respuestasCorrectasPorPregunta[index] : respuestasErradasPorPregunta[index];
+                        return `${porcentaje.toFixed(2)}% = ${respuestas} respuestas`;
+                    },
+                    anchor: 'end',
+                    align: 'end'
+                }
+            }
+        }
+    });
+}
+
+
+
+function ordenarPorDesaciertos() {
+    const ctx = document.getElementById('chart').getContext('2d');
+    const correctas = new Array(preguntas.length).fill(0);
+    const incorrectas = new Array(preguntas.length).fill(0);
+
+    // Contar respuestas correctas e incorrectas por pregunta
+    estudiantes.forEach(estudiante => {
+        preguntas.forEach((pregunta, index) => {
+            const respuestaEstudiante = estudiante[pregunta];
+            const respuestaCorrecta = respuestasCorrectas[pregunta];
+
+            if (respuestaEstudiante === respuestaCorrecta) {
+                correctas[index]++;
+            } else {
+                incorrectas[index]++;
+            }
+        });
+    });
+
+    // Calcular porcentajes de respuestas correctas e incorrectas
+    const totalRespuestas = estudiantes.length;
+    const porcentajeCorrectas = correctas.map(c => (c / totalRespuestas) * 100);
+    const porcentajeIncorrectas = incorrectas.map(i => (i / totalRespuestas) * 100);
+
+    // Crear un arreglo de objetos con preguntas y sus porcentajes de desacierto
+    const preguntasConDesaciertos = preguntas.map((pregunta, index) => ({
+        pregunta,
+        desacierto: porcentajeIncorrectas[index]
+    }));
+
+    // Ordenar preguntas según el porcentaje de desacierto (descendente)
+    preguntasConDesaciertos.sort((a, b) => b.desacierto - a.desacierto);
+
+    // Arreglo para almacenar las preguntas ordenadas por desaciertos
+    const preguntasOrdenadas = preguntasConDesaciertos.map(item => item.pregunta);
+
+    // Actualizar el gráfico con las preguntas ordenadas por desaciertos
+    ctx.canvas.chart.data.labels = preguntasOrdenadas;
+
+    // Alinear los datos de porcentajes con las preguntas ordenadas
+    ctx.canvas.chart.data.datasets[0].data = preguntasOrdenadas.map(pregunta => {
+        const index = preguntas.indexOf(pregunta);
+        return porcentajeCorrectas[index];
+    });
+
+    ctx.canvas.chart.data.datasets[1].data = preguntasOrdenadas.map(pregunta => {
+        const index = preguntas.indexOf(pregunta);
+        return porcentajeIncorrectas[index];
+    });
+
+    // Actualizar el gráfico
+    ctx.canvas.chart.update();
+}
+
+
+
+
+        function descargarInforme() {
+            const modoDescarga = document.getElementById('modoDescarga').value;
+            if (modoDescarga === "todos") {
+                estudiantes.forEach(estudiante => {
+                    generarInformeEstudiante(estudiante);
+                });
+            } else {
+                const estudianteSeleccionadoIndex = document.getElementById('student-list').value;
+                if (estudianteSeleccionadoIndex) {
+                    const estudiante = estudiantes[estudianteSeleccionadoIndex];
+                    generarInformeEstudiante(estudiante);
+                } else {
+                    alert("Seleccione un estudiante válido.");
+                }
+            }
+        }
+
+
+
+        function mostrarGraficoEstudiante() {
+    const select = document.getElementById('student-list');
+    const studentIndex = select.value; // Índice seleccionado por el usuario
+    
+    // Verificar que el índice sea válido
+    if (studentIndex === '' || studentIndex < 0 || studentIndex >= estudiantes.length) return;
+    
+    // Obtener datos del estudiante
+    const estudiante = estudiantes[studentIndex];
+    const nombreEstudiante = estudiante ? estudiante.Nombres : 'Estudiante';
+    const apellidoEstudiante = estudiante ? estudiante.Apellidos : 'Apellido';
+    
+    // Filtrar solo las preguntas reales
+    const preguntasReales = preguntas.filter(pregunta => pregunta.startsWith("PREGUNTA"));
+    
+    const labels = preguntasReales; // Solo las preguntas reales a mostrar en el gráfico
+    const data = {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Correctas',
+                backgroundColor: '#4CAF50',
+                borderColor: '#4CAF50',
+                data: []
+            },
+            {
+                label: 'Incorrectas',
+                backgroundColor: '#FF7F8A',
+                borderColor: '#FF7F8A',
+                data: []
+            },
+            {
+                label: 'No Respondidas',
+                backgroundColor: '#CCCCCC',
+                borderColor: '#CCCCCC',
+                data: []
+            }
+        ]
+    };
+    
+    // Clasificar respuestas solo para las preguntas reales
+    labels.forEach(pregunta => {
+        const respuestaEstudiante = estudiante[pregunta];
+        const respuestaCorrecta = respuestasCorrectas[pregunta];
+        
+        // Agregar a cada dataset el valor correspondiente
+        data.datasets[0].data.push(respuestaEstudiante === respuestaCorrecta ? 1 : 0);
+        data.datasets[1].data.push(respuestaEstudiante && respuestaEstudiante !== respuestaCorrecta ? 1 : 0);
+        data.datasets[2].data.push(!respuestaEstudiante ? 1 : 0);
+    });
+    
+    // Calcular porcentajes de respuestas
+    const respuestasCorrectasTotal = data.datasets[0].data.reduce((acc, val) => acc + val, 0);
+    const respuestasIncorrectasTotal = data.datasets[1].data.reduce((acc, val) => acc + val, 0);
+    const totalPreguntas = labels.length;
+    const porcentajeCorrectas = ((respuestasCorrectasTotal / totalPreguntas) * 100).toFixed(2);
+    const porcentajeIncorrectas = ((respuestasIncorrectasTotal / totalPreguntas) * 100).toFixed(2);
+    
+    const ctx = document.getElementById('student-chart').getContext('2d');
+    
+    // Limpiar gráfico anterior si existe
+    if (window.chartInstance) {
+        window.chartInstance.destroy();
+    }
+    
+    // Crear el nuevo gráfico
+    window.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Desempeño de: ${nombreEstudiante} ${apellidoEstudiante} - ${porcentajeCorrectas}% Correctas, ${porcentajeIncorrectas}% Incorrectas`
+                },
+                datalabels: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true
+                }
+            }
+        }
+    });
+}
+
+
+
+function descargarGrafico() {
+    const select = document.getElementById('student-list');
+    const studentIndex = parseInt(select.value); // Asegúrate de que el índice sea un número entero
+
+    console.log("Índice seleccionado:", studentIndex);  // Depuración: Verificar el índice
+
+    // Verificar si el índice es válido y existe en el array de estudiantes
+    if (isNaN(studentIndex) || studentIndex < 0 || studentIndex >= estudiantes.length) {
+        console.error("Índice de estudiante no válido.");
+        return; // Salir si no se encuentra un índice válido
+    }
+
+    const estudiante = estudiantes[studentIndex];
+
+    // Depuración: Verificar el objeto estudiante
+    console.log("Estudiante seleccionado:", estudiante);
+
+    // Asegurarse de que los campos Nombres y Apellidos están definidos
+    const nombreEstudiante = estudiante.Nombres || 'Estudiante'; 
+    const apellidoEstudiante = estudiante.Apellidos || 'Apellido';
+
+    // Verificar que los valores de Nombres y Apellidos sean correctos
+    console.log("Nombre del estudiante:", nombreEstudiante);
+    console.log("Apellido del estudiante:", apellidoEstudiante);
+
+    const chart = window.chartInstance;
+
+    if (chart) {
+        // Descargar el gráfico como una imagen base64
+        const link = document.createElement('a');
+        link.href = chart.toBase64Image();
+
+        // Crear el nombre del archivo usando los valores de Nombres y Apellidos
+        const fileName = `RespuestasEstudiante_${nombreEstudiante}_${apellidoEstudiante}.png`;
+
+        link.download = fileName; // Nombre del archivo con nombre y apellido
+        link.click();
+    } else {
+        console.error("Gráfico no encontrado.");
+    }
+}
+
+
+
+    function generarTablaResumen(estudiantes) {
+        const tableBody = document.getElementById('summary-body');
+        let bodyHTML = '';
+
+        estudiantes.forEach(estudiante => {
+            let correctCount = 0;
+            let incorrectCount = 0;
+
+            preguntas.forEach(pregunta => {
+                const respuestaEstudiante = estudiante[pregunta];
+                const respuestaCorrecta = respuestasCorrectas[pregunta];
+
+                if (respuestaEstudiante === respuestaCorrecta) {
+                    correctCount++;
+                } else {
+                    incorrectCount++;
+                }
+            });
+
+            const totalRespuestas = preguntas.length;
+            const porcentajeAciertos = ((correctCount / totalRespuestas) * 100).toFixed(2);
+            const porcentajeErrores = ((incorrectCount / totalRespuestas) * 100).toFixed(2);
+
+            bodyHTML += `<tr><td>${estudiante['Nombres']} ${estudiante['Apellidos']}</td>`;
+            bodyHTML += `<td>${porcentajeAciertos}%</td>`;
+            bodyHTML += `<td>${porcentajeErrores}%</td></tr>`;
+        });
+
+        tableBody.innerHTML = bodyHTML;
+    }
+
+    let ordenAscendente = false; // Estado inicial de orden descendente
+
+function ordenarTablaResumen() {
+    const tableBody = document.getElementById('summary-body');
+    const rows = Array.from(tableBody.rows);
+
+    rows.sort((rowA, rowB) => {
+        const porcentajeErroresA = parseFloat(rowA.cells[2].innerText);
+        const porcentajeErroresB = parseFloat(rowB.cells[2].innerText);
+
+        if (ordenAscendente) {
+            return porcentajeErroresA - porcentajeErroresB; // Orden ascendente
+        } else {
+            return porcentajeErroresB - porcentajeErroresA; // Orden descendente
+        }
+    });
+
+    tableBody.innerHTML = '';
+    rows.forEach(row => tableBody.appendChild(row));
+
+    // Cambiar el estado de ordenamiento para el próximo clic
+    ordenAscendente = !ordenAscendente;
+}
+
+function descargarGrafico(canvasId, filename, studentName) {
+    const canvas = document.getElementById(canvasId);
+    const url = canvas.toDataURL('image/png');
+
+    // Crear un canvas temporal para cambiar el color del texto
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.fillStyle = 'white'; // Cambiar el color del fondo
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+
+    const tempUrl = tempCanvas.toDataURL('image/png');
+
+    const link = document.createElement('a');
+    link.href = tempUrl;
+    link.download = `${filename}_${studentName}.png`; // Agregar el nombre del estudiante al archivo descargado
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+
+
+function reiniciarPagina() {
+    // Recargar la página para restaurar todo a su estado inicial
+    location.reload(true);
+}
+
+
+
+// Función para filtrar estudiantes y mostrar % aciertos y % errores
+function filtrarEstudiante() {
+        const input = document.getElementById('student-filter');
+        const studentName = input.value.trim().toLowerCase();
+
+        // Obtener todas las filas de la tabla
+        const rows = document.querySelectorAll('#summary-body tr');
+
+        rows.forEach(row => {
+            const studentCell = row.cells[0].innerText.toLowerCase();
+
+            if (studentCell.includes(studentName)) {
+                // Mostrar fila correspondiente al estudiante buscado
+                row.style.display = '';
+            } else {
+                // Ocultar filas que no coincidan con el estudiante buscado
+                row.style.display = 'none';
+            }
+        });
+    }
+
+
+    
+
+    function toggleTableVisibility(tableId, button) {
+        const table = document.getElementById(tableId);
+        const icon = button.querySelector('i');
+
+        if (table.style.display === 'none' || table.style.display === '') {
+            table.style.display = 'table';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            button.innerHTML = icon.outerHTML + ' Ocultar ' + (tableId === 'results-table' ? 'Tabla' : 'Tabla Resumen');
+        } else {
+            table.style.display = 'none';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            button.innerHTML = icon.outerHTML + ' Mostrar ' + (tableId === 'results-table' ? 'Tabla' : 'Tabla Resumen');
+        }
+
+        // Mensaje de depuración
+        console.log(`Tabla ${tableId} está ahora: ${table.style.display}`);
+    }
+
+    // Inicialmente ocultar las tablas
+    document.getElementById('results-table').style.display = 'none';
+    document.getElementById('summary-table').style.display = 'none';
+
+
+
+
+    let textareaVisible = true;
+    const toggleButton = document.getElementById('toggle-textarea');
+    const textarea = document.getElementById('survey-data');
+    const eyeIcon = document.getElementById('eye-icon');
+
+
+    
+    // Función para alternar la visibilidad del área de texto
+    function toggleTextareaVisibility() {
+        textareaVisible = !textareaVisible;
+
+        if (textareaVisible) {
+            textarea.style.display = 'block';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+            toggleButton.innerHTML = '<i class="fas fa-eye"></i> Ocultar Área de Texto';
+        } else {
+            textarea.style.display = 'none';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+            toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Ver Área de Texto';
+        }
+    }
+
+    // Por defecto, el área de texto está visible al cargar la página
+    window.onload = function() {
+        textarea.style.display = 'block';
+    };
+
+
+ 
+ // Función para generar el informe Excel del estudiante seleccionado
+ function generarInformeExcel() {
+    estudiantes.forEach(estudiante => {
+        generarInformeEstudiante(estudiante);
+    });
+}
+
+ // Datos de los estudiantes y respuestas correctas (serán rellenados dinámicamente)
+   
+
+        // Función para llenar la lista desplegable con los nombres de los estudiantes
+// Llenar la lista desplegable de estudiantes
+function llenarListaDesplegable(estudiantes) {
+    const select = document.getElementById('student-list');
+    let optionsHTML = '<option value="">Seleccionar estudiante de la lista...</option>';
+
+    estudiantes.forEach((estudiante, index) => {
+        optionsHTML += `<option value="${index}">${estudiante['Nombres']} ${estudiante['Apellidos']}</option>`;
+    });
+
+    select.innerHTML = optionsHTML;
+
+    // Agregar un manejador de eventos al select para generar el gráfico cuando se seleccione un estudiante
+    select.addEventListener('change', function () {
+        const selectedIndex = select.value;
+        if (selectedIndex) {
+            const estudianteSeleccionado = estudiantes[selectedIndex];
+            const studentAnswers = preguntas.map(pregunta => estudianteSeleccionado[pregunta]);
+            graficoRespuestasEstudiante(estudianteSeleccionado['Nombres'], preguntas, Object.values(respuestasCorrectas), studentAnswers);
+        } else {
+            // Si no se selecciona un estudiante, limpiar el gráfico
+            document.getElementById('student-responses-chart').getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        }
+    });
+}
+        function descargarInforme() {
+            const modoDescarga = document.getElementById('modoDescarga').value;
+            if (modoDescarga === "todos") {
+                estudiantes.forEach(estudiante => {
+                    generarInformeEstudiante(estudiante);
+                });
+            } else {
+                const estudianteSeleccionadoIndex = document.getElementById('student-list').value;
+                if (estudianteSeleccionadoIndex) {
+                    const estudiante = estudiantes[estudianteSeleccionadoIndex];
+                    generarInformeEstudiante(estudiante);
+                } else {
+                    alert("Seleccione un estudiante válido.");
+                }
+            }
+        }
+
+        function generarInformeEstudiante(estudiante) {
+    const nombreArchivo = `Informe_${estudiante.Nombres}_${estudiante.Apellidos}.xlsx`;
+
+    // Crear datos para la hoja de Datos Estudiante
+    let datosEstudiante = preguntas.map(pregunta => ({
+        'Pregunta': pregunta,
+        'Respuesta': estudiante[pregunta],
+        'Respuesta Correcta': respuestasCorrectas[pregunta]
+    }));
+
+    // Crear datos para la hoja de Resumen
+    let resumen = [];
+    let totalPreguntas = preguntas.length;
+    let respuestasCorrectasCount = 0;
+    let respuestasIncorrectasCount = 0;
+
+    preguntas.forEach(pregunta => {
+        const respuesta = estudiante[pregunta];
+        const esCorrecta = respuesta === respuestasCorrectas[pregunta];
+        if (esCorrecta) {
+            respuestasCorrectasCount++;
+        } else {
+            respuestasIncorrectasCount++;
+        }
+    });
+
+    const porcentajeCorrectas = (respuestasCorrectasCount / totalPreguntas) * 100;
+    const porcentajeIncorrectas = (respuestasIncorrectasCount / totalPreguntas) * 100;
+
+    resumen.push({
+        'ACIERTOS': respuestasCorrectasCount,
+        '% DE ACIERTOS': porcentajeCorrectas.toFixed(2) + '%',
+        'ERRORES': respuestasIncorrectasCount,
+        '% DE ERRORES': porcentajeIncorrectas.toFixed(2) + '%'
+    });
+
+    // Crear datos para la hoja de Preguntas que más Falló
+    let preguntasErrores = preguntas.map(pregunta => {
+        const respuesta = estudiante[pregunta];
+        const esCorrecta = respuesta === respuestasCorrectas[pregunta];
+        const errores = esCorrecta ? 0 : 1;
+        return {
+            'Pregunta': pregunta,
+            'Estado': esCorrecta ? 'Correcta' : 'Incorrecta',
+            'Errores': errores
+        };
+    });
+
+    preguntasErrores.sort((a, b) => b.Errores - a.Errores);
+
+    // Incluir resumen en la hoja de Preguntas que más Falló
+    preguntasErrores.push({
+        'Pregunta': 'Resumen',
+        'Estado': '% DE ERRORES',
+        'Errores': porcentajeIncorrectas.toFixed(2) + '%'
+    });
+
+    // Crear datos para la hoja de ANOVA
+    let datosANOVA = [];
+    preguntas.forEach(pregunta => {
+        estudiantes.forEach(est => {
+            datosANOVA.push({
+                'Pregunta': pregunta,
+                'Respuesta': est[pregunta] === respuestasCorrectas[pregunta] ? 1 : 0
+            });
+        });
+    });
+
+    // Crear el libro de trabajo y añadir hojas
+    const wb = XLSX.utils.book_new();
+    const wsEstudiante = XLSX.utils.json_to_sheet(datosEstudiante);
+    const wsResumen = XLSX.utils.json_to_sheet(resumen);
+    const wsPreguntasErrores = XLSX.utils.json_to_sheet(preguntasErrores);
+    const wsANOVA = XLSX.utils.json_to_sheet(datosANOVA);
+
+    XLSX.utils.book_append_sheet(wb, wsEstudiante, 'Datos Estudiante');
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+    XLSX.utils.book_append_sheet(wb, wsPreguntasErrores, 'Preguntas que más Falló');
+    XLSX.utils.book_append_sheet(wb, wsANOVA, 'ANOVA');
+
+    // Guardar el archivo
+    XLSX.writeFile(wb, nombreArchivo);
+}
+
+
+// Función para generar el gráfico de respuestas (correcta/incorrecta) de un estudiante
+function graficoRespuestasEstudiante(studentName, labels, correctAnswers, studentAnswers) {
+    // Inicializar contadores
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let unansweredCount = 0;
+
+    // Recorrer las respuestas y contar correctas, incorrectas y no respondidas
+    for (let i = 0; i < correctAnswers.length; i++) {
+        if (studentAnswers[i] === '') {
+            unansweredCount++;
+        } else if (studentAnswers[i] === correctAnswers[i]) {
+            correctCount++;
+        } else {
+            incorrectCount++;
+        }
+    }
+
+    // Calcular porcentajes
+    const totalQuestions = correctAnswers.length;
+    const porcentajeCorrectas = ((correctCount / totalQuestions) * 100).toFixed(2);
+    const porcentajeIncorrectas = ((incorrectCount / totalQuestions) * 100).toFixed(2);
+    const porcentajeSinResponder = ((unansweredCount / totalQuestions) * 100).toFixed(2);
+
+    // Crear los datos para las tres barras
+    const data = [correctCount, incorrectCount, unansweredCount];
+    const backgroundColors = ['#A3E4D7', '#F7C6C7', '#CCCCCC']; // Verde, rojo, gris
+    const borderColors = ['#A3E4D7', '#F7C6C7', '#CCCCCC']; // Los mismos colores para los bordes
+
+    // Obtener el contexto del gráfico
+    let ctx = document.getElementById('student-responses-chart').getContext('2d');
+
+    // Verificar si ya existe un gráfico para evitar crear múltiples gráficos en el mismo canvas
+    if (window.studentChart) {
+        window.studentChart.destroy();
+    }
+
+    // Crear el gráfico de barras
+    window.studentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Correctas', 'Incorrectas', 'Sin Responder'], // Las tres categorías
+            datasets: [{
+                label: 'Respuestas',
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                data: data
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            const value = tooltipItem.raw;
+                            const labels = ['correctas', 'incorrectas', 'sin responder'];
+                            return `${labels[tooltipItem.dataIndex]}: ${value}`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Respuestas de ${studentName} - ${porcentajeCorrectas}% Correctas, ${porcentajeIncorrectas}% Incorrectas, ${porcentajeSinResponder}% Sin Responder`,
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    color: '#333'
+                }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { 
+                    stacked: true,
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+
+        
+</script>
+
+</body>
+</html>
+
+
+

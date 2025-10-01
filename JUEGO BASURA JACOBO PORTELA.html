@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Simulador de Recolección de Basura – Impacto Comunitario</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<style>
+  body{font-family:Arial,sans-serif;background:#f0f4f8;text-align:center;color:#333;}
+  h1{color:#0066cc;}
+
+  .escenario{position:relative;width:90%;height:360px;margin:20px auto;border:2px solid #333;
+             background:linear-gradient(to top,#e5e7eb 50%,#93c5fd 50%);overflow:hidden;}
+
+  /* Camión */
+  .camion{position:absolute;bottom:0;display:flex;align-items:flex-end;width:220px;height:90px;z-index:5;}
+  .tanque{width:140px;height:70px;background:#ddd;border:2px solid #333;position:relative;overflow:visible;}
+  .contenedor-basura{
+    position:absolute;bottom:0;width:100%;height:100%;
+    display:flex;flex-wrap:wrap;align-content:flex-end;overflow:visible;
+  }
+  .trozo{width:18px;height:18px;margin:1px;background:#4b5563;border-radius:3px;}
+  .cabinaDer,.cabinaIzq{width:60px;height:60px;background:#888;border:2px solid #333;}
+  .kg{position:absolute;top:-20px;left:0;width:100%;text-align:center;font-weight:bold;color:#111;}
+
+  .rueda{width:30px;height:30px;background:#111;border-radius:50%;position:absolute;bottom:-15px;}
+  .c1{left:20px;} .c2{left:80px;} .c3{left:150px;}
+
+  /* Colegio proporcional */
+  .colegio{
+    position:absolute;bottom:0;right:3%;width:140px;height:240px;
+    background:#f59e0b;border:4px solid #333;border-radius:6px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    font-size:40px;color:white;z-index:1;
+  }
+  .colegio .ventanas{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:10px;
+    width:90%;flex-grow:1;align-content:start;
+  }
+  .ventana{background:#fff;border:1px solid #333;height:20px;}
+  .colegioTexto{
+    position:absolute;bottom:-25px;font-size:16px;font-weight:bold;color:#333;
+    white-space:nowrap;
+  }
+
+  .basurero{position:absolute;bottom:0;right:20%;font-size:48px;z-index:2;}
+
+  #relojSimulado,#relojReal{font-size:1.3em;margin:5px;font-weight:bold;}
+  #relojSimulado{color:#1e40af;} #relojReal{color:#dc2626;}
+
+  button{padding:10px 20px;margin:10px;background:#0066cc;color:white;border:none;border-radius:8px;cursor:pointer;}
+  button:hover{background:#004a99;}
+
+  table{border-collapse:collapse;width:95%;margin:20px auto;background:#fff;}
+  th,td{border:1px solid #333;padding:6px;text-align:center;font-size:0.9em;}
+  th{background:#0066cc;color:#fff;}
+
+  @keyframes shake {
+    0% { transform: translateX(0px) rotate(0deg); }
+    20% { transform: translateX(-5px) rotate(-2deg); }
+    40% { transform: translateX(5px) rotate(2deg); }
+    60% { transform: translateX(-5px) rotate(-1deg); }
+    80% { transform: translateX(5px) rotate(1deg); }
+    100% { transform: translateX(0px) rotate(0deg); }
+  }
+  .shaking { animation: shake 0.5s ease-in-out 3; }
+
+  /* Gráficos */
+  #graficoBarras, #graficoTorta {
+    max-width: 380px;
+    max-height: 280px;
+    flex: 1 1 380px;
+  }
+  #graficos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px;
+  }
+  @media (max-width: 768px) {
+    #graficoBarras, #graficoTorta {
+      max-width: 95%;
+      max-height: 260px;
+    }
+  }
+
+  /* Planta de reciclaje */
+  .planta{
+    position:absolute;bottom:0;left:3%;
+    width:200px;height:230px;
+    display:flex;align-items:center;justify-content:center;
+    background:none;border:none;
+  }
+  .iconoPlanta{width:100%;height:100%;}
+  .iconoPlanta rect.base{fill:#10b981;transition:fill .5s ease;}
+  .planta.activa .iconoPlanta rect.base{fill:#34d399;}
+
+  .mensajePlanta{
+    position:absolute;top:-50px;left:50%;
+    transform:translateX(-50%);
+    background:#047857;color:white;
+    padding:6px 10px;border-radius:6px;
+    font-size:13px;font-weight:bold;
+    display:none;white-space:nowrap;
+  }
+
+  /* Humo animado con deriva */
+  .humo  { animation: subirHumoIzq 3s infinite;      opacity:.8; }
+  .humo2 { animation: subirHumoDer 3s infinite 1s;   opacity:.7; }
+  .humo3 { animation: subirHumoIzq 3s infinite 2s;   opacity:.6; }
+
+
+  @keyframes subirHumoIzq {
+    0%{transform:translate(0,0) scale(1);opacity:.85;}
+    33%{transform:translate(-6px,-14px) scale(1.05);opacity:.6;}
+    66%{transform:translate(-10px,-28px) scale(1.12);opacity:.35;}
+    100%{transform:translate(-14px,-42px) scale(1.2);opacity:0;}
+  }
+  @keyframes subirHumoDer {
+    0%{transform:translate(0,0) scale(1);opacity:.85;}
+    33%{transform:translate(6px,-14px) scale(1.05);opacity:.6;}
+    66%{transform:translate(10px,-28px) scale(1.12);opacity:.35;}
+    100%{transform:translate(14px,-42px) scale(1.2);opacity:0;}
+  }
+</style>
+</head>
+<body>
+
+<h1>🚛🗑️ Simulador de Recolección de Basura en la Comunidad</h1>
+
+<div class="escenario">
+  <!-- Colegio -->
+  <div class="colegio">
+    🏫
+    <div class="ventanas">
+      <div class="ventana"></div><div class="ventana"></div><div class="ventana"></div>
+      <div class="ventana"></div><div class="ventana"></div><div class="ventana"></div>
+      <div class="ventana"></div><div class="ventana"></div><div class="ventana"></div>
+    </div>
+    <div class="colegioTexto" id="textoColegio">Colegio: 0 kg/día</div>
+  </div>
+
+  <!-- Basurero -->
+  <div class="basurero">🗑️</div>
+
+  <!-- Planta con SVG -->
+  <div class="planta">
+    <svg viewBox="0 0 64 64" class="iconoPlanta">
+      <rect class="base" x="5" y="30" width="54" height="28" stroke="#333" stroke-width="2"/>
+      <rect x="25" y="40" width="14" height="18" fill="#065f46" stroke="#333" stroke-width="1"/>
+      <rect x="10" y="35" width="8" height="6" fill="#f0fdfa" stroke="#333" stroke-width="1"/>
+      <rect x="46" y="35" width="8" height="6" fill="#f0fdfa" stroke="#333" stroke-width="1"/>
+      <rect x="48" y="12" width="6" height="18" fill="#374151" stroke="#333" stroke-width="1"/>
+      <circle class="humo"  cx="51" cy="8" r="4"  fill="#d1d5db"/>
+      <circle class="humo2" cx="47" cy="6" r="3.5" fill="#e5e7eb"/>
+      <circle class="humo3" cx="53" cy="4" r="3"  fill="#f3f4f6"/>
+      <text x="32" y="55" text-anchor="middle" font-size="14" fill="white">♻️</text>
+    </svg>
+    <div class="mensajePlanta" id="mensajePlanta">♻️ El 100% de la basura fue procesada</div>
+  </div>
+
+  <!-- Camión ida -->
+  <div class="camion" id="camionIda" style="left:0%">
+    <div class="tanque">
+      <div class="contenedor-basura" id="contenedorBasuraIda"></div>
+      <div class="kg" id="kgIda">0 kg</div>
+    </div>
+    <div class="cabinaDer"></div>
+    <div class="rueda c1"></div><div class="rueda c2"></div><div class="rueda c3"></div>
+  </div>
+
+  <!-- Camión regreso -->
+  <div class="camion" id="camionRegreso" style="left:70%;display:none;">
+    <div class="cabinaIzq"></div>
+    <div class="tanque">
+      <div class="contenedor-basura" id="contenedorBasuraRegreso"></div>
+      <div class="kg" id="kgRegreso">0 kg</div>
+    </div>
+    <div class="rueda c1"></div><div class="rueda c2"></div><div class="rueda c3"></div>
+  </div>
+</div>
+
+<!-- Inputs -->
+<div>
+  <label>Capacidad (kg):</label>
+  <input type="number" id="capacidad" value="100">
+  <label>Recolección (kg/min):</label>
+  <input type="number" id="caudal" value="20"><br>
+  <label>Entrega (kg/min):</label>
+  <input type="number" id="caudalDescarga" value="30"><br>
+  <label>Distancia (km):</label>
+  <input type="number" id="distancia" value="20">
+  <label>Velocidad (km/h):</label>
+  <input type="number" id="velocidad" value="80"><br>
+  <button onclick="simular()">▶️ Iniciar simulación</button>
+</div>
+
+<div id="relojSimulado">Tiempo simulado: 0.0 min</div>
+<div id="relojReal">Tiempo real: 0 s</div>
+<div class="results" id="resultados"></div>
+
+<!-- Tabla -->
+<h2>📊 Registro de viajes</h2>
+<table id="tablaViajes">
+  <thead>
+    <tr>
+      <th>#</th><th>Distancia (km)</th><th>Capacidad (kg)</th><th>Recolección</th><th>Entrega</th>
+      <th>Ida (min)</th><th>%</th><th>Recolección (min)</th><th>%</th>
+      <th>Regreso (min)</th><th>%</th><th>Entrega (min)</th><th>%</th>
+      <th>Total (min)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- Gráficos -->
+<div id="graficos">
+  <canvas id="graficoBarras"></canvas>
+  <canvas id="graficoTorta"></canvas>
+</div>
+
+<script>
+let chartBarras, chartTorta, cronometroReal, contadorViajes=0;
+
+function avanzarTiempo(etapaMinutos,duracionMs,callback){
+  let relojSim=document.getElementById("relojSimulado");
+  let tiempoInicio=parseFloat(relojSim.textContent.split(": ")[1])||0;
+  let incremento=etapaMinutos/(duracionMs/100);
+  let tiempoActual=tiempoInicio;
+  let pasos=duracionMs/100;
+  let i=0;
+  let intervalo=setInterval(()=>{
+    i++;
+    tiempoActual+=incremento;
+    relojSim.textContent="Tiempo simulado: "+tiempoActual.toFixed(1)+" min";
+    if(i>=pasos){clearInterval(intervalo);if(callback)callback();}
+  },100);
+}
+
+function crearTrozo(){
+  let div=document.createElement("div");
+  div.className="trozo";
+  let colores=["#4b5563","#6b7280","#065f46","#78350f"];
+  div.style.background=colores[Math.floor(Math.random()*colores.length)];
+  let size=Math.floor(Math.random()*10)+10;
+  div.style.width=size+"px";
+  div.style.height=size+"px";
+  div.style.borderRadius=Math.random()>0.5?"50%":"3px";
+  return div;
+}
+
+function simular(){
+  let capacidad=parseFloat(document.getElementById("capacidad").value);
+  let caudal=parseFloat(document.getElementById("caudal").value);
+  let distancia=parseFloat(document.getElementById("distancia").value);
+  let velocidad=parseFloat(document.getElementById("velocidad").value);
+  let caudalDescarga=parseFloat(document.getElementById("caudalDescarga").value);
+
+  document.getElementById("textoColegio").textContent = "Colegio: " + capacidad + " kg/día";
+
+  let tiempoIda=(distancia/velocidad)*60; 
+  let tiempoRegreso=tiempoIda;
+  let tiempoRecoleccion=capacidad/caudal;
+  let tiempoEntrega=capacidad/caudalDescarga;
+  let tiempoTotal=tiempoIda+tiempoRecoleccion+tiempoRegreso+tiempoEntrega;
+
+  let camionIda=document.getElementById("camionIda");
+  let camionRegreso=document.getElementById("camionRegreso");
+  let contIda=document.getElementById("contenedorBasuraIda");
+  let contRegreso=document.getElementById("contenedorBasuraRegreso");
+  let kgIda=document.getElementById("kgIda");
+  let kgRegreso=document.getElementById("kgRegreso");
+  let mensajePlanta=document.getElementById("mensajePlanta");
+
+  contIda.innerHTML=""; contRegreso.innerHTML="";
+  kgIda.textContent="0 kg"; kgRegreso.textContent="0 kg";
+  mensajePlanta.style.display="none";
+
+  let escala=1000;
+  let seg=0;
+  clearInterval(cronometroReal);
+  cronometroReal=setInterval(()=>{seg++;document.getElementById("relojReal").textContent="Tiempo real: "+seg+" s";},1000);
+  document.getElementById("relojSimulado").textContent="Tiempo simulado: 0.0 min";
+
+  // === IDA ===
+  camionIda.style.display="flex"; camionRegreso.style.display="none";
+  camionIda.animate([{left:"0%"},{left:"70%"}],{duration:tiempoIda*escala,fill:"forwards"});
+  avanzarTiempo(tiempoIda,tiempoIda*escala,()=>{
+
+    // === RECOLECCIÓN ===
+    let kg=0, pasos=20, inc=capacidad/pasos, i=0;
+    let int=setInterval(()=>{
+      kg+=inc;
+      kgIda.textContent=Math.min(kg,capacidad).toFixed(0)+" kg";
+      contIda.appendChild(crearTrozo());
+
+      // 🔧 efecto "shaking" al 90% de carga
+      if(kg >= capacidad*0.9 && !camionIda.classList.contains("shaking")){
+        camionIda.classList.add("shaking");
+        setTimeout(()=>camionIda.classList.remove("shaking"),1500);
+      }
+
+      if(++i>=pasos){clearInterval(int);
+
+        // === REGRESO ===
+        camionIda.style.display="none"; camionRegreso.style.display="flex";
+        camionRegreso.style.left="70%";
+        contRegreso.innerHTML=contIda.innerHTML;
+        kgRegreso.textContent=capacidad+" kg";
+
+        camionRegreso.animate([{left:"70%"},{left:"0%"}],{duration:tiempoRegreso*escala,fill:"forwards"});
+        avanzarTiempo(tiempoRegreso,tiempoRegreso*escala,()=>{
+
+          // === ENTREGA ===
+          let j=0;
+          let intD=setInterval(()=>{
+            if(contRegreso.children.length>0){
+              contRegreso.removeChild(contRegreso.lastChild);
+              let restante=Math.max(capacidad-(j+1)*inc,0);
+              kgRegreso.textContent=restante.toFixed(0)+" kg";
+            }
+            j++;
+            if(j>=pasos){
+              clearInterval(intD); clearInterval(cronometroReal);
+
+              // === Reporte ===
+              let comparativo="";
+              if(caudalDescarga>caudal){comparativo="📊 Entrega más rápida que la recolección.";}
+              else if(caudalDescarga<caudal){comparativo="📊 Entrega más lenta que la recolección.";}
+              else{comparativo="📊 Se recolecta y entrega en el mismo tiempo.";}
+
+              document.getElementById("resultados").innerHTML=
+                `✅ Ciclo completado<br>
+                 ⏩ Ida: ${tiempoIda.toFixed(1)} min<br>
+                 🗑️ Recolección: ${tiempoRecoleccion.toFixed(1)} min<br>
+                 ⏪ Regreso: ${tiempoRegreso.toFixed(1)} min<br>
+                 📤 Entrega: ${tiempoEntrega.toFixed(1)} min<br>
+                 🕒 Total: ${tiempoTotal.toFixed(1)} min<br>
+                 ${comparativo}`;
+
+              // === Tabla ===
+              contadorViajes++;
+              let pIda=(tiempoIda/tiempoTotal*100).toFixed(1)+"%";
+              let pRec=(tiempoRecoleccion/tiempoTotal*100).toFixed(1)+"%";
+              let pReg=(tiempoRegreso/tiempoTotal*100).toFixed(1)+"%";
+              let pEnt=(tiempoEntrega/tiempoTotal*100).toFixed(1)+"%";
+
+              let fila=`<tr>
+                <td>${contadorViajes}</td>
+                <td>${distancia}</td><td>${capacidad}</td><td>${caudal}</td><td>${caudalDescarga}</td>
+                <td>${tiempoIda.toFixed(1)}</td><td>${pIda}</td>
+                <td>${tiempoRecoleccion.toFixed(1)}</td><td>${pRec}</td>
+                <td>${tiempoRegreso.toFixed(1)}</td><td>${pReg}</td>
+                <td>${tiempoEntrega.toFixed(1)}</td><td>${pEnt}</td>
+                <td>${tiempoTotal.toFixed(1)}</td>
+              </tr>`;
+              document.querySelector("#tablaViajes tbody").innerHTML+=fila;
+
+              // === Gráficos ===
+              if(chartBarras) chartBarras.destroy();
+              if(chartTorta) chartTorta.destroy();
+
+              let ctx1=document.getElementById("graficoBarras").getContext("2d");
+              chartBarras=new Chart(ctx1,{
+                type:"bar",
+                data:{labels:["Ida","Recolección","Regreso","Entrega"],
+                      datasets:[{label:"Tiempo (min)",data:[tiempoIda,tiempoRecoleccion,tiempoRegreso,tiempoEntrega],
+                                 backgroundColor:["#3b82f6","#22c55e","#f97316","#9333ea"]}]},
+                options:{responsive:true,
+                  plugins:{legend:{display:false},title:{display:true,text:"Duración de cada etapa"}},
+                  scales:{x:{title:{display:true,text:"Etapas"}},y:{title:{display:true,text:"Tiempo (min)"},beginAtZero:true}}
+                }
+              });
+
+              let ctx2=document.getElementById("graficoTorta").getContext("2d");
+              chartTorta=new Chart(ctx2,{
+                type:"pie",
+                data:{labels:["Ida","Recolección","Regreso","Entrega"],
+                      datasets:[{data:[tiempoIda,tiempoRecoleccion,tiempoRegreso,tiempoEntrega],
+                                 backgroundColor:["#3b82f6","#22c55e","#f97316","#9333ea"]}]},
+                options:{
+                  responsive:true,
+                  plugins:{
+                    legend:{position:"bottom"},
+                    title:{display:true,text:"Distribución porcentual del tiempo por etapa"},
+                    datalabels:{formatter:(v,ctx)=>{
+                      const data=ctx.chart.data.datasets[0].data;
+                      const sum=data.reduce((a,b)=>a+b,0);
+                      return (v/sum*100).toFixed(1)+"%";
+                    },color:"#fff",font:{weight:"bold",size:14}}
+                  }
+                },
+                plugins:[ChartDataLabels]
+              });
+
+              // === Mensaje planta y humo activo ===
+              mensajePlanta.style.display="block";
+              document.querySelector(".planta").classList.add("activa");
+              setTimeout(()=>{
+                mensajePlanta.style.display="none";
+                document.querySelector(".planta").classList.remove("activa");
+              },4000);
+            }
+          }, (tiempoEntrega*escala)/pasos);
+        });
+      }
+    }, (tiempoRecoleccion*escala)/pasos);
+  });
+}
+</script>
+
+</body>
+</html>

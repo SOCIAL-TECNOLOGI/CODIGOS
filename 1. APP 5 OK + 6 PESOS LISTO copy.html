@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Calculadora de Huella Ecológica</title>
+  <style>
+    /* Estilos para ocultar elementos */
+.hidden {
+  display: block;
+}
+
+/* Estilos generales del cuerpo */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f2f2f2;
+}
+
+/* Contenedor principal */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 2px solid #ccc;
+}
+
+
+/* Estilos para el encabezado principal */
+h1 {
+  text-align: center;
+  background-color: #0674a3;
+  color: white;
+  padding: 20px;
+  margin: 0;
+}
+
+/* Estilos para etiquetas */
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Estilos para campos de entrada numérica CONTEO RECICLAJE */
+input[type="number"] {
+  width: 35%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 18px;
+  margin-left: 33%;
+  font-weight: bold; /* Texto en negrita */   
+
+}
+
+
+/* Estilos para botones */
+button {
+  display: block;
+  width: 10%; /* Ancho del 100% para centrar */
+  background-color: #0674a3;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+
+/* Estilos para títulos secundarios */
+h2 {
+  text-align: center;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+/* Estilos para tablas */
+table {
+  width:100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  
+}
+
+
+th, td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+/* ESTILOS PARA ENCABEZADOS DE LA TABLA DE IMPACTO AMBIENTAL */
+th.consumo {
+  background-color:#0674a3;
+  color: white;
+  font-weight: bold; /* Texto en negrita */
+  text-align: center; /* Alineación al centro */
+}
+
+/* ESTILOS PARA ENCABEZADOS DE LA TABLA DE PESOS EN GRAMOS */
+th.pesos-gramos {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold; /* Texto en negrita */
+  text-align: center; /* Alineación al centro */
+}
+
+/* ESTILOS PARA ENCABEZADOS DE LA TABLA DE RECOMENDACIONES */
+th.recomendaciones {
+  background-color: #0674a3;
+  color: white;
+  font-weight: bold; /* Texto en negrita */
+  text-align: center; /* Alineación al centro */
+}
+
+
+
+/* Añade estilos para los comentarios debajo de la tabla de recomendaciones */
+.texto-descriptivo {
+  text-align: center;
+  background-color: #ffffff;
+  font-weight: bold; /* Texto en negrita */
+  font-size: 25px;
+  color: rgb(0, 0, 0);
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px; /* Borde redondeado */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+
+/* Estilos para los comentarios */
+.texto-descriptivo p {
+  margin: 10px;
+  padding: 10px;
+  background-color: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s;
+}
+.texto-descriptivo a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.texto-descriptivo a:hover {
+  text-decoration: underline;
+}
+
+
+
+.texto-descriptivo p:hover {
+  background-color: #e0e0e0;
+}
+
+
+/* Estilos para los resultados de la calculadora */
+#resultado_hectareas {
+  font-size: 20px; /* Tamaño de fuente aumentado */
+  color: #4CAF50; /* Color de texto verde */
+  font-weight: bold; /* Texto en negrita */
+  margin-top: 15px; /* Espacio superior */
+  padding: 10px; /* Espaciado interno */
+  background-color: #e0f2e9; /* Fondo ligeramente coloreado */
+  border: 1px solid #4CAF50; /* Borde delgado */
+  border-radius: 5px; /* Borde redondeado */
+  text-align: center; /* Alineación al centro */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+
+
+
+/* Estilos para la tabla de recomendaciones (inicialmente oculta) */
+table.recomendaciones {
+  width: 100%;
+  display: none;
+  border-collapse: collapse;
+  margin: 20px 0;
+  
+}
+
+
+td {
+  text-align: justify;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+
+table.recomendaciones th, table.recomendaciones td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Estilos para el texto en las celdas de encabezado */
+table.recomendaciones th {
+  font-size: 18px;
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  text-align: center; /* Alineación al centro */
+}
+
+/* Estilos para las filas pares (opcional) */
+table.recomendaciones tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Estilos para el texto en las celdas */
+table.recomendaciones td {
+  font-size: 40px;
+}
+
+/* Estilos para los comentarios en la tabla de recomendaciones */
+table.recomendaciones p {
+  margin: 0;
+  padding: 5px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #333;
+}
+
+/* Estilos para el botón de reinicio */
+#reiniciarBtn {
+  background-color: #e74c3c; /* Color de fondo */
+  color: white; /* Color de texto */
+  padding: 10px 20px; /* Espaciado interno */
+  border: none; /* Borde */
+  border-radius: 5px; /* Borde redondeado */
+  cursor: pointer; /* Cambio de cursor al pasar el mouse */
+  margin-top: 10px; /* Espacio superior */
+  transition: background-color 0.3s; /* Transición suave de color al pasar el mouse */
+}
+
+#reiniciarBtn:hover {
+  background-color: #c0392b; /* Color de fondo al pasar el mouse */
+}
+
+/* ESTILOS CONTENEDOR DE VÍDEO E IMÁGENES PATROCINADORES */
+.nuevo-contenedor {
+  background-color: #ffffff; /* Fondo blanco */
+  padding: 20px; /* Relleno de 20 píxeles en todas las direcciones */
+  margin: 20px 0; /* Margen superior e inferior de 20 píxeles, sin margen en los lados */
+  border: 7px solid #ccc; /* Borde con un borde sólido de 1 píxel y color gris claro */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  border-radius: 5px; /* Bordes redondeados de 5 píxeles */
+  color: #333; /* Color del texto */
+  font-size: 16px; /* Tamaño de fuente de 16 píxeles */
+  line-height: 1.5; /* Espaciado entre líneas de 1.5 */
+}
+
+/* Estilos para los enlaces dentro del contenedor */
+.nuevo-contenedor a {
+  color: #0077cc; /* Color de enlace azul */
+  text-decoration: none; /* Sin subrayado en los enlaces */
+}
+
+/* Estilos para los enlaces al pasar el ratón sobre ellos */
+.nuevo-contenedor a:hover {
+  text-decoration: underline; /* Subrayado en los enlaces al pasar el ratón */
+}
+
+/*CONTENEDOR DE IMÁGENES */
+
+    #contenedor-imagenes { 
+    text-align: center;
+    margin: 0px;
+    background-color: #ffffff; /* Fondo blanco */
+}
+
+.imagen-1 {
+    width: 150px; /* Tamaño personalizado para la primera imagen */
+    margin: 10px; /* Margen personalizado para la primera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la primera imagen */
+    border-radius: 5px; /* Borde redondeado personalizado para la primera imagen */
+}
+
+.imagen-2 {
+    width: 230px; /* Tamaño personalizado para la segunda imagen */
+    margin: 15px; /* Margen personalizado para la segunda imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la segunda imagen */
+    border-radius: 8px; /* Borde redondeado personalizado para la segunda imagen */
+}
+
+.imagen-3 {
+    width: 250px; /* Tamaño personalizado para la tercera imagen */
+    margin: 12px; /* Margen personalizado para la tercera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+    border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+}
+
+.imagen-4 {
+    width: 180px; /* Tamaño personalizado para la tercera imagen */
+    margin: 12px; /* Margen personalizado para la tercera imagen */
+    border: 2px solid #ffffff; /* Borde personalizado para la tercera imagen */
+    border-radius: 4px; /* Borde redondeado personalizado para la tercera imagen */
+}  
+
+
+#contenedor-videos { /* VÍDEOS */
+    text-align: center;
+    margin: 20px;
+}
+
+#contenedor-videos iframe {
+    width: 300px; /* Ajusta el ancho del video según tus preferencias */
+    max-width: 400px; /* Define un ancho máximo para mantener el diseño responsivo */
+    height: 290px; /* Ajusta la altura automáticamente según la relación de aspecto del video */
+    margin-left: 20px;
+}
+
+.boton {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #050771;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold; /* Peso de la fuente */
+    font-size: 16px; /* Tamaño de fuente */
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    font-weight: bold;
+    
+}
+
+.boton:hover {
+    background-color: #046b49;
+}
+
+  .BOTONES{display: flex; justify-content: center}
+
+/* Estilos para centrar el botón */
+.centrar-boton {
+    display: flex;
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    height: 100vh; /* Asegura que el contenedor ocupe toda la altura de la ventana */
+  }
+  
+  
+/* Estilos para el botón "Conocer Más" */
+#conocer-mas-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center; /* Centrar el texto horizontalmente */
+  display: inline-block; /* Hacer que el botón sea un bloque en línea */
+  font-size: 16px; /* Tamaño de fuente */
+  transition: background-color 0.3s; /* Transición de color de fondo */
+}
+
+#conocer-mas-btn:hover {
+  background-color: #45a049;
+}
+
+.BOTÓN-CONOCER-MÁS{display: flex; justify-content: center}
+  
+.conteo-reciclaje{text-align: center;}
+
+/* Estilos para centrar el contenido de la clase (CALCULADORES) CONTEO RECICLAJE */
+.conteo-reciclaje {
+  text-align: center;
+  font-weight: bold; /* Texto en negrita */
+  font-size: 18px;
+  background-color: #d2dee8; /* Fondo gris claro */
+  padding: 10px; /* Relleno de 10 píxeles */
+  width: 35%;
+  margin-left: 33%;
+
+}
+
+
+th, td {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+/* Estilos para los elementos <strong> dentro del párrafo HUELLA ECOLÓGICA */
+  .titulo-strong {
+    font-weight: bold;
+    color: #0066cc; /* Color azul (puedes cambiarlo al color que desees) #0c63bb #0066cc*/
+    font-size: 1.15em; /* Tamaño de fuente */
+}
+
+/* Estilos para el elemento <span> dentro del párrafo HUELLA ECOLÓGICA */
+.resultado-span {
+    font-weight: bold;
+    color: #00cc00; /* Color verde (puedes cambiarlo al color que desees)   #00cc00 */
+    font-size: 1.4em; /* Tamaño de fuente */
+    margin: 0 5px; /* Espacio entre el número y "Hectáreas Globales" */
+}
+
+/* Estilos generales para el párrafo #huella_ecologica */
+#huella_ecologica {
+    text-align: center; /* Centrar el contenido del párrafo */
+    margin: 20px; /* Márgenes exteriores del párrafo */
+}
+
+/* Estilos para los elementos <strong> dentro del párrafo con clase .texto-descriptivo */
+  .texto-descriptivo strong {
+    font-weight: bold; /* Peso de la fuente en negrita */
+    color: #009900; /* Color del texto (puedes cambiarlo al color que desees) */
+    font-size: 1.1em; /* Tamaño de fuente (ajusta según tus preferencias) */
+}
+
+/*BARRA DE DESPLAZAMIENTO*/
+body {
+  scrollbar-width: thin; /* Establece el ancho de la barra de desplazamiento a "thin" */
+  scrollbar-color: transparent transparent; /* Establece el color de la barra de desplazamiento en transparente */
+  -ms-overflow-style: none; /* Para Internet Explorer */
+}
+
+/* Estilos de la barra de desplazamiento en Webkit (Chrome, Safari, etc.) */
+body::-webkit-scrollbar {
+  width: 8px; /* Establece el ancho de la barra de desplazamiento */
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: transparent; /* Establece el color de la barra de desplazamiento en transparente */
+}
+
+body::-webkit-scrollbar-track {
+  background-color: transparent; /* Establece el color del fondo de la barra de desplazamiento en transparente */
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>CALCULADORA AMBIENTAL</h1><br><br>
+<label class="conteo-reciclaje" for="cantidad_latas">Cantidad de latas de aluminio:</label><br>
+<input type="number" id="cantidad_latas" placeholder="0"><br><br>
+<label class="conteo-reciclaje" for="cantidad_cuadernos">Cantidad de cuadernos:</label><br>
+<input type="number" id="cantidad_cuadernos" placeholder="0"><br><br>
+<label class="conteo-reciclaje" for="cantidad_botellas">Cantidad de botellas plásticas:</label><br>
+<input type="number" id="cantidad_botellas" placeholder="0"><br><br>
+<!-- BOTONES DE CALCULAR Y REINICIAR -->
+<span class="BOTONES"><button onclick="calcularImpacto()">Calcular Impacto</button><button onclick="reiniciarCalculadora()">Reiniciar</button></span><br><br> 
+<h2 class="hidden">Impacto de tu reciclaje:</h2>
+<div class="hidden">
+<!-- TABLA CONSUMO DE RECURSOS -->
+  <table>
+    <tr>
+      <th class="consumo">Tipo de Material Reciclable</th>
+      <th class="consumo">Energía (kWh)</th>
+      <th class="consumo">Agua (litros)</th>
+      <th class="consumo">Emisiones de CO2 (kg)</th>
+    </tr>
+    <tr>
+      <td>Lata de Aluminio</td>
+      <td><span id="lata_energia">0.00</span> kWh</td>
+      <td><span id="lata_agua">0.00</span> litros</td>
+      <td><span id="lata_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td>Cuaderno (100 hojas)</td>
+      <td><span id="cuaderno_energia">0.00</span> kWh</td>
+      <td><span id="cuaderno_agua">0.00</span> litros</td>
+      <td><span id="cuaderno_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td>Botella Plástica</td>
+      <td><span id="botella_energia">0.00</span> kWh</td>
+      <td><span id="botella_agua">0.00</span> litros</td>
+      <td><span id="botella_co2">0.00</span> kg</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td><strong><span id="total_energia">0.00</span> kWh</strong></td>
+      <td><strong><span id="total_agua">0.00</span> litros</strong></td>
+      <td><strong><span id="total_co2">0.00</span> kg</strong></td>
+    </tr>
+  </table><br>
+  <canvas id="grafico"></canvas>   
+  <p id="huella_ecologica">
+    <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+    <span id="resultado_hectareas" class="resultado-span">0.00</span>
+<strong class="titulo-strong">Hectáreas Globales</strong><br><br>
+<!-- TABLA DE PESOS EN GRAMOS -->
+<table>
+  <tr>
+      <th class="pesos-gramos">Tipo de Material Reciclable</th>
+      <th class="pesos-gramos">Peso Promedio (gramos)</th>
+      <th class="pesos-gramos">Peso Total (gramos)</th>
+  </tr>
+  <tr>
+      <td>Cuaderno de 100 hojas</td>
+      <td>160</td>
+      <td id="peso_cuadernos">0</td>
+  </tr>
+  <tr>
+      <td>Lata de aluminio</td>
+      <td>12</td>
+      <td id="peso_latas">0</td>
+  </tr>
+  <tr>
+      <td>Botella plástica de 500 mL</td>
+      <td>20</td>
+      <td id="peso_botellas">0</td>
+  </tr>
+  <tr>
+      <td><strong>Peso Total del Material Reciclado</strong></td>
+      <td></td>
+      <td id="peso_total"><strong>0</strong></td>
+  </tr>
+</table>
+  <span class="recomendaciones">
+    <p class="texto-descriptivo"><strong>Recomendaciones Ambientales</strong></p>
+    <!-- TABLA DE RECOMENDACIONES -->
+    <table>
+      <tr>
+      <th class="recomendaciones">AHORRO DE ENERGÍA</th>
+      <th class="recomendaciones">AHORRO DE AGUA</th>
+      <th class="recomendaciones">MENOS EMISIONES DE CO2</th>
+    </tr>
+    <tr> 
+      <td>Reduce el consumo de Energía (kWh) - Usa Energía Renovable: Cambia a fuentes de energía renovable, como la energía solar o eólica, para reducir la dependencia de combustibles fósiles. - Aplica la Eficiencia Energética: Mejora la eficiencia energética en tu hogar o negocio. Utiliza bombillas LED, electrodomésticos eficientes y aísla bien tu vivienda.</td>
+      <td>Reduce el consumo de Agua (Litros) - Reutilizar y Reciclar: Utiliza sistemas de reciclaje de agua para reutilizar el agua de lluvia y aguas grises para fines no potables, como el riego del jardín. - Arreglar Fugas: Repara las fugas de agua en tuberías y grifos, ya que las fugas desperdician grandes cantidades de agua</td>
+      <td>Reduce las emisiones de CO2 (Kg) - Transporte Sostenible: Opta por el transporte público, carpooling o usa vehículos eléctricos para reducir las emisiones de CO2 relacionadas con el transporte. - Reducir Uso de Combustibles Fósiles: Disminuye tu dependencia de combustibles fósiles, como la gasolina, y considera utilizar vehículos más eficientes en términos de consumo de combustible.</td>
+    </tr>
+  </table>
+</span>
+</div>
+<!-- CONTENEDOR DE VÍDEOS E IMÁGENES PATROCINADORES-->
+<div id="contenedor-videos">
+  <iframe width="150" height="85" src="https://www.youtube.com/embed/jL4cwuC4Mls" frameborder="0" allowfullscreen></iframe>
+  <iframe src="https://archivo.lostutores.co/embed/0e3x2a02600b4ce7147e1bff0dac587636f1e?toolbar=false&appearance=light&themecolor=green" scrolling="no" frameborder="0" allowfullscreen=true width="800" height="620"></iframe>
+  <!-- Repite este bloque iframe para más vídeos si es necesario -->
+</div>
+<BR>
+<p class="texto-descriptivo">PATROCINADORES</p>
+<div id="contenedor-imagenes">
+  <img src="https://us.iearn.org/assets/imgs/partners_americas_logo.jpg" alt="Imagen 1" class="imagen-1">
+  <img src="https://us.iearn.org/assets/imgs/partners_americas_logo.jpg" alt="Imagen 2" class="imagen-2">
+  <img src="https://www.fedusocial.org/cedecur%20-%20copia.png" alt="Imagen 3" class="imagen-3">
+  <img src="https://download-accl.zoho.com/v1/workdrive/previewdata/4as8j810d693aaecc41a0b7b8639ddbaacdb0?orig=true" alt="Imagen 4" class="imagen-4"> 
+</div><br>
+<!-- BOTÓN CONOCER MÁS -->
+<div> <span class="BOTÓN-CONOCER-MÁS"><a href="https://www.recyclass.org" target="_blank" class="boton">¡Conocer Más!</a></span></div><br> 
+<div id="contenedor" style="display: none;">
+    <!-- Contenido de tu contenedor -->
+</div>
+<script>
+function calcularImpacto() {
+  var cantidad_latas = parseFloat(document.getElementById("cantidad_latas").value);
+  var cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value);
+  var cantidad_botellas = parseFloat(document.getElementById("cantidad_botellas").value);
+  if (cantidad_latas > 0 || cantidad_cuadernos > 0 || cantidad_botellas > 0) {
+    var lata_energia = cantidad_latas * 15;
+    var lata_agua = cantidad_latas * 1.5;
+    var lata_co2 = cantidad_latas * 2.7;
+    var cuaderno_energia = cantidad_cuadernos * 2;
+    var cuaderno_agua = cantidad_cuadernos * 10;
+    var cuaderno_co2 = cantidad_cuadernos * 1.5;
+    var botella_energia = cantidad_botellas * 1.9;
+    var botella_agua = cantidad_botellas * 3;
+    var botella_co2 = cantidad_botellas * 0.9;
+    var total_energia = lata_energia + cuaderno_energia + botella_energia;
+    var total_agua = lata_agua + cuaderno_agua + botella_agua;
+    var total_co2 = lata_co2 + cuaderno_co2 + botella_co2;
+    document.getElementById("lata_energia").textContent = lata_energia.toFixed(2);
+    document.getElementById("lata_agua").textContent = lata_agua.toFixed(2);
+    document.getElementById("lata_co2").textContent = lata_co2.toFixed(2);
+    document.getElementById("cuaderno_energia").textContent = cuaderno_energia.toFixed(2);
+    document.getElementById("cuaderno_agua").textContent = cuaderno_agua.toFixed(2);
+    document.getElementById("cuaderno_co2").textContent = cuaderno_co2.toFixed(2);
+    document.getElementById("botella_energia").textContent = botella_energia.toFixed(2);
+    document.getElementById("botella_agua").textContent = botella_agua.toFixed(2);
+    document.getElementById("botella_co2").textContent = botella_co2.toFixed(2);
+    document.getElementById("total_energia").textContent = total_energia.toFixed(2);
+    document.getElementById("total_agua").textContent = total_agua.toFixed(2);
+    document.getElementById("total_co2").textContent = total_co2.toFixed(2);
+    var hectareas_globales = total_co2 / 2.7;
+    document.getElementById("resultado_hectareas").textContent = hectareas_globales.toFixed(2);
+            // CALCULO DE LA TABLA DE PESOS
+    const cantidadLatas = parseInt(document.getElementById("cantidad_latas").value);
+            const cantidadCuadernos = parseInt(document.getElementById("cantidad_cuadernos").value);
+            const cantidadBotellas = parseInt(document.getElementById("cantidad_botellas").value);
+            const pesoLatas = cantidadLatas * 12; // Peso promedio de lata de aluminio
+            const pesoCuadernos = cantidadCuadernos * 160; // Peso promedio de cuaderno
+            const pesoBotellas = cantidadBotellas * 20; // Peso promedio de botella plástica
+            const pesoTotal = pesoLatas + pesoCuadernos + pesoBotellas;
+            document.getElementById("peso_latas").textContent = pesoLatas;
+            document.getElementById("peso_cuadernos").textContent = pesoCuadernos;
+            document.getElementById("peso_botellas").textContent = pesoBotellas;
+            // Aplicar la etiqueta <strong> al resultado y establecer el contenido HTML
+            const pesoTotalElement = document.getElementById("peso_total");
+            pesoTotalElement.innerHTML = "<strong>" + pesoTotal + "</strong>";
+            // Muestra la tabla de recomendaciones
+document.querySelector(".recomendaciones").style.display = "table";
+  }
+}
+function reiniciarTabla() {
+    // Restablecer los valores de la tabla a cero
+    document.getElementById("peso_latas").textContent = "0";
+    document.getElementById("peso_cuadernos").textContent = "0";
+    document.getElementById("peso_botellas").textContent = "0";
+    document.getElementById("peso_total").innerHTML= "<strong>" + 0 + "</strong>";    
+   // Aplicar la etiqueta <strong> y establecer el contenido HTML en negrita
+    document.getElementById("lata_energia").textContent = '0'
+    document.getElementById("lata_agua").textContent = '0'
+    document.getElementById("lata_co2").textContent = '0'
+    document.getElementById("cuaderno_energia").textContent = '0'
+    document.getElementById("cuaderno_agua").textContent = '0'
+    document.getElementById("cuaderno_co2").textContent ='0' 
+    document.getElementById("botella_energia").textContent = '0'
+    document.getElementById("botella_agua").textContent ='0' 
+    document.getElementById("botella_co2").textContent ='0'
+    document.getElementById("total_energia").textContent = '0'
+    document.getElementById("total_agua").textContent = '0'
+    document.getElementById("total_co2").textContent ='0'
+    document.getElementById("resultado_hectareas").textContent = '0.00';
+   // Oculta la tabla de recomendaciones
+document.querySelector(".recomendaciones").style.display = "none";
+}
+// Llamada a la función reiniciarTabla() cuando se hace clic en el botón "Reiniciar"
+function reiniciarCalculadora() {
+    // Restablecer las entradas
+    document.getElementById("cantidad_latas").value = "";
+    document.getElementById("cantidad_cuadernos").value = "";
+    document.getElementById("cantidad_botellas").value = "";
+    // Ocultar la tabla y el resultado
+    document.querySelector("h2").classList.add("hidden");
+    document.querySelector("div").classList.add("hidden");
+    // Llama a la función para reiniciar la tabla
+    reiniciarTabla();
+}
+// Mostrar los comentarios debajo de la tabla de recomendaciones
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioEnergia}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioAgua}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioCO2}</p>`);
+document.querySelector(".texto-descriptivo").insertAdjacentHTML('afterend', `<p>${comentarioCoche}</p>`);
+// Obtén los datos de la tabla de consumo de recursos y la huella ecológica
+var labels = ["Lata de Aluminio", "Cuaderno (100 hojas)", "Botella Plástica", "Huella Ecológica (hectáreas globales)"];
+var energiaData = [15, 2, 1.9, 5]; // Consumo de energía en kWh por unidad
+var aguaData = [1.5, 10, 3, 25]; // Consumo de agua en litros por unidad
+var co2Data = [2.7, 1.5, 0.9, 4]; // Emisiones de CO2 en kg por unidad
+  var ctx = document.getElementById("grafico").getContext("2d");
+  var myChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Energía (kWh)",
+          data: energiaData,
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: "Agua (litros)",
+          data: aguaData,
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: "Emisiones de CO2 (kg)",
+          data: co2Data,
+          backgroundColor: "rgba(255, 206, 86, 0.2)",
+          borderColor: "rgba(255, 206, 86, 1)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  }); 
+  
+ // Obtén los datos de la tabla de consumo de recursos y la huella ecológica
+ var labels = ["Lata de Aluminio", "Cuaderno (100 hojas)", "Botella Plástica", "Huella Ecológica (hectáreas globales)"];
+  var energiaData = [15, 2, 1.9, 0]; // Reemplaza estos valores con los datos correctos
+  var aguaData = [1.5, 10, 3, 0]; // Reemplaza estos valores con los datos correctos
+  var co2Data = [2.7, 1.5, 0.9, 0]; // Reemplaza estos valores con los datos correctos
+
+  var ctx = document.getElementById("grafico").getContext("2d");
+
+  var myChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Energía (kWh)",
+          data: energiaData,
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: "Agua (litros)",
+          data: aguaData,
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgba(255, 99, 132, 1)",
+          borderWidth: 1,
+        },
+        {
+          label: "Emisiones de CO2 (kg)",
+          data: co2Data,
+          backgroundColor: "rgba(255, 206, 86, 0.2)",
+          borderColor: "rgba(255, 206, 86, 1)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+  
+
+</script>
+
+</body>
+</html>

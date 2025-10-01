@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    #canvas-container,
+    #draggable-button {
+      position: absolute;
+    }
+
+    #canvas-container {
+      display: none;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="canvas" width="1330" height="900"></canvas>
+  </div>
+
+  <button id="draggable-button" onclick="toggleCanvas()">Toggle Canvas</button>
+
+  <script>
+    const canvasContainer = document.getElementById('canvas-container');
+    const canvas = document.getElementById('canvas');
+    const draggableButton = document.getElementById('draggable-button');
+    const context = canvas.getContext('2d');
+
+    let isDrawing = false;
+    let offsetX, offsetY;
+
+    function draw(x, y) {
+      if (!isDrawing) return;
+
+      context.lineTo(x, y);
+      context.stroke();
+    }
+
+    function startDrawing(x, y) {
+      isDrawing = true;
+      context.beginPath();
+      context.moveTo(x, y);
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    function handleMouseDown(e) {
+      const mouseX = e.clientX - canvas.offsetLeft;
+      const mouseY = e.clientY - canvas.offsetTop;
+      startDrawing(mouseX, mouseY);
+    }
+
+    function handleMouseMove(e) {
+      const mouseX = e.clientX - canvas.offsetLeft;
+      const mouseY = e.clientY - canvas.offsetTop;
+      draw(mouseX, mouseY);
+    }
+
+    function handleMouseUp() {
+      stopDrawing();
+    }
+
+    function toggleCanvas() {
+      canvasContainer.style.display = canvasContainer.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function handleButtonMouseDown(e) {
+      e.preventDefault();
+      offsetX = e.clientX - canvasContainer.getBoundingClientRect().left;
+      offsetY = e.clientY - canvasContainer.getBoundingClientRect().top;
+      window.addEventListener('mousemove', handleButtonDrag);
+      window.addEventListener('mouseup', handleButtonMouseUp);
+    }
+
+    function handleButtonDrag(e) {
+      canvasContainer.style.left = e.clientX - offsetX + 'px';
+      canvasContainer.style.top = e.clientY - offsetY + 'px';
+    }
+
+    function handleButtonMouseUp() {
+      window.removeEventListener('mousemove', handleButtonDrag);
+      window.removeEventListener('mouseup', handleButtonMouseUp);
+    }
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    draggableButton.addEventListener('mousedown', handleButtonMouseDown);
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Reciclaje: Cantidades y Porcentajes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script> <!-- Complemento -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            width: 800px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            font-size: 18px; /* Nuevo tamaño de título */
+        }
+        canvas {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+    
+</head>
+<body>
+
+<div class="container">
+    <h2>Reciclaje: Cantidades y Porcentajes</h2>
+    <canvas id="graficoReciclaje"></canvas>
+</div>
+
+<script>
+    const ctx = document.getElementById('graficoReciclaje').getContext('2d');
+
+    // Datos
+    const cantidadesLatas = [126, 436, 562];
+    const cantidadesBotellas = [172, 1139, 1311];
+    const totalLatas = 562;
+    const totalBotellas = 1311;
+
+    // Calcular porcentajes
+    const porcentajesLatas = cantidadesLatas.map(cantidad => ((cantidad / totalLatas) * 100).toFixed(2));
+    const porcentajesBotellas = cantidadesBotellas.map(cantidad => ((cantidad / totalBotellas) * 100).toFixed(2));
+
+    const graficoReciclaje = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['La Esperanza', 'La Magdalena', 'Total'],
+            datasets: [
+                {
+                    label: 'Latas de Aluminio',
+                    data: cantidadesLatas,
+                    backgroundColor: 'rgba(255, 159, 64, 0.8)', // Color anaranjado
+                    yAxisID: 'yCantidad',
+                    datalabels: {
+                        align: 'end',
+                        anchor: 'end',
+                        formatter: (value, context) => `${value} (${porcentajesLatas[context.dataIndex]}%)`
+                    }
+                },
+                {
+                    label: 'Botellas Plásticas',
+                    data: cantidadesBotellas,
+                    backgroundColor: '#2e97b7', // Nueva tonalidad azul
+                    yAxisID: 'yCantidad',
+                    datalabels: {
+                        align: 'end',
+                        anchor: 'end',
+                        formatter: (value, context) => `${value} (${porcentajesBotellas[context.dataIndex]}%)`
+                    }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                datalabels: {
+                    color: 'black',
+                    font: {
+                        weight: 'bold'
+                    }
+                },
+                tooltip: {
+                    enabled: true, // Tooltips activos al pasar el mouse
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                yCantidad: {
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cantidad'
+                    },
+                    ticks: {
+                        stepSize: 100 // Incremento de 100 en 100
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels] // Activar complemento
+    });
+
+    // Negrita en etiquetas de eje X
+    Chart.defaults.font.size = 14;
+    Chart.defaults.font.weight = 'bold';
+</script>
+
+</body>
+</html>

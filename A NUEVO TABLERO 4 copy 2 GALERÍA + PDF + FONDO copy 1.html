@@ -1,0 +1,2589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Imágenes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Zoa3j3+UUp4GTrvQp6XasbkKs6Dzotnj8TbXv5gTp8u+l3XnK5cFX2nLh5xH+5lCeV9d3kxwkUpd0uPiw8uP6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-cZP5jGZc4Cvq7Sf9RfpRF5WMimNmWuZzReAPJid9l7JzhAlqP5SdsbRxHN5j7umv1u2pBcZIqwCVtKTh/h0E1A==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.1.0/math.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+    
+
+   <style>
+       #lienzo {
+            border: 1px solid #107c8a;
+            background-color: #107c8a;
+            cursor: crosshair;
+        }
+
+        #tools {
+            margin-top: 5px;
+        }
+
+/* CONTENEDOR DEL MENÚ */
+        #tools {
+    position: fixed;
+    top: 4px;
+    z-index: 3000;
+    background-color: transparent; /* Color de fondo del contenedor */
+    border: 0px solid transparent; /* Borde del contenedor */
+    padding: 10px; /* Espaciado interno del contenedor */
+    border-radius: 10px; /* Borde redondeado */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: opacity 0.3s, width 0.3s; /* Agregamos una transición para animaciones más suaves */
+    margin-bottom: 5px; /* Margen inferior */
+    width: 100%; /* Ancho del lienzo */
+    box-sizing: border-box; /* Incluimos el padding en el ancho total */
+}
+
+/* BOTON MENÚ*/
+#tools button {
+    width: 4920px; /* Ocupa el ancho completo del contenedor */
+    margin-top: 10px; /* Margen superior entre botones (ajustable según tus necesidades) */
+    margin-right: 1px; /* Margen derecho entre botones */
+    padding: 4px 6px; /* Espaciado interno del botón */
+    font-size: 14px; /* Tamaño de fuente del botón */
+    background-color: #000000; /* Color de fondo del botón */
+    color: rgb(249, 1, 1); /* Color del texto del botón */
+    border: none; /* Sin borde */
+    border-radius: 4px; /* Borde redondeado */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer; /* Cursor apuntador */
+    transition: background-color 0.3s; /* Transición suave del color de fondo */
+
+    /* Estilos adicionales según sea necesario */
+}
+
+#tools button:hover {
+    background-color: #4c954f; /* Cambia el color de fondo al pasar el ratón sobre el botón */
+    opacity: 1;
+    width: 300px; /* Puedes ajustar el ancho que desees */
+}
+
+
+
+/* Estilos para #tools en pantalla completa */
+#tools.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente blanco */
+    z-index: 1000; /* Asegúrate de que esté por encima de otros elementos */
+}
+
+
+
+
+        #imageContainer {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+
+        #imageContainer {
+   
+    top: 0;
+    left: 0;
+    width: 100%; /* Ocupa el ancho completo del contenedor padre */
+    height: 100%; /* Ocupa la altura completa del contenedor padre */
+    display: flex;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
+    background-color: #107c8a; /* Agrega un fondo semitransparente para mayor legibilidad */
+}
+
+#imageContainer img {
+    max-width: 100%; /* La imagen no superará el ancho del contenedor */
+    max-height: 95%; /* La imagen no superará la altura del contenedor */
+}
+
+
+
+    /* CONTENEDOR FLOTANTE Y ARRASTRABLE*/
+        #floatingMenu {
+    position: fixed; /* Cambiado a 'fixed' para mantener la posición incluso al desplazarse */
+    top: 130px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border: 1px solid #000;
+    padding: 10px;
+    cursor: grab; /* Cambia el cursor al símbolo de agarre */
+    z-index: 2;
+    border-radius: 5px; /* Añadido un borde redondeado */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); /* Añadida una sombra para resaltar el menú */
+    transition: background-color 0.3s ease; /* Agregada transición para cambios suaves de color */
+}
+
+#floatingMenu:hover {
+    background-color: #f8f8f8; /* Cambia el color de fondo al pasar el ratón sobre el menú */
+}
+
+/* BOTONES MENÚ FLOTANTE */
+#floatingMenu button {
+    margin: 5px;
+    cursor: pointer;
+    background-color: #326c92; /* Color de fondo base para los botones #326c92*/
+    color: #fff; /* Color de texto para los botones */
+    border: none;
+    padding: 8px;
+    border-radius: 3px;
+    transition: background-color 0.3s ease; /* Agregada transición para cambios suaves de color */
+}
+
+#floatingMenu button:hover {
+    background-color: #4CAF50; /* Cambia el color de fondo al pasar el ratón sobre los botones */
+}
+
+#floatingMenu button i {
+    margin-right: 5px;
+}
+
+/* Añade estas líneas a tu CSS existente */
+
+#floatingMenu {
+  /* Otras propiedades de estilo... */
+  transition: all 0.1s ease; /* Transición suave de 0.1 segundos */
+  opacity: 0; /* Establece la opacidad inicial en 0 */
+  pointer-events: none; /* Evita que el menú sea interactivo antes de mostrarlo */
+}
+
+#floatingMenu.show {
+  opacity: 1; /* Muestra el menú cambiando la opacidad a 1 */
+  pointer-events: auto; /* Permite la interacción con el menú cuando es visible */
+}
+
+/* Añade un estilo básico para los submenús */
+.submenu {
+  display: none;
+  /* Estilos adicionales para submenús... */
+}
+
+.submenu.show {
+  display: block;
+}
+
+/* Añade estas líneas a tu CSS existente */
+
+#floatingMenuIcon {
+  color: #00f87c; /* Cambia el color del ícono según tus preferencias */
+  transition: color 0.3s ease; /* Agrega una transición de color suave */
+  font-size: 40px; /* Cambia el tamaño del ícono según tus preferencias */
+}
+
+
+/* Añade estas líneas a tu CSS existente */
+
+#floatingMenuIcon.open {
+  color: #ffcc00; /* Cambia el color cuando el menú está abierto */
+}
+
+
+        #iconColorMenu {
+        /* Estilo del menú de cambio de color del ícono (inicialmente oculto) */
+        display: none;
+        flex-direction: row; /* Alinea los elementos en fila (horizontalmente) */
+    }
+
+
+    /* CUADROS DE COLOR DE FONDO*/
+    .colorSquare {
+        width: 15px;
+        height: 15px;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+
+    .colorDroplet {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 30px solid; /* Altura del cuadro-gota de agua */
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+
+/* Estilo del menú de cambio de color del trazo (inicialmente oculto) */
+#strokeColorMenu {
+            display: none;
+            flex-direction: row;
+        }
+
+
+        
+ /* CUADROS DE COLOR DEL TRAZO*/
+        .strokeColorSquare {
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            cursor: pointer;
+            border: 1px solid #000;
+        }
+
+ /* CUADROS DE COLOR DEL FONDO*/
+#colorPicker {
+    width: 12px; /* Ajusta el tamaño según tus preferencias */
+    height: 12px; /* Ajusta la altura según tus preferencias */
+    margin: 0 5px; /* Ajusta el margen según tus preferencias */
+    border: 1px solid #000;
+}
+
+#colorPickerBtn {
+    display: flex;
+    margin: 0 5px; /* Ajusta el margen según tus preferencias */
+}
+
+/* MENÚ VERDE HERRAMIENTAS */
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+}
+
+.dropdown-content button:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+
+/* RELOJ*/
+
+/* Estilos para el contenedor flotante */
+.floating-container {
+    position: fixed;
+    top: 50px; /* Ajusta la posición superior según sea necesario */
+    left: 50px; /* Ajusta la posición izquierda según sea necesario */
+    z-index: 1000; /* Asegura que esté sobre otros elementos */
+}
+
+
+
+/* CRONÓMETRO - TIMER*/
+
+
+.floating-container {
+    /* Estilos para el contenedor flotante */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    display: none;
+}
+
+
+.timer {
+        display: flex;
+        flex-direction: horizonta;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+.timer-input::placeholder {
+    color: transparent;
+}
+
+.timer-input-zero::placeholder {
+    color: #888; /* Puedes ajustar el color según tus preferencias */
+}
+
+
+#timerDisplay {
+        font-family: 'Arial', sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+         /* Estilos para la visualización del temporizador */
+    font-size: 24px;
+    margin-bottom: 10px;
+    }
+
+
+.timer-controls button {
+    /* Estilos para los botones de control del temporizador */
+    background-color: #3498db;
+    color: #fff;
+    padding: 8px 16px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+.timer-controls button:hover {
+    background-color: #2980b9;
+}
+
+
+
+.timer-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+
+#timerContainer {
+    position: absolute;
+    z-index: 1000; /* Ajusta según sea necesario para estar por encima de otros elementos */
+    
+}
+
+/* Agrega esta clase para hacer que el temporizador sea arrastrable */
+.draggable {
+    cursor: grab;
+}
+
+
+
+ /* CONTENEDOR EMERGENTE DE IMÁGENES */
+
+ body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.gallery-container {
+  display: none;
+  position: fixed;
+  top: 56%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.image-gallery {
+  overflow: hidden;
+}
+
+.image-gallery img {
+  width: 100%;
+  height: auto;
+  display: none;
+}
+
+.nav-btn {
+  display: block;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.upload-btn {
+  background-color: #4CAF50;
+  color: white;
+  font-size: 14px;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+#imageInput {
+  display: none;
+}
+
+
+
+  /* PDF */
+  #pdfViewer {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border: 2px solid #333;
+      min-width: 400px;
+      min-height: 400px;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    #pdfFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #pdfViewerTitle {
+      cursor: grab;
+      padding: 25px;
+      background-color: #024479;
+      color: white;
+      user-select: none;
+      position: relative;
+    }
+
+    #resizeCorner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #fd8700;
+      bottom: 0;
+      right: 0;
+      cursor: nwse-resize;
+    }
+
+    #pdfViewer button {
+      background-color: #3498db;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #pdfViewer button:hover {
+      background-color: #2980b9;
+    }
+/* FINAL PDF */
+
+
+/* BOTONES DE NAVEGACIÓN CONTENEDOR DE IMÁGENES */
+.nav-buttons-container {
+    display: flex; /* Hace que los elementos hijos se coloquen en línea */
+    justify-content: space-between; /* Distribuye el espacio entre los elementos hijos, colocándolos en los extremos */
+    margin-bottom: 0px; /* Ajusta el margen según tus preferencias */
+}
+
+
+/* Estilos para los botones de navegación */
+/* Estilos para el contenedor de botones de navegación e input de imágenes */
+.nav-buttons-container {
+    display: flex; /* Hace que los elementos hijos se coloquen en línea */
+    align-items: center; /* Alinea verticalmente los elementos en el centro */
+    gap: 10px; /* Ajusta el espacio entre los elementos según tus preferencias */
+}
+
+.upload-btn {
+    background-color: #3498db;
+    color: #fff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-btn:hover {
+    background-color: #2980b9;
+}
+
+#imageInput {
+    display: none; /* Oculta el input por defecto */
+}
+
+/* Estilos para los botones de navegación */
+.nav-btn {
+    background-color: transparent; /* Cambia el fondo a transparente */
+    color: #3498db; /* Color del icono */
+    padding: 8px 16px;
+    border: 1px solid #3498db; /* Borde del botón */
+    border-radius: 5px;
+    border-style: double;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background-color: rgba(52, 152, 219, 0.3); /* Cambia el color de fondo al pasar el ratón */
+}
+
+/* Estilos para el input de carga de imágenes */
+#imageInput {
+    display: none; /* Oculta el input por defecto */
+    
+}
+
+.upload-btn {
+    background-color: #ffffff;; /* Cambia el fondo del botón de carga de imágenes */
+    color: #3498db; /* Color del texto del botón */
+    font-size: 12px;
+    padding: 8px 16px;
+    border: #3498db;
+    border-style: double;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-btn:hover {
+    background-color: #04c441; /* Cambia el color de fondo al pasar el ratón */
+    border-style: double;
+    font-size: 14px;
+    border: #fefefe;
+    color: #ffffff; /* Color del texto del botón */
+    
+}
+
+
+#lienzo {
+  background-image: url('https://mxcity.mx/wp-content/uploads/2022/06/gran-bosque-de-agua.jpeg');
+  background-size: cover; /* Ajusta el tamaño de la imagen para cubrir completamente el lienzo */
+}
+
+/* FINAL DE BOTONES DE NAVEGACIÓN CONTENEDOR DE IMÁGENES */
+
+
+
+/* FIGURAS GEOMÉTRICAS */
+
+
+
+.menu {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid #000;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content button {
+            padding: 12px 16px;
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #ddd;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover .dropbtn {
+            background-color: #2980b9;
+        }
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+
+<!-- MENÚ FLOTANTE-->
+
+
+
+
+<div id="floatingMenu">
+
+                     <!-- MENÚ DE HERRAMIENTAS-->
+    <div class="dropdown">
+     
+     
+     
+                     
+                     <button class="dropbtn" onclick="toggleColorPickerMenu()">
+                         <i class="fas fa-sliders-h"></i>
+                     </button>
+                     <div id="colorPickerMenu" class="dropdown-content">
+                         
+
+
+                <!-- COLOR DEL TRAZO -->
+                <button onclick="toggleStrokeColorMenu(event)"><i class="fas fa-paint-brush"></i></button>
+                <!-- Menú de cambio de color del trazo -->
+                <div id="strokeColorMenu">
+                        <!-- Colores para el trazo -->
+                        <div class="strokeColorSquare" style="background-color: #0000ff;" onclick="cambiarColorTrazo('#0000ff')"></div>
+                        <div class="strokeColorSquare" style="background-color: #ff0000;" onclick="cambiarColorTrazo('#ff0000')"></div>
+                        <div class="strokeColorSquare" style="background-color: #00ff00;" onclick="cambiarColorTrazo('#00ff00')"></div>
+                        <div class="strokeColorSquare" style="background-color: #fdaa05;" onclick="cambiarColorTrazo('#fdaa05')"></div>
+                        <div class="strokeColorSquare" style="background-color: #00fff2;" onclick="cambiarColorTrazo('#00fff2')"></div>
+                        <div class="strokeColorSquare" style="background-color: #f941c5;" onclick="cambiarColorTrazo('#d000ff')"></div>
+                        <div class="strokeColorSquare" style="background-color: #fffb00;" onclick="cambiarColorTrazo('#fffb00')"></div>
+                        <div class="strokeColorSquare" style="background-color: #7300ff;" onclick="cambiarColorTrazo('#7300ff')"></div>
+                        <div class="strokeColorSquare" style="background-color: #a9a89d;" onclick="cambiarColorTrazo('#aeb0ae')"></div>
+                        <div class="strokeColorSquare" style="background-color: #906c5d;" onclick="cambiarColorTrazo('#906c5d')"></div>
+                        <div class="strokeColorSquare" style="background-color: #ffffff;" onclick="cambiarColorTrazo('#ffffff')"></div>
+                        <div class="strokeColorSquare" style="background-color: #000000;" onclick="cambiarColorTrazo('#000000')"></div>
+                </div>
+
+
+                        <input type="color" id="colorPicker" value="#ffffff" style="display: none;">
+                         <button onclick="mostrarSelectorColor()">
+                             <i class="fas fa-palette"></i>
+                         </button>
+                          
+                        
+                        <!-- GROSOR -->
+                        <button onclick="mostrarOcultarGrosor()">
+                            <i class="fas fa-sliders-h"></i> Ajustar Grosor
+                        </button>
+
+                        <!-- Contenedor para la barra de grosor -->
+                        <div id="grosorContainer" style="display: none;">
+                            <label for="thickness">Grosor:</label>
+                            <input type="range" id="thickness" min="1" max="150" value="2" oninput="cambiarGrosor()">
+                        </div>
+
+
+          
+
+<!-- REHACER -->
+<button onclick="rehacerTrazo()"><i class="fas fa-redo"></i></button>
+
+                        
+                        
+
+     
+                         <!-- COLOR DE FONDO ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: -->
+                         <div class="fondo">
+     
+                             <button onclick="toggleIconColorMenu()"><i class="fas fa-fill-drip"></i></button>
+                             <div id="iconColorMenu" style="display: none;" class="horizontal-menu">
+                                 <!-- Contenido del menú de cambio de color del ícono -->
+                                  <!-- Botón para seleccionar la imagen de fondo predeterminada -->
+                                  <div class="colorSquare" onclick="seleccionarImagenPredeterminada()"><i class="fas fa-image"></i></div>
+                                  <div class="colorSquare" style="background-color: #d0d0d0;" onclick="cambiarColorFondo('#d0d0d0')"></div>
+                                 <div class="colorSquare" style="background-color: #107c8a;" onclick="cambiarColorFondo('#107c8a')"></div>
+                                 <div class="colorSquare" style="background-color: #0338c9;" onclick="cambiarColorFondo('#0338c9')"></div>
+                                 <!-- Colores adicionales para el fondo del lienzo -->
+                                 <div class="colorSquare" style="background-color: #8d8d8d;" onclick="cambiarColorFondo('#8d8d8d')"></div>
+                                 <div class="colorSquare" style="background-color: #3c573e;" onclick="cambiarColorFondo('#3c573e')"></div>
+                                 <div class="colorSquare" style="background-color: #3e6469;" onclick="cambiarColorFondo('#3e6469')"></div>
+                                 <div class="colorSquare" style="background-color: #140265;" onclick="cambiarColorFondo('#140265')"></div>
+                                 <div class="colorSquare" style="background-color: #000000;" onclick="cambiarColorFondo('#000000')"></div>
+                             </div>
+     
+
+
+
+                                 <!-- RESTAURAR FONDO -->
+                                 <button onclick="restaurarFondoPorDefecto()"><i class="fas fa-sync"></i></button>
+     
+                                 <!-- CAPTURA DEL LIENZO -->
+                                 <button onclick="capturarImagenLienzo()"><i class="fas fa-chalkboard-teacher"></i></button>
+
+     
+                         </div>
+                        <!-- ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: -->
+                        
+                     
+                         
+     
+                        
+     
+                     </div>
+     
+                 
+     
+     
+     
+    </div>
+     
+
+     
+
+               
+                       
+<!-- BORRADOR -->
+<button onclick="activarBorrador()"><i class="fas fa-eraser"></i></button>
+<!-- DESHACER -->
+<button onclick="deshacerTrazo()"><i class="fas fa-undo"></i></button>
+
+
+<div class="dropdown">
+    <button class="dropbtn" onclick="toggleFigurasSubMenu()">
+        <i class="fas fa-shapes"></i>
+    </button>
+   
+  
+    <div id="figurasSubMenu" class="dropdown-content">
+        <button id="limpiarFigurasBtn"><i class="fas fa-times"></i>Borrar Figuras</button>
+         <!-- Añade este div para las figuras dentro del contenedor flotante -->
+         <label for="colorSelector"></label>
+         <select id="colorSelector">
+           <option value="black">NEGRO</option>
+           <option value="red">ROJO</option>
+           <option value="orange">NARANJA</option>
+           <option value="yellow">AMARILLO</option>
+           <option value="blue">AZUL</option>
+           <option value="green">VERDE</option>
+         </select>
+         <input type="range" id="thicknessSlider" min="1" max="10" value="5">
+        <label for="thicknessSlider"></label>
+ 
+      
+        <button id="pencilBtn" onclick="setDrawingMode('pencil')"><i class="fas fa-pencil-alt"></i>Lápiz</button>
+
+        <button id="circleBtn" onclick="setDrawingMode('circle')"><i class="fas fa-circle"></i>Círculo</button>
+        <button id="rectangleBtn" onclick="setDrawingMode('rectangle')"><i class="fas fa-stop"></i>Rectángulo</button>
+        
+        <button id="triangleBtn"><i class="fas fa-play"></i>Triángulo</button>
+        <button id="lineBtn"><i class="fas fa-minus"></i>Línea Recta</button>
+        <button id="dashedLineBtn"><i class="fas fa-ellipsis-h"></i>Línea Punteada</button>
+        
+        
+       
+                      
+
+
+    </div>
+</div>
+
+
+   
+
+
+
+
+
+     
+                     <!-- LIMPIAR LIENZO -->
+                     <button onclick="limpiarLienzo()"><i class="fas fa-trash-alt"></i></button>
+     
+                  <!-- CAPTURAR DEl ESCRITORIO PC -->
+                  <!-- Botón con ícono de cámara -->
+                  <button onclick="capturarImagenVentana()">
+                    <i class="fas fa-camera"></i> 
+                </button>
+
+                     <!-- PANTALLA COMPLETA-->
+                     <button onclick="toggleFullScreen()">
+                        <i class="fas fa-expand"></i>
+                    </button>
+
+                 
+
+     <!-- MENÚ DE IMÁGENES -->
+     <div class="dropdown">
+        <button id="openGalleryBtn"><i class="fas fa-image"></i></button>
+               
+                
+ 
+        <div id="imagenesMenu" class="dropdown-content">
+         
+            <!-- RESTAURAR CONTENEDOR DE IMÁGENES -->
+            <button id="clearBtn" class="nav-btn"><i class="fas fa-sync"></i> Limpiar</button>
+                
+
+                <button id="customCloseBtn" class="custom-close-btn"><i class="fas fa-times"></i> Cerrar</button>
+           
+
+        </div>
+    </div>
+    
+
+
+
+        
+               
+                  
+
+                <!-- TEMPORIZADOR - TIMER-->
+                <button class="icon-btn" onclick="toggleTimer()">
+                    <i class="fas fa-stopwatch"></i>
+                </button>
+
+                    <!-- RELOJ-->
+                    <button class="floating-btn" onclick="toggleReloj()">
+                        <i class="fas fa-clock"></i>
+                    </button>
+
+
+               
+    
+               
+                        <!-- BOTÓN PDF-->
+                     <!-- Botón adicional para abrir el input de subida de PDF -->
+                     <button id="openPdfViewerBtn">
+                        <i class="fas fa-file-pdf"></i>
+                      </button>
+                    
+
+                 
+
+                    
+</div>
+
+
+                   
+
+
+       
+     </div>
+       
+     
+     <div id="tools">
+        
+     <!-- Agrega un ejemplo de submenú -->
+     <div class="submenu" id="colorSubMenu">
+         <div onclick="cambiarColorTrazo('red')">Rojo</div>
+         <div onclick="cambiarColorTrazo('green')">Verde</div>
+         <!-- Agrega más opciones de color según sea necesario -->
+       </div>
+       
+       <!-- Actualiza tu icono o botón para abrir el menú flotante -->
+       <div id="floatingMenuIcon" onclick="toggleFloatingMenu()">☰</div>
+     
+     
+     </div>
+  
+
+     
+         <div id="imageAndCanvasContainer">
+                 <!-- Resto de tu código aquí -->
+                 <!-- Canvas y contenedor de imágenes -->
+                 <canvas id="lienzo" width="5000" height="2500"></canvas>
+         </div>
+
+
+<!-- CONTENEDOR EMERGENTE TIMER -->
+
+<div id="timerContainer" class="floating-container draggable">
+   
+    <div id="timer" class="timer">
+        <button class="floating-button" onclick="toggleTimer()"> <!-- Botón para mostrar/ocultar temporizador -->
+            <i class="fas fa-stopwatch"></i>
+        </button>
+        <input type="number" id="timerInput" min="1" placeholder="Tiempo en minutos" style="width: 60px;"> <!-- Ajusta el ancho según tus necesidades -->
+         <button onclick="startTimer()"><i class="fas fa-play"></i></button>
+        <button onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+        <button onclick="resumeTimer()"><i class="fas fa-play-circle"></i></button>
+        <button onclick="resetTimer()"><i class="fas fa-sync-alt"></i></button>
+    
+       
+       
+        <div>
+            <span id="timerDisplay">00:00</span>
+        </div>
+        
+    </div>
+</div>
+
+
+
+
+
+<div id="galleryContainer" class="gallery-container">
+    <span class="close-btn" id="closeGalleryBtn">&times;</span>
+    <div id="imageGallery" class="image-gallery"></div>
+   
+
+    
+    
+ <!-- BOTONES FLECHAS DE NAVEGACIÓN SON FUNCIONALES PERO LOS HE DEJADO POR FUERA DEL DIV GALLERY -->
+ <div class="nav-buttons-container">
+    <label for="imageInput" class="upload-btn">
+        <i class="fas fa-upload"></i>
+      </label>
+      <input type="file" id="imageInput" multiple>
+    <button id="prevBtn" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+    <button id="nextBtn" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+</div>
+   
+  </div>
+ 
+
+ 
+ 
+
+ <!-- INICIO PDF -->
+ 
+            
+ <!-- Agrega este input a tu HTML -->
+<input type="file" id="pdfInput" style="display: none" accept="application/pdf"><!-- Ventana emergente para mostrar el PDF -->
+                  <div id="pdfViewer">
+                    <!-- Título para arrastrar la ventana -->
+                    <div id="pdfViewerTitle">
+                      Arrastra para ajustar
+                    </div>
+
+                    <button id="cerrarPdfBtn" onclick="cerrarPDF()">
+                        <i class="fas fa-times"></i> Cerrar
+                      </button>
+                      
+
+
+
+                    <iframe id="pdfFrame"></iframe>
+                    <!-- Esquina de ajuste -->
+                    <div id="resizeCorner"></div>
+                  </div>
+                                    
+ <!-- FINAL PDF -->
+
+ <script src="script.js" type="text/javascript" charset="utf-8"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" integrity="sha384-VL0t6kTtr5Mg8rYT4cLvhF6jrsNf3E5sG2U68zQw5tZJPg1LrS6Q5XrN6+J1iA9C" crossorigin="anonymous"></script>
+  <script src="script.js"></script>
+
+
+
+ 
+
+    <script>
+
+//FUNCIÓN LÁPIZ
+
+        const canvas = document.getElementById('lienzo');
+        const ctx = canvas.getContext('2d');
+        let isErasing = false;
+
+
+        // Ajustar el tamaño del lienzo al tamaño original
+        canvas.width = 5000;
+        canvas.height = 2500;
+
+
+
+        let images = [];
+        let currentImageIndex = -1;
+
+        let drawing = false;
+        let points = [];
+
+        // Historial de trazos
+        let trazos = [];
+        let indiceTrazo = -1;
+
+        function activarBorrador() {
+    isErasing = !isErasing;
+    if (isErasing) {
+        ctx.globalCompositeOperation = 'destination-out';
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+    }
+}
+        // Historial de trazos
+
+        function dibujar(e) {
+    if (isErasing) return;
+
+    const color = document.getElementById('colorPicker').value;
+    const thickness = document.getElementById('thickness').value;
+
+    // Ajustar las coordenadas al tamaño real del lienzo
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    points.push({ x, y, color, thickness });
+
+    if (points.length > 1) {
+        for (let i = 1; i < points.length; i++) {
+            dibujarSegmento(points[i - 1], points[i]);
+        }
+    }
+}
+
+function dibujarTrazos() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i <= indiceTrazo; i++) {
+        const trazo = trazos[i];
+
+        if (trazo.length > 1) {
+            for (let j = 1; j < trazo.length; j++) {
+                const start = trazo[j - 1];
+                const end = trazo[j];
+
+                dibujarSegmento(start, end);
+            }
+        }
+    }
+}
+
+
+function dibujarSegmento(start, end) {
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.lineWidth = end.thickness;
+    ctx.strokeStyle = end.color;
+
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+}
+
+function borrar(e) {
+    if (!isErasing) return;
+
+    const thickness = document.getElementById('thickness').value;
+
+    // Ajustar las coordenadas al tamaño real del lienzo
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.clearRect(x - thickness / 2, y - thickness / 2, thickness, thickness);
+}
+    
+function handleStart(e) {
+    e.preventDefault();
+    drawing = true;
+    points = [];
+    if (e.touches.length === 1) {
+        dibujar(e.touches[0]);
+        borrar(e.touches[0]);
+    }
+}
+
+function handleMove(e) {
+    e.preventDefault();
+    if (drawing && e.touches.length === 1) {
+        dibujar(e.touches[0]);
+        borrar(e.touches[0]);
+    }
+}
+
+function handleEnd() {
+    drawing = false;
+
+    // Almacenar el trazo actual en el historial
+    if (points.length > 0) {
+        trazos.push([...points]);
+        indiceTrazo = trazos.length - 1;
+    }
+}
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                handleStart(e);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (e.buttons === 1) {
+                handleMove(e);
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            handleEnd();
+        });
+
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchmove', handleMove);
+        canvas.addEventListener('touchend', handleEnd);
+
+        // Actualizar grosor para el trazo y el borrador
+        document.getElementById('thickness').addEventListener('input', () => {
+            const thickness = document.getElementById('thickness').value;
+            ctx.lineWidth = thickness;
+        });
+
+    
+//.......FUNCIÓN DESHACER ............
+        function deshacerTrazo() {
+    if (indiceTrazo >= 0) {
+        // Limpiar y redibujar los trazos antes de deshacer el último
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        trazos.pop();
+        indiceTrazo--;
+
+        // Restaurar el color y grosor actual
+        const colorActual = document.getElementById('colorPicker').value;
+        const grosorActual = document.getElementById('thickness').value;
+        points.push({ x: 0, y: 0, color: colorActual, thickness: grosorActual });
+
+        // Redibujar los trazos restantes
+        dibujarTrazos();
+    }
+}
+
+
+//.......FUNCIÓN REHACER ............
+
+
+
+
+//..............FUNCIÓN IMÁGENES..........................
+
+
+   
+        function limpiarLienzo() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Limpiar historial de trazos al limpiar el lienzo
+            trazos = [];
+            indiceTrazo = -1;
+        }
+
+        // Navegación con teclado
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && images.length > 1) {
+                imagenAnterior();
+            } else if (e.key === 'ArrowRight' && images.length > 1) {
+                imagenSiguiente();
+            }
+        });
+
+//...........................................................
+
+
+//LÁPIZ Y BORRADOR SOBRE IMÁGENES
+
+//..........................................................................
+
+// FULL SCREEN
+// ... (Tu código existente)
+
+// Función para cambiar al modo de pantalla completa
+// Función para cambiar a pantalla completa
+function toggleFullScreen() {
+    var elem = document.getElementById("tools"); // Cambia "tools" al ID correcto
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        elem.requestFullscreen().catch(err => {
+            console.log(`Error al intentar activar el modo de pantalla completa: ${err.message}`);
+        });
+    }
+}
+
+// ...................................
+
+
+function ocultarOtrosMenus(exceptMenu) {
+    const menus = ['colorPickerMenu', /* otros menús si es necesario */];
+
+    menus.forEach(menu => {
+        if (menu !== exceptMenu) {
+            const currentMenu = document.getElementById(menu);
+            currentMenu.style.display = 'none';
+
+            // También puedes ocultar otros elementos relacionados aquí si es necesario
+        }
+    });
+}
+
+
+
+
+
+// ... FUNCIÓN CONTENEDOR FLOTANTE
+// Definir variables para los menús
+let colorMenuVisible = false;
+let thicknessMenuVisible = false;
+let canvasColorMenuVisible = false;
+
+function toggleColorPickerMenu() {
+    const colorPickerMenu = document.getElementById('colorPickerMenu');
+    const colorPicker = document.getElementById('colorPicker');
+
+    if (colorPickerMenu.style.display === 'block') {
+        colorPickerMenu.style.display = 'none';
+    } else {
+        // Asegúrate de ocultar otros menús si están abiertos
+        ocultarOtrosMenus('colorPickerMenu');
+
+        // Muestra el menú de selección de color
+        colorPickerMenu.style.display = 'block';
+        colorPicker.style.display = 'inline'; // Muestra el input de color
+    }
+}
+
+// Función para seleccionar la imagen de fondo predeterminada
+
+function seleccionarImagenPredeterminada() {
+    // Abre el cuadro de diálogo para seleccionar archivos
+    const inputElement = document.createElement('input');
+    inputElement.type = 'file';
+    inputElement.accept = 'image/*';
+    inputElement.onchange = function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Establece la imagen de fondo con la URL de la imagen seleccionada
+            const imageUrl = URL.createObjectURL(file);
+            document.getElementById('lienzo').style.backgroundImage = `url('${imageUrl}')`;
+        }
+    };
+    inputElement.click();
+}
+
+
+
+
+function toggleThicknessMenu() {
+    const thicknessMenu = document.getElementById('thicknessMenu'); // Asegúrate de tener un elemento con el ID 'thicknessMenu'
+    
+    // Mostrar u ocultar el menú horizontal correspondiente
+    if (!thicknessMenuVisible) {
+        thicknessMenu.style.display = 'block';
+    } else {
+        thicknessMenu.style.display = 'none';
+    }
+
+    thicknessMenuVisible = !thicknessMenuVisible; // Invertir el estado de visibilidad
+}
+
+function toggleCanvasColorPicker() {
+    const canvasColorMenu = document.getElementById('canvasColorMenu'); // Asegúrate de tener un elemento con el ID 'canvasColorMenu'
+    
+    // Mostrar u ocultar el menú horizontal correspondiente
+    if (!canvasColorMenuVisible) {
+        canvasColorMenu.style.display = 'block';
+    } else {
+        canvasColorMenu.style.display = 'none';
+    }
+
+    canvasColorMenuVisible = !canvasColorMenuVisible; // Invertir el estado de visibilidad
+}
+
+
+function cambiarColorIcono(color) {
+    const icono = document.querySelector('.fa-paint-brush'); // Selecciona el ícono utilizando una clase específica
+    icono.style.color = color;
+}
+
+
+
+// Función para mostrar/ocultar el menú de cambio de color del ícono
+let iconColorMenuVisible = false;
+
+function toggleIconColorMenu() {
+    const iconColorMenu = document.getElementById('iconColorMenu');
+
+    if (!iconColorMenuVisible) {
+        iconColorMenu.style.display = 'flex';
+    } else {
+        iconColorMenu.style.display = 'none';
+    }
+
+    iconColorMenuVisible = !iconColorMenuVisible;
+}
+
+
+function handleScroll() {
+    // Ajustar la posición del contenedor flotante según el desplazamiento vertical u horizontal
+    const floatingMenu = document.getElementById('floatingMenu');
+    const imageAndCanvasContainer = document.getElementById('imageAndCanvasContainer');
+
+    floatingMenu.style.top = `${10 + imageAndCanvasContainer.scrollTop}px`;
+    floatingMenu.style.left = `${10 + imageAndCanvasContainer.scrollLeft}px`;
+}
+
+// ...................................
+
+// MENÚ MOSTRAR/OCULTAR CAMBIO DE COLOR DEL TRAZO
+let strokeColorMenuVisible = false;
+
+function toggleStrokeColorMenu() {
+    const strokeColorMenu = document.getElementById('strokeColorMenu');
+
+    if (!strokeColorMenuVisible) {
+        strokeColorMenu.style.display = 'flex';
+    } else {
+        strokeColorMenu.style.display = 'none';
+    }
+
+    strokeColorMenuVisible = !strokeColorMenuVisible;
+}
+
+// CAMBIAR COLOR DEL TRAZO
+function cambiarColorTrazo(color) {
+    const colorPicker = document.getElementById('colorPicker');
+    
+    colorPicker.value = color;
+    ctx.strokeStyle = color;
+}
+
+
+
+
+// FONDO DEL LIENZO CON IMAGEN
+document.addEventListener('DOMContentLoaded', function () {
+  const canvas = document.getElementById('lienzo');
+  const ctx = canvas.getContext('2d');
+
+  // Establecer la imagen predeterminada como fondo del lienzo
+  canvas.style.backgroundImage = "url('https://mxcity.mx/wp-content/uploads/2022/06/gran-bosque-de-agua.jpeg')";
+  canvas.style.backgroundSize = 'cover'; // Ajusta el tamaño de fondo para cubrir completamente el lienzo
+  canvas.style.backgroundPosition = 'center';
+  canvas.style.backgroundRepeat = 'no-repeat';
+
+  // Función para cambiar el fondo del lienzo a una imagen
+  function cambiarColorFondo(imagenURL) {
+    // Cambia el fondo del lienzo a la imagen proporcionada
+    canvas.style.backgroundImage = `url('${imagenURL}')`;
+    canvas.style.backgroundSize = 'cover'; // Ajusta el tamaño de fondo para cubrir completamente el lienzo
+    canvas.style.backgroundPosition = 'center';
+    canvas.style.backgroundRepeat = 'no-repeat';
+    canvas.style.backgroundColor = 'transparent';
+  }
+
+  // Función para cambiar el fondo del lienzo a un color sólido
+  function cambiarColorFondoSolido(color) {
+    // Crea un nuevo lienzo temporal
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempContext = tempCanvas.getContext('2d');
+
+    // Dibuja la imagen actual en el lienzo temporal
+    tempContext.drawImage(canvas, 0, 0);
+
+    // Cambia el color de fondo del lienzo original
+    canvas.style.backgroundImage = 'none'; // Elimina la imagen de fondo
+    canvas.style.backgroundColor = color;
+
+    // Dibuja la imagen del lienzo temporal en el lienzo original
+    ctx.drawImage(tempCanvas, 0, 0);
+  }
+
+  // Función para restaurar el fondo del lienzo a la imagen predeterminada
+  function restaurarFondoPorDefecto() {
+    // Restaurar el fondo del lienzo por defecto a la imagen predeterminada
+    const imagenPredeterminada = 'https://mxcity.mx/wp-content/uploads/2022/06/gran-bosque-de-agua.jpeg';
+    cambiarColorFondo(imagenPredeterminada);
+  }
+
+  // ... (otras funciones y eventos que puedas tener)
+
+  // Eventos para los botones de cambio de fondo
+  const colorSquares = document.querySelectorAll('.colorSquare');
+  colorSquares.forEach(square => {
+    square.addEventListener('click', function () {
+      cambiarColorFondoSolido(this.style.backgroundColor);
+    });
+  });
+
+  const restaurarBtn = document.querySelector('.fondo button[onclick="restaurarFondoPorDefecto()"]');
+  restaurarBtn.addEventListener('click', restaurarFondoPorDefecto);
+
+  // ... (puedes agregar más eventos según sea necesario)
+});
+
+// RESTAURAR CONTENEDOR DE IMÁGENES
+function restaurarImagenPorDefecto() {
+    // Restaurar la imagen por defecto (puedes ajustar según sea necesario)
+    document.getElementById('imagenActual').src = ""; // Coloca la ruta de la imagen por defecto o deja el atributo src vacío
+
+    // Restaurar el campo de entrada de imágenes
+    const inputImagen = document.getElementById('imageInput');
+    inputImagen.value = ""; // Limpiar el valor del campo de entrada
+}
+
+// IMAGEN CAPTURA DEL LIENZO
+function capturarImagenLienzo() {
+    // Obtener el color de fondo actual
+    const colorFondo = window.getComputedStyle(canvas).backgroundColor;
+
+    // Crear un lienzo temporal con el color de fondo actual
+    const lienzoTemporal = document.createElement("canvas");
+    lienzoTemporal.width = canvas.width;
+    lienzoTemporal.height = canvas.height;
+    const contextoTemporal = lienzoTemporal.getContext("2d");
+    contextoTemporal.fillStyle = colorFondo;
+    contextoTemporal.fillRect(0, 0, lienzoTemporal.width, lienzoTemporal.height);
+
+    // Dibujar la imagen del lienzo en el lienzo temporal
+    contextoTemporal.drawImage(canvas, 0, 0);
+
+    // Obtener la imagen del lienzo temporal en formato JPEG
+    const imagenCapturada = lienzoTemporal.toDataURL("image/jpeg");
+
+    // Crear un enlace de descarga
+    const enlaceDescarga = document.createElement("a");
+    enlaceDescarga.href = imagenCapturada;
+    enlaceDescarga.download = "captura_lienzo.jpg"; // Nombre del archivo descargado
+
+    // Hacer clic en el enlace para iniciar la descarga
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+    document.body.removeChild(enlaceDescarga);
+}
+
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+function dibujarSegmentoEnContexto(context, start, end) {
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+
+    context.lineWidth = end.thickness;
+    context.strokeStyle = end.color;
+
+    context.lineTo(end.x, end.y);
+    context.stroke();
+}
+
+
+function dibujarTrazosEnContexto(context, scrollX, scrollY) {
+    for (let i = 0; i < trazos.length; i++) {
+        const trazo = trazos[i];
+
+        if (trazo.length > 1) {
+            for (let j = 1; j < trazo.length; j++) {
+                const start = trazo[j - 1];
+                const end = trazo[j];
+
+                // Ajustar las coordenadas de inicio y fin con el desplazamiento
+                start.x -= scrollX;
+                start.y -= scrollY;
+                end.x -= scrollX;
+                end.y -= scrollY;
+
+                // Verificar si el segmento es visible en la ventana
+                if (
+                    (start.x >= 0 && start.x <= viewportWidth && start.y >= 0 && start.y <= viewportHeight) ||
+                    (end.x >= 0 && end.x <= viewportWidth && end.y >= 0 && end.y <= viewportHeight)
+                ) {
+                    dibujarSegmentoEnContexto(context, start, end);
+                }
+            }
+        }
+    }
+}
+
+function dibujarSegmentoEnContexto(context, start, end) {
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+
+    context.lineWidth = end.thickness;
+    context.strokeStyle = end.color;
+
+    context.lineTo(end.x, end.y);
+    context.stroke();
+}
+
+    
+    // ÍCONO SELECTOR DE COLORES
+    function mostrarSelectorColor() {
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.click(); // Hacer clic en el input de color para mostrar el selector nativo
+}
+
+    // MENÚ ÍCONO DE PALETA
+        function toggleColorPickerMenu() {
+        var menu = document.getElementById("colorPickerMenu");
+        menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "block" : "none";
+    }
+    
+    
+// ARRASTRE PARA DIV FLOTANTE
+
+var floatingMenu = document.getElementById("floatingMenu");
+
+// Variables para almacenar la posición inicial del mouse y la posición inicial del menú flotante
+var initialX, initialY;
+
+// Función que se activa cuando se inicia el arrastre
+function dragStart(e) {
+    initialX = e.clientX - floatingMenu.getBoundingClientRect().left;
+    initialY = e.clientY - floatingMenu.getBoundingClientRect().top;
+
+    // Añade eventos de escucha para el movimiento del mouse y la liberación del botón
+    document.addEventListener("mousemove", dragMove);
+    document.addEventListener("mouseup", dragEnd);
+}
+
+// Función que se activa durante el arrastre
+function dragMove(e) {
+    var currentX = e.clientX - initialX;
+    var currentY = e.clientY - initialY;
+
+    // Aplica las nuevas coordenadas al menú flotante
+    floatingMenu.style.left = currentX + "px";
+    floatingMenu.style.top = currentY + "px";
+}
+
+// Función que se activa al finalizar el arrastre
+function dragEnd() {
+    // Elimina los eventos de escucha una vez que se ha soltado el botón del mouse
+    document.removeEventListener("mousemove", dragMove);
+    document.removeEventListener("mouseup", dragEnd);
+}
+
+// Agrega un evento de escucha al menú flotante para iniciar el arrastre
+floatingMenu.addEventListener("mousedown", dragStart);
+
+
+
+// MENÚ CONTENEDOR DE GROSOR
+
+// Función para mostrar u ocultar el contenedor de grosor
+// Función para mostrar u ocultar el contenedor de grosor y gestionar el arrastre
+function mostrarOcultarGrosor() {
+    var grosorContainer = document.getElementById("grosorContainer");
+    grosorContainer.style.display = grosorContainer.style.display === "none" ? "block" : "none";
+
+    // Verifica si la barra deslizante está oculta y gestiona el arrastre en consecuencia
+    if (grosorContainer.style.display === "none") {
+        // Si la barra deslizante está oculta, activa el arrastre del menú flotante
+        enableFloatingMenuDrag();
+    } else {
+        // Si la barra deslizante está visible, desactiva el arrastre del menú flotante
+        disableFloatingMenuDrag();
+    }
+}
+
+// Función para activar el arrastre del menú flotante
+function enableFloatingMenuDrag() {
+    floatingMenu.removeEventListener("mousedown", disableFloatingMenuDrag);
+    floatingMenu.addEventListener("mousedown", dragStart);
+}
+
+// Función para desactivar el arrastre del menú flotante
+function disableFloatingMenuDrag() {
+    floatingMenu.removeEventListener("mousedown", dragStart);
+    floatingMenu.addEventListener("mousedown", disableFloatingMenuDrag);
+}
+
+
+// Función para cambiar el grosor del trazo
+function cambiarGrosor() {
+    var grosor = document.getElementById("thickness").value;
+    // Aquí puedes hacer lo que necesites con el valor de grosor, por ejemplo, aplicarlo al trazo
+    console.log("Nuevo grosor:", grosor);
+}
+
+
+
+
+function toggleFloatingMenu() {
+  const floatingMenu = document.getElementById('floatingMenu');
+  floatingMenu.classList.toggle('show');
+
+  const floatingMenuIcon = document.getElementById('floatingMenuIcon');
+  floatingMenuIcon.classList.toggle('open'); // Agrega o quita la clase 'open' al ícono
+
+  // Ajusta el tamaño del ícono cuando se abre o cierra el menú
+  const newSize = floatingMenuIcon.classList.contains('open') ? 30 : 24;
+  floatingMenuIcon.style.fontSize = newSize + 'px';
+}
+
+
+// Función para mostrar u ocultar submenús
+function toggleSubmenu(submenuId) {
+  const submenu = document.getElementById(submenuId);
+  submenu.classList.toggle('show');
+}
+
+// Habilita el arrastre cuando el menú está visible
+function enableFloatingMenuDrag() {
+  floatingMenu.removeEventListener('mousedown', disableFloatingMenuDrag);
+  floatingMenu.addEventListener('mousedown', dragStart);
+}
+
+// Desactiva el arrastre cuando el menú está oculto
+function disableFloatingMenuDrag() {
+  floatingMenu.removeEventListener('mousedown', dragStart);
+  floatingMenu.addEventListener('mousedown', disableFloatingMenuDrag);
+}
+
+// ... Otras funciones existentes ...
+
+// Agrega este código al inicio para configurar el evento fullscreenchange
+document.addEventListener("fullscreenchange", handleFullScreenChange);
+
+// Función para cambiar a pantalla completa
+function toggleFullScreen() {
+    var tools = document.getElementById("tools");
+
+    if (!document.fullscreenElement) {
+        // Si no está en pantalla completa, entra en pantalla completa
+        document.documentElement.requestFullscreen();
+    } else {
+        // Si ya está en pantalla completa, sale de pantalla completa
+        document.exitFullscreen();
+    }
+}
+
+// Función para manejar cambios en pantalla completa
+function handleFullScreenChange() {
+    var tools = document.getElementById("tools");
+    if (!document.fullscreenElement) {
+        // Si sale de pantalla completa, muestra el elemento #tools
+        tools.style.display = "block";
+    } else {
+        // Si entra en pantalla completa, mantiene el elemento #tools visible
+        tools.style.display = "block";
+    }
+}
+
+
+
+// Función para mostrar u ocultar #tools
+function toggleToolsVisibility() {
+    const toolsContainer = document.getElementById('tools');
+
+    if (toolsContainer.style.opacity === "0") {
+        // Si #tools está oculto, mostrarlo
+        toolsContainer.style.opacity = "1";
+        toolsContainer.style.width = "300px"; // Ajusta el ancho según sea necesario
+    } else {
+        // Si #tools está visible, ocultarlo
+        toolsContainer.style.opacity = "0";
+        toolsContainer.style.width = "0";
+    }
+}
+
+// Asociar la función a la tecla "Espacio"
+document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') {
+        toggleFullScreen();
+    }
+});
+
+
+
+
+// FUNCIÓN CAPTURAR PANTALLA CON TRAZOS
+
+   // Función para capturar la ventana visible
+function capturarImagenVentana() {
+    // Ocultar el contenedor floatingMenu
+    document.getElementById("floatingMenu").style.display = "none";
+
+    // Obtener el área visible de la ventana
+    const areaVisible = document.documentElement;
+
+    // Obtener las coordenadas de desplazamiento de la ventana
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    // Utilizar html2canvas para capturar solo el contenido visible de la ventana
+    html2canvas(areaVisible, {
+        x: scrollX,
+        y: scrollY,
+        width: window.innerWidth,
+        height: window.innerHeight
+    }).then(canvas => {
+        // Obtener la imagen en formato PNG
+        const imagenCapturada = canvas.toDataURL("image/png");
+
+        // Crear un enlace de descarga
+        const enlaceDescarga = document.createElement("a");
+        enlaceDescarga.href = imagenCapturada;
+        enlaceDescarga.download = "captura_ventana.png"; // Nombre del archivo descargado
+
+        // Hacer clic en el enlace para iniciar la descarga
+        document.body.appendChild(enlaceDescarga);
+        enlaceDescarga.click();
+        document.body.removeChild(enlaceDescarga);
+
+        // Mostrar nuevamente el contenedor floatingMenu después de la captura
+        document.getElementById("floatingMenu").style.display = "block";
+    });
+}
+
+
+
+
+// RELOJ
+
+
+    // Variable para almacenar el estado de visibilidad del reloj
+    let relojVisible = false;
+
+    // Función para mostrar u ocultar el reloj
+    function toggleReloj() {
+        // Verifica si el reloj está visible
+        if (relojVisible) {
+            // Si está visible, oculta el reloj
+            ocultarReloj();
+        } else {
+            // Si no está visible, muestra el reloj
+            mostrarReloj();
+        }
+    }
+
+    // Función para mostrar el reloj
+    function mostrarReloj() {
+        // Crea un elemento de reloj flotante
+        const relojFlotante = document.createElement('div');
+        relojFlotante.id = 'relojFlotante';
+        relojFlotante.style.position = 'absolute';
+        relojFlotante.style.top = '50%';
+        relojFlotante.style.left = '50%';
+        relojFlotante.style.transform = 'translate(-50%, -50%)';
+        relojFlotante.style.zIndex = '1000';
+        relojFlotante.style.backgroundColor = '#fff';
+        relojFlotante.style.padding = '10px';
+        relojFlotante.style.border = '1px solid #ccc';
+        relojFlotante.style.borderRadius = '5px';
+        relojFlotante.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.2)';
+        relojFlotante.style.userSelect = 'none';
+        relojFlotante.style.cursor = 'move';
+
+        // Agrega el reloj al elemento flotante
+        const reloj = document.createElement('div');
+        reloj.id = 'reloj';
+        reloj.style.fontSize = '20px';
+        reloj.style.fontWeight = 'bold';
+
+        // Función para actualizar la hora en el reloj
+        function actualizarHora() {
+            const fecha = new Date();
+            const hora = fecha.getHours().toString().padStart(2, '0');
+            const minutos = fecha.getMinutes().toString().padStart(2, '0');
+            const segundos = fecha.getSeconds().toString().padStart(2, '0');
+            reloj.innerText = `${hora}:${minutos}:${segundos}`;
+        }
+
+        // Actualiza la hora inicial
+        actualizarHora();
+
+        // Actualiza la hora cada segundo
+        setInterval(actualizarHora, 1000);
+
+        // Añade el reloj al elemento flotante
+        relojFlotante.appendChild(reloj);
+
+        // Agrega el elemento flotante al cuerpo del documento
+        document.body.appendChild(relojFlotante);
+
+        // Habilita el arrastre del reloj
+        enableDrag(relojFlotante);
+
+        // Cambia el estado de visibilidad del reloj
+        relojVisible = true;
+    }
+
+    // Función para ocultar el reloj
+    function ocultarReloj() {
+        // Busca el elemento del reloj y lo elimina
+        const relojFlotante = document.getElementById('relojFlotante');
+        if (relojFlotante) {
+            document.body.removeChild(relojFlotante);
+        }
+
+        // Cambia el estado de visibilidad del reloj
+        relojVisible = false;
+    }
+
+    // Función para habilitar el arrastre de un elemento
+    function enableDrag(elemento) {
+        let initialX, initialY;
+
+        // Función que se activa cuando se inicia el arrastre
+        function dragStart(e) {
+            initialX = e.clientX - elemento.getBoundingClientRect().left;
+            initialY = e.clientY - elemento.getBoundingClientRect().top;
+
+            // Añade eventos de escucha para el movimiento del mouse y la liberación del botón
+            document.addEventListener("mousemove", dragMove);
+            document.addEventListener("mouseup", dragEnd);
+        }
+
+        // Función que se activa durante el arrastre
+        function dragMove(e) {
+            const currentX = e.clientX - initialX;
+            const currentY = e.clientY - initialY;
+
+            // Aplica las nuevas coordenadas al elemento flotante
+            elemento.style.left = currentX + "px";
+            elemento.style.top = currentY + "px";
+        }
+
+        // Función que se activa al finalizar el arrastre
+        function dragEnd() {
+            // Elimina los eventos de escucha una vez que se ha soltado el botón del mouse
+            document.removeEventListener("mousemove", dragMove);
+            document.removeEventListener("mouseup", dragEnd);
+        }
+
+        // Agrega un evento de escucha al elemento flotante para iniciar el arrastre
+        elemento.addEventListener("mousedown", dragStart);
+    }
+
+
+
+
+
+// CRONÓMETRO - TEMPORIZADOR - TIMER
+
+    let timerInterval;
+    let timerSeconds = 0;
+    let isTimerRunning = false;
+
+
+function updateTimerDisplay() {
+    const hours = Math.floor(timerSeconds / 3600);
+    const minutes = Math.floor((timerSeconds % 3600) / 60);
+    const seconds = timerSeconds % 60;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerInput = document.getElementById('timerInput');
+
+    timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    // Ocultar el campo completo cuando el temporizador está en marcha
+    if (isTimerRunning) {
+        timerInput.style.display = 'none';
+    } else {
+        timerInput.style.display = 'block';
+        // Mostrar el placeholder solo cuando el temporizador se ha reiniciado o acaba de emerger
+        timerInput.setAttribute('placeholder', 'Tiempo en minutos');
+    }
+
+    // Limpiar el valor ingresado cuando el temporizador está en marcha
+    timerInput.value = (isTimerRunning) ? '' : timerInput.value;
+}
+
+
+
+function startTimer() {
+    if (!isTimerRunning) {
+        const timerInput = document.getElementById('timerInput');
+        timerSeconds = parseInt(timerInput.value) * 60;
+
+        updateTimerDisplay();
+
+        // Eliminar la clase timer-input-zero al iniciar el temporizador
+        timerInput.classList.remove('timer-input-zero');
+
+        timerInterval = setInterval(() => {
+            if (timerSeconds > 0) {
+                timerSeconds--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+            }
+        }, 1000);
+
+        isTimerRunning = true;
+    }
+}
+
+function resetTimer() {
+    pauseTimer();
+    const timerInput = document.getElementById('timerInput');
+    timerInput.value = '';
+    // Agregar la clase timer-input-zero al reiniciar el temporizador
+    timerInput.classList.add('timer-input-zero');
+    timerSeconds = 0;
+    updateTimerDisplay();
+}
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+    }
+
+    function resumeTimer() {
+        if (!isTimerRunning && timerSeconds > 0) {
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                }
+            }, 1000);
+
+            isTimerRunning = true;
+        }
+    }
+
+    function toggleTimer() {
+        const timerContainer = document.getElementById('timerContainer');
+        timerContainer.style.display = (timerContainer.style.display === 'none' || timerContainer.style.display === '') ? 'block' : 'none';
+    }
+
+
+
+// función arrastre timer
+
+let isDragging = false;
+    let offsetX, offsetY;
+
+    const timerContainer = document.getElementById('timerContainer');
+
+    document.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('draggable')) {
+            isDragging = true;
+            offsetX = e.clientX - timerContainer.getBoundingClientRect().left;
+            offsetY = e.clientY - timerContainer.getBoundingClientRect().top;
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+
+            timerContainer.style.left = `${x}px`;
+            timerContainer.style.top = `${y}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+
+
+// CONTENEDOR DE IMÁGENES EMERGENTE Y FLOTANTE
+
+document.addEventListener('DOMContentLoaded', function () {
+  const openGalleryBtn = document.getElementById('openGalleryBtn');
+  const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+  const galleryContainer = document.getElementById('galleryContainer');
+  const imageInput = document.getElementById('imageInput');
+  const imageGallery = document.getElementById('imageGallery');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  let currentImageIndex = 0;
+
+  openGalleryBtn.addEventListener('click', function () {
+    galleryContainer.style.display = 'block';
+    displayImages();
+  });
+
+  closeGalleryBtn.addEventListener('click', function () {
+    galleryContainer.style.display = 'none';
+  });
+
+  // Hacer el contenedor emergente arrastrable
+  makeDraggable(galleryContainer);
+
+  // Manejar la carga de imágenes
+  imageInput.addEventListener('change', function () {
+    displayImages();
+  });
+
+  // Manejar la navegación entre imágenes
+  prevBtn.addEventListener('click', function () {
+    showImage(currentImageIndex - 1);
+  });
+
+  nextBtn.addEventListener('click', function () {
+    showImage(currentImageIndex + 1);
+  });
+
+  // Navegación con teclado
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') {
+      showImage(currentImageIndex - 1);
+    } else if (e.key === 'ArrowRight') {
+      showImage(currentImageIndex + 1);
+    }
+  });
+
+  // Limpiar el input al hacer clic en el botón Limpiar
+  clearBtn.addEventListener('click', function () {
+    clearInput();
+  });
+
+  function displayImages() {
+    imageGallery.innerHTML = '';
+    currentImageIndex = 0;
+
+    for (const file of imageInput.files) {
+      const imgElement = document.createElement('img');
+      imgElement.src = URL.createObjectURL(file);
+      imageGallery.appendChild(imgElement);
+    }
+
+    showImage(currentImageIndex);
+  }
+
+  function showImage(index) {
+    const images = imageGallery.querySelectorAll('img');
+    
+    if (index >= 0 && index < images.length) {
+      images[currentImageIndex].style.display = 'none';
+      currentImageIndex = index;
+      images[currentImageIndex].style.display = 'block';
+    }
+  }
+
+  // Función para limpiar el input
+  function clearInput() {
+    imageInput.value = ''; // Limpiar el valor del input de tipo file
+    imageGallery.innerHTML = ''; // Limpiar la galería de imágenes
+  }
+
+  // Función para hacer el contenedor arrastrable
+  function makeDraggable(element) {
+    let pos1 = 0,
+      pos2 = 0,
+      pos3 = 0,
+      pos4 = 0;
+      
+    // Obtener el header para el arrastre
+    const header = document.getElementById(element.id + '-header');
+
+    if (header) {
+      // Si hay un header, usarlo como controlador para el arrastre
+      header.onmousedown = dragMouseDown;
+    } else {
+      // Si no hay un header, permitir arrastrar desde cualquier parte del contenedor
+      element.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // Obtener la posición inicial del cursor
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // Adjuntar eventos de ratón para el movimiento y la parada
+      document.onmouseup = closeDragElement;
+      document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // Calcular la nueva posición del cursor
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // Establecer la nueva posición del elemento
+      element.style.top = element.offsetTop - pos2 + 'px';
+      element.style.left = element.offsetLeft - pos1 + 'px';
+    }
+
+    function closeDragElement() {
+      // Detener el arrastre cuando se libera el botón del ratón
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  // ... (código existente)
+
+  const customCloseBtn = document.getElementById('customCloseBtn');
+
+  customCloseBtn.addEventListener('click', function () {
+    galleryContainer.style.display = 'none';
+  });
+
+  // ... (resto del código)
+});
+
+
+
+
+// ... INICIO PDF
+// ... INICIO PDF
+document.addEventListener('DOMContentLoaded', function () {
+  // Constantes para selección de elementos
+  const pdfViewer = document.getElementById('pdfViewer');
+  const pdfViewerTitle = document.getElementById('pdfViewerTitle');
+  const resizeCorner = document.getElementById('resizeCorner');
+  const pdfFrame = document.getElementById('pdfFrame');
+  const openPdfViewerBtn = document.getElementById('openPdfViewerBtn');
+  const pdfInput = document.getElementById('pdfInput');
+  const cerrarPdfBtn = document.getElementById('cerrarPdfBtn');
+
+  // Variables para manejo de eventos de arrastre y redimensionamiento
+  let isDragging = false;
+  let isResizing = false;
+  let initialMouseX, initialMouseY, initialWidth, initialHeight;
+
+  // Funciones PDF
+  function abrirSubidaPDF() {
+    const pdfInput = document.getElementById('pdfInput');
+    if (pdfInput) {
+      pdfInput.click();
+    } else {
+      console.error('El elemento con id "pdfInput" no se encuentra o es null.');
+    }
+  }
+
+  function mostrarPDF(pdfFile) {
+    pdfFrame.src = URL.createObjectURL(pdfFile);
+    pdfViewer.style.display = 'block';
+    document.addEventListener('mousemove', handleDrag);
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      isResizing = false;
+    });
+  }
+
+  function cerrarPDF() {
+    pdfFrame.src = '';
+    pdfViewer.style.display = 'none';
+    document.removeEventListener('mousemove', handleDrag);
+  }
+
+  
+  if (cerrarPdfBtn) {
+    cerrarPdfBtn.addEventListener('click', function () {
+      cerrarPDF();
+      // Restablecemos variables de redimensionamiento
+      isDragging = false;
+      isResizing = false;
+    });
+  }
+
+  function handleDrag(e) {
+    if (isDragging) {
+      pdfViewer.style.left = e.clientX - initialMouseX + 'px';
+      pdfViewer.style.top = e.clientY - initialMouseY + 'px';
+    }
+
+    if (isResizing) {
+      const newWidth = initialWidth + (e.clientX - initialMouseX);
+      const newHeight = initialHeight + (e.clientY - initialMouseY);
+
+      pdfViewer.style.width = newWidth + 'px';
+      pdfViewer.style.height = newHeight + 'px';
+    }
+  }
+
+  pdfViewerTitle.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    initialMouseX = e.clientX - parseFloat(getComputedStyle(pdfViewer).left);
+    initialMouseY = e.clientY - parseFloat(getComputedStyle(pdfViewer).top);
+  });
+
+  resizeCorner.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    initialMouseX = e.clientX;
+    initialMouseY = e.clientY;
+    initialWidth = pdfViewer.offsetWidth;
+    initialHeight = pdfViewer.offsetHeight;
+  });
+
+  // Agregar evento de clic al botón de PDF
+  openPdfViewerBtn.addEventListener('click', function () {
+    abrirSubidaPDF();
+  });
+
+  pdfInput.addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      mostrarPDF(file);
+    }
+  });
+});
+// ... FINAL PDF
+
+
+
+
+// FUNCIONES DE LAS FIGURAS GEOMÉTRICAS
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const lienzo = document.getElementById('lienzo');
+    const ctx = lienzo.getContext('2d');
+
+    let isDrawing = false;
+    let drawingMode = 'pencil';
+    let shapes = [];
+    let initialSize = 10;
+    let initialX, initialY;
+    let currentSize = initialSize;
+    let selectedColor = 'black';
+    let selectedThickness = 1;
+
+    function getMousePosition(e) {
+        const rect = lienzo.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    function getColor() {
+        const colorSelector = document.getElementById('colorSelector');
+        selectedColor = colorSelector.value;
+    }
+
+    function getThickness() {
+        const thicknessSlider = document.getElementById('thicknessSlider');
+        selectedThickness = parseInt(thicknessSlider.value, 10);
+    }
+
+    function drawCircle(x, y, size, color, thickness) {
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    function drawRectangle(x, y, width, height, color, thickness) {
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    function drawTriangle(x1, y1, x2, y2, x3, y3, color, thickness) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+    }
+
+    function drawLine(x1, y1, x2, y2, color, thickness) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+    }
+
+    function drawDashedLine(x1, y1, x2, y2, color, thickness) {
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function drawPencilLine(points, color, thickness) {
+        if (points.length < 2) return;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
+        ctx.stroke();
+    }
+
+    function drawShapes() {
+        ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+        shapes.forEach(shape => {
+            if (shape.type === 'circle') {
+                drawCircle(shape.x, shape.y, shape.size, shape.color, shape.thickness);
+            } else if (shape.type === 'rectangle') {
+                drawRectangle(shape.x, shape.y, shape.width, shape.height, shape.color, shape.thickness);
+            } else if (shape.type === 'triangle') {
+                drawTriangle(shape.x1, shape.y1, shape.x2, shape.y2, shape.x3, shape.y3, shape.color, shape.thickness);
+            } else if (shape.type === 'line') {
+                drawLine(shape.x1, shape.y1, shape.x2, shape.y2, shape.color, shape.thickness);
+            } else if (shape.type === 'dashedLine') {
+                drawDashedLine(shape.x1, shape.y1, shape.x2, shape.y2, shape.color, shape.thickness);
+            } else if (shape.type === 'pencil') {
+                drawPencilLine(shape.points, shape.color, shape.thickness);
+            }
+        });
+    }
+
+    function handleMouseDown(e) {
+        isDrawing = true;
+        const { x, y } = getMousePosition(e);
+        initialX = x;
+        initialY = y;
+
+        if (drawingMode === 'pencil') {
+            shapes.push({
+                type: 'pencil',
+                points: [{ x, y }],
+                color: getCurrentColor(),
+                thickness: getCurrentThickness()
+            });
+        } else {
+            drawShapes();
+        }
+
+        if (drawingMode === 'circle') {
+            currentSize = 1;
+            drawCircle(x, y, currentSize, getCurrentColor(), getCurrentThickness());
+        } else if (drawingMode === 'rectangle') {
+            drawRectangle(x, y, currentSize, currentSize, getCurrentColor(), getCurrentThickness());
+        } else if (drawingMode === 'triangle') {
+            drawTriangle(x, y, x + 1, y, x, y + 1, getCurrentColor(), getCurrentThickness());
+        } else if (drawingMode === 'line') {
+            drawLine(x, y, x + 1, y + 1, getCurrentColor(), getCurrentThickness());
+        } else if (drawingMode === 'dashedLine') {
+            drawDashedLine(x, y, x + 1, y + 1, getCurrentColor(), getCurrentThickness());
+        }
+    }
+
+    function handleMouseMove(e) {
+        if (isDrawing) {
+            const { x, y } = getMousePosition(e);
+
+            if (drawingMode === 'pencil') {
+                shapes[shapes.length - 1].points.push({ x, y });
+                drawPencilLine(shapes[shapes.length - 1].points, getCurrentColor(), getCurrentThickness());
+            } else {
+                ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+                drawShapes();
+            }
+
+            if (drawingMode === 'circle') {
+                currentSize = Math.abs(x - initialX);
+                drawCircle(initialX, initialY, currentSize, getCurrentColor(), getCurrentThickness());
+            } else if (drawingMode === 'rectangle') {
+                const width = x - initialX;
+                const height = y - initialY;
+                drawRectangle(initialX, initialY, width, height, getCurrentColor(), getCurrentThickness());
+            } else if (drawingMode === 'triangle') {
+                drawTriangle(initialX, initialY, x, initialY, initialX + (x - initialX) / 2, y, getCurrentColor(), getCurrentThickness());
+            } else if (drawingMode === 'line') {
+                drawLine(initialX, initialY, x, y, getCurrentColor(), getCurrentThickness());
+            } else if (drawingMode === 'dashedLine') {
+                drawDashedLine(initialX, initialY, x, y, getCurrentColor(), getCurrentThickness());
+            }
+        }
+    }
+
+    function handleMouseUp(e) {
+        isDrawing = false;
+
+        if (drawingMode === 'circle' || drawingMode === 'rectangle' || drawingMode === 'triangle' || drawingMode === 'line' || drawingMode === 'dashedLine') {
+            const { x, y } = getMousePosition(e);
+
+            if (drawingMode === 'circle') {
+                shapes.push({
+                    type: 'circle',
+                    x: initialX,
+                    y: initialY,
+                    size: currentSize,
+                    color: getCurrentColor(),
+                    thickness: getCurrentThickness()
+                });
+            } else if (drawingMode === 'rectangle') {
+                const width = x - initialX;
+                const height = y - initialY;
+                shapes.push({
+                    type: 'rectangle',
+                    x: initialX,
+                    y: initialY,
+                    width: width,
+                    height: height,
+                    color: getCurrentColor(),
+                    thickness: getCurrentThickness()
+                });
+            } else if (drawingMode === 'triangle') {
+                shapes.push({
+                    type: 'triangle',
+                    x1: initialX,
+                    y1: initialY,
+                    x2: x,
+                    y2: initialY,
+                    x3: initialX + (x - initialX) / 2,
+                    y3: y,
+                    color: getCurrentColor(),
+                    thickness: getCurrentThickness()
+                });
+            } else if (drawingMode === 'line') {
+                shapes.push({
+                    type: 'line',
+                    x1: initialX,
+                    y1: initialY,
+                    x2: x,
+                    y2: y,
+                    color: getCurrentColor(),
+                    thickness: getCurrentThickness()
+                });
+            } else if (drawingMode === 'dashedLine') {
+                shapes.push({
+                    type: 'dashedLine',
+                    x1: initialX,
+                    y1: initialY,
+                    x2: x,
+                    y2: y,
+                    color: getCurrentColor(),
+                    thickness: getCurrentThickness()
+                });
+            }
+
+            currentSize = initialSize;
+            drawShapes();
+        }
+    }
+
+    function getCurrentColor() {
+        getColor();
+        return selectedColor;
+    }
+
+
+
+
+    
+    function getCurrentThickness() {
+        getThickness();
+        return selectedThickness;
+    }
+
+    function setDrawingMode(mode) {
+        drawingMode = mode;
+    }
+
+    const circleBtn = document.getElementById('circleBtn');
+    const rectangleBtn = document.getElementById('rectangleBtn');
+    const triangleBtn = document.getElementById('triangleBtn');
+    const lineBtn = document.getElementById('lineBtn');
+    const dashedLineBtn = document.getElementById('dashedLineBtn');
+    const pencilBtn = document.getElementById('pencilBtn');
+    const limpiarFigurasBtn = document.getElementById('limpiarFigurasBtn');
+    const colorSelector = document.getElementById('colorSelector');
+    const thicknessSlider = document.getElementById('thicknessSlider');
+
+    circleBtn.addEventListener('click', function () {
+        setDrawingMode('circle');
+    });
+
+    rectangleBtn.addEventListener('click', function () {
+        setDrawingMode('rectangle');
+    });
+
+    triangleBtn.addEventListener('click', function () {
+        setDrawingMode('triangle');
+    });
+
+    lineBtn.addEventListener('click', function () {
+        setDrawingMode('line');
+    });
+
+    dashedLineBtn.addEventListener('click', function () {
+        setDrawingMode('dashedLine');
+    });
+
+    pencilBtn.addEventListener('click', function () {
+        setDrawingMode('pencil');
+    });
+
+    limpiarFigurasBtn.addEventListener('click', function () {
+        shapes = [];
+        ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+    });
+
+    colorSelector.addEventListener('change', function () {
+        getCurrentColor();
+    });
+
+    thicknessSlider.addEventListener('input', function () {
+        getCurrentThickness();
+    });
+
+    lienzo.addEventListener('mousedown', handleMouseDown);
+    lienzo.addEventListener('mousemove', handleMouseMove);
+    lienzo.addEventListener('mouseup', handleMouseUp);
+});
+
+
+
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lector PDF/TXT con Pausa, Reanudar y Resaltado</title>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js";
+    }
+  </script>
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      display:flex; align-items:center; justify-content:center;
+      min-height:100vh; margin:0; background:#f5f5f5;
+    }
+    .container{ width:clamp(300px, 90vw, 900px); text-align:center }
+    #reader{
+      width:100%; height:320px; background:#fff; border:1px solid #ccc;
+      padding:12px; overflow:auto; text-align:left; white-space:pre-wrap; word-wrap:break-word;
+      margin:10px 0;
+    }
+    .controls{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0 }
+    button, input[type=file]{ padding:10px 16px; font-size:16px; cursor:pointer }
+    .slider{ margin-top:6px }
+    mark{ background:yellow; color:#000; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔊 Lector de PDF / TXT con Pausa, Reanudar y Resaltado</h2>
+
+    <input type="file" id="fileInput" accept=".txt,.pdf"/>
+    <p><small>Sube un archivo .txt o .pdf, o pega/escribe el texto abajo.</small></p>
+
+    <div id="reader" contenteditable="true"></div>
+
+    <div class="controls">
+      <button id="btnStart">▶️ Leer / Reanudar</button>
+      <button id="btnPause">⏸️ Pausar</button>
+      <button id="btnStop">⏹️ Detener</button>
+      <button id="btnClear">🧹 Limpiar</button>
+    </div>
+
+    <label for="speedControl">⚡ Velocidad: <span id="speedValue">1.0</span>x</label>
+    <input class="slider" type="range" id="speedControl" min="0.5" max="2" step="0.1" value="1"/>
+  </div>
+
+  <script>
+    // ----- Estado -----
+    const readerDiv = document.getElementById("reader");
+    let originalText = "";
+    let textChunks = [];
+    let currentIndex = 0;
+    let started = false;
+    let isPaused = false;
+    let isReading = false;
+    let currentUtterance = null;
+    let speechRate = 1;
+
+    // ----- Utilidades -----
+    function escapeHtml(str){
+      return (str || "")
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+    }
+
+    // Dividir texto en frases (mejor control que por caracteres)
+    function chunkTextBySentence(text) {
+      const parts = text.split(/([.?!¡¿\n]+)/);
+      let chunks = [];
+      let buffer = "";
+      for (let i=0; i<parts.length; i++) {
+        buffer += parts[i];
+        if (/[.?!¡¿\n]/.test(parts[i]) || buffer.length > 250) {
+          if (buffer.trim()) chunks.push(buffer.trim());
+          buffer = "";
+        }
+      }
+      if (buffer.trim()) chunks.push(buffer.trim());
+      return chunks;
+    }
+
+    function highlightChunk(idx) {
+      const before = textChunks.slice(0, idx).join(" ");
+      const current = textChunks[idx];
+      const after = textChunks.slice(idx+1).join(" ");
+      readerDiv.innerHTML =
+        escapeHtml(before) + (before?" ":"") +
+        "<mark>"+escapeHtml(current)+"</mark>" +
+        (after?" "+escapeHtml(after):"");
+
+      const markEl = readerDiv.querySelector("mark");
+      if (markEl) markEl.scrollIntoView({behavior:"smooth", block:"center"});
+    }
+
+    function removeHighlight() {
+      readerDiv.innerText = originalText;
+    }
+
+    // ----- Lectura -----
+    function readChunk(){
+      if (currentIndex >= textChunks.length) {
+        isReading = false;
+        started = false;
+        removeHighlight();
+        return;
+      }
+
+      highlightChunk(currentIndex);
+
+      currentUtterance = new SpeechSynthesisUtterance(textChunks[currentIndex]);
+      currentUtterance.lang = "es-ES";
+      currentUtterance.rate = speechRate;
+
+      currentUtterance.onend = ()=>{
+        if (!isPaused && started) {
+          currentIndex++;
+          setTimeout(readChunk,0);
+        }
+      };
+
+      window.speechSynthesis.speak(currentUtterance);
+    }
+
+    function startOrResume(){
+      if (!originalText.trim()) {
+        alert("Por favor escribe o carga un texto para leer.");
+        return;
+      }
+
+      // Si está pausado → reanudar
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+        isPaused = false;
+        isReading = true;
+        return;
+      }
+
+      // Si ya está hablando → no duplicar
+      if (window.speechSynthesis.speaking) return;
+
+      // Primera vez: dividir texto en frases
+      if (!started) {
+        textChunks = chunkTextBySentence(originalText);
+        currentIndex = 0;
+        started = true;
+      }
+
+      isReading = true;
+      readChunk();
+    }
+
+    function pauseReading(){
+      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+        window.speechSynthesis.pause();
+        isPaused = true;
+        isReading = false;
+      }
+    }
+
+    function stopReading(){
+      window.speechSynthesis.cancel();
+      isPaused = false;
+      isReading = false;
+      started = false;
+      currentIndex = 0;
+      removeHighlight();
+    }
+
+    function clearText(){
+      stopReading();
+      originalText = "";
+      readerDiv.innerText = "";
+    }
+
+    // ----- Controles -----
+    document.getElementById("speedControl").addEventListener("input", e=>{
+      speechRate = parseFloat(e.target.value);
+      document.getElementById("speedValue").textContent = speechRate.toFixed(1);
+    });
+
+    document.getElementById("btnStart").addEventListener("click", startOrResume);
+    document.getElementById("btnPause").addEventListener("click", pauseReading);
+    document.getElementById("btnStop").addEventListener("click", stopReading);
+    document.getElementById("btnClear").addEventListener("click", clearText);
+    document.getElementById("fileInput").addEventListener("change", onFileChosen);
+    readerDiv.addEventListener("input", ()=>{
+      originalText = readerDiv.innerText;
+      stopReading();
+    });
+
+    // ----- Archivos -----
+    function onFileChosen(e){
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.type === "text/plain") {
+        const fr = new FileReader();
+        fr.onload = ev=>{
+          originalText = ev.target.result || "";
+          readerDiv.innerText = originalText;
+          stopReading();
+        };
+        fr.readAsText(file,"UTF-8");
+      } else if (file.type === "application/pdf") {
+        readPDF(file);
+      } else {
+        alert("Por favor selecciona un archivo .txt o .pdf");
+      }
+    }
+
+    function readPDF(file){
+      const fr = new FileReader();
+      fr.onload = ev=>{
+        const typedarray = new Uint8Array(ev.target.result);
+        pdfjsLib.getDocument(typedarray).promise.then(async pdf=>{
+          let allText = "";
+          for(let p=1; p<=pdf.numPages; p++){
+            const page = await pdf.getPage(p);
+            const content = await page.getTextContent();
+            const pageText = content.items.map(it=>it.str).join(" ");
+            allText += pageText + "\n\n";
+          }
+          originalText = allText;
+          readerDiv.innerText = originalText;
+          stopReading();
+        });
+      };
+      fr.readAsArrayBuffer(file);
+    }
+  </script>
+</body>
+</html>

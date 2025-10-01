@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Venas – Arrastra al número correcto</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fa;
+    padding: 15px;
+    margin: 0;
+  }
+.contenedor {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-rows: auto auto; /* 👈 primera fila título, segunda fila contenido */
+  gap: 20px;
+  width: 100%;
+  margin: 0 auto;
+  align-items: start;
+}
+
+h1.titulo-app {
+  grid-column: 1 / span 3;
+  grid-row: 1;
+  text-align: center;
+  color: #b30000;
+  margin: 0.1px 0 0.02px 0; /* 👈 ahora baja 30px desde arriba */
+  font-size: 32px;
+  font-weight: bold;
+}
+
+
+  .imagen {
+    border: 2px solid #0a4a6f;
+    border-radius: 4px;
+    padding: 3px;
+    background: #fff;
+    text-align: center;
+  }
+  .imagen img {
+    width: 80%;
+    max-width: 100%;
+    height: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 15px;
+  }
+  th, td {
+    border: 1px solid #999;
+    padding: 8px 6px;
+    text-align: center;
+    height: 22px;
+  }
+  th {
+    background: #ddd;
+  }
+  .correcto {
+    background: #28a745;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    font-size: 16px;         /* 👈 aumenta tamaño de letra */
+  }
+  .incorrecto {
+    background: #dc3545;
+    color: rgb(255, 255, 255);
+    font-weight: bold;
+    font-size: 16px;         /* 👈 aumenta tamaño de letra */
+  }
+ .lista {
+  background: #b3e6e8;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  padding: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+  font-size: 20px; /* 👈 Aquí controlas el tamaño */
+}
+
+.lista .item {
+  font-size: 18px; /* 👈 Ajusta aquí */
+  padding: 6px;
+}
+
+
+  .item {
+    background: #fff;
+    margin: 5px 0;
+    padding: 6px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: grab;
+    font-size: 13px;
+  }
+
+  /* Retroalimentación general */
+/* === Retroalimentación general (estado inicial) === */
+.retro-box {
+  margin-top: 12px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 2px solid #007bff; /* Borde azul inicial */
+  border-radius: 6px;
+  background: #f9f9f9; /* Fondo gris claro inicial */
+  font-size: 16px;
+  line-height: 1.5em;
+  white-space: pre-line; /* Mantiene saltos de línea */
+  color: #000;
+}
+
+/* === Correcto === */
+.retro-correcto {
+  background: #c8f7c5; /* Verde pastel */
+  border-color: #28a745; /* Verde */
+  color: #000;
+}
+
+/* === Incorrecto === */
+.retro-incorrecto {
+  background: #f8d7da; /* Rojo pastel */
+  border-color: #dc3545; /* Rojo */
+  color: #000;
+}
+
+/* Encabezado retroalimentación (Correcto/Incorrecto + bolita + nombre) */
+.retro-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.retro-header .icono {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Bolita del número */
+.num-bolita {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  background: #dc3545;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Rectángulo con el nombre de la vena */
+.nombre-vena {
+  display: inline-block;
+  background: #dc3545;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+
+
+.selector-regiones {
+  text-align: center;
+  margin: 15px 0;
+}
+.selector-regiones button {
+  background: #007bff;
+  color: #fff;
+  font-size: 15px;
+  font-weight: bold;
+  margin: 4px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.selector-regiones button:hover {
+  background: #0056b3;
+}
+
+
+
+
+</style>
+</head>
+<body>
+
+
+
+<div class="contenedor">
+  <!-- Fila de título -->
+  <h1 class="titulo-app">VENAS - Juego de arrastrar tarjetas</h1>
+
+  <!-- Imagen -->
+  <div class="imagen">
+    <h3>VENAS</h3>
+    <img src="https://lh4.googleusercontent.com/x7x5sJBcI0zxIwEN8YOwvx3rd7VlRJsKnV0zDkVEriZgsy40dD5XZUW_-tqeWbPyh3R0Pr39xD3DJeiKfShijFDWANo6DFibsp5cncHIWO4NnXpo6q3zkLv1km1hoX5-ATGN26tb4mq9eFEVStX5BV98qcD0QfS53xxphdSrRYSL77YbsESB8A=w1280">
+  </div>
+
+    <!-- Tabla central (42 venas con retroalimentación robusta) -->
+<div>
+  <table>
+    <tr><th>Nº</th><th>Respuesta</th><th>Nº</th><th>Respuesta</th></tr>
+
+    <tr><td>1</td><td class="dropzone" data-respuesta="1. Seno longitudinal inferior" data-info="📍 Localización: Corre en la parte inferior de la hoz del cerebro.
+🩸 Función: Recoge sangre de áreas profundas y superiores.
+🧠 Clínica: Involucrado en trombosis de senos venosos.
+🔍 Relación: Comunica con venas cerebrales internas.
+💡 Curiosidad: Es de menor calibre que el seno longitudinal superior."></td>
+        <td>22</td><td class="dropzone" data-respuesta="22. Yugular externa" data-info="📍 Localización: Cuello superficial.
+🩸 Función: Recoge sangre de cara y cuello.
+🧠 Clínica: Puede hincharse en insuficiencia cardíaca.
+🔍 Relación: Se conecta con venas faciales.
+💡 Curiosidad: Fácil de palpar en personas delgadas."></td></tr>
+
+    <tr><td>2</td><td class="dropzone" data-respuesta="2. Angular" data-info="📍 Localización: Ángulo interno del ojo.
+🩸 Función: Une venas faciales con senos intracraneales.
+🧠 Clínica: Vía de infecciones faciales al cerebro.
+🔍 Relación: Conecta con vena oftálmica.
+💡 Curiosidad: Pequeña pero clínicamente importante."></td>
+        <td>23</td><td class="dropzone" data-respuesta="23. Plexo cervical" data-info="📍 Localización: Región cervical.
+🩸 Función: Red venosa del cuello.
+🧠 Clínica: Puede lesionarse en cirugías cervicales.
+🔍 Relación: Conecta venas yugulares.
+💡 Curiosidad: Actúa como vía colateral."></td></tr>
+
+    <tr><td>3</td><td class="dropzone" data-respuesta="3. Facial anterior" data-info="📍 Localización: Cara anterior.
+🩸 Función: Principal drenaje venoso de la cara.
+🧠 Clínica: Infecciones faciales pueden llegar al seno cavernoso.
+🔍 Relación: Conecta con vena angular.
+💡 Curiosidad: Usada en cirugía estética."></td>
+        <td>24</td><td class="dropzone" data-respuesta="24. Yugular interna" data-info="📍 Localización: Cuello profundo.
+🩸 Función: Principal drenaje venoso del cráneo.
+🧠 Clínica: Se canula en UCI.
+🔍 Relación: Desemboca en tronco braquiocefálico.
+💡 Curiosidad: Tiene válvulas que evitan reflujo."></td></tr>
+
+    <tr><td>4</td><td class="dropzone" data-respuesta="4. Tronco venoso braquiocefálico derecho" data-info="📍 Localización: Unión yugular-subclavia derecha.
+🩸 Función: Lleva sangre de cabeza, cuello y brazo derecho.
+🧠 Clínica: Puede obstruirse en cáncer mediastínico.
+🔍 Relación: Forma la vena cava superior.
+💡 Curiosidad: Es más corto que el izquierdo."></td>
+        <td>25</td><td class="dropzone" data-respuesta="25. Tronco venoso braquiocefálico izquierdo" data-info="📍 Localización: Unión yugular-subclavia izquierda.
+🩸 Función: Lleva sangre de cabeza, cuello y brazo izquierdo.
+🧠 Clínica: Comprometido en síndrome mediastínico.
+🔍 Relación: Forma la vena cava superior.
+💡 Curiosidad: Es más largo que el derecho."></td></tr>
+
+    <tr><td>5</td><td class="dropzone" data-respuesta="5. Subclavia derecha" data-info="📍 Localización: Debajo de la clavícula derecha.
+🩸 Función: Retorna sangre del brazo derecho.
+🧠 Clínica: Puede usarse para catéteres centrales.
+🔍 Relación: Se une a yugular interna.
+💡 Curiosidad: Tiene variaciones anatómicas."></td>
+        <td>26</td><td class="dropzone" data-respuesta="26. Subclavia izquierda" data-info="📍 Localización: Debajo de la clavícula izquierda.
+🩸 Función: Retorna sangre del brazo izquierdo.
+🧠 Clínica: Ruta frecuente de catéteres.
+🔍 Relación: Se une a yugular interna.
+💡 Curiosidad: Es más horizontal que la derecha."></td></tr>
+
+    <tr><td>6</td><td class="dropzone" data-respuesta="6. Vena cava superior" data-info="📍 Localización: Mediastino superior.
+🩸 Función: Drena cabeza, cuello y miembros superiores.
+🧠 Clínica: Obstruida en síndrome de vena cava superior.
+🔍 Relación: Recibe venas braquiocefálicas.
+💡 Curiosidad: Retorna 1/3 de la sangre corporal."></td>
+        <td>27</td><td class="dropzone" data-respuesta="27. Cefálica" data-info="📍 Localización: Cara lateral del brazo.
+🩸 Función: Vena superficial del brazo.
+🧠 Clínica: Se usa en accesos vasculares.
+🔍 Relación: Desemboca en axilar.
+💡 Curiosidad: Visible en culturistas."></td></tr>
+
+    <tr><td>7</td><td class="dropzone" data-respuesta="7. Pulmonar" data-info="📍 Localización: En los pulmones.
+🩸 Función: Transporta sangre oxigenada al corazón.
+🧠 Clínica: Importante en cirugía cardíaca.
+🔍 Relación: Llega a la aurícula izquierda.
+💡 Curiosidad: Son venas pero llevan sangre oxigenada."></td>
+        <td>28</td><td class="dropzone" data-respuesta="28. Axilar" data-info="📍 Localización: Axila.
+🩸 Función: Vena principal de la axila.
+🧠 Clínica: Usada en accesos vasculares.
+🔍 Relación: Continuación de la basílica y braquial.
+💡 Curiosidad: Se acompaña de arteria axilar."></td></tr>
+
+    <tr><td>8</td><td class="dropzone" data-respuesta="8. Coronaria derecha" data-info="📍 Localización: Corazón derecho.
+🩸 Función: Drena sangre del corazón.
+🧠 Clínica: Involucrada en cardiopatías.
+🔍 Relación: Con arteria coronaria derecha.
+💡 Curiosidad: Drena al seno coronario."></td>
+        <td>29</td><td class="dropzone" data-respuesta="29. Coronaria izquierda" data-info="📍 Localización: Corazón izquierdo.
+🩸 Función: Drena sangre del corazón izquierdo.
+🧠 Clínica: Asociada a infartos.
+🔍 Relación: Con arteria coronaria izquierda.
+💡 Curiosidad: Se une al seno coronario."></td></tr>
+
+    <tr><td>9</td><td class="dropzone" data-respuesta="9. Vena cava inferior" data-info="📍 Localización: Abdomen.
+🩸 Función: Recoge sangre de abdomen y piernas.
+🧠 Clínica: Trombosis compromete retorno venoso.
+🔍 Relación: Recibe ilíacas primitivas.
+💡 Curiosidad: Transporta 2/3 de la sangre al corazón."></td>
+        <td>30</td><td class="dropzone" data-respuesta="30. Basílica" data-info="📍 Localización: Parte medial del brazo.
+🩸 Función: Vena superficial del brazo.
+🧠 Clínica: Usada en extracción de sangre.
+🔍 Relación: Une con vena braquial.
+💡 Curiosidad: Muy accesible clínicamente."></td></tr>
+
+    <tr><td>10</td><td class="dropzone" data-respuesta="10. Hepática" data-info="📍 Localización: Hígado.
+🩸 Función: Drena sangre del hígado a cava inferior.
+🧠 Clínica: Bloqueada en síndrome de Budd-Chiari.
+🔍 Relación: Conecta con porta hepática.
+💡 Curiosidad: Son varias venas hepáticas."></td>
+        <td>31</td><td class="dropzone" data-respuesta="31. Mamaria externa" data-info="📍 Localización: Tórax anterior.
+🩸 Función: Vena torácica superficial.
+🧠 Clínica: Varices en tórax.
+🔍 Relación: Conectada con torácica interna.
+💡 Curiosidad: Se dilata en embarazo."></td></tr>
+
+    <tr><td>11</td><td class="dropzone" data-respuesta="11. Porta hepática" data-info="📍 Localización: Hígado.
+🩸 Función: Lleva sangre digestiva al hígado.
+🧠 Clínica: Afectada en hipertensión portal.
+🔍 Relación: Recibe mesentéricas y esplénica.
+💡 Curiosidad: Lleva nutrientes absorbidos."></td>
+        <td>32</td><td class="dropzone" data-respuesta="32. Esplénica" data-info="📍 Localización: Bazo.
+🩸 Función: Drena sangre esplénica al porta.
+🧠 Clínica: Varices esofágicas en hipertensión portal.
+🔍 Relación: Se une a mesentérica superior.
+💡 Curiosidad: Transporta bilirrubina indirecta."></td></tr>
+
+    <tr><td>12</td><td class="dropzone" data-respuesta="12. Mediana del codo" data-info="📍 Localización: Fosa antecubital.
+🩸 Función: Vena superficial para punciones.
+🧠 Clínica: Principal vía de extracción sanguínea.
+🔍 Relación: Une basílica y cefálica.
+💡 Curiosidad: Usada en pruebas de laboratorio."></td>
+        <td>33</td><td class="dropzone" data-respuesta="33. Mediana basílica" data-info="📍 Localización: Antebrazo medial.
+🩸 Función: Vena superficial del antebrazo.
+🧠 Clínica: Usada para catéteres.
+🔍 Relación: Conecta con basílica.
+💡 Curiosidad: Fácil acceso en niños."></td></tr>
+
+    <tr><td>13</td><td class="dropzone" data-respuesta="13. Mesentérica superior" data-info="📍 Localización: Intestino delgado.
+🩸 Función: Drena sangre del intestino delgado.
+🧠 Clínica: Trombosis produce isquemia intestinal.
+🔍 Relación: Une con esplénica.
+💡 Curiosidad: Lleva nutrientes al hígado."></td>
+        <td>34</td><td class="dropzone" data-respuesta="34. Mesentérica inferior" data-info="📍 Localización: Colon y recto.
+🩸 Función: Drena colon descendente y recto.
+🧠 Clínica: Trombosis produce colitis isquémica.
+🔍 Relación: Conecta con esplénica.
+💡 Curiosidad: Menor calibre que la superior."></td></tr>
+
+    <tr><td>14</td><td class="dropzone" data-respuesta="14. Ilíaca primitiva" data-info="📍 Localización: Pelvis.
+🩸 Función: Se divide en ilíaca interna y externa.
+🧠 Clínica: Puede dilatarse en aneurismas.
+🔍 Relación: Origina cava inferior.
+💡 Curiosidad: Existen dos (der/izq)."></td>
+        <td>35</td><td class="dropzone" data-respuesta="35. Ilíaca primitiva" data-info="📍 Localización: Pelvis.
+🩸 Función: Se divide en ilíaca interna y externa.
+🧠 Clínica: Puede dilatarse en aneurismas.
+🔍 Relación: Origina cava inferior.
+💡 Curiosidad: Existen dos (der/izq)."></td></tr>
+
+    <tr><td>15</td><td class="dropzone" data-respuesta="15. Ilíaca externa" data-info="📍 Localización: Pelvis hacia pierna.
+🩸 Función: Continúa como vena femoral.
+🧠 Clínica: Trombosis genera TVP.
+🔍 Relación: Con femoral.
+💡 Curiosidad: Transporta sangre de pierna."></td>
+        <td>36</td><td class="dropzone" data-respuesta="36. Ilíaca interna (hipogástrica)" data-info="📍 Localización: Pelvis interna.
+🩸 Función: Drena órganos pélvicos.
+🧠 Clínica: Involucrada en cirugías pélvicas.
+🔍 Relación: Con ilíaca primitiva.
+💡 Curiosidad: También llamada hipogástrica."></td></tr>
+
+    <tr><td>16</td><td class="dropzone" data-respuesta="16. Femoral" data-info="📍 Localización: Muslo.
+🩸 Función: Vena principal del muslo.
+🧠 Clínica: Trombosis = TVP proximal.
+🔍 Relación: Con ilíaca externa.
+💡 Curiosidad: Gran calibre."></td>
+        <td>37</td><td class="dropzone" data-respuesta="37. Digital palmar" data-info="📍 Localización: Mano.
+🩸 Función: Venas de los dedos.
+🧠 Clínica: Importantes en microcirugía.
+🔍 Relación: Con red venosa palmar.
+💡 Curiosidad: Usadas en estudios de temperatura."></td></tr>
+
+    <tr><td>17</td><td class="dropzone" data-respuesta="17. Safena interna" data-info="📍 Localización: Cara medial de pierna.
+🩸 Función: Vena superficial más larga del cuerpo.
+🧠 Clínica: Usada en injertos coronarios.
+🔍 Relación: Conecta con femoral.
+💡 Curiosidad: Longitud > 60 cm."></td>
+        <td>38</td><td class="dropzone" data-respuesta="38. Femoral" data-info="📍 Localización: Muslo.
+🩸 Función: Vena principal del muslo.
+🧠 Clínica: Trombosis = TVP proximal.
+🔍 Relación: Con ilíaca externa.
+💡 Curiosidad: Gran calibre."></td></tr>
+
+    <tr><td>18</td><td class="dropzone" data-respuesta="18. Arco venoso dorsal" data-info="📍 Localización: Dorso del pie.
+🩸 Función: Red venosa del pie.
+🧠 Clínica: Inflamación = tromboflebitis.
+🔍 Relación: Con safenas.
+💡 Curiosidad: Visible al estar de pie."></td>
+        <td>39</td><td class="dropzone" data-respuesta="39. Poplítea" data-info="📍 Localización: Detrás de rodilla.
+🩸 Función: Drena pierna y rodilla.
+🧠 Clínica: Aneurismas pueden comprimir nervios.
+🔍 Relación: Continúa como femoral.
+💡 Curiosidad: Difícil de palpar."></td></tr>
+
+    <tr><td>19</td><td class="dropzone" data-respuesta="19. Seno longitudinal superior" data-info="📍 Localización: Bóveda craneal.
+🩸 Función: Drena parte superior del cerebro.
+🧠 Clínica: Trombosis produce hipertensión intracraneal.
+🔍 Relación: Con senos venosos.
+💡 Curiosidad: Mayor que el inferior."></td>
+        <td>40</td><td class="dropzone" data-respuesta="40. Peronea" data-info="📍 Localización: Pierna lateral.
+🩸 Función: Drena cara externa de pierna.
+🧠 Clínica: Afectada en fracturas.
+🔍 Relación: Con tibial posterior.
+💡 Curiosidad: Suplementa retorno venoso."></td></tr>
+
+    <tr><td>20</td><td class="dropzone" data-respuesta="20. Seno recto" data-info="📍 Localización: Cerebro profundo.
+🩸 Función: Une seno sagital inf. con sup.
+🧠 Clínica: Trombosis es grave.
+🔍 Relación: Confluencia de senos.
+💡 Curiosidad: Importante en neurocirugía."></td>
+        <td>41</td><td class="dropzone" data-respuesta="41. Tibial posterior" data-info="📍 Localización: Pierna posterior.
+🩸 Función: Drena pantorrilla y pie.
+🧠 Clínica: TVP frecuente aquí.
+🔍 Relación: Con safena interna.
+💡 Curiosidad: Pulsos pedios asociados."></td></tr>
+
+    <tr><td>21</td><td class="dropzone" data-respuesta="21. Seno transverso de la duramadre" data-info="📍 Localización: Bóveda craneal.
+🩸 Función: Conecta senos venosos.
+🧠 Clínica: Involucrado en trombosis cerebral.
+🔍 Relación: Se une al sigmoideo.
+💡 Curiosidad: Es par (der/izq)."></td>
+        <td>42</td><td class="dropzone" data-respuesta="42. Tibial anterior" data-info="📍 Localización: Pierna anterior.
+🩸 Función: Drena la parte anterior de la pierna.
+🧠 Clínica: Afectada en fracturas de tibia.
+🔍 Relación: Con red venosa dorsal.
+💡 Curiosidad: Su flujo aumenta al caminar."></td></tr>
+  </table>
+</div>
+
+
+  <!-- Retroalimentación y lista -->
+  <div>
+  <!-- Lista de venas + retroalimentación debajo -->
+  <div>
+    <div id="retroBox" class="retro-box">
+      <strong>RETROALIMENTACIÓN:</strong> Aquí aparecerá la explicación.
+    </div>
+    <div class="lista">
+      <h3>Lista de Venas - Arrastra un nombre hacia la tabla central</h3>
+      <!-- Lista completa de 42 venas -->
+      <div class="item" draggable="true">1. Seno longitudinal inferior</div>
+      <div class="item" draggable="true">2. Angular</div>
+      <div class="item" draggable="true">3. Facial anterior</div>
+      <div class="item" draggable="true">4. Tronco venoso braquiocefálico derecho</div>
+      <div class="item" draggable="true">5. Subclavia derecha</div>
+      <div class="item" draggable="true">6. Vena cava superior</div>
+      <div class="item" draggable="true">7. Pulmonar</div>
+      <div class="item" draggable="true">8. Coronaria derecha</div>
+      <div class="item" draggable="true">9. Vena cava inferior</div>
+      <div class="item" draggable="true">10. Hepática</div>
+      <div class="item" draggable="true">11. Porta hepática</div>
+      <div class="item" draggable="true">12. Mediana del codo</div>
+      <div class="item" draggable="true">13. Mesentérica superior</div>
+      <div class="item" draggable="true">14. Ilíaca primitiva</div>
+      <div class="item" draggable="true">15. Ilíaca externa</div>
+      <div class="item" draggable="true">16. Femoral</div>
+      <div class="item" draggable="true">17. Safena interna</div>
+      <div class="item" draggable="true">18. Arco venoso dorsal</div>
+      <div class="item" draggable="true">19. Seno longitudinal superior</div>
+      <div class="item" draggable="true">20. Seno recto</div>
+      <div class="item" draggable="true">21. Seno transverso de la duramadre</div>
+      <div class="item" draggable="true">22. Yugular externa</div>
+      <div class="item" draggable="true">23. Plexo cervical</div>
+      <div class="item" draggable="true">24. Yugular interna</div>
+      <div class="item" draggable="true">25. Tronco venoso braquiocefálico izquierdo</div>
+      <div class="item" draggable="true">26. Subclavia izquierda</div>
+      <div class="item" draggable="true">27. Cefálica</div>
+      <div class="item" draggable="true">28. Axilar</div>
+      <div class="item" draggable="true">29. Coronaria izquierda</div>
+      <div class="item" draggable="true">30. Basílica</div>
+      <div class="item" draggable="true">31. Mamaria externa</div>
+      <div class="item" draggable="true">32. Esplénica</div>
+      <div class="item" draggable="true">33. Mediana basílica</div>
+      <div class="item" draggable="true">34. Mesentérica inferior</div>
+      <div class="item" draggable="true">35. Ilíaca primitiva</div>
+      <div class="item" draggable="true">36. Ilíaca interna (hipogástrica)</div>
+      <div class="item" draggable="true">37. Digital palmar</div>
+      <div class="item" draggable="true">38. Femoral</div>
+      <div class="item" draggable="true">39. Poplítea</div>
+      <div class="item" draggable="true">40. Peronea</div>
+      <div class="item" draggable="true">41. Tibial posterior</div>
+      <div class="item" draggable="true">42. Tibial anterior</div>
+    </div>
+  </div>
+  </div>
+</div>
+
+
+
+<!-- 🔹 Contenedor de botones -->
+<div style="text-align:center; margin-top:20px;">
+  <button onclick="cambiarRegion('cabeza')">Cabeza</button>
+  <button onclick="cambiarRegion('brazoDerecho')">Brazo derecho</button>
+  <button onclick="cambiarRegion('brazoIzquierdo')">Brazo izquierdo</button>
+  <button onclick="cambiarRegion('piernaDerecha')">Pierna derecha</button>
+  <button onclick="cambiarRegion('piernaIzquierda')">Pierna izquierda</button>
+</div>
+
+<!-- 🔹 Contenedor de imagen -->
+<div style="text-align:center; margin-top:15px;">
+  <h3>Venas</h3>
+  <img id="imgVenas" 
+       src="https://drive.google.com/uc?export=view&id=1WtJCte6qFwwGJPkqsyRKLQ13eV4gcYKe" 
+       alt="Región seleccionada"
+       style="width:300px; max-width:100%; border:2px solid #555; border-radius:6px; padding:4px; background:#fff;">
+</div>
+>
+
+<script>
+const items = document.querySelectorAll('.item');
+const dropzones = document.querySelectorAll('.dropzone');
+const retroBox = document.getElementById('retroBox');
+let draggedItem = null;
+
+// === Función para reproducir con fade out ===
+async function playCorrectSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const response = await fetch("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3");
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  const source = audioContext.createBufferSource();
+  source.buffer = audioBuffer;
+
+  const gainNode = audioContext.createGain();
+  source.connect(gainNode).connect(audioContext.destination);
+
+  // Reproduce el audio
+  source.start(0);
+
+  // Duración del fade (por ejemplo 0.8 segundos)
+  const fadeDuration = 1.3;
+  const now = audioContext.currentTime;
+  gainNode.gain.setValueAtTime(1, now);
+  gainNode.gain.linearRampToValueAtTime(0, now + fadeDuration);
+}
+
+function playIncorrectSound() {
+  const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2002/2002-preview.mp3"); 
+  audio.play();
+}
+
+items.forEach(item => {
+  item.addEventListener('dragstart', () => draggedItem = item);
+  item.addEventListener('dragend', () => draggedItem = null);
+});
+
+dropzones.forEach(zone => {
+  zone.addEventListener('dragover', e => e.preventDefault());
+  zone.addEventListener('drop', () => {
+    if (!zone.classList.contains('correcto')) {
+      const numero = zone.dataset.respuesta.split('.')[0];
+      const nombre = zone.dataset.respuesta.replace(numero + ".", "").trim();
+
+      if (draggedItem.innerText === zone.dataset.respuesta) {
+        // ✅ Correcto
+        playCorrectSound(); // 🔊 Sonido correcto con fade out
+        zone.textContent = "✔ " + draggedItem.innerText;
+        zone.classList.add('correcto');
+
+        retroBox.className = "retro-box retro-correcto";
+        retroBox.innerHTML = `
+          <div class="retro-header">
+            <span class="icono">✅</span>
+            <span>Correcto:</span>
+            <span class="num-bolita">${numero}</span>
+            <span class="nombre-vena">${nombre}</span>
+          </div>
+          ${zone.dataset.info}
+        `;
+
+        draggedItem.remove();
+      } else {
+        // ❌ Incorrecto
+        playIncorrectSound(); // 🔊 Sonido incorrecto normal
+        zone.textContent = "✘";
+        zone.classList.add('incorrecto');
+
+        retroBox.className = "retro-box retro-incorrecto";
+        retroBox.innerHTML = `
+          <div class="retro-header">
+            <span class="icono">❌</span>
+            <span>Incorrecto: La respuesta correcta era</span>
+            <span class="num-bolita">${numero}</span>
+            <span class="nombre-vena">${nombre}</span>
+          </div>
+          ${zone.dataset.info}
+        `;
+
+        setTimeout(() => {
+          zone.textContent = "";
+          zone.classList.remove('incorrecto');
+        }, 1200);
+      }
+    }
+  });
+});
+
+
+
+ function cambiarRegion(region) {
+    const img = document.getElementById("imgVenas");
+    let url = "";
+
+    switch(region) {
+      case "cabeza":
+        url = "https://drive.google.com/uc?export=view&id=1WtJCte6qFwwGJPkqsyRKLQ13eV4gcYKe";
+        break;
+      case "brazoDerecho":
+        url = "https://drive.google.com/uc?export=view&id=1sDcPj5Uvdf8e4DGDYTjXUiAtprTHk-ta";
+        break;
+      case "brazoIzquierdo":
+        url = "https://drive.google.com/uc?export=view&id=1RFh15Od_T42HHWcSXG1Kst-snWGi-90f";
+        break;
+      case "piernaDerecha":
+        url = "https://drive.google.com/uc?export=view&id=1JJY7RxsFqm7JU-iAjBCKT-uKAGBAHGFd";
+        break;
+      case "piernaIzquierda":
+        url = "https://drive.google.com/uc?export=view&id=1WL98_Q9JoJSsH6czVepTqHjHT1hazFHx";
+        break;
+    }
+
+    img.src = url;
+  }
+
+
+</script>
+
+
+
+
+
+
+
+</body>
+</html>
+
+
+
+

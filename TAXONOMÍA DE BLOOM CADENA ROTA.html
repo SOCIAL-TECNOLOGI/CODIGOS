@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadena de Coherencia Curricular</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9fafb;
+    color: #333;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 {
+    color: #1d4ed8;
+    margin-bottom: 10px;
+  }
+  p {
+    margin-bottom: 30px;
+    font-size: 16px;
+    color: #444;
+  }
+  .chain {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .link {
+    background: #e0e7ff;
+    border: 2px solid #1d4ed8;
+    border-radius: 50px;
+    padding: 15px 25px;
+    font-weight: bold;
+    color: #1d4ed8;
+    position: relative;
+  }
+  .link::after {
+    content: "➝";
+    position: absolute;
+    right: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #666;
+  }
+  .link:last-child::after {
+    content: "";
+  }
+  .broken {
+    background: #fee2e2;
+    border: 2px solid #dc2626;
+    color: #b91c1c;
+  }
+  .note {
+    margin-top: 25px;
+    font-size: 15px;
+    font-style: italic;
+    color: #dc2626;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <h1>Cadena de Coherencia Curricular</h1>
+  <p>Subestimar o sobreestimar los verbos de Bloom rompe la progresión natural del aprendizaje y afecta la alineación curricular.</p>
+
+  <div class="chain">
+    <div class="link">📘 Bloom</div>
+    <div class="link">📑 DCE</div>
+    <div class="link broken">⚠️ SIEE</div>
+    <div class="link">📊 EBC</div>
+    <div class="link">🎯 DBA</div>
+  </div>
+
+  <div class="note">
+    ⚠️ La cadena se rompe → aprendizajes fragmentados y superficiales
+  </div>
+</body>
+</html>

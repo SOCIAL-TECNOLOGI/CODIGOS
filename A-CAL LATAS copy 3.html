@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LATAS COPIA</title>
+    <style>
+        /* Estilos para el acordeón */
+        .acordeon {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .acordeon-item {
+            border-top: 1px solid #ccc;
+        }
+
+        .acordeon-titulo {
+            background-color: #f9f9f9;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .acordeon-contenido {
+            padding: 10px;
+            display: none;
+        }
+
+        /* Estilos mejorados para el acordeón */
+        .acordeon {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .acordeon-item {
+            border-top: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .acordeon-titulo {
+            background-color: #f9f9f9;
+            padding: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .acordeon-contenido {
+            padding: 15px;
+            display: none;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .acordeon-contenido p {
+            margin: 0;
+        }
+
+        .acordeon-titulo.active::after {
+            content: "\25BC";
+        }
+
+        /* Estilo cuando el título está activo (abierto) */
+        .acordeon-titulo.active {
+            background-color: #007acc;
+            color: #fff;
+        }
+
+        /* Estilo de flecha para indicar estado (abierto/cerrado) */
+        .acordeon-titulo .flecha {
+            width: 15px;
+            height: 15px;
+            transition: transform 0.3s;
+        }
+
+        .acordeon-titulo.active .flecha {
+            transform: rotate(180deg);
+        }
+
+        /* Estilo de transición suave al abrir y cerrar */
+        .acordeon-contenido.open {
+            max-height: 1000px;
+            transition: max-height 0.3s ease-in;
+        }
+
+        /* Estilos generales del acordeón */
+        .acordeon {
+            width: 35%;
+        }
+
+        /* Estilos de los elementos del acordeón */
+        .acordeon-item {
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+        }
+
+        .acordeon-titulo {
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .acordeon-contenido {
+            padding: 10px;
+            display: none;
+        }
+
+        /* Estilos para ocultar elementos */
+        .hidden {
+            display: block;
+        }
+
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+
+        /* Estilos para el encabezado principal */
+        h1 {
+            text-align: center;
+            background-color: #0674a3;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* Estilos para etiquetas */
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Estilos para campos de entrada numérica CONTEO RECICLAJE */
+        input[type="number"] {
+            width: 35%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            margin-left: 33%;
+            font-weight: bold;
+        }
+
+        /* Estilos para botones */
+        .boton {
+            background-color: #0674a3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .boton:hover {
+            background-color: #00517a;
+        }
+
+        /* Estilos para la tabla de resultados */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #0674a3;
+            color: white;
+        }
+
+        /* Estilos para los mensajes de error */
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LATAS COPIA</h1>
+
+        <label for="numLatas">Número de latas recicladas:</label>
+        <input type="number" id="numLatas" name="numLatas" min="0" value="0">
+
+        <button class="boton" onclick="calcular()">Calcular</button>
+
+        <table id="tablaResultados">
+            <tr>
+                <th>Descripción</th>
+                <th>Valor</th>
+            </tr>
+        </table>
+
+        <div class="acordeon">
+            <div class="acordeon-item">
+                <div class="acordeon-titulo">Información sobre el reciclaje</div>
+                <div class="acordeon-contenido">
+                    <p>El reciclaje de latas de aluminio es importante para reducir la contaminación y conservar los recursos naturales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calcular() {
+            const numLatas = parseFloat(document.getElementById("numLatas").value);
+            const valorLata = 0.05; // Valor por lata reciclada
+
+            if (!isNaN(numLatas) && numLatas >= 0) {
+                const ingreso = numLatas * valorLata;
+
+                const tablaResultados = document.getElementById("tablaResultados");
+                tablaResultados.innerHTML = `
+                    <tr>
+                        <td>Número de latas recicladas:</td>
+                        <td>${numLatas}</td>
+                    </tr>
+                    <tr>
+                        <td>Ingreso por reciclaje:</td>
+                        <td>$${ingreso.toFixed(2)}</td>
+                    </tr>
+                `;
+            } else {
+                alert("Por favor, ingrese un número válido de latas recicladas.");
+            }
+        }
+    </script>
+</body>
+</html>

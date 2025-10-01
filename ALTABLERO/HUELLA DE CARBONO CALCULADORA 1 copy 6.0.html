@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; background-color: #e8f0fe; }
+        h1 { text-align: center; margin-bottom: 20px; color: #333; }
+        #calculadora { max-width: 600px; margin: 0 auto; padding: 30px; background-color: #ffffff; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: transform 0.3s; }
+        #calculadora:hover { transform: scale(1.02); }
+        label { font-weight: bold; margin-bottom: 8px; display: block; color: #333; }
+        input[type="number"] { width: calc(100% - 22px); height: 40px; padding: 10px; border: 2px solid #4CAF50; border-radius: 5px; margin-bottom: 20px; font-size: 16px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        input[type="number"]:focus { border-color: #3e8e41; outline: none; }
+        .totalPeso { font-size: 14px; color: #666; margin-top: -10px; }
+        .botones { display: flex; justify-content: space-between; margin-top: 20px; }
+        button { background-color: #437244; color: #ffffff; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s, transform 0.3s; display: flex; align-items: center; }
+        button:hover { background-color: #4b7090; transform: scale(1.05); }
+        #resultado { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #4CAF50; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); z-index: 1000; text-align: center; font-size: 15px; transition: opacity 0.5s ease; opacity: 0; }
+        #resultado.visible { display: block; opacity: 1; }
+        #otrosImpactos { margin-top: 20px; padding: 15px; background-color: #e0f7e4; border: 1px solid #4CAF50; border-radius: 8px; }
+        .accordion { margin: 20px 0; border-radius: 5px; overflow: hidden; }
+        .accordion-item { margin-bottom: 10px; background-color: #f1f1f1; border: 1px solid #ccc; border-radius: 5px; }
+        .accordion-header { padding: 10px; cursor: pointer; background-color: #4CAF50; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-content { display: none; padding: 15px; background-color: white; }
+        .accordion-content.active { display: block; }
+
+        #otrosImpactos h3 {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 21px; /* Ajusta el tamaño de la fuente según lo necesites */
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</h1>
+    <form id="calculadora">
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Cantidad de Material Reciclado</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="cantCuadernos">Cantidad de Cuadernos:</label>
+                    <input type="number" id="cantCuadernos" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total cuadernos: <span id="pesoCuadernosCantidad">0</span> g</p>
+                    <label for="cantBotellas">Cantidad de Botellas:</label>
+                    <input type="number" id="cantBotellas" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total botellas: <span id="pesoBotellasCantidad">0</span> g</p>
+                    <label for="cantLatas">Cantidad de Latas:</label>
+                    <input type="number" id="cantLatas" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total latas: <span id="pesoLatasCantidad">0</span> g</p>
+                </div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Peso de Material Reciclado (kg)</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="pesoCuadernos">Peso de Cuadernos:</label>
+                    <input type="number" id="pesoCuadernos" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    <label for="pesoBotellas">Peso de Botellas:</label>
+                    <input type="number" id="pesoBotellas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    <label for="pesoLatas">Peso de Latas:</label>
+                    <input type="number" id="pesoLatas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                </div>
+            </div>
+        </div>
+        <div class="botones">
+            <button type="submit">Calcular</button>
+            <button type="button" id="reiniciar" onclick="reiniciarFormulario()">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+
+        <div id="otrosImpactos">
+            <h3>Otros Impactos Ambientales</h3>
+            <p><strong>Ahorro de Energía:</strong> <span id="ahorroEnergia">0</span> kWh</p>
+            <p><strong>Ahorro de Agua:</strong> <span id="ahorroAgua">0</span> litros</p>
+            <p><strong>Árboles necesarios para absorber CO₂:</strong> <span id="arbolesSalvados">0</span></p>
+        </div>
+    </form>
+
+    <!-- Contenedor flotante para el resultado de la huella de carbono -->
+    <div id="resultado">Al reciclar, evitas las emisiones de: <span id="huellaValor">0</span> kgCO₂</div>
+
+    <script>
+        const pesoCuaderno = 160; // 160 g
+        const pesoBotella = 13; // 13 g
+        const pesoLata = 12; // 12 g
+        const energiaCuaderno = 0.64; // kWh por cada cuaderno reciclado
+        const energiaBotella = 0.224; // kWh por cada botella reciclada
+        const energiaLata = 0.168; // kWh por cada lata reciclada
+        const aguaCuaderno = 4.024; // litros de agua ahorrados por cuaderno (190 g)
+        const aguaBotella = 0.0234; // litros de agua ahorrados por botella (13 g)
+        const aguaLata = 0.0168; // litros de agua ahorrados por lata (12 g)
+
+        const resultadoDiv = document.getElementById('resultado');
+        const ahorroEnergiaSpan = document.getElementById('ahorroEnergia');
+        const ahorroAguaSpan = document.getElementById('ahorroAgua');
+        const huellaValor = document.getElementById('huellaValor');
+
+        function calcularImpactos() {
+            const cuadernosCantidad = parseFloat(document.getElementById('cantCuadernos').value) || 0;
+            const botellasCantidad = parseFloat(document.getElementById('cantBotellas').value) || 0;
+            const latasCantidad = parseFloat(document.getElementById('cantLatas').value) || 0;
+
+            // Calcular el impacto total de CO₂
+            const huellaCarbono = (cuadernosCantidad * 0.26) + (botellasCantidad * 0.0195) + (latasCantidad * 0.108); // kg
+            huellaValor.textContent = huellaCarbono.toFixed(2);
+
+            // Calcular otros impactos
+            const ahorroEnergia = (cuadernosCantidad * energiaCuaderno) + (botellasCantidad * energiaBotella) + (latasCantidad * energiaLata);
+            const ahorroAgua = (cuadernosCantidad * aguaCuaderno) + (botellasCantidad * aguaBotella) + (latasCantidad * aguaLata);
+            const arbolesSalvados = calcularAbsorcionCO2(huellaCarbono);
+            
+            ahorroEnergiaSpan.textContent = ahorroEnergia.toFixed(2);
+            ahorroAguaSpan.textContent = ahorroAgua.toFixed(2);
+            document.getElementById('arbolesSalvados').textContent = arbolesSalvados.toFixed(2);
+
+            resultadoDiv.classList.add('visible');
+        }
+
+        function calcularAbsorcionCO2(huellaCarbono) {
+            const co2PorArbol = 167; // kg
+            return huellaCarbono / co2PorArbol;
+        }
+
+        document.getElementById('calculadora').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evitar el envío del formulario
+            calcularImpactos();
+        });
+
+        function reiniciarFormulario() {
+            document.getElementById('calculadora').reset();
+            ahorroEnergiaSpan.textContent = '0';
+            ahorroAguaSpan.textContent = '0';
+            huellaValor.textContent = '0';
+            resultadoDiv.classList.remove('visible');
+            document.getElementById('arbolesSalvados').textContent = '0';
+        }
+
+        // Función para calcular el peso total de los materiales
+        function actualizarPesos() {
+            const cantidadCuadernos = parseFloat(document.getElementById('cantCuadernos').value) || 0;
+            const cantidadBotellas = parseFloat(document.getElementById('cantBotellas').value) || 0;
+            const cantidadLatas = parseFloat(document.getElementById('cantLatas').value) || 0;
+
+            document.getElementById('pesoCuadernosCantidad').textContent = (cantidadCuadernos * pesoCuaderno).toFixed(2);
+            document.getElementById('pesoBotellasCantidad').textContent = (cantidadBotellas * pesoBotella).toFixed(2);
+            document.getElementById('pesoLatasCantidad').textContent = (cantidadLatas * pesoLata).toFixed(2);
+        }
+
+        // Actualizar los pesos al cambiar la cantidad
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', actualizarPesos);
+        });
+
+        function toggleAccordion(event) {
+            const header = event.currentTarget;
+            const content = header.nextElementSibling;
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

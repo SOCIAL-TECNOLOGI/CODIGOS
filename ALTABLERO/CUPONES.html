@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Cupones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #coupon-preview {
+            margin-top: 20px;
+        }
+
+        .coupon {
+            padding: 15px;
+            border: 2px dashed #4CAF50;
+            border-radius: 10px;
+            background-color: #e8f5e9;
+            text-align: center;
+        }
+
+        .coupon p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .coupon strong {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de Cupones de Descuento</h1>
+        
+        <div class="form-container">
+            <label for="code">Código del Cupón:</label>
+            <input type="text" id="code" placeholder="Ej: DESCUENTO10" required>
+
+            <label for="discount">Porcentaje de Descuento:</label>
+            <input type="number" id="discount" placeholder="Ej: 10" required>
+
+            <label for="expiry">Fecha de Expiración:</label>
+            <input type="date" id="expiry" required>
+
+            <button onclick="generateCoupon()">Generar Cupón</button>
+        </div>
+
+        <div id="coupon-preview" class="coupon-preview">
+            <h2>Vista previa del cupón</h2>
+            <div id="coupon" class="coupon">
+                <p><strong>Código:</strong> <span id="coupon-code"></span></p>
+                <p><strong>Descuento:</strong> <span id="coupon-discount"></span>%</p>
+                <p><strong>Expira el:</strong> <span id="coupon-expiry"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateCoupon() {
+            const code = document.getElementById('code').value;
+            const discount = document.getElementById('discount').value;
+            const expiry = document.getElementById('expiry').value;
+
+            if (code && discount && expiry) {
+                document.getElementById('coupon-code').innerText = code;
+                document.getElementById('coupon-discount').innerText = discount;
+                document.getElementById('coupon-expiry').innerText = expiry;
+            } else {
+                alert('Por favor, completa todos los campos');
+            }
+        }
+    </script>
+</body>
+</html>

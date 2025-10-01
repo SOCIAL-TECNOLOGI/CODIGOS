@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.4.0/fabric.min.js"></script>
+
+    <title>Pizarra en Línea con Diapositivas de Imágenes</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <!-- Agrega Font Awesome para los íconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.9.20/interactjs/interact.min.css">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.9.20/interactjs/interact.min.js"></script>
+<script src="script.js"></script>
+
+<!-- Agrega esto en el encabezado de tu documento HTML -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+
+<style>
+
+
+/* INICIO DE FONDO DE PANTALLA*/
+
+
+body {
+            margin: 0;
+            padding: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-image: url('https://mxcity.mx/wp-content/uploads/2022/06/gran-bosque-de-agua.jpeg'); /* Ruta de la imagen de fondo */
+       
+        }
+
+        .contenido {
+            padding: 20px;
+            text-align: center;
+        }
+
+        #fileInput {
+            display: none;
+        }
+          
+/* FINAL DE FONDO DE PANTALLA*/
+
+
+/* Estilo del botón "Mostrar Panel" */
+#showPanelButton {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 5px;
+}
+
+/* Estilo del panel de control */
+#controlPanel {
+    background-color: #efefef;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    position: absolute;
+    top: 50px; /* Ajusta la posición vertical según tu diseño */
+    right: 10px; /* Ajusta la posición horizontal según tu diseño */
+    padding: 10px;
+    display: none; /* Inicialmente oculto */
+}
+/* Estilo del botón "Anterior" */
+#previousButton {
+    background-color: #117e61;
+}
+
+/* Estilo del botón "Siguiente" */
+#nextButton {
+    background-color: #117e61;
+
+}
+
+/* Estilo del botón "Limpiar" */
+#clearButton {
+    background-color: #ac3333;
+}
+
+/* Estilo del botón "Guardar" */
+#saveButton {
+    background-color: #9e07cd;
+}
+
+/* Estilo del botón "Deshacer" */
+#undoButton {
+    background-color: #ab4444;
+}
+
+/* Estilo del botón "Rehacer" */
+#redoButton {
+    background-color: #ab4444;
+}
+
+
+
+/* Estilo del botón "Borrar Trazos" */
+#clearDrawingButton {
+    background-color: #bc9a03; /* Color de fondo del botón (puedes cambiarlo) */
+    margin-bottom: 15px;
+    margin-top: 12px;
+
+}*
+
+
+/* Estilo del botón de carga de imagen */
+#imageInput {
+    background-color: #117e61;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 12px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 10px; /* Ajusta el margen superior según tus necesidades */
+}
+
+
+/* Estilo del botón de carga de imagen en hover */
+#imageInput:hover {
+    background-color: #2980b9;
+}
+
+/* Estilo de los botones ovalados */
+button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+    border-radius: 25px; /* Valor alto para hacer que los botones sean ovalados */
+}
+
+
+    #timerDisplay {
+    position: fixed;
+    top: 16%;
+    left: 50%;
+    transform: translate(100%, -180%);
+    text-align: left;
+    font-size: 25px; /* Ajusta el tamaño del texto según tus preferencias */
+}
+
+
+
+
+
+
+/* Estilo del texto dentro del contenedor */
+#textoContenedor p {
+    font-size: 28px;
+    color: #333;
+    font-weight: bold;
+    /* No es necesario centrar verticalmente ya que el contenedor se ajusta automáticamente */
+}
+
+
+    #textoContenedor {
+        background-color: #ffffff;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+        /* Centra el texto horizontalmente */
+        position: relative; /* Permite posicionar elementos hijos relativos a este contenedor */
+    }
+
+    #logoContainer {
+        position: absolute;
+        top: 0; /* Ajusta la posición vertical según tu diseño */
+        right: 0; /* Coloca el logotipo en el lado derecho del contenedor */
+    }
+
+    #logoContainer img {
+        width: 300px; /* Ajusta el ancho del logotipo según tus necesidades */
+        height: auto; /* Mantiene la proporción original */
+    }
+
+
+
+    #showPanelButton {
+    position: absolute; /* Asegúrate de que el botón tenga una posición absoluta o fija */
+    top: 10px; /* Ajusta la posición vertical según tu diseño */
+    right: 10px; /* Ajusta la posición horizontal según tu diseño */
+    /* Resto de tus estilos... */
+}
+
+#controlPanel {
+    position: absolute;
+    top: 50px; /* Ajusta la posición vertical según tu diseño */
+    right: 10px; /* Ajusta la posición horizontal según tu diseño */
+    display: none;
+    /* Resto de tus estilos... */
+}
+
+
+
+/* Estilo del selector de color */
+#colorPicker {
+    width: 30px; /* Cambia el valor del ancho según tus preferencias */
+    margin-bottom: 25px; /* Ajusta el margen inferior según tus necesidades */
+    margin-top: 15px;
+}
+
+
+
+/* Estilo para el rango de tamaño del pincel */
+#brushSizeInput {
+    width: 130px; /* Modifica el ancho a tu preferencia */
+    margin-bottom: 40px; /* Añade un margen en la parte inferior para separarlo de otros elementos */
+    margin-top: 0px;
+}
+
+
+
+ 
+/* Estilo del botón "Elegir un Nombre al Azar" */
+#pickRandomStudentButton {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 50px;
+    font-weight: bold; /* Texto en negrita */
+}
+
+/* Estilo del resultado del nombre al azar */
+#randomStudentResult {
+    font-size: 35px;
+    color: #333;
+    margin: 10px;
+    text-align: center;
+    font-weight: bold; /* Texto en negrita */
+}
+
+/* Estilo del contenedor ESTUDIANTE AL AZAR */
+#studentContainer {
+    background-color: #f2f2f2;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    margin: 20px;
+}
+
+/* Estilo del párrafo dentro del contenedor*/
+#studentContainer p {
+    font-weight: bold; /* Texto en negrita */
+    margin-bottom: 10px;
+    color: #ffffff; /* Cambia el color  que desees */
+}
+
+/* Estilo del textarea dentro del contenedor */
+#studentNamesInput {
+    width: 10%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+/* Estilo de los botones dentro del contenedor */
+#studentContainer button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+/* Estilo del botón "Elegir un Nombre al Azar" */
+#pickRandomStudentButton {
+    background-color: #117e61; /* Cambia el color si deseas */
+}
+
+.upload-text {
+    color: #fff; /* Cambia el color del texto a blanco */
+}
+
+
+
+
+/* CARGAR IMÁGENES */
+
+.upload-label {
+    color: #02f6fa; /* Cambia el color del texto */
+    margin-top: 13px; /* Ajusta el margen superior según tus necesidades */
+}
+
+.upload-label i {
+    font-size: 24px; /* Ajusta el tamaño según tus preferencias */
+    margin-left: 16px; /* Agrega un margen a la derecha del primer ícono para separarlos */
+}
+
+
+  /* Estilo del ícono al pasar el mouse sobre él (hover) */
+  .upload-label:hover i {
+        color: #f9e104; /* Cambia el color al pasar el mouse sobre el ícono */
+    }
+/* .................................................... */
+
+    
+/* CRONÓMETRO DEL PANEL DE CONTROL " */
+#startTimerButton {
+    background-color: #016fb9;
+}
+
+/* Estilo del botón "Reiniciar Cronómetro" */
+#resetTimerButton {
+    background-color: #9d3501;
+}
+
+
+/* Estilos para el campo de entrada de tiempo */
+#timerInput {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 150px; /* Ajusta el ancho según tus preferencias */
+    margin-right: 10px;
+}
+
+
+#startTimer {
+    background: none;
+    border: none;
+    font-size: 24px;
+    margin-right: 10px; /* Espacio entre el botón y otros elementos */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #02f6fa; /* Color del icono */
+}
+
+#startTimer:hover {
+    color: #f9e104; /* Cambia el color del icono al pasar el cursor por encima */
+}
+
+
+#pauseTimer, #resetTimer {
+    background: none;
+    border: none;
+    font-size: 24px;
+    margin-right: 10px; /* Espacio entre los botones y otros elementos */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #02f6fa; /* Color del icono */
+}
+
+#pauseTimer:hover, #resetTimer:hover {
+    color: #f9e104; /* Cambia el color del icono al pasar el cursor por encima */
+}
+
+
+#timer {
+    font-size: 24px; /* Tamaño de fuente del temporizador */
+    color: #333; /* Color del texto */
+    background-color: transparent; /* Fondo transparente */
+    padding: 10px; /* Espaciado interno para el contenido */
+    border: 1px solid #ccc; /* Borde alrededor del temporizador */
+    border-radius: 5px; /* Borde redondeado */
+    text-align: center; /* Alineación del texto en el centro */
+    width: 180px; /* Ancho del temporizador (ajusta según tus necesidades) */
+    text-align: center; /* Para centrar horizontalmente */
+    margin: 0 auto; /* Margen automático a la izquierda y derecha para centrar */
+    position: absolute; /* Posición absoluta para permitir el arrastre */
+    cursor: move; /* Cursor de agarre para indicar que se puede arrastrar */
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none; /* Oculta el temporizador por defecto */
+
+}
+
+/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+
+
+
+/* TEXTO DISPLAY TIMER*/
+#timer {
+    font-size: 22px; /* Tamaño de fuente */
+    font-weight: bold; /* Texto en negrita */
+    color: #ffffff; /* Color del texto */
+}
+
+#minutes,
+#seconds {
+    background-color: #03e2fb; /* Color de fondo de los dígitos */
+    color: #000000; /* Color del texto de los dígitos */
+    padding: 5px 10px; /* Espaciado alrededor de los dígitos */
+    border-radius: 12px; /* Bordes redondeados de los dígitos */
+    font-weight: bold; /* Texto en negrita */
+    font-size: 28px;
+}
+
+#minutes, #seconds {
+    margin: 0 5px; /* Agrega un espacio de 5px a la izquierda y a la derecha de los dígitos */
+}
+
+#timerDisplay {
+    position: fixed;
+    top: 16%;
+    left: 50%;
+    transform: translate(100%, -180%);
+    text-align: left;
+    font-size: 25px; /* Ajusta el tamaño del texto según tus preferencias */
+}
+
+#timer span {
+    font-weight: bold;
+    margin: 0 5px;
+}
+
+#timer.time-up {
+    background-color: #ff6b6b; /* Cambia el color de fondo cuando el tiempo se agota */
+    color: white;
+}
+
+
+/* TIMER*/
+
+#timerInput {
+    font-size: 20px;
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #02f6fa; /* Color del ícono */
+    background-color: #000; /* Color de fondo del campo de entrada */
+    padding: 5px 10px; /* Espaciado interno para el contenido */
+    border: 1px solid #ccc; /* Borde alrededor del campo de entrada */
+    border-radius: 5px; /* Borde redondeado */
+    margin-right: 16px; /* Espacio entre el campo de entrada y otros elementos */
+    width: 50px; /* Ancho del campo de entrada (ajusta según tus necesidades) */
+    text-align: center; /* Alineación del texto en el centro */
+    font-weight: bold; /* Agrega negrita al texto */
+    width: 65px; /* Establece el ancho del placeholder */
+    height: 25px; /* Establece la altura del placeholder */
+    margin-top: 6px;
+}
+
+#timerInput::after {
+    content: " (s)"; /* Agrega "(s)" después del contenido del campo de entrada */
+}
+
+#timerInput:hover {
+    color: #fffb00; /* Cambia el color del ícono al pasar el cursor por encima */
+    background-color: #333; /* Cambia el color de fondo al pasar el cursor por encima */
+}
+
+/* PLACE HOLDER INTERIOR */
+#timerInput {
+    font-size: 24px;
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #fffb00; /* Color del ícono */
+    margin-right: 10px; /* Espacio entre el campo de entrada y otros elementos */
+    margin-left: 850px;
+}
+
+#timerInput:hover {
+    color: #02f6fa; /* Cambia el color del ícono al pasar el cursor por encima */
+}
+
+
+
+
+
+#transitionDuration {
+        font-size:20px;
+        cursor: pointer;
+        color: #ffffff;
+        background-color: #000000;
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 10px;
+        width: 50px;
+        text-align: center;
+        font-weight: bold; /* Agrega negrita al texto */
+    }
+
+
+/* CONTENEDOR MENÚ - LÁPIZ*/
+.draggable-container {
+    position: absolute;
+    top: 35px; /* Ajusta según sea necesario */
+    left: 40px; /* Ajusta según sea necesario */
+    cursor: move;
+}
+
+.menu-icon {
+    background-color: #02f6fa;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.menu-content {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0); /* Ajusta el último valor para cambiar la opacidad */
+    color: #ffffff; /* Cambia este valor al color deseado para el texto */
+    border: 0px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
+    
+    
+}
+
+
+
+
+
+/* MENÚ LÁPIZ HORIZONTAL */
+
+/* Estilo del botón de pantalla completa y menú-lápiz */
+.menu-icon {
+    background-color: #3498db; 
+    color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+
+
+.menu-icon:hover {
+    background-color: #035c97;
+}
+
+
+
+
+
+.menu-content {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0);
+    color: #ffffff;
+    border: 0px solid #ccc;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
+    display: none;
+}
+
+/* Hace que el contenido del menú-lápiz sea horizontal */
+.menu-content div {
+    display: flex;
+}
+
+/* Asegura que los botones dentro del menú-lápiz tengan un estilo similar */
+.menu-content button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 25px;
+    margin-right: 10px;
+}
+
+.menu-content button:hover {
+    background-color: #2980b9;
+}
+
+
+
+
+/* Estilo para el rango de tamaño del pincel */
+#brushSizeInput {
+    width: 100px; /* Modifica el ancho a tu preferencia */
+    margin-bottom: 0px; /* Añade un margen en la parte inferior para separarlo de otros elementos */
+}
+
+
+
+/* SELECTOR DE COLOR FONDO */
+#colorSelector {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    position: relative;
+    z-index: 2; /* Asegura que esté encima de otros elementos */
+    display: inline-block; /* Asegura que ocupe solo el espacio necesario */
+}
+
+
+
+.file-upload-container {
+        display: flex;
+        align-items: center;
+    }
+
+    #coloresFondoPredefinidos {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-right: 10px; /* Espacio a la derecha de los colores predefinidos */
+    }
+
+    .colorSquare {
+        width: 30px;
+        height: 30px;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+    #colorInput {
+        margin-right: 5px; /* Mismo espacio que los colores predefinidos */
+    }
+
+    #clearButton {
+        margin-right: 0px; /* Mismo espacio que los colores predefinidos */
+    }
+
+
+
+/* Estilo adicional para la barra de herramientas en pantalla completa */
+#toolsMenu {
+    position: absolute;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+    z-index: 999;
+  }
+
+  #toolsMenu button {
+    margin-right: 5px;
+  }
+
+  /* Estilo adicional para la barra de herramientas en pantalla completa */
+  #toolsMenu.fullscreen {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+  }
+
+
+/* -- CONTENEDOR FLOTANTE PDF - PPTX Y FULL SCREEN */
+  .file-upload-container {
+    display: flex;
+    margin-top: 28px; /* Ajusta el margen superior según tus necesidades */
+    text-align: left; /* Centra el contenido del contenedor horizontalmente */
+    margin-left: 40px; /* Ajusta el margen izquierdo según tus necesidades */
+}
+
+
+#eraseButton {
+    background-color: transparent;; /* Color de fondo del botón (puedes cambiarlo) */
+    color: #02f6fa; /* Color del texto del botón (puedes cambiarlo) */
+    border: #000000;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 22px;
+    border-radius: 50px; /* Valor alto para hacer que el botón sea redondo */
+    margin-right: 0px; /* Ajusta el margen derecho según tus necesidades */
+}
+
+#eraseButton:hover {
+    background-color: #035c97; /* Cambia el color de fondo al pasar el mouse sobre el botón #035c97 */
+}
+
+
+
+
+/*CONTENEDOR BORRADOR*/
+.container-borrador {
+    position: fixed;
+    bottom: 10px; /* Ajusta la distancia desde la parte inferior según tus necesidades */
+    right: 10px; /* Ajusta la distancia desde la derecha según tus necesidades */
+    background-color: transparent; /* Color de fondo del contenedor */
+    border: 0px solid transparent; /* Borde del contenedor */
+    border-radius: 5px; /* Bordes redondeados del contenedor */
+    padding: 10px; /* Espaciado interno del contenedor */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra del contenedor */
+    z-index: 999; /* Ajusta la propiedad z-index para que esté encima de otros elementos */
+    
+   
+}
+
+
+
+
+
+
+.upload-label i {
+        /* Estilos para el ícono de carga */
+        margin-left: 0px; /* Ajusta el margen a la izquierda según tus necesidades */
+    }
+
+
+
+    #fullScreenButton {
+    background-color: transparent;
+    border: none;
+    color: #02f6fa; /* Cambia este valor al color deseado para el ícono */
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 10px; /* Ajusta el margen según sea necesario */
+    margin-left: 30px; /* Ajusta el margen a la izquierda según tus necesidades */
+}
+
+#fullScreenButton:hover {
+    color: #f9e104; /* Cambia este valor al color deseado cuando pasas el mouse sobre el botón */
+}
+
+#fullScreenButton i {
+    font-size: 22px; /* Ajusta el tamaño del ícono según sea necesario */
+    margin-left: 10px; /* Ajusta el margen a la izquierda según tus necesidades */
+}
+
+
+/*  PDF */
+
+
+#pdfViewer {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 2px solid #333;
+            min-width: 400px;
+            min-height: 400px;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        #pdfFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Estilo para el título de la ventana emergente */
+        #pdfViewerTitle {
+            cursor: grab;
+            padding: 25px;
+            background-color: #024479;
+            color: white;
+            user-select: none;
+            position: relative;
+        }
+
+        /* Estilo para la esquina de ajuste */
+        #resizeCorner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #fd8700;
+            bottom: 0;
+            right: 0;
+            cursor: nwse-resize;
+        }
+
+
+        /* Estilo del botón para abrir el input de subida de PDF */
+        #pdfViewer button {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #pdfViewer button:hover {
+            background-color: #2980b9;
+        }
+
+
+/* FINAL PDF */
+
+
+
+/* BOTONES DEL MENÚ - LÁPIZ Y DE LA PARTE BAJA*/
+#uploadButton, #prevButton, #resetButton, #pdfButton, #clearButton, #saveButton, #clearDrawingButton, #undoButton, #redoButton, #previousButton, #nextButton {
+    background: none;
+    border: none;
+    font-size: 20px;
+    margin-right: 10px; /* Espacio entre los botones y otros elementos */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #02f6fa; /* Color del icono */
+    margin-right: 0px;
+}
+
+#uploadButton:hover, #prevButton:hover, #resetButton:hover, #pdfButton:hover, #saveButton:hover, #clearDrawingButton:hover, #undoButton:hover, #redoButton:hover, #previousButton:hover, #nextButton:hover {
+    color: #f9e104; /* Cambia el color del icono al pasar el cursor por encima */
+}
+
+#resetButton {
+    background: none;
+    border: none;
+    font-size: 20px;
+    margin-right: 10px; /* Espacio entre los botones y otros elementos */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    color: #2ff801; /* Color del icono */
+    margin-right: 0px;
+}
+
+#resetButton:hover, #clearButton:hover {
+    color: #ff0000; /* Cambia el color del icono al pasar el cursor por encima */
+}
+
+#clearButton:hover {
+    color: #ffe600; /* Cambia el color del icono al pasar el cursor por encima */
+}
+
+/* .....................................*/
+
+
+
+/*::::::::::::::::::::::::::::::::::::::::::::*/
+
+
+
+
+
+
+
+
+
+
+</style>
+
+
+</head>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+<script src="script.js"></script>
+<!-- Scripts JavaScript y Fabric.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.6.6/fabric.min.js"></script>
+
+
+
+
+<body>
+
+
+
+
+    <!-- DISPLAY CUENTA REGRESIVA-->
+    <div id="timer" style="display: none;">
+        Tiempo restante: <br><br><span id="minutes"></span>:<span id="seconds"></span>
+    </div>
+
+
+
+
+    <!-- CONTENEDOR FLOTANTE PDF - PPTX Y FULL SCREEN -->
+    <div class="file-upload-container">
+          <!-- full screen -->
+          
+
+          <button id="fullScreenButton" onclick="toggleFullScreen()"><i class="fas fa-expand"></i></button>
+
+       
+
+</div>
+
+
+       
+   </div> 
+
+
+
+ 
+
+
+    <!-- CONTENEDOR LÁPIZ Y BORRADOR -->
+    <div class="container-borrador">
+      
+
+            <input type="color" id="colorPicker">
+
+
+ <!-- Input para subir imagen -->
+ <input type="file" id="imagenInput" style="display: none">
+
+
+
+
+
+
+
+            <!-- Rango de tamaño del pincel -->
+            <input type="range" id="brushSizeInput" min="1" max="10" value="1">
+            
+
+            <!-- Botón para activar el modo de borrado de trazos específicos -->
+            <button id="eraseButton"><i class="fas fa-eraser"></i></button>
+
+            
+            <button id="undoButton"><i class="fas fa-undo"></i></button>
+            <button id="redoButton"><i class="fas fa-redo"></i></button>
+
+            <button id="clearButton"><i class="fas fa-trash"></i></button>
+
+  
+    </div> 
+
+
+
+
+
+ <!-- MENÚ DE LA BARRA DE HERRAMIENTAS ÍCONO LÁPIZ -->
+ <div id="toolsContainer" class="draggable-container">
+    <div id="pencilIcon" class="menu-icon" onclick="toggleMenu()">
+        <i class="fas fa-sliders-h"></i>
+
+
+    </div>
+
+    <div id="toolsMenu" class="menu-content" style="display: none;">
+        <div>
+          
+
+    
+    
+        <!-- BORRAR TODOS LOS TRAZOS-->
+       <button id="clearDrawingButton"><i class="fas fa-trash"></i></button>
+       
+        <!-- CAPTURA DE PANTALLA-->
+       <button id="saveButton"><i class="fas fa-camera"></i></button>
+
+       
+       
+      
+
+       <!-- NAVEGACIÓN DE IMÁGENES -->
+       <button id="previousButton"><i class="fas fa-chevron-left"></i></button>
+       <button id="nextButton"><i class="fas fa-chevron-right"></i></button>
+
+         <!-- SUBIR IMÁGENES -->
+      <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
+      <label for="imageInput" class="upload-label">
+      <i class="fas fa-upload"></i>
+      </label>
+
+         <!-- TIMER -->
+         <input type="text" id="timerInput" placeholder="Tiempo (segundos)">
+         <button id="startTimer"><i class="fas fa-clock"></i></button>
+         <button id="pauseTimer"><i class="fas fa-pause"></i></button>
+         <button id="resetTimer"><i class="fas fa-sync"></i></button>
+      
+    
+     
+
+        </div>
+    </div>
+
+</div>
+ 
+
+<!-- TAMAÑO DEL LIENZO -->
+<div id="lienzoContainer">
+    <canvas id="whiteboard" width="1330" height="1200"></canvas>
+
+
+    
+    
+   
+  </div>
+  
+  
+
+<!-- CONTENEDOR FLOTANTE PARTE BAJA  -->
+<div class="file-upload-container">
+    <div>
+        <!-- Menú de colores predefinidos -->
+        <div id="coloresFondoPredefinidos">
+            <!-- Colores para cambiar el fondo -->
+            <div class="colorSquare" style="background-color: #8d8d8d;" onclick="cambiarColorFondo('#8d8d8d')"></div>
+            <div class="colorSquare" style="background-color: #3c573e;" onclick="cambiarColorFondo('#3c573e')"></div>
+            <div class="colorSquare" style="background-color: #107c8a;" onclick="cambiarColorFondo('#107c8a')"></div>
+            <div class="colorSquare" style="background-color: #635400;" onclick="cambiarColorFondo('#635400')"></div>
+            <div class="colorSquare" style="background-color: #000000;" onclick="cambiarColorFondo('#000000')"></div>
+
+            <!-- Input de color -->
+            <input type="color" id="colorInput" onchange="cambiarColorFondo(this.value)">
+        </div>
+    </div>
+
+            <!-- Botón Clear -->
+            <button id="clearButton" onclick="limpiarColorFondo()"><i class="fas fa-trash-alt"></i>
+                Tablero</button>
+
+             
+         
+
+            <!-- SUBIR FONDOS DE PANTALLA -->
+            <input type="file" id="fileInput" accept="image/*" multiple onchange="cargarImagenesDeFondo(event)">
+            <button id="uploadButton" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            </button>
+            <button id="prevButton" onclick="navegarAnterior()">
+            <i class="fas fa-arrow-left"></i>
+            </button>
+            <button id="nextButton" onclick="navegarSiguiente()">
+            <i class="fas fa-arrow-right"></i> 
+            </button>
+            <button id="resetButton" onclick="resetearFondo()">
+            <i class="fas fa-sync"></i>
+            </button>
+
+<!-- PDF -->
+            <!-- Input para subir un documento PDF -->
+            <input type="file" id="pdfInput" accept=".pdf" style="display: none;">
+
+            <!-- Botón para abrir el input de subida de PDF -->
+            <button onclick="abrirSubidaPDF()">
+            <i class="fas fa-file-pdf"></i>
+            </button>
+
+            <!-- Ventana emergente para mostrar el PDF -->
+            <div id="pdfViewer">
+            <!-- Título para arrastrar la ventana -->
+            <div id="pdfViewerTitle">
+                Arrastra para ajustar
+            </div>
+            <button onclick="cerrarPDF()">
+                <i class="fas fa-times"></i> Cerrar
+            </button>
+            <iframe id="pdfFrame"></iframe>
+            <!-- Esquina de ajuste -->
+            <div id="resizeCorner"></div>
+ <!-- FINAL PDF-->
+
+
+
+
+</div>
+ 
+
+
+
+
+
+
+</div>
+
+
+
+  <!-- MENÚ - PANEL DE CONTROL-->
+    <button id="showPanelButton">☰</button>
+
+    <div id="controlPanel">
+        <input type="number" id="timerInput" placeholder="Tiempo (s)">
+        <button id="startTimerButton"><i class="fas fa-clock"></i></button>
+        <button id="resetTimerButton"><i class="fas fa-sync"></i></button>
+
+        <div class="controls">
+            <STrong><div id="timerDisplay" style="color: rgb(4, 73, 129);">Tiempo restante: <span
+                        id="timerValue">0</span> segundos</div></STrong>
+
+            <audio id="timerSound">
+                <source src="sound.mp3" type="audio/mpeg">
+                Tu navegador no soporta el elemento de audio.
+            </audio>
+
+            <br><br><br><br>
+            <script src="script.js"></script>
+            <div>
+                <p id="randomStudentResult"></p>
+                <textarea
+                    id="studentNamesInput"
+                    placeholder="Ingrese los nombres de los estudiantes uno por línea"
+                ></textarea>
+                <button id="addStudentsButton"><i class="fas fa-list-ul"></i></button>
+                <button id="pickRandomStudentButton"><i class="fas fa-random"></i></button>
+            </div>
+        </div>
+        <div id="textoContenedor">
+            <p>PROGRAMA TRUEQUE AMBIENTAL LOS TUTORES</p>
+            <div id="logoContainer">
+                <img
+                    src="https://www.fedusocial.org/LOGO%20PARTNERS%20SURVEY.png"
+                    alt="Logotipo"
+                >
+            </div>
+        </div>
+      
+        <br><br><br>
+</body>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+<!-- ::::::::::::::::::::::::::::::::: -->
+
+
+
+<!-- ::::::::::::::::::::::::::::::::::::::::::: -->
+
+
+
+
+
+
+
+<script>
+
+
+
+
+
+// JS INICIO PARTE 1
+
+// COLOR DE FONDO
+
+function mostrarSelectorColor() {
+    const colorSelector = document.getElementById('colorSelector');
+    const colorInput = document.getElementById('colorInput');
+
+    // Calcula las coordenadas para posicionar el colorInput al lado derecho del colorSelector
+    const colorSelectorRect = colorSelector.getBoundingClientRect();
+    const rightPosition = colorSelectorRect.right + window.scrollX + 10; // Ajusta según sea necesario
+    const topPosition = colorSelectorRect.top + window.scrollY;
+
+    // Establece las coordenadas de posición para el colorInput
+    colorInput.style.left = `${rightPosition}px`;
+    colorInput.style.top = `${topPosition}px`;
+
+    // Abre el selector de color
+    colorInput.click();
+}
+
+
+
+
+  // Función para cambiar el color de fondo del contenedor del lienzo
+  function cambiarColorFondo(color) {
+    document.getElementById('lienzoContainer').style.backgroundColor = color;
+  }
+
+
+  function limpiarColorFondo() {
+    console.log("Limpiar color de fondo llamado");
+    
+    // Restaura el color de fondo a transparente
+    document.getElementById("lienzoContainer").style.backgroundColor = "transparent";
+
+    // Restaura la imagen de fondo (si tienes una)
+    // Reemplaza 'URL_DE_TU_IMAGEN' con la URL de tu imagen de fondo
+    document.getElementById("lienzoContainer").style.backgroundImage = "url('URL_DE_TU_IMAGEN')";
+
+    // Otros códigos adicionales que puedas necesitar
+
+    // Borra el color seleccionado en el input de color
+    document.getElementById("colorInput").value = "";
+}
+
+
+
+
+
+
+// CONTENEDOR ÍCONO DEL LÁPIZ
+// Función para hacer que el contenedor sea arrastrable
+$(function () {
+    $(".draggable-container").draggable();
+});
+
+
+
+// Función para mostrar/ocultar el menú
+function toggleMenu() {
+    $("#toolsMenu").toggle();
+}
+
+
+
+// Espera a que el DOM esté completamente cargado
+    $(document).ready(function () {
+        // Selecciona el contenedor que deseas hacer arrastrable y llama a la función draggable()
+        $(".file-upload-container").draggable();
+    });
+
+
+
+
+
+// PANEL DE COMTROL
+const showPanelButton = document.getElementById('showPanelButton');
+const controlPanel = document.getElementById('controlPanel');
+
+// Agrega un manejador de eventos al botón "Mostrar Panel"
+showPanelButton.addEventListener('click', () => {
+    if (controlPanel.style.display === 'none') {
+        controlPanel.style.display = 'block'; // Muestra el panel de control
+    } else {
+        controlPanel.style.display = 'none'; // Oculta el panel de control
+    }
+});
+
+
+
+const canvas = document.getElementById('whiteboard');
+const ctx = canvas.getContext('2d');
+const imageInput = document.getElementById('imageInput');
+const previousButton = document.getElementById('previousButton');
+const nextButton = document.getElementById('nextButton');
+const clearButton = document.getElementById('clearButton');
+const saveButton = document.getElementById('saveButton');
+const undoButton = document.getElementById('undoButton');
+const redoButton = document.getElementById('redoButton');
+// Obtén referencias a los elementos relacionados con el cronómetro
+const timerInput = document.getElementById('timerInput');
+const startTimerButton = document.getElementById('startTimerButton');
+const resetTimerButton = document.getElementById('resetTimerButton');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerValue = document.getElementById('timerValue');
+
+
+
+
+
+canvas.width = 1400; // Ancho del lienzo
+canvas.height = 630; // Alto del lienzo
+
+let imageLoaded = false;
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let brushColor = '#ffffff'; // Color del pincel
+let brushSize = 1; // Tamaño del pincel
+let drawingHistory = [];
+let historyIndex = -1;
+let currentImageIndex = -1;
+let images = [];
+let currentImage = new Image();
+let timerInterval; // Variable para el intervalo del cronómetro
+let remainingTime = 0; // Tiempo restante en segundos
+let soundPlayed = false; // Bandera para controlar si se ha reproducido el sonido
+let undoHistory = [];
+let redoHistory = [];
+
+
+
+
+// Función para guardar el dibujo como imagen
+
+saveButton.addEventListener('click', () => {
+    saveDrawing();
+});
+
+
+function saveDrawing() {
+    console.log("Guardando el dibujo"); // Agregar mensaje de depuración
+    const dataURL = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'drawing.png';
+    a.click();
+}
+
+
+
+
+
+
+
+// Obtén la URL de la imagen dibujada en el lienzo
+const dataURL = canvas.toDataURL('image/png');
+
+    
+
+
+
+
+
+
+
+
+// Función para cargar una imagen
+function loadNewImage(file) {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            currentImage.src = event.target.result;
+            currentImage.onload = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+                imageLoaded = true;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Función para deshacer el último paso
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawingHistory = [];
+    historyIndex = -1;
+    imageLoaded = false;
+    imageInput.value = ''; // Limpiar el input de carga de imagen
+    images = []; // Limpiar la lista de imágenes
+    currentImageIndex = -1;
+});
+
+
+
+// Arrays para almacenar el historial de dibujo para Deshacer y Rehacer
+const historialDeshacer = [];
+const historialRehacer = [];
+
+// Agrega un manejador de eventos al botón Deshacer
+undoButton.addEventListener('click', () => {
+    if (historialDeshacer.length > 0) {
+        const ultimoEstado = historialDeshacer.pop();
+        historialRehacer.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        ctx.putImageData(ultimoEstado, 0, 0);
+    }
+});
+
+// Agrega un manejador de eventos al botón Rehacer
+redoButton.addEventListener('click', () => {
+    if (historialRehacer.length > 0) {
+        const siguienteEstado = historialRehacer.pop();
+        historialDeshacer.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        ctx.putImageData(siguienteEstado, 0, 0);
+    }
+});
+
+// Función para guardar el estado actual del lienzo para Deshacer
+function guardarEstadoDeshacer() {
+    historialDeshacer.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    // Borra el historial de Rehacer cuando se realiza un nuevo dibujo
+    historialRehacer.length = 0;
+}
+
+// Conecta esta función con tu lógica de dibujo para guardar estados antes de cada cambio
+canvas.addEventListener('mousemove', () => {
+    if (isDrawing) {
+        guardarEstadoDeshacer();
+        // ... tu código de dibujo aquí ...
+    }
+});
+
+
+
+// Manejador de eventos para cargar imágenes
+imageInput.addEventListener('change', (e) => {
+    images = Array.from(e.target.files);
+    currentImageIndex = 0;
+    loadNewImage(images[currentImageIndex]);
+});
+
+
+//-----------FUNCIONES DEL LÁPIZ --------------------------//
+
+
+function drawLine(e) {
+  if (!isDrawing) return;
+
+  if (borradorActivo) {
+    // Si el borrador está activo, utiliza la operación 'destination-out'
+    ctx.globalCompositeOperation = 'destination-out';
+  } else {
+    // Si no, utiliza la operación 'source-over'
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // Resto del código de drawLine
+  // ...
+
+  // Almacena el trazo en el historial de deshacer
+  undoHistory.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+
+  // Restaura la operación global a 'source-over'
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+
+
+    function stopDrawing() {
+      isDrawing = false;
+      canvas.removeEventListener('mousemove', drawLine);
+    }
+
+
+// Obtén referencias a los elementos HTML
+const studentNamesInput = document.getElementById('studentNamesInput');
+const addStudentsButton = document.getElementById('addStudentsButton');
+const pickRandomStudentButton = document.getElementById('pickRandomStudentButton');
+const randomStudentResult = document.getElementById('randomStudentResult');
+
+// Arreglo para almacenar los nombres de los estudiantes
+const studentNames = [];
+
+// Agregar estudiantes al arreglo cuando se hace clic en el botón "Agregar Estudiantes"
+addStudentsButton.addEventListener('click', () => {
+    const inputText = studentNamesInput.value.trim();
+    if (inputText !== '') {
+        const newStudents = inputText.split('\n').map(name => name.trim());
+        studentNames.push(...newStudents);
+        studentNamesInput.value = ''; // Limpiar el área de texto
+    }
+});
+
+
+
+// Agregar un manejador de eventos para el clic del mouse (mousedown)
+canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    [lastX, lastY] = [e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top];
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+});
+
+// Agregar un manejador de eventos para el movimiento del mouse (mousemove)
+canvas.addEventListener('mousemove', (e) => {
+    if (isDrawing) {
+        const x = e.clientX - canvas.getBoundingClientRect().left;
+        const y = e.clientY - canvas.getBoundingClientRect().top;
+        ctx.strokeStyle = brushColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        [lastX, lastY] = [x, y];
+    }
+});
+
+// Agregar un manejador de eventos para el final del dibujo (mouseup)
+canvas.addEventListener('mouseup', () => {
+    isDrawing = false;
+    ctx.closePath();
+    // Guardar el trazo actual en el historial
+    const drawingData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    drawingHistory.push(drawingData);
+    historyIndex = drawingHistory.length - 1;
+});
+
+// Agregar un manejador de eventos para salir del área de dibujo (mouseout)
+canvas.addEventListener('mouseout', () => {
+    isDrawing = false;
+});
+
+
+//--------------------------------------------------------------------------//
+
+//-----------BORRAR DIBUJO--------------------------//
+// Obtén referencia al botón "Borrar Trazos"
+const clearDrawingButton = document.getElementById('clearDrawingButton');
+
+// Agregar un manejador de eventos al botón "Borrar Trazos"
+clearDrawingButton.addEventListener('click', clearDrawing);
+
+// Función para borrar los trazos del lápiz sin afectar la imagen
+function clearDrawing() {
+    // Borrar los trazos del lápiz
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw la imagen actual si está cargada
+    if (imageLoaded) {
+        ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+    }
+    
+    // Restablecer el historial de dibujo
+    drawingHistory = [];
+    historyIndex = -1;
+}
+
+//-------------------------------------------------//
+
+
+
+// Manejadores de eventos para la navegación de imágenes
+previousButton.addEventListener('click', () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+nextButton.addEventListener('click', () => {
+    if (currentImageIndex < images.length - 1) {
+        currentImageIndex++;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+
+// Obtén referencias a los elementos de color y tamaño del pincel
+const colorPicker = document.getElementById('colorPicker');
+const brushSizeInput = document.getElementById('brushSizeInput');
+
+
+function updateTimerDisplay() {
+    timerValue.textContent = remainingTime;
+}
+
+
+startTimerButton.addEventListener('click', () => {
+    const newTime = parseInt(timerInput.value);
+    if (!isNaN(newTime) && newTime > 0) {
+        clearInterval(timerInterval); // Detener el cronómetro anterior
+        remainingTime = newTime;
+        updateTimerDisplay();
+        soundPlayed = false; // Restablecer soundPlayed a false al iniciar el cronómetro
+
+
+// Iniciar el nuevo cronómetro
+timerInterval = setInterval(() => {
+            if (remainingTime > 0) {
+                remainingTime--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+});
+
+
+
+resetTimerButton.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    remainingTime = 0;
+    timerInput.value = ''; // Limpiar el input de configuración
+    updateTimerDisplay();
+});
+
+// Llamar a updateTimerDisplay inicialmente para mostrar "0 segundos"
+updateTimerDisplay();
+
+
+
+// Función para actualizar la visualización del cronómetro
+function updateTimerDisplay() {
+    timerValue.textContent = remainingTime;
+
+    if (remainingTime === 0 && !soundPlayed) {
+        // Reproducir el sonido cuando el cronómetro llega a cero
+        const timerSound = document.getElementById('timerSound');
+        timerSound.play();
+        soundPlayed = true;
+    }
+
+    if (remainingTime < 0) {
+        clearInterval(timerInterval);
+        timerValue.textContent = '0';
+    }
+}
+
+
+
+function loadNewImage(file) {
+    if (file) {
+        const fileType = file.type;
+        if (fileType === 'image/jpeg' || fileType === 'image/png') {
+            // Si es una imagen, carga como antes
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                currentImage.src = event.target.result;
+                currentImage.onload = function () {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+                    imageLoaded = true;
+                };
+            };
+            reader.readAsDataURL(file);
+        } else if (fileType === 'application/pdf') {
+            // Si es un PDF, utiliza PDF.js para mostrarlo
+            // Debes incluir PDF.js en tu proyecto
+            const pdfUrl = URL.createObjectURL(file);
+            PDFJS.getDocument(pdfUrl).promise.then(function (pdf) {
+                pdf.getPage(1).then(function (page) {
+                    const viewport = page.getViewport({ scale: 1 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    page.render({
+                        canvasContext: ctx,
+                        viewport: viewport,
+                    });
+                });
+            });
+        }
+    }
+}
+
+
+
+// Función para mostrar el selector de color al hacer clic en el ícono
+function updateColor() {
+      var colorPicker = document.getElementById("colorPicker");
+      colorPicker.click(); // Abre el selector de color
+    }
+
+
+// JS FINAL DE LA PARTE 1
+
+
+
+
+
+
+
+// JS  INICIO PARTE 2
+
+
+// GROSOR DEL TRAZO ----------
+
+// Agrega manejadores de eventos para cambios en el color y el tamaño del pincel
+colorPicker.addEventListener('input', (e) => {
+    brushColor = e.target.value;
+    ctx.strokeStyle = brushColor;
+});
+
+brushSizeInput.addEventListener('input', (e) => {
+    brushSize = e.target.value;
+    ctx.lineWidth = brushSize;
+});
+
+
+// ---------------- ----------
+
+
+// Elegir un nombre al azar cuando se hace clic en el botón "Elegir un Nombre al Azar"
+pickRandomStudentButton.addEventListener('click', () => {
+    if (studentNames.length > 0) {
+        const randomIndex = Math.floor(Math.random() * studentNames.length);
+        const randomStudent = studentNames[randomIndex];
+        randomStudentResult.textContent = `El estudiante seleccionado al azar es: ${randomStudent}`;
+    } else {
+        randomStudentResult.textContent = 'No hay estudiantes en la lista.';
+    }
+});
+
+// Agregar un manejador de eventos al botón "Limpiar"
+document.getElementById('clearButton').addEventListener('click', function () {
+    // Limpia el lienzo de dibujo
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawingHistory = [];
+    historyIndex = -1;
+    imageLoaded = false;
+    imageInput.value = '';
+    images = [];
+    currentImageIndex = -1;
+
+    // Borra el estudiante elegido al azar
+    document.getElementById('randomStudentResult').textContent = '';
+});
+
+
+    // PANTALLA COMPLETA
+
+// Antes de cambiar a pantalla completa
+function saveImageState() {
+    // Guardar el estado actual de las imágenes
+    savedState = {
+        images: images.slice(),  // Hacer una copia de la lista de imágenes
+        currentImageIndex: currentImageIndex
+    };
+}
+
+// Después de salir de pantalla completa
+function restoreImageState() {
+    if (savedState) {
+        // Restaurar el estado de las imágenes
+        images = savedState.images.slice();
+        currentImageIndex = savedState.currentImageIndex;
+        loadNewImage(images[currentImageIndex]);
+    }
+}
+
+// Modifica la función toggleFullScreen
+function toggleFullScreen() {
+    saveImageState();  // Guardar el estado antes de cambiar a pantalla completa
+
+    const element = document.documentElement;
+
+    if (document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    } else {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    }
+}
+
+// Agrega un manejador de eventos al documento para detectar cambios en el estado de pantalla completa
+document.addEventListener('fullscreenchange', () => {
+    handleFullScreenChange();
+    restoreImageState();  // Restaurar el estado después de salir de pantalla completa
+});
+
+document.addEventListener('mozfullscreenchange', () => {
+    handleFullScreenChange();
+    restoreImageState();
+});
+
+document.addEventListener('webkitfullscreenchange', () => {
+    handleFullScreenChange();
+    restoreImageState();
+});
+
+
+// TIMER TIMER TIMER TIMER TIMER
+
+function startTimer() {
+    const timerButton = document.getElementById('startTimer');
+    const resetButton = document.getElementById('resetTimer');
+    const pauseButton = document.getElementById('pauseTimer');
+    const timerInput = document.getElementById('timerInput');
+    const timerDisplay = document.getElementById('timer');
+    const minutesDisplay = document.getElementById('minutes');
+    const secondsDisplay = document.getElementById('seconds');
+
+    let countdown;
+    let remainingTime = parseInt(timerInput.value) || 0;
+    let isPaused = false;
+
+    let imageDuration = 150; // Duración de cada imagen en segundos
+    let currentImageDuration = imageDuration;
+
+    let currentImageIndex = 0;
+
+    updateDisplay();
+
+    timerButton.addEventListener('click', () => {
+        const totalTime = images.length * imageDuration;
+        remainingTime = totalTime;
+        currentImageDuration = imageDuration;
+
+        clearInterval(countdown);
+
+        countdown = setInterval(function () {
+            if (remainingTime <= 0) {
+                clearInterval(countdown);
+                alert('¡Tiempo agotado!');
+                return;
+            }
+
+            if (!isPaused) {
+                remainingTime--;
+                currentImageDuration--;
+
+                if (currentImageDuration <= 0) {
+                    // Cambiar a la siguiente imagen cuando se alcanza la duración de la imagen
+                    currentImageIndex = (currentImageIndex + 1) % images.length;
+                    loadNewImage(images[currentImageIndex]);
+                    currentImageDuration = imageDuration;
+                }
+
+                updateDisplay();
+            }
+        }, 1000); // Actualiza cada segundo
+    });
+
+    resetButton.addEventListener('click', () => {
+        clearInterval(countdown);
+        remainingTime = 0;
+        currentImageDuration = imageDuration;
+        isPaused = false;
+        updateDisplay();
+    });
+
+    pauseButton.addEventListener('click', () => {
+        isPaused = !isPaused;
+    });
+
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        minutesDisplay.textContent = minutes < 10 ? '0' + minutes : minutes;
+        secondsDisplay.textContent = seconds < 10 ? '0' + seconds : seconds;
+        timerInput.value = remainingTime;
+    }
+}
+
+
+window.onload = function () {
+    startTimer();
+};
+
+// -----------FINAL DEL TIMER TIMER TIMER TIMER TIMER -----------------------
+
+
+
+// ARRASTRAR TIMER
+let isDragging = false;
+let offsetX, offsetY;
+
+const timer = document.getElementById("timer");
+
+timer.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    offsetX = e.clientX - timer.getBoundingClientRect().left;
+    offsetY = e.clientY - timer.getBoundingClientRect().top;
+    timer.style.cursor = "grabbing";
+});
+
+document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+        timer.style.left = x + "px";
+        timer.style.top = y + "px";
+    }
+});
+
+document.addEventListener("mouseup", () => {
+    isDragging = false;
+    timer.style.cursor = "grab";
+});
+
+
+$(document).ready(function () {
+    $("#startTimer").click(function () {
+        $("#timer").toggle(); // Alternar la visibilidad del temporizador al hacer clic en el botón
+    });
+});
+
+
+
+// -----------FLECHAS IMÁGENES-----------------------
+
+
+// Agrega un manejador de eventos para las teclas de flecha izquierda y derecha
+document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+        case 'ArrowLeft':
+            navigateImage(-1); // Retroceder a la imagen anterior
+            break;
+        case 'ArrowRight':
+            navigateImage(1); // Avanzar a la siguiente imagen
+            break;
+    }
+});
+
+// Función para navegar entre imágenes
+function navigateImage(direction) {
+    if (images.length > 1) {
+        currentImageIndex += direction;
+        if (currentImageIndex < 0) {
+            currentImageIndex = images.length - 1;
+        } else if (currentImageIndex >= images.length) {
+            currentImageIndex = 0;
+        }
+        loadNewImage(images[currentImageIndex]);
+    }
+}
+
+
+
+document.addEventListener("fullscreenchange", function () {
+  ajustarDimensionesLienzo();
+  ajustarPosicionBarraHerramientas();
+});
+
+document.addEventListener("webkitfullscreenchange", function () {
+  ajustarDimensionesLienzo();
+  ajustarPosicionBarraHerramientas();
+});
+
+document.addEventListener("mozfullscreenchange", function () {
+  ajustarDimensionesLienzo();
+  ajustarPosicionBarraHerramientas();
+});
+
+// Ajustar las dimensiones del lienzo al tamaño de la pantalla
+function ajustarDimensionesLienzo() {
+  var canvas = document.getElementById("whiteboard");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+// Ajustar la posición de la barra de herramientas en pantalla completa
+function ajustarPosicionBarraHerramientas() {
+  var toolsMenu = document.getElementById("toolsMenu");
+
+  if (
+    document.fullscreenElement ||
+    document.mozFullScreenElement ||
+    document.webkitFullscreenElement
+  ) {
+    // Posicionar la barra de herramientas en la parte inferior durante la pantalla completa
+    toolsMenu.style.bottom = "10px";
+    toolsMenu.style.left = "10px";
+  } else {
+    // Restaurar la posición original de la barra de herramientas
+    toolsMenu.style.bottom = ""; // Deja que el CSS maneje la posición
+    toolsMenu.style.left = "";
+  }
+}
+
+// Ajustar las dimensiones del lienzo al cargar la página
+ajustarDimensionesLienzo();
+
+
+
+// -----------BORRADOR-----------------------
+
+const eraseButton = document.getElementById('eraseButton');
+let isErasing = false;
+
+eraseButton.addEventListener('click', () => {
+    isErasing = !isErasing;
+    if (isErasing) {
+        eraseButton.classList.add('active');
+        canvas.addEventListener('mousedown', eraseStart);
+    } else {
+        eraseButton.classList.remove('active');
+        canvas.removeEventListener('mousedown', eraseStart);
+    }
+});
+
+// Almacena los puntos de inicio y fin del trazo a borrar
+let eraseStartX, eraseStartY;
+
+function eraseStart(e) {
+    eraseStartX = e.clientX - canvas.getBoundingClientRect().left;
+    eraseStartY = e.clientY - canvas.getBoundingClientRect().top;
+    canvas.addEventListener('mousemove', erase);
+    canvas.addEventListener('mouseup', eraseEnd);
+}
+
+function erase(e) {
+    const eraseEndX = e.clientX - canvas.getBoundingClientRect().left;
+    const eraseEndY = e.clientY - canvas.getBoundingClientRect().top;
+
+    ctx.globalCompositeOperation = 'destination-out'; // Establecer el modo de composición para borrar
+    ctx.lineWidth = 10; // Establecer el ancho de línea del borrador
+
+    ctx.beginPath();
+    ctx.moveTo(eraseStartX, eraseStartY);
+    ctx.lineTo(eraseEndX, eraseEndY);
+    ctx.stroke();
+
+    eraseStartX = eraseEndX;
+    eraseStartY = eraseEndY;
+}
+
+function eraseEnd() {
+    ctx.globalCompositeOperation = 'source-over'; // Restaurar el modo de composición original
+    canvas.removeEventListener('mousemove', erase);
+    canvas.removeEventListener('mouseup', eraseEnd);
+}
+
+
+function borrador() {
+  // Cambia entre lápiz y borrador al hacer clic en el botón de borrador
+  borradorActivo = !borradorActivo;
+
+  // Actualiza el cursor para reflejar el modo de borrado o dibujo
+  canvas.style.cursor = borradorActivo ? 'url("borrador.png") 0 30, auto' : 'crosshair';
+
+  // Restaura la operación global a 'source-over' cuando se cambia a lápiz
+  if (!borradorActivo) {
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+
+// FUNCIÓN PARA SUBIR FONDOS DE PANTALLA
+
+let imagenesDeFondo = [];
+        let indiceImagenActual = 0;
+
+        function cargarImagenesDeFondo(event) {
+            const fileInput = event.target;
+            imagenesDeFondo = [];
+
+            for (const file of fileInput.files) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagenesDeFondo.push(e.target.result);
+                };
+
+                reader.readAsDataURL(file);
+            }
+
+            mostrarImagenDeFondo();
+        }
+
+        function mostrarImagenDeFondo() {
+            if (imagenesDeFondo.length > 0) {
+                document.body.style.backgroundImage = `url('${imagenesDeFondo[indiceImagenActual]}')`;
+            }
+        }
+
+        function navegarAnterior() {
+            if (imagenesDeFondo.length > 0) {
+                indiceImagenActual = (imagenesDeFondo.length + indiceImagenActual - 1) % imagenesDeFondo.length;
+                mostrarImagenDeFondo();
+            }
+        }
+
+        function navegarSiguiente() {
+            if (imagenesDeFondo.length > 0) {
+                indiceImagenActual = (indiceImagenActual + 1) % imagenesDeFondo.length;
+                mostrarImagenDeFondo();
+            }
+        }
+
+
+        function resetearFondo() {
+            document.body.style.backgroundImage = '';
+            diapositivas = [];
+            indiceDiapositivaActual = 0;
+        }
+
+
+        function actualizarFondo() {
+            if (diapositivas.length === 0) {
+                // Fondo predeterminado cuando no hay diapositivas
+                document.body.style.backgroundImage = 'url("fondo_predeterminado.jpg")';
+            }
+        }
+
+
+
+        // Agrega la escucha de eventos del teclado
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowLeft') {
+                navegarAnterior();
+            } else if (event.key === 'ArrowRight') {
+                navegarSiguiente();
+            }
+        });
+
+
+
+
+// FUNCIONES PDF
+
+// Variable para almacenar el estado del arrastre y ajuste
+
+     // Variable para almacenar el estado del arrastre y ajuste
+  
+        let isResizing = false;
+
+        // Variables para almacenar la posición inicial del arrastre y ajuste
+        let initialMouseX, initialMouseY, initialWidth, initialHeight;
+
+        // Función para abrir el input de subida de PDF
+        function abrirSubidaPDF() {
+            document.getElementById('pdfInput').click();
+        }
+
+        // Función para manejar la subida de PDF
+        document.getElementById('pdfInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                mostrarPDF(file);
+            }
+        });
+
+        // Función para mostrar el PDF en la ventana emergente
+        function mostrarPDF(pdfFile) {
+            const pdfViewer = document.getElementById('pdfViewer');
+            const pdfFrame = document.getElementById('pdfFrame');
+
+            pdfFrame.src = URL.createObjectURL(pdfFile);
+            pdfViewer.style.display = 'block';
+
+            // Iniciar escucha para eventos de arrastre y ajuste
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                isResizing = false;
+            });
+        }
+
+        // Función para cerrar la ventana emergente del PDF
+        function cerrarPDF() {
+            const pdfViewer = document.getElementById('pdfViewer');
+            const pdfFrame = document.getElementById('pdfFrame');
+
+            pdfFrame.src = '';
+            pdfViewer.style.display = 'none';
+
+            // Detener la escucha para eventos de arrastre y ajuste
+            document.removeEventListener('mousemove', handleDrag);
+        }
+
+        // Función para manejar el arrastre y ajuste de la ventana
+        function handleDrag(e) {
+            if (isDragging) {
+                const pdfViewer = document.getElementById('pdfViewer');
+                pdfViewer.style.left = e.clientX - initialMouseX + 'px';
+                pdfViewer.style.top = e.clientY - initialMouseY + 'px';
+            }
+
+            if (isResizing) {
+                const pdfViewer = document.getElementById('pdfViewer');
+                const newWidth = initialWidth + (e.clientX - initialMouseX);
+                const newHeight = initialHeight + (e.clientY - initialMouseY);
+
+                pdfViewer.style.width = newWidth + 'px';
+                pdfViewer.style.height = newHeight + 'px';
+            }
+        }
+
+        // Escucha para eventos de inicio de arrastre y ajuste
+        document.getElementById('pdfViewerTitle').addEventListener('mousedown', (e) => {
+            isDragging = true;
+            initialMouseX = e.clientX - parseFloat(getComputedStyle(pdfViewer).left);
+            initialMouseY = e.clientY - parseFloat(getComputedStyle(pdfViewer).top);
+        });
+
+        // Escucha para eventos de inicio de ajuste
+        document.getElementById('resizeCorner').addEventListener('mousedown', (e) => {
+            isResizing = true;
+            initialMouseX = e.clientX;
+            initialMouseY = e.clientY;
+            initialWidth = pdfViewer.offsetWidth;
+            initialHeight = pdfViewer.offsetHeight;
+        });
+ 
+// FINAL FUNCIONES PDF
+
+
+// JS  FINAL PARTE 2
+
+// ...
+
+
+
+
+// ...
+
+
+
+
+</script>
+
+
+
+</body>
+</html>

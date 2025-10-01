@@ -1,0 +1,75 @@
+<!-- dashboard-profesor.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Profesor – Blicker</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
+    .panel { max-width: 600px; margin: auto; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .row { display: flex; align-items: center; margin-bottom: 16px; }
+    label { width: 100px; }
+    select, input[type=number] { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { margin-left: 8px; padding: 10px 16px; border:none; border-radius:4px; background: #7e57c2; color: #fff; cursor: pointer; }
+    button:hover { background: #5e35b1; }
+    .conteo { display: flex; justify-content: space-between; margin-top: 24px; }
+    .conteo div { text-align: center; flex:1; }
+    .conteo .label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h2>Panel del Profesor</h2>
+    <div class="row">
+      <label for="canal">Canal:</label>
+      <select id="canal">
+        <option value="1">Canal 1</option>
+        <option value="2">Canal 2</option>
+        <option value="3">Canal 3</option>
+        <option value="4">Canal 4</option>
+        <option value="5">Canal 5</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="opciones">Opciones:</label>
+      <input id="opciones" type="number" min="2" max="8" value="4">
+    </div>
+    <div class="row">
+      <button id="start">Iniciar MCQ</button>
+      <button id="pause">Pausar</button>
+      <button id="clear">Reiniciar</button>
+    </div>
+    <div class="conteo">
+      <div><div class="label">A</div><div id="cntA">0</div></div>
+      <div><div class="label">B</div><div id="cntB">0</div></div>
+      <div><div class="label">C</div><div id="cntC">0</div></div>
+      <div><div class="label">D</div><div id="cntD">0</div></div>
+      <div><div class="label">Abst.</div><div id="cntW">0</div></div>
+    </div>
+  </div>
+
+  <script>
+    const { iniciarMCQ, pausarMCQ, reiniciarMCQ, setCanal, setNumOpciones } = require('./teacher-ble');
+    document.getElementById('canal').addEventListener('change', e => setCanal(+e.target.value));
+    document.getElementById('opciones').addEventListener('change', e => setNumOpciones(+e.target.value));
+    document.getElementById('start').onclick = iniciarMCQ;
+    document.getElementById('pause').onclick = pausarMCQ;
+    document.getElementById('clear').onclick = reiniciarMCQ;
+
+    // Escuchar conteos en consola y también actualizar UI
+    const originalLog = console.log;
+    console.log = msg => {
+      originalLog(msg);
+      // Puerto simple: parsear conteo de la línea y actualizar contadores
+      if (msg.startsWith('Respuestas')) {
+        const parts = msg.match(/A:(\d+)\s+B:(\d+)\s+C:(\d+)\s+D:(\d+)\s+Abstenciones:(\d+)/);
+        if (parts) {
+          ['cntA','cntB','cntC','cntD','cntW'].forEach((id,i) => {
+            document.getElementById(id).textContent = parts[i+1];
+          });
+        }
+      }
+    };
+  </script>
+</body>
+</html>

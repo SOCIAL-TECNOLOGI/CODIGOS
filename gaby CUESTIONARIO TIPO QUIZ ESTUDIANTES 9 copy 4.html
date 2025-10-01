@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Constructor Dinámico de Cuestionarios</title>
+  <!-- Librerías necesarias -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/rgbcolor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/canvg.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin:20px; }
+    .hidden { display:none; }
+    .container { max-width:900px; margin:0 auto; }
+    button { padding:8px 16px; margin:4px; border:none; border-radius:4px; background:#25447e; color:#fff; cursor:pointer; }
+    button:hover { background:#3366cc; }
+    .pregunta, .builder-form { border:1px solid #ccc; border-radius:8px; padding:12px; margin:12px 0; background:#f5f5f5; }
+    .opcion { margin:6px 0; }
+    .menu-contenedor { display:none; position:sticky; top:10px; background:#f5f5f5; padding:8px; border-radius:8px; border:1px solid #ccc; }
+    #lista-preguntas div { margin:4px 0; }
+    #lista-preguntas button { margin-left:8px; background:#e74c3c; }
+    #lista-preguntas button.btn-editar { background:#f39c12; }
+
+    /* Popup gráfico */
+    #popup-container { display:none; position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border:1px solid #ccc; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); z-index:1000; width:500px; height:500px; box-sizing:border-box; overflow:hidden; }
+    #popup-container canvas { width:100% !important; height:100% !important; display:block; transform:scale(0.8); transform-origin:center center; }
+    #btn-cerrar-popup, #btn-descargar-grafico { position:absolute; }
+    #btn-cerrar-popup { top:8px; right:8px; background:#ccc; color:#000; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+    #btn-descargar-grafico { bottom:12px; left:50%; transform:translateX(-50%); background:#25447e; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Constructor Dinámico de Cuestionarios</h1>
+  <button id="btn-abrir-builder">Crear Preguntas</button>
+
+  <div id="builder-container" class="builder-form hidden">
+    <h2>Agregar Nueva Pregunta</h2>
+    <label>Enunciado:</label><br>
+    <textarea id="txt-enunciado" rows="3" style="width:100%;"></textarea><br>
+    <label>Imagen (opcional):</label>
+    <input type="file" id="file-imagen" accept="image/*"><br>
+    <label>Explicación (opcional):</label><br>
+    <textarea id="txt-explicacion" rows="2" style="width:100%;"></textarea><br>
+    <label>Link Refuerzo (opcional):</label>
+    <input type="url" id="txt-refuerzo" style="width:100%;" placeholder="https://..."><br>
+    <div id="opciones-container"><h3>Opciones de Respuesta</h3></div>
+    <button id="btn-add-opcion">+ Agregar Opción</button>
+    <button id="btn-save-pregunta">Guardar Pregunta</button>
+    <div id="lista-preguntas"></div>
+    <button id="btn-finalizar" class="hidden">Finalizar y Mostrar Cuestionario</button>
+  </div>
+
+  <div id="registro-container" class="hidden">
+    <h2>Registro del Estudiante</h2>
+    <form id="registro-form">
+      <label>Nombre:</label><input type="text" id="nombre" required><br><br>
+      <label>Correo Electrónico:</label><input type="email" id="email" required><br><br>
+      <button type="submit">Iniciar Cuestionario</button>
+    </form>
+  </div>
+
+  <div id="cuestionario-container" class="hidden">
+    <div class="menu-contenedor" id="menuContenedor">
+      <button id="btn-verificar">Comprobar</button>
+      <button id="btn-explicaciones">Mostrar Explicaciones</button>
+      <button id="btn-puntaje">Ver Puntaje</button>
+      <button id="btn-reiniciar">Reiniciar</button>
+      <button id="btn-resultados"><i class="fas fa-chart-line"></i> Resultados</button>
+    </div>
+    <h2 id="tituloEvaluacion"></h2>
+    <div id="preguntas-area"></div>
+  </div>
+
+  <div id="popup-container">
+    <button id="btn-cerrar-popup" onclick="cerrarPopup()">Cerrar</button>
+    <canvas id="grafico"></canvas>
+    <button id="btn-descargar-grafico" onclick="descargarGrafico()"><i class="fas fa-download"></i> Descargar Gráfico</button>
+  </div>
+
+  <div id="resultados-summary" class="hidden" style="margin-top:20px;">
+    <h3>Resumen de Resultados</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse;">
+      <thead><tr><th>Total</th><th>Aciertos</th><th>Errores</th><th>%</th></tr></thead>
+      <tbody id="tabla-resultados"></tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<SCRIPT>
+
+  
+// ----------------------------------------------------
+// Registrar plugin de DataLabels para Chart.js
+// ----------------------------------------------------
+Chart.register(ChartDataLabels);
+
+// ----------------------------------------------------
+// 1) VARIABLES GLOBALES
+// ----------------------------------------------------
+let preguntas = [];
+let editingIndex = null;
+let myPieChart = null;
+
+
+
+// ----------------------------------------------------
+// 2) BUILDER: AGREGAR / EDITAR / ELIMINAR PREGUNTAS
+// ----------------------------------------------------
+const editor     = document.getElementById('builder-container');
+const listaPreg  = document.getElementById('lista-preguntas');
+const btnAbrir   = document.getElementById('btn-abrir-builder');
+const btnAddOpt  = document.getElementById('btn-add-opcion');
+const btnSave    = document.getElementById('btn-save-pregunta');
+const btnFinal   = document.getElementById('btn-finalizar');
+
+btnAbrir.onclick = () => {
+  editor.classList.toggle('hidden');
+  cancelEdit();
+  refreshListaPreguntas();
+};
+
+btnAddOpt.onclick = () => {
+  const idx = document.querySelectorAll('.opcion-builder').length;
+  const div = document.createElement('div');
+  div.classList.add('opcion-builder');
+  div.innerHTML = `
+    <input type="radio" name="correcta" value="${idx}">
+    <input type="text" placeholder="Texto opción" style="width:80%;">
+  `;
+  document.getElementById('opciones-container').appendChild(div);
+};
+
+async function savePregunta() {
+  const enun   = document.getElementById('txt-enunciado').value.trim();
+  if (!enun) { alert('Enunciado requerido.'); return; }
+  const exp    = document.getElementById('txt-explicacion').value.trim();
+  const ref    = document.getElementById('txt-refuerzo').value.trim();
+  let imgSrc   = '';
+  const imgFile = document.getElementById('file-imagen').files[0];
+  if (imgFile) {
+    imgSrc = await new Promise(r => {
+      const reader = new FileReader();
+      reader.onload = e => r(e.target.result);
+      reader.readAsDataURL(imgFile);
+    });
+  }
+  const opts = Array.from(document.querySelectorAll('.opcion-builder'))
+    .map(div => div.querySelector('input[type=text]').value.trim());
+  const sel = document.querySelector('input[name=correcta]:checked');
+  if (opts.length < 2 || !sel) {
+    alert('Al menos 2 opciones y marca la correcta.');
+    return;
+  }
+  const correctIdx    = +sel.value;
+  const correctLetter = String.fromCharCode(97 + correctIdx);
+  const nueva = { enun, imgSrc, opts, correctIdx, correctLetter, exp, ref };
+
+  if (editingIndex === null) preguntas.push(nueva);
+  else                    preguntas[editingIndex] = nueva;
+
+  cancelEdit();
+  refreshListaPreguntas();
+  btnFinal.classList.remove('hidden');
+}
+
+btnSave.onclick = savePregunta;
+
+function refreshListaPreguntas() {
+  listaPreg.innerHTML = '';
+  preguntas.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      Pregunta ${i+1}: ${q.enun.substring(0,50)}...
+      <button class="btn-editar"  data-i="${i}">Editar</button>
+      <button class="btn-eliminar" data-i="${i}">Eliminar</button>
+    `;
+    listaPreg.appendChild(div);
+  });
+  document.querySelectorAll('.btn-editar').forEach(b => {
+    b.onclick = () => startEdit(+b.dataset.i);
+  });
+  document.querySelectorAll('.btn-eliminar').forEach(b => {
+    b.onclick = () => {
+      const i = +b.dataset.i;
+      preguntas.splice(i, 1);
+      if (editingIndex === i) cancelEdit();
+      refreshListaPreguntas();
+    };
+  });
+}
+
+function startEdit(i) {
+  const q = preguntas[i];
+  editingIndex = i;
+  document.getElementById('txt-enunciado').value = q.enun;
+  document.getElementById('txt-explicacion').value = q.exp || '';
+  document.getElementById('txt-refuerzo').value    = q.ref || '';
+  document.getElementById('file-imagen').value     = '';
+  const cont = document.getElementById('opciones-container');
+  cont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+  q.opts.forEach((opt, j) => {
+    const d = document.createElement('div');
+    d.classList.add('opcion-builder');
+    d.innerHTML = `
+      <input type="radio" name="correcta" value="${j}" ${j===q.correctIdx?'checked':''}>
+      <input type="text" style="width:80%" value="${opt}">
+    `;
+    cont.appendChild(d);
+  });
+  btnSave.textContent = 'Actualizar Pregunta';
+}
+
+function cancelEdit() {
+  editingIndex = null;
+  btnSave.textContent = 'Guardar Pregunta';
+  document.getElementById('txt-enunciado').value   = '';
+  document.getElementById('txt-explicacion').value = '';
+  document.getElementById('txt-refuerzo').value    = '';
+  document.getElementById('file-imagen').value     = '';
+  document.getElementById('opciones-container').innerHTML = '<h3>Opciones de Respuesta</h3>';
+}
+
+btnFinal.onclick = () => {
+  editor.classList.add('hidden');
+  document.getElementById('registro-container').classList.remove('hidden');
+  document.getElementById('tituloEvaluacion').textContent = `${preguntas.length} Preguntas Generadas`;
+};
+
+// ----------------------------------------------------
+// 3) REGISTRO Y RENDERIZADO DEL CUESTIONARIO
+// ----------------------------------------------------
+const registroForm = document.getElementById('registro-form');
+registroForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const nombre = document.getElementById('nombre').value.trim();
+  const email  = document.getElementById('email').value.trim();
+  if (!nombre || !email) { alert('Completa nombre y correo.'); return; }
+
+  document.getElementById('registro-container').classList.add('hidden');
+  const area = document.getElementById('preguntas-area');
+  area.innerHTML = '';
+
+  preguntas.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.classList.add('pregunta');
+    let html = `<p><strong>${i+1}. ${q.enun}</strong></p>`;
+    if (q.imgSrc) html += `<img src="${q.imgSrc}" style="max-width:200px;"><br>`;
+    q.opts.forEach((t, j) => {
+      const letter = String.fromCharCode(97+j);
+      html += `
+        <div class="opcion">
+          <label>
+            <input type="radio" name="resp${i}" value="${letter}">
+            ${letter}) ${t}
+          </label>
+        </div>`;
+    });
+    html += `<div class="retroalimentacion-container"></div>`;
+
+    const rawRef = (q.ref||'').trim();
+    const safeRef = rawRef
+      ? (/^https?:\/\//i.test(rawRef) ? rawRef : 'https://'+rawRef)
+      : '#';
+
+    html += `
+      <div class="explicacion hidden">
+        <p>${q.exp||''}</p>
+        <p><a href="${safeRef}" target="_blank">Refuerzo</a></p>
+      </div>`;
+
+    div.innerHTML = html;
+    area.appendChild(div);
+  });
+
+  document.getElementById('cuestionario-container').classList.remove('hidden');
+  document.getElementById('menuContenedor').style.display = 'block';
+});
+
+// ----------------------------------------------------
+// 4) RETROALIMENTACIÓN, EXPLICACIONES, PUNTAJE
+// ----------------------------------------------------
+function verificarRespuestas() {
+  let todas = true;
+  preguntas.forEach((q, i) => {
+    const sel   = document.querySelector(`input[name=resp${i}]:checked`);
+    const cont  = document.querySelectorAll('.pregunta')[i];
+    const retro = cont.querySelector('.retroalimentacion-container');
+
+    if (!sel) {
+      todas = false;
+      return;
+    }
+
+    if (sel.value === q.correctLetter) {
+      retro.textContent = 'RESPUESTA CORRECTA';
+      retro.style.cssText = 'background:#0f530e;color:#fff;padding:4px;border-radius:4px;';
+    } else {
+      retro.textContent = 'RESPUESTA INCORRECTA';
+      retro.style.cssText = 'background:#FF0000;color:#fff;padding:4px;border-radius:4px;';
+      todas = false;
+    }
+  });
+
+  if (todas) {
+    alert('¡Todas las respuestas son correctas!');
+  }
+}
+
+function toggleExplicaciones() {
+  // Obtenemos todas las cajas de explicación
+  const explicaciones = document.querySelectorAll('.pregunta .explicacion');
+  // Comprobamos si actualmente están ocultas (para decidir si mostramos u ocultamos)
+  const anyHidden = Array.from(explicaciones).some(e => e.classList.contains('hidden'));
+
+  explicaciones.forEach((expl, i) => {
+    // Seleccionamos la respuesta marcada para esta pregunta
+    const sel = document.querySelector(`input[name=resp${i}]:checked`);
+    // Referencia al enlace de refuerzo dentro de la explicación
+    const link = expl.querySelector('a');
+
+    // Si ha respondido y está mal, mostramos el enlace; en caso contrario lo ocultamos
+    if (sel && sel.value !== preguntas[i].correctLetter) {
+      link.style.display = 'inline';
+    } else {
+      link.style.display = 'none';
+    }
+
+    // Mostrar u ocultar la explicación completa según el estado global
+    if (anyHidden) {
+      expl.classList.remove('hidden');
+    } else {
+      expl.classList.add('hidden');
+    }
+  });
+}
+
+function calcularPuntaje() {
+  let aciertos = 0;
+  for (let i=0; i<preguntas.length; i++) {
+    const sel = document.querySelector(`input[name=resp${i}]:checked`);
+    if (!sel) { alert('Responde todas antes de ver puntaje.'); return; }
+    if (sel.value===preguntas[i].correctLetter) aciertos++;
+  }
+  const pct = (aciertos/preguntas.length*100).toFixed(2);
+  if (confirm(`PUNTAJE: ${aciertos}/${preguntas.length} (${pct}%). Descargar Excel?`)) {
+    generarArchivoExcel();
+  }
+}
+
+function reiniciarEvaluacion() {
+  location.reload();
+}
+
+// ----------------------------------------------------
+// 5) GENERAR ARCHIVO EXCEL CON ESTILOS (SheetJS)
+// ----------------------------------------------------
+function generarArchivoExcel() {
+  const nombreEval = document.getElementById('tituloEvaluacion').innerText;
+  const estudiante = document.getElementById('nombre').value;
+  const fecha      = new Date().toLocaleDateString();
+
+  const datos = [
+    ["NOMBRE DE LA EVALUACIÓN","ESTUDIANTE","Fecha"],
+    [nombreEval,estudiante,fecha],
+    [],
+    ["Pregunta","Tu Respuesta","Opción Correcta","Calificación","Puntuación","Porcentaje","Refuerzo del Tema"]
+  ];
+
+  let totalOK = 0;
+  preguntas.forEach((q, i) => {
+    const sel = document.querySelector(`input[name=resp${i}]:checked`);
+    const tu  = sel?sel.value:'';
+    const ok  = tu===q.correctLetter;
+    if (ok) totalOK++;
+    const califCell = ok
+      ? "Correcta"
+      : { v:"Incorrecta", s:{ font:{ bold:true, color:{ rgb:"FF0000" } } } };
+
+    datos.push([
+      `Pregunta ${i+1}`,
+      tu,
+      q.correctLetter,
+      califCell,
+      ok?"1/1":"0/1",
+      (ok?100:0).toFixed(2)+"%",
+      ok?"":q.ref
+    ]);
+  });
+
+  const porcTotal = ((totalOK/preguntas.length)*100).toFixed(2)+"%";
+  datos.push(["Calificación","","","",`${totalOK}/${preguntas.length}`,porcTotal,""]);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+
+  const now = new Date();
+  const fname = `Resultados_de_${nombreEval.replace(/[^a-z0-9]/gi,"_").toLowerCase()}_${now.getFullYear()}_${now.getMonth()+1}_${now.getDate()}_Hora_${now.getHours()}_${now.getMinutes()}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// ----------------------------------------------------
+// 6) GRÁFICO CIRCULAR CON Chart.js + DATALABELS
+// ----------------------------------------------------
+function generarGrafico() {
+  const total = preguntas.length;
+  let okCnt = 0;
+
+  preguntas.forEach((q, i) => {
+    const sel = document.querySelector(`input[name=resp${i}]:checked`);
+    if (sel && sel.value === q.correctLetter) okCnt++;
+  });
+
+  const noCnt = total - okCnt;
+
+  if (myPieChart) myPieChart.destroy();
+
+  const ctx = document.getElementById('grafico').getContext('2d');
+  myPieChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Correctas', 'Incorrectas'],
+      datasets: [{
+        data: [okCnt, noCnt],
+        backgroundColor: ['#0f530e', '#FF0000']
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 14 } }
+        },
+        datalabels: {
+          display: true,
+          color: 'white',
+          font: { size: 12 },
+          formatter: (value, ctx) => {
+            const data = ctx.chart.data.datasets[0].data;
+            const sum = data.reduce((a, b) => a + b, 0);
+            return sum > 0
+              ? (value / sum * 100).toFixed(2) + '%'
+              : '0%';
+          }
+        }
+      },
+      elements: {
+        arc: {
+          borderColor: 'white',
+          borderWidth: 2
+        }
+      }
+    }
+  });
+}
+
+// ----------------------------------------------------
+// 7) FUNCIONES DE POPUP Y DESCARGA
+// ----------------------------------------------------
+function mostrarGrafico() {
+  document.getElementById('popup-container').style.display = 'block';
+  generarGrafico();
+}
+
+function cerrarPopup() {
+  document.getElementById('popup-container').style.display = 'none';
+}
+
+function descargarGrafico() {
+  if (!myPieChart) return;
+  const a = document.createElement('a');
+  a.href = myPieChart.toBase64Image();
+  a.download = 'grafico.png';
+  a.click();
+}
+
+// ----------------------------------------------------
+// 8) BOTÓN "VER RESULTADOS"
+// ----------------------------------------------------
+function verResultados() {
+  verificarRespuestas();
+  calcularPuntaje();
+  // actualizar tabla...
+  mostrarGrafico();
+}
+
+
+// ----------------------------------------------------
+// 8) ENLACES DEL MENÚ
+// ----------------------------------------------------
+document.getElementById('btn-verificar').onclick     = verificarRespuestas;
+document.getElementById('btn-explicaciones').onclick = toggleExplicaciones;
+document.getElementById('btn-puntaje').onclick       = calcularPuntaje;
+document.getElementById('btn-reiniciar').onclick     = reiniciarEvaluacion;
+document.getElementById('btn-resultados').onclick    = verResultados;
+
+
+</SCRIPT>
+
+
+
+</body>
+</html>

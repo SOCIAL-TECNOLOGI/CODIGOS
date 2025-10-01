@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acordeón con código iframe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .acordeon {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .acordeon-item {
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+
+        .acordeon-header {
+            background-color: #f1f1f1;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .acordeon-content {
+            padding: 10px;
+            display: none;
+        }
+
+        #codigo-iframe {
+            width: 100%;
+            height: 200px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Acordeón con código iframe</h1>
+    
+    <div class="acordeon">
+        <div class="acordeon-item">
+            <div class="acordeon-header" onclick="toggleAcordeon(1)">Sección 1</div>
+            <div class="acordeon-content">
+                <p>Pega tu código iframe para la Sección 1:</p>
+                <textarea id="codigo-iframe-1" placeholder="Pega aquí tu código iframe"></textarea>
+                <button onclick="mostrarIframe('codigo-iframe-1', 'mostrar-iframe-1')">Mostrar iframe</button>
+                <button onclick="limpiarCodigo('codigo-iframe-1', 'mostrar-iframe-1')">Limpiar código</button>
+                <div id="mostrar-iframe-1"></div>
+            </div>
+        </div>
+
+        <div class="acordeon-item">
+            <div class="acordeon-header" onclick="toggleAcordeon(2)">Sección 2</div>
+            <div class="acordeon-content">
+                <p>Pega tu código iframe para la Sección 2:</p>
+                <textarea id="codigo-iframe-2" placeholder="Pega aquí tu código iframe"></textarea>
+                <button onclick="mostrarIframe('codigo-iframe-2', 'mostrar-iframe-2')">Mostrar iframe</button>
+                <button onclick="limpiarCodigo('codigo-iframe-2', 'mostrar-iframe-2')">Limpiar código</button>
+                <div id="mostrar-iframe-2"></div>
+            </div>
+        </div>
+
+        <!-- Puedes agregar más secciones según tus necesidades -->
+
+    </div>
+
+    <script>
+        function toggleAcordeon(index) {
+            var content = document.querySelector('.acordeon-item:nth-child(' + index + ') .acordeon-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function mostrarIframe(codigoId, contenedorId) {
+            var codigoIframe = document.getElementById(codigoId).value;
+            var contenedorIframe = document.getElementById(contenedorId);
+
+            contenedorIframe.innerHTML = "<h2>Vista previa del iframe:</h2>" + codigoIframe;
+        }
+
+        function limpiarCodigo(codigoId, contenedorId) {
+            document.getElementById(codigoId).value = '';
+            document.getElementById(contenedorId).innerHTML = '';
+        }
+    </script>
+</body>
+</html>

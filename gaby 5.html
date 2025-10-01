@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Preguntas de Matemáticas y Reciclaje</title>
+    <style>
+
+        /* Estilo para el contenedor de registro */
+#registro-container {
+    display: block; /* Por defecto, el formulario de registro se muestra */
+    margin: 20px;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 300px;
+    background-color: #f5f5f5;
+}
+
+/* Estilo para el contenedor de cuestionario (inicialmente oculto) */
+#cuestionario-container {
+    display: none; /* Inicialmente oculto */
+    margin: 20px;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 600px;
+    background-color: #f5f5f5;
+}
+/* Estilo para las preguntas */
+        .pregunta {
+            margin: 20px 0;
+        }
+
+        /* Estilo para el tamaño de fuente de las preguntas */
+        .pregunta p {
+            font-size: 16px;
+        }
+
+        /* Estilo inicial de la retroalimentación y la explicación, oculta el contenido */
+        #retroalimentacion, #explicacion {
+            display: none;
+        }
+
+        /* Estilo de los botones */
+        button {
+            padding: 10px 20px;
+            background-color: #101b5a; /* Color de fondo azul */
+            color: #fff; /* Color del texto blanco */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 20px;
+        }
+
+        /* Estilo específico para el botón "Comprobar Respuesta" */
+        button#comprobar {
+            background-color: #28A745; /* Cambia el color de fondo a verde */
+        }
+
+        /* Estilo específico para el botón "Limpiar Selección" */
+        button#limpiar {
+            background-color: #141860; /* Cambia el color de fondo a rojo */
+        }
+
+        /* Estilo específico para el botón "Ver Explicación" */
+        button#explicacion {
+            background-color: #FFC107; /* Cambia el color de fondo a amarillo */
+        }
+
+        /* Estilo para la retroalimentación */
+        #retroalimentacion {
+            font-weight: bold;
+        }
+
+        /* Estilo específico para "¡Bien Hecho, Respuesta Correcta" */
+        #retroalimentacion.respuesta-correcta {
+            color: #28A745; /* Verde */
+        }
+
+        /* Estilo específico para "Respuesta Incorrecta, Deber reforzar el Tema" */
+        #retroalimentacion.respuesta-incorrecta {
+            color: #DC3545; /* Rojo */
+        }
+
+        /* Estilo para el contenedor principal */
+        body {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Estilo para el contenedor de retroalimentación */
+        .retroalimentacion-container {
+            padding: 10px;
+            background-color: null; /* Cambia el color de fondo si es necesario */
+            border: null; /* Agrega un borde al contenedor */
+            margin-top: 5px; /* Espacio superior entre el contenedor y la pregunta */
+            font-weight: bold; /* Puedes cambiar el peso de la fuente */
+        }
+
+        /* Estilo para las preguntas */
+        .pregunta {
+            margin: 20px 0;
+        }
+
+        /* Estilo para el tamaño de fuente de las preguntas */
+        .pregunta p {
+            font-size: 16px; /* Puedes ajustar el valor para cambiar el tamaño de fuente */
+        }
+
+        .explicacion {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="registro-container">
+        <h2>Registro</h2>
+        <form id="registro-form">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" required><br>
+
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" required><br>
+
+            <button id="iniciar-cuestionario">Iniciar Cuestionario</button>
+        </form>
+    </div>
+
+ <div id="cuestionario-container" style="display: none;">
+    <h1>Preguntas de Matemáticas y Reciclaje</h1>
+
+    <div class="pregunta">
+        <img src="imagen1.jpg" alt="Imagen de la pregunta 1" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.sustentartv.com/centro-reciclaje-buenosaires-2/</em></label>
+        </div>
+        <p><strong><em>1. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 40 kg de papel reciclado por una bicicleta ecológica. Si una persona recicla 80 kg de papel, ¿cuántas bicicletas ecológicas recibiría?</em></strong></p>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="a"> a) 1 bicicleta
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="b"> b) 2 bicicletas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="c"> c) 3 bicicletas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta1" value="d"> d) 4 bicicletas
+        </div>
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN:</strong> Para obtener bicicletas, una persona debe entregar 40 kg de papel reciclado por bicicleta. En este caso, si se reciclan 80 kg de papel, se obtendrían 80 kg / 40 kg por bicicleta = 2 bicicletas ecológicas.</p><P><strong>PROCEDIMIENTO PREGUNTA X:</strong></P><p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p> 
+        </div>
+        <a class="reforzar-tema-link" href="https://es.khanacademy.org/math" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"><em>Reforzar el tema</em></a>
+</div>
+    </div>
+
+    <div class="pregunta">
+        <p><strong><em>2. En un centro de reciclaje, se recolectaron inicialmente 500 botellas de vidrio. Si se reciclan 80 botellas de vidrio por semana, ¿cuánto tiempo tomaría reciclar todas las botellas?</em></strong></p>
+        <div class="opcion">
+            <img src="imagen2.jpg" alt="Imagen de la pregunta 2" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.sustentartv.com/centro-reciclaje-buenosaires-2/</em></label>
+        </div>
+            <input type="radio" name="respuesta2" value="a"> a) 5 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="b"> b) 7 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="c"> c) 8 semanas
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta2" value="d"> d) 10 semanas
+        </div>
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN:</strong> Para reciclar todas las botellas, necesitas 500 botellas / 80 botellas por semana = 6.25 semanas. Dado que no se pueden tener semanas fraccionadas, tomaría 7 semanas para reciclar todas las botellas.</p><strong>PROCEDIMIENTO PREGUNTA X:</strong></P><p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p> 
+        </div>
+        <a class="reforzar-tema-link" href="https://es.khanacademy.org/math" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"><em>Reforzar el tema</em></a>
+</div>
+    </div>
+       
+    <div class="pregunta">
+        <p><strong><em>3. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 25 kg de plástico reciclado por un árbol para reforestar. Si una persona desea obtener 5 árboles, ¿cuántos kilogramos de plástico debe entregar?</em></strong></p>
+        <div class="opcion">
+            <img src="imagen3.jpg" alt="Imagen de la pregunta 3" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.sustentartv.com/centro-reciclaje-buenosaires-2/</em></label>
+        </div>
+            <input type="radio" name="respuesta3" value="a"> a) 1 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="b"> b) 5 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="c"> c) 10 kg
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta3" value="d"> d) 125 kg
+        </div>
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN:</strong> Para obtener 5 árboles, una persona debe entregar 25 kg de plástico reciclado por árbol, lo que suma un total de 5 árboles * 25 kg por árbol = 125 kg de plástico. Sin embargo, 125 kg de plástico no son necesarios, ya que se pueden obtener 5 árboles entregando 10 kg de plástico.</p><strong>PROCEDIMIENTO PREGUNTA X:</strong></P><p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p> 
+        </div>
+        <a class="reforzar-tema-link" href="https://es.khanacademy.org/math" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"><em>Reforzar el tema</em></a>
+</div>
+    </div>
+        
+
+    <div class="pregunta">
+        <p><strong><em>4. En un programa de trueque ambiental de FeduSocial, se pueden intercambiar 30 latas de aluminio recicladas por un libro educativo. Si una persona recicla 120 latas de aluminio, ¿cuántos libros educativos recibiría?</em></strong></p>
+        <div class="opcion">
+            <img src="imagen4.jpg" alt="Imagen de la pregunta 4" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.sustentartv.com/centro-reciclaje-buenosaires-2/</em></label>
+        </div>
+            <input type="radio" name="respuesta4" value="a"> a) 2 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="b"> b) 4 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="c"> c) 6 libros
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta4" value="d"> d) 8 libros
+        </div>
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN:</strong> Para obtener 4 libros educativos, una persona debe reciclar 120 latas de aluminio, ya que se establece que 30 latas se cambian por un libro educativo.</p><strong>PROCEDIMIENTO PREGUNTA X:</strong></P><p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p> 
+        </div>
+        <a class="reforzar-tema-link" href="https://es.khanacademy.org/math" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"><em>Reforzar el tema</em></a>
+</div>
+    </div>
+       
+
+    <div class="pregunta">
+        <p><strong><em>5. En un centro de reciclaje, se recolectaron inicialmente 800 botellas de plástico. Si se reciclan 100 botellas de plástico cada día, ¿cuántos días tomaría reciclar todas las botellas?</em></strong></p>
+        <div class="opcion">
+            <img src="imagen5.jpg" alt="Imagen de la pregunta 5" style="width: 200px; height: auto;">
+        <div class="referencia-imagen">
+            <label for="referencia1"><div class="referencia-imagen">
+        <label for="referencia1"><em>Imagen tomada de https://www.sustentartv.com/centro-reciclaje-buenosaires-2/</em></label>
+        </div>
+            <input type="radio" name="respuesta5" value="a"> a) 4 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="b"> b) 8 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="c"> c) 10 días
+        </div>
+        <div class="opcion">
+            <input type="radio" name="respuesta5" value="d"> d) 16 días
+        </div>
+        <div class="retroalimentacion-container"></div>
+        <div class="explicacion" style="display: none;">
+            <p><strong>SOLUCIÓN:</strong> Para reciclar todas las botellas, necesitas 800 botellas / 100 botellas por día = 8 días.</p><strong>PROCEDIMIENTO PREGUNTA X:</strong></P><p><strong> Temas matemáticos relacionados:</strong> <span style="color: rgb(15, 83, 14);"> <em> PONER NOMBRE DEL TEMA </em></span></p> 
+        </div>
+        <a class="reforzar-tema-link" href="https://es.khanacademy.org/math" style="display: none; font-size: 16px; color: #a6179c; text-decoration: none;"><em>Reforzar el tema</em></a>
+</div>
+    </div>
+
+
+   
+    <button class="boton" onclick="verificarRespuestas()">Comprobar</button>
+    <button class="boton" id="toggleExplicaciones" onclick="toggleExplicaciones()">Explicaciones</button>
+    <button class="boton" id="calcularPuntaje" onclick="calcularPuntaje()">Ver Puntaje</button>
+    <button class="boton" onclick="reiniciarEvaluacion()">Reiniciar</button>
+</div>
+
+<script>
+
+// Condiciones para formulario
+var formulario = document.getElementById('registro-form');
+        var cuestionarioContainer = document.getElementById('cuestionario-container');
+
+        formulario.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+
+            var nombre = document.getElementById('nombre').value;
+            var email = document.getElementById('email').value;
+
+            if (nombre.trim() === '' || email.trim() === '') {
+                alert('Por favor, completa todos los campos obligatorios.');
+            } else {
+                // Cambia el display para mostrar el cuestionario
+                document.getElementById('registro-container').style.display = 'none';
+                cuestionarioContainer.style.display = 'block';
+            }
+        });
+
+
+        // Función para mostrar u ocultar las explicaciones
+function toggleExplicaciones() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var todasContestadas = true;
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        if (respuestaSeleccionada === '') {
+            todasContestadas = false;
+            alert('Por favor, responde todas las preguntas antes de ver las explicaciones.');
+            break;
+        }
+    }
+
+    if (todasContestadas) {
+        var explicaciones = document.getElementsByClassName('explicacion');
+        var botonExplicaciones = document.getElementById('toggleExplicaciones');
+
+        for (var i = 0; i < explicaciones.length; i++) {
+            if (explicaciones[i].style.display === 'none') {
+                explicaciones[i].style.display = 'block';
+                botonExplicaciones.innerText = 'Ocultar Explicaciones';
+            } else {
+                explicaciones[i].style.display = 'none';
+                botonExplicaciones.innerText = 'Mostrar Explicaciones';
+            }
+        }
+    }
+}
+
+        // Función para verificar respuestas
+        function verificarRespuestas() {
+    var preguntas = document.getElementsByClassName('pregunta');
+    var respuestasCorrectas = ["b", "c", "c", "b", "b"]; // Respuestas correctas de cada pregunta
+    var todasCorrectas = true;
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+        var respuestaSeleccionada = '';
+
+        for (var j = 0; j < opciones.length; j++) {
+            if (opciones[j].querySelector('input').checked) {
+                respuestaSeleccionada = opciones[j].querySelector('input').value;
+            }
+        }
+
+        if (respuestaSeleccionada === '') {
+            todasCorrectas = false;
+            alert('Por favor, responde todas las preguntas antes de verificar.');
+            break;
+        }
+
+        var retroalimentacion = preguntas[i].getElementsByClassName('retroalimentacion-container')[0]; // Nuevo contenedor para retroalimentación
+        var reforzarTemaLink = preguntas[i].getElementsByClassName('reforzar-tema-link')[0];
+
+        if (respuestaSeleccionada === respuestasCorrectas[i]) {
+            retroalimentacion.innerHTML = 'RESPUESTA CORRECTA';
+            retroalimentacion.style.color = '#FFFFFF';
+            retroalimentacion.style.backgroundColor = '#0f530e';
+            retroalimentacion.style.borderRadius = '20px';
+            reforzarTemaLink.style.display = 'none'; // Oculta el enlace si la respuesta es correcta
+        } else {
+            retroalimentacion.innerHTML = 'RESPUESTA INCORRECTA';
+            retroalimentacion.style.color = '#FFFFFF';
+            retroalimentacion.style.backgroundColor = '#FF0000';
+            retroalimentacion.style.borderRadius = '20px';
+            todasCorrectas = false;
+            reforzarTemaLink.style.display = 'inline-block'; // Muestra el enlace si la respuesta es incorrecta
+        }
+    }
+
+    if (todasCorrectas) {
+        alert('¡Todas las respuestas son correctas!');
+    }
+}
+
+
+
+        // Función para calcular el puntaje total en porcentaje
+        function calcularPuntaje() {
+            var preguntas = document.getElementsByClassName('pregunta');
+            var respuestasCorrectas = ["b", "c", "c", "b", "b"];
+            var puntuacion = 0;
+
+            for (var i = 0; i < preguntas.length; i++) {
+                var opciones = preguntas[i].getElementsByClassName('opcion');
+                var respuestaSeleccionada = '';
+
+                for (var j = 0; j < opciones.length; j++) {
+                    if (opciones[j].querySelector('input').checked) {
+                        respuestaSeleccionada = opciones[j].querySelector('input').value;
+                    }
+                }
+
+                if (respuestaSeleccionada === respuestasCorrectas[i]) {
+                    puntuacion++;
+                }
+            }
+
+            var porcentaje = (puntuacion / preguntas.length) * 100;
+            alert('Tu puntaje total es: ' + porcentaje + '%');
+        }
+
+
+        
+        // Función para reiniciar
+        function reiniciarEvaluacion() {
+    var preguntas = document.getElementsByClassName('pregunta');
+
+    for (var i = 0; i < preguntas.length; i++) {
+        var opciones = preguntas[i].getElementsByClassName('opcion');
+
+        for (var j = 0; j < opciones.length; j++) {
+            var input = opciones[j].querySelector('input');
+            input.checked = false;
+        }
+
+        var retroalimentacionContainer = preguntas[i].getElementsByClassName('retroalimentacion-container')[0];
+        retroalimentacionContainer.innerHTML = '';
+        retroalimentacionContainer.style.color = '';
+        retroalimentacionContainer.style.backgroundColor = '';
+        retroalimentacionContainer.style.borderRadius = '';
+
+        var explicacion = preguntas[i].getElementsByClassName('explicacion')[0];
+
+        if (explicacion) {
+            explicacion.style.display = 'none';
+        }
+
+        var botonExplicacion = preguntas[i].querySelector('.ver-explicacion-button');
+
+        if (botonExplicacion) {
+            botonExplicacion.innerText = 'Ver Explicación';
+        }
+
+        var reforzarTemaLink = preguntas[i].getElementsByClassName('reforzar-tema-link')[0];
+
+        if (reforzarTemaLink) {
+            reforzarTemaLink.style.display = 'none';
+        }
+    }
+}
+
+
+        
+    </script>
+</body>
+</html>

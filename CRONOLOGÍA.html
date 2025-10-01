@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Línea de Tiempo Curricular en Colombia</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f9fafb; padding:20px; }
+  h1 { text-align:center; color:#1d4ed8; margin-bottom:30px; }
+  .timeline { position:relative; max-width:800px; margin:auto; }
+  .timeline::after { content:''; position:absolute; width:6px; background:#1d4ed8; top:0; bottom:0; left:50%; margin-left:-3px; }
+  .container { padding:20px; position:relative; width:50%; }
+  .container.left { left:0; }
+  .container.right { left:50%; }
+  .content { padding:20px; background:white; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  .container::after { content:''; position:absolute; width:20px; height:20px; right:-10px; background:#1d4ed8; border:3px solid #fff; top:30px; border-radius:50%; z-index:1; }
+  .right::after { left:-10px; }
+  h2 { color:#059669; margin-top:0; }
+</style>
+</head>
+<body>
+
+<h1>Línea de Tiempo Curricular en Colombia</h1>
+<div class="timeline">
+
+  <div class="container left">
+    <div class="content">
+      <h2>1994</h2>
+      <p><strong>Ley General de Educación (Ley 115)</strong>. Establece bases para currículos y evaluaciones.</p>
+    </div>
+  </div>
+
+  <div class="container right">
+    <div class="content">
+      <h2>1998–2006</h2>
+      <p><strong>Lineamientos Curriculares</strong>. Documentos por área que orientan enseñanza y enfoque pedagógico.</p>
+    </div>
+  </div>
+
+  <div class="container left">
+    <div class="content">
+      <h2>2003–2006</h2>
+      <p><strong>Estándares Básicos de Competencias (EBC)</strong>. Definen lo que todo estudiante debe saber y hacer en grados clave (3°, 5°, 9°, 11°).</p>
+    </div>
+  </div>
+
+  <div class="container right">
+    <div class="content">
+      <h2>2003</h2>
+      <p><strong>ICFES</strong> cambia metodología. Pasa de medir contenidos memorísticos a evaluar <em>competencias</em> (interpretar, argumentar, proponer).</p>
+    </div>
+  </div>
+
+  <div class="container left">
+    <div class="content">
+      <h2>2014</h2>
+      <p><strong>ICFES incorpora el DCE</strong> (Diseño Centrado en Evidencias).  
+      Cada pregunta se estructura en afirmaciones → evidencias → tareas, fortaleciendo la validez y coherencia de las pruebas Saber.</p>
+    </div>
+  </div>
+
+  <div class="container right">
+    <div class="content">
+      <h2>2015</h2>
+      <p><strong>Derechos Básicos de Aprendizaje (DBA)</strong>. Definen aprendizajes mínimos, claros y medibles año a año.</p>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

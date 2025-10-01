@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística por preguntas: errores vs aciertos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            text-align: center; /* Centra todo el contenido del body */
+        }
+        .grafico-container {
+            width: 1000px;
+            height: 350px;
+            margin: 20px auto;
+        }
+        #chartContainer {
+            height: 100%;
+            width: 100%;
+        }
+        .boton-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .boton {
+            margin: 0 5px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6ca9d4; /* Azul moderno */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .boton:hover {
+            background-color: #f1d9a9; /* Color de fondo al pasar el ratón */
+            color: black; /* Cambia el color del texto a negro */
+        }
+        .file-upload-container {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .file-upload {
+            display: none;
+        }
+        .file-upload-label {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6ca9d4; /* Azul moderno */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px; /* Ajuste de margen */
+        }
+        .file-upload-label:hover {
+            background-color: #f1d9a9; /* Color de fondo al pasar el ratón */
+            color: black; /* Cambia el color del texto a negro */
+        }
+        #datos {
+            width: 100%;
+            height: 80px;
+            display: none; /* Inicialmente oculto */
+            margin-top: 10px;
+        }
+        table {
+            width: 70%; /* Ancho del 80% del contenedor */
+            margin: 20px auto; /* Centrar la tabla con un margen superior */
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2; /* Color tenue para filas pares */
+        }
+        /* Estilos para el encabezado de la tabla */
+        table th {
+            background-color: #1a5276; /* Azul oscuro */
+            color: white; /* Texto blanco */
+            font-weight: bold; /* Texto en negrita */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <h1>Estadística por preguntas: errores vs aciertos</h1>
+    <div class="grafico-container">
+        <canvas id="chartContainer"></canvas>
+    </div>
+    <div class="boton-container">
+        <button id="toggleTextAreaButton" class="boton" onclick="toggleTextArea()">
+            <i id="toggleIcon" class="fas fa-eye-slash"></i> Área de Texto</button>
+
+        <input type="file" id="fileUpload" class="file-upload" accept=".xlsx" onchange="handleFile()">
+        <label for="fileUpload" class="file-upload-label"><i class="fas fa-file-import"></i> Subir Archivos</label>
+
+        <button class="boton" onclick="descargarGrafico()"><i class="far fa-save"></i> Gráfico</button>
+        <button class="boton" onclick="generarTablaResumen()"><i class="fas fa-list"></i> Resumen</button>
+        <button class="boton" onclick="descargarExcel()"><i class="fas fa-cloud-download-alt"></i> Resumen</button>
+        <button class="boton" onclick="limpiar()"> <i class="fas fa-undo"></i> Reiniciar</button>
+    </div>
+   
+    <textarea id="datos" style="display: none;" placeholder="Pega aquí los datos de la encuesta" oninput="generarGrafico()"></textarea>
+    
+    <div id="tablaResumenContainer" style="display: none;">
+        <div id="tablaResumen"></div>
+    </div>
+
+    <script>
+        let myChart;
+        const totalPreguntas = 55;
+
+        // Funciones JavaScript para procesar datos, generar gráfico, etc.
+        // Código JavaScript aquí...
+
+        function toggleTextArea() {
+            const textarea = document.getElementById('datos');
+            textarea.style.display = textarea.style.display === 'none' ? 'block' : 'none';
+            const toggleIcon = document.getElementById('toggleIcon');
+            toggleIcon.classList.toggle('fa-eye-slash');
+            toggleIcon.classList.toggle('fa-eye');
+        }
+
+        function processDatos(datos) {
+            const lineas = datos.trim().split("\n");
+            const respuestasPorPregunta = new Array(totalPreguntas).fill(null).map(() => ({ correctas: 0, incorrectas: 0 }));
+            const encabezados = lineas[0].split("\t");
+
+            for (let i = 1; i < lineas.length; i++) {
+                const respuestas = lineas[i].split("\t");
+
+                for (let j = 0; j < encabezados.length; j += 2) {
+                    const respuestaEstudiante = respuestas[j].trim().toUpperCase();
+                    const respuestaCorrecta = respuestas[j + 1].trim().toUpperCase();
+
+                    if (respuestaEstudiante !== '' && respuestaCorrecta !== '') {
+                        if (respuestaEstudiante === respuestaCorrecta) {
+                            respuestasPorPregunta[j / 2].correctas++;
+                        } else {
+                            respuestasPorPregunta[j / 2].incorrectas++;
+                        }
+                    }
+                }
+            }
+
+            return respuestasPorPregunta;
+        }
+
+   
+
+        function generarGrafico() {
+    const datos = document.getElementById("datos").value;
+    const respuestasPorPregunta = processDatos(datos);
+
+    const labels = Array.from({ length: totalPreguntas }, (_, i) => (i + 1).toString());
+    const datasets = [];
+    const backgroundColors = ['#7ebf80', '#f08080']; // Verde pastel y Rojo pastel
+    const datasetLabels = ['Respuestas Correctas', 'Respuestas Incorrectas'];
+
+    datasetLabels.forEach((label, index) => {
+        const data = respuestasPorPregunta.map(r => index === 0 ? r.correctas : r.incorrectas);
+        const backgroundColor = backgroundColors[index];
+
+        datasets.push({
+            label: label,
+            backgroundColor: backgroundColor,
+            data: data
+        });
+    });
+
+    const ctx = document.getElementById('chartContainer').getContext('2d');
+    if (myChart instanceof Chart) {
+        myChart.destroy();
+    }
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: datasets.filter(dataset => dataset.data.some(value => value > 0))
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Preguntas del Cuestionario',
+                        font: {
+                            weight: 'bold' // Texto en negrita
+                        }
+                    },
+                    ticks: {
+                        autoSkip: false // Mostrar todas las etiquetas
+                    }
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Estudiantes',
+                        font: {
+                            weight: 'bold' // Texto en negrita
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            if (tooltipItem.raw === 0) {
+                                return '';
+                            }
+                            return `${tooltipItem.dataset.label}: ${tooltipItem.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+
+        function generarTablaResumen() {
+    const datos = document.getElementById("datos").value;
+    const respuestasPorPregunta = processDatos(datos);
+
+    const resultados = [];
+
+    respuestasPorPregunta.forEach((pregunta, index) => {
+        const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+        if (totalRespuestas > 0) {
+            const porcentajeError = ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2);
+            const porcentajeAcierto = ((pregunta.correctas / totalRespuestas) * 100).toFixed(2);
+
+            resultados.push({
+                pregunta: `Pregunta ${index + 1}`,
+                porcentajeError: parseFloat(porcentajeError),
+                porcentajeAcierto: parseFloat(porcentajeAcierto)
+            });
+        }
+    });
+
+    resultados.sort((a, b) => b.porcentajeError - a.porcentajeError);
+
+    const tablaResumen = document.getElementById('tablaResumen');
+    tablaResumen.innerHTML = '';
+
+    const table = document.createElement('table');
+    const header = table.createTHead();
+    const row = header.insertRow();
+    const headers = ['Cuestionario', '% de Errores', '% de Aciertos'];
+
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        row.appendChild(th);
+    });
+
+    const tbody = table.createTBody();
+    resultados.forEach(resultado => {
+        const row = tbody.insertRow();
+        const cell1 = row.insertCell();
+        const cell2 = row.insertCell();
+        const cell3 = row.insertCell();
+        cell1.textContent = resultado.pregunta;
+        cell2.textContent = `${resultado.porcentajeError}%`;
+        cell3.textContent = `${resultado.porcentajeAcierto}%`;
+    });
+
+    tablaResumen.appendChild(table);
+
+    // Mostrar u ocultar la tabla según su estado actual
+    const tablaResumenContainer = document.getElementById('tablaResumenContainer');
+    tablaResumenContainer.style.display = tablaResumenContainer.style.display === 'none' ? 'block' : 'none';
+}
+
+
+        function handleFile() {
+            const fileUpload = document.getElementById('fileUpload').files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                const encabezados = json[0];
+                let texto = encabezados.join('\t') + '\n';
+                for (let i = 1; i < json.length; i++) {
+                    texto += json[i].join('\t') + '\n';
+                }
+                document.getElementById('datos').value = texto.trim();
+                generarGrafico(); // Generar el gráfico automáticamente después de cargar los datos
+            };
+            reader.readAsArrayBuffer(fileUpload);
+        }
+
+        function descargarGrafico() {
+            const chartContainer = document.getElementById('chartContainer');
+
+            // Crear un canvas del tamaño del contenedor del gráfico
+            const canvas = document.createElement('canvas');
+            canvas.width = chartContainer.offsetWidth;
+            canvas.height = chartContainer.offsetHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Obtener el contenido del gráfico en el canvas
+            html2canvas(chartContainer).then(canvas => {
+                // Convertir el canvas a una imagen PNG
+                const imageURL = canvas.toDataURL("image/png");
+
+                // Crear un enlace temporal para descargar la imagen
+                const link = document.createElement('a');
+                link.href = imageURL;
+                link.download = 'grafico.png';
+
+                // Agregar el enlace al body, simular el clic y remover el enlace
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(error => {
+                console.error('Error al generar el gráfico:', error);
+            });
+        }
+
+        function descargarExcel() {
+            const datos = document.getElementById("datos").value;
+            const respuestasPorPregunta = processDatos(datos);
+
+            const wb = XLSX.utils.book_new();
+            const wsData = [['ACIERTOS', '% DE ACIERTOS', 'ERRORES', '% DE ERRORES']];
+            respuestasPorPregunta.forEach((pregunta, index) => {
+                const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+                if (totalRespuestas > 0) {
+                    const porcentajeError = ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2);
+                    const porcentajeAcierto = ((pregunta.correctas / totalRespuestas) * 100).toFixed(2);
+
+                    wsData.push([
+                        `Pregunta ${index + 1}`,
+                        pregunta.correctas,
+                        `${porcentajeAcierto}%`,
+                        pregunta.incorrectas,
+                        `${porcentajeError}%`
+                    ]);
+                }
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Resumen Encuesta');
+
+            XLSX.writeFile(wb, 'resumen_encuesta.xlsx');
+        }
+
+        function limpiar() {
+    // Limpiar el área de texto y la tabla de resumen
+    document.getElementById('datos').value = '';
+    document.getElementById('tablaResumen').innerHTML = '';
+
+    // Destruir el gráfico actual si existe
+    if (myChart instanceof Chart) {
+        myChart.destroy();
+    }
+
+    // Ocultar el área de texto si está visible
+    const toggleIcon = document.getElementById('toggleIcon');
+    if (toggleIcon.classList.contains('fa-eye')) {
+        toggleTextArea();
+    }
+
+    // Eliminar datasets del gráfico para que desaparezcan las barras
+    const ctx = document.getElementById('chartContainer').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+generarGrafico(); // Generar el gráfico inicial
+    </script>
+</body>
+</html>

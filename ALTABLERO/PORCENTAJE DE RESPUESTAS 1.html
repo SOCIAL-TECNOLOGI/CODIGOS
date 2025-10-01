@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística por preguntas: error vs aciertos</title>
+    <style>
+        body {
+            text-align: center;
+        }
+        .grafico-container {
+            width: 800px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        #chartContainer {
+            height: 100%;
+            width: 100%;
+        }
+        .boton-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .boton {
+            margin: 0 5px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6ca9d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .boton:hover {
+            background-color: #f1d9a9;
+            color: black;
+        }
+        #datos {
+            width: 100%;
+            height: 100px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <h1>Estadística por preguntas: errores vs aciertos</h1>
+    <div class="grafico-container">
+        <canvas id="chartContainer"></canvas>
+    </div>
+    
+    <div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls" style="display:none" onchange="handleFileSelect(event)">
+        <label for="fileInput" class="boton">Subir Archivo Excel</label>
+    </div>
+
+    <textarea id="datos" placeholder="Pega aquí los datos de la encuesta"></textarea>
+    <div class="boton-container">
+        <button class="boton" onclick="generarGrafico()">Generar Gráfico</button>
+        <button class="boton" onclick="descargarGrafico()">Descargar Gráfico</button>
+        <button class="boton" onclick="generarTablaResumen()">Generar Resumen</button>
+        <button class="boton" onclick="descargarExcel()">Descargar Resumen</button>
+        <button class="boton" onclick="limpiar()">Reiniciar</button>
+    </div>
+
+    <div id="tablaResumen"></div>
+
+    <script>
+        let myChart;
+
+        function generarGrafico() {
+            const datos = document.getElementById("datos").value.trim();
+            const lineas = datos.split("\n");
+
+            const encabezados = lineas[0].split("\t");
+            const respuestasPorPregunta = new Array(30).fill(null).map(() => ({ correctas: 0, incorrectas: 0 }));
+            const respuestasCorrectas = encabezados.filter((_, index) => index % 2 === 1);
+
+            for (let i = 1; i < lineas.length; i++) {
+                const respuestas = lineas[i].split("\t");
+                for (let j = 0; j < 30; j++) {
+                    const respuestaIndex = j * 2;
+                    const respuesta = respuestas[respuestaIndex];
+                    const respuestaCorrecta = respuestasCorrectas[j];
+                    if (respuesta === respuestaCorrecta) {
+                        respuestasPorPregunta[j].correctas++;
+                    } else {
+                        respuestasPorPregunta[j].incorrectas++;
+                    }
+                }
+            }
+
+            const labels = respuestasPorPregunta.map((_, index) => `Pregunta ${index + 1}`);
+            const correctas = respuestasPorPregunta.map(r => r.correctas);
+            const incorrectas = respuestasPorPregunta.map(r => r.incorrectas);
+
+            const ctx = document.getElementById('chartContainer').getContext('2d');
+            if (myChart instanceof Chart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Respuestas Correctas',
+                            backgroundColor: '#7ebf80',
+                            data: correctas
+                        },
+                        {
+                            label: 'Respuestas Incorrectas',
+                            backgroundColor: '#f08080',
+                            data: incorrectas
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function generarTablaResumen() {
+            const datos = document.getElementById("datos").value.trim();
+            const lineas = datos.split("\n");
+
+            const encabezados = lineas[0].split("\t");
+            const respuestasPorPregunta = new Array(30).fill(null).map(() => ({ correctas: 0, incorrectas: 0 }));
+            const respuestasCorrectas = encabezados.filter((_, index) => index % 2 === 1);
+
+            for (let i = 1; i < lineas.length; i++) {
+                const respuestas = lineas[i].split("\t");
+                for (let j = 0; j < 30; j++) {
+                    const respuestaIndex = j * 2;
+                    const respuesta = respuestas[respuestaIndex];
+                    const respuestaCorrecta = respuestasCorrectas[j];
+                    if (respuesta === respuestaCorrecta) {
+                        respuestasPorPregunta[j].correctas++;
+                    } else {
+                        respuestasPorPregunta[j].incorrectas++;
+                    }
+                }
+            }
+
+            const resultados = [];
+
+            respuestasPorPregunta.forEach((pregunta, index) => {
+                const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+                const porcentajeError = ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2);
+                const porcentajeAcierto = ((pregunta.correctas / totalRespuestas) * 100).toFixed(2);
+
+                resultados.push({
+                    pregunta: `Pregunta ${index + 1}`,
+                    porcentajeError: parseFloat(porcentajeError),
+                    porcentajeAcierto: parseFloat(porcentajeAcierto)
+                });
+            });
+
+            resultados.sort((a, b) => b.porcentajeError - a.porcentajeError);
+
+            const tablaResumen = document.getElementById('tablaResumen');
+            tablaResumen.innerHTML = '';
+
+            const table = document.createElement('table');
+            const header = table.createTHead();
+            const row = header.insertRow();
+            const headers = ['Pregunta', 'Porcentaje de Error', 'Porcentaje de Acierto'];
+
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                row.appendChild(th);
+            });
+
+            const tbody = table.createTBody();
+            resultados.forEach(item => {
+                const tr = document.createElement('tr');
+                const tdPregunta = document.createElement('td');
+                tdPregunta.textContent = item.pregunta;
+                const tdError = document.createElement('td');
+                tdError.textContent = `${item.porcentajeError}%`;
+                const tdAcierto = document.createElement('td');
+                tdAcierto.textContent = `${item.porcentajeAcierto}%`;
+
+                tr.appendChild(tdPregunta);
+                tr.appendChild(tdError);
+                tr.appendChild(tdAcierto);
+                tbody.appendChild(tr);
+            });
+
+            tablaResumen.appendChild(table);
+        }
+
+        function descargarExcel() {
+            const datos = document.getElementById("datos").value.trim();
+            const lineas = datos.split("\n");
+
+            const encabezados = lineas[0].split("\t");
+            const respuestasPorPregunta = new Array(30).fill(null).map(() => ({ correctas: 0, incorrectas: 0 }));
+            const respuestasCorrectas = encabezados.filter((_, index) => index % 2 === 1);
+
+            for (let i = 1; i < lineas.length; i++) {
+                const respuestas = lineas[i].split("\t");
+                for (let j = 0; j < 30; j++) {
+                    const respuestaIndex = j * 2;
+                    const respuesta = respuestas[respuestaIndex];
+                    const respuestaCorrecta = respuestasCorrectas[j];
+                    if (respuesta === respuestaCorrecta) {
+                        respuestasPorPregunta[j].correctas++;
+                    } else {
+                        respuestasPorPregunta[j].incorrectas++;
+                    }
+                }
+            }
+
+            const resultados = [];
+
+            respuestasPorPregunta.forEach((pregunta, index) => {
+                const totalRespuestas = pregunta.correctas + pregunta.incorrectas;
+                const porcentajeError = ((pregunta.incorrectas / totalRespuestas) * 100).toFixed(2);
+                const porcentajeAcierto = ((pregunta.correctas / totalRespuestas) * 100).toFixed(2);
+
+                resultados.push({
+                    pregunta: `Pregunta ${index + 1}`,
+                    porcentajeError: parseFloat(porcentajeError),
+                    porcentajeAcierto: parseFloat(porcentajeAcierto)
+                });
+            });
+
+            resultados.sort((a, b) => b.porcentajeError - a.porcentajeError);
+
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ['Pregunta', 'Porcentaje de Error', 'Porcentaje de Acierto']
+            ];
+
+            resultados.forEach(item => {
+                const rowData = [
+                    item.pregunta,
+                    `${item.porcentajeError}%`,
+                    `${item.porcentajeAcierto}%`
+                ];
+                wsData.push(rowData);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Resumen Encuesta');
+
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+            function s2ab(s) {
+                const buf = new ArrayBuffer(s.length);
+                const view = new Uint8Array(buf);
+                for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                return buf;
+            }
+
+            saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), 'resumen_encuesta.xlsx');
+        }
+
+        function descargarGrafico() {
+            html2canvas(document.getElementById('chartContainer')).then(canvas => {
+                canvas.toBlob(function(blob) {
+                    saveAs(blob, 'grafico_encuesta.png');
+                });
+            });
+        }
+
+        function limpiar() {
+            document.getElementById('datos').value = '';
+            document.getElementById('tablaResumen').innerHTML = '';
+            if (myChart instanceof Chart) {
+                myChart.destroy();
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                let textData = '';
+                for (let i = 0; i < excelData.length; i++) {
+                    textData += excelData[i].join('\t') + '\n';
+                }
+
+                document.getElementById('datos').value = textData.trim();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>

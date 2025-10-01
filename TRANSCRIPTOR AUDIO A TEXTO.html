@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transcribir Audio WhatsApp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 30px;
+      text-align: center;
+    }
+    .contenedor {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      max-width: 550px;
+      margin: auto;
+    }
+    audio {
+      margin: 15px 0;
+      width: 100%;
+    }
+    button, select {
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #128c7e;
+    }
+    .btn-limpiar { background: #e53935; }
+    .btn-limpiar:hover { background: #b71c1c; }
+    .btn-parar { background: #ff9800; }
+    .btn-parar:hover { background: #e65100; }
+    .btn-reanudar { background: #3f51b5; }
+    .btn-reanudar:hover { background: #1a237e; }
+    select { background: #128c7e; }
+    #texto {
+      margin-top: 20px;
+      padding: 10px;
+      background: #eee;
+      border-radius: 6px;
+      text-align: left;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>🎙️ Transcripción de Audio WhatsApp (.opus)</h2>
+    <input type="file" id="archivo" accept=".opus,audio/*"><br><br>
+
+    <audio id="player" controls></audio><br>
+
+    <div>
+      <button id="btnTranscribir">Transcribir</button>
+      <button id="btnParar" class="btn-parar">Pausar</button>
+      <button id="btnReanudar" class="btn-reanudar">Reanudar</button>
+      <button id="btnLimpiar" class="btn-limpiar">Limpiar</button>
+    </div>
+
+   
+
+    <div id="texto">Aquí aparecerá el texto transcrito...</div>
+  </div>
+
+  <script>
+    const inputArchivo = document.getElementById("archivo");
+    const player = document.getElementById("player");
+    const btnTranscribir = document.getElementById("btnTranscribir");
+    const btnParar = document.getElementById("btnParar");
+    const btnReanudar = document.getElementById("btnReanudar");
+    const btnLimpiar = document.getElementById("btnLimpiar");
+    const salida = document.getElementById("texto");
+    
+
+    let reconocimiento = null;
+    let transcripcionParcial = "";
+
+    // Cargar archivo en el reproductor
+    inputArchivo.addEventListener("change", e => {
+      const archivo = e.target.files[0];
+      if (archivo) {
+        player.src = URL.createObjectURL(archivo);
+      }
+    });
+
+    // Iniciar transcripción
+    function iniciarTranscripcion() {
+      if (!("webkitSpeechRecognition" in window)) {
+        alert("Tu navegador no soporta la API de reconocimiento de voz.");
+        return;
+      }
+
+      reconocimiento = new webkitSpeechRecognition();
+      reconocimiento.lang = "es-ES";
+      reconocimiento.continuous = true;
+      reconocimiento.interimResults = true;
+
+      reconocimiento.start();
+      salida.innerHTML = transcripcionParcial || "🎧 Escuchando...";
+
+      reconocimiento.onresult = (event) => {
+        let textoNuevo = "";
+        for (let i = 0; i < event.results.length; i++) {
+          textoNuevo += event.results[i][0].transcript + " ";
+        }
+        salida.innerHTML = transcripcionParcial + " " + textoNuevo;
+      };
+
+      reconocimiento.onerror = (e) => {
+        salida.innerHTML += "<br>⚠️ Error: " + e.error;
+      };
+    }
+
+    // Botón transcribir
+    btnTranscribir.addEventListener("click", () => {
+      if (reconocimiento) reconocimiento.stop();
+      transcripcionParcial = "";
+      iniciarTranscripcion();
+    });
+
+    // Botón pausar
+    btnParar.addEventListener("click", () => {
+      player.pause();
+      if (reconocimiento) {
+        reconocimiento.stop();
+        transcripcionParcial = salida.innerHTML; // Guardar lo transcrito hasta ahora
+        salida.innerHTML += "<br>⏸️ Transcripción pausada.";
+      }
+    });
+
+    // Botón reanudar
+    btnReanudar.addEventListener("click", () => {
+      player.play();
+      iniciarTranscripcion();
+      salida.innerHTML += "<br>▶️ Transcripción reanudada...";
+    });
+
+    // Botón limpiar
+    btnLimpiar.addEventListener("click", () => {
+      if (reconocimiento) reconocimiento.stop();
+      inputArchivo.value = "";
+      player.pause();
+      player.src = "";
+      transcripcionParcial = "";
+      salida.innerHTML = "Aquí aparecerá el texto transcrito...";
+    });
+
+  
+  </script>
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Constructor Dinámico de Cuestionarios</title>
+  <!-- Librerías necesarias -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/rgbcolor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvg/3.0.0/canvg.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+ 
+ 
+ 
+ <style>
+    body { font-family: Arial, sans-serif; margin:20px; }
+    .hidden { display:none; }
+    .container { max-width:900px; margin:0 auto; }
+    button { padding:8px 16px; margin:4px; border:none; border-radius:4px; background:#25447e; color:#fff; cursor:pointer; }
+    button:hover { background:#3366cc; }
+    .pregunta, .builder-form { border:1px solid #ccc; border-radius:8px; padding:12px; margin:12px 0; background:#f5f5f5; }
+    .opcion { margin:6px 0; }
+    .menu-contenedor { display:none; position:sticky; top:10px; background:#f5f5f5; padding:8px; border-radius:8px; border:1px solid #ccc; }
+   
+   
+   
+  /* ================================
+   POPUP DEL GRÁFICO (FIXED 300×300)
+   ================================ */
+#popup-container {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+
+  /* Tamaño total fijo */
+  width: 500px;
+  height: 500px;
+  box-sizing: border-box;
+  overflow: hidden;       /* recorta todo lo que sobresalga */
+}
+
+/* El canvas ocupa todo el espacio interior, 
+   pero lo “escala” al 80% para que nunca sobresalga */
+#popup-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  /* Ajusta este valor hasta que el gráfico quepa perfectamente */
+  transform: scale(0.8);
+  transform-origin: center center;
+}
+
+#btn-descargar-grafico {
+  display: block;
+  margin: 10px auto 0;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #25447e;
+  color: #fff;
+  cursor: pointer;
+}
+
+#btn-descargar-grafico:hover {
+  background: #3366cc;
+}
+
+
+  </style>
+
+
+
+
+</head>
+<body>
+<div class="container">
+  <h1>Constructor Dinámico de Cuestionarios</h1>
+  <!-- BOTÓN INICIAL PARA PROFESORES -->
+  <button id="btn-abrir-builder">Crear Preguntas</button>
+
+  <!-- FORMULARIO DEL BUILDER -->
+  <div id="builder-container" class="builder-form hidden">
+    <h2>Agregar Nueva Pregunta</h2>
+    <label>Enunciado:</label><br>
+    <textarea id="txt-enunciado" rows="3" style="width:100%;"></textarea><br>
+    <label>Imagen (opcional):</label>
+    <input type="file" id="file-imagen" accept="image/*"><br>
+    <label>Explicación (opcional):</label><br>
+    <textarea id="txt-explicacion" rows="2" style="width:100%;"></textarea><br>
+    <label>Link Refuerzo (opcional):</label>
+    <input type="url" id="txt-refuerzo" style="width:100%;" placeholder="https://..."><br>
+    <div id="opciones-container">
+      <h3>Opciones de Respuesta</h3>
+    </div>
+    <button id="btn-add-opcion">+ Agregar Opción</button>
+    <button id="btn-save-pregunta">Guardar Pregunta</button>
+    <div id="lista-preguntas"></div>
+    <button id="btn-finalizar" class="hidden">Finalizar y Mostrar Cuestionario</button>
+  </div>
+
+  <!-- REGISTRO ESTUDIANTE -->
+  <div id="registro-container" class="hidden">
+    <h2>Registro del Estudiante</h2>
+    <form id="registro-form">
+      <label>Nombre:</label>
+      <input type="text" id="nombre" required><br><br>
+      <label>Correo Electrónico:</label>
+      <input type="email" id="email" required><br><br>
+      <button type="submit">Iniciar Cuestionario</button>
+    </form>
+  </div>
+
+  <!-- CUADRO DEL CUESTIONARIO -->
+  <div id="cuestionario-container" class="hidden">
+    <div class="menu-contenedor" id="menuContenedor">
+      <button id="btn-verificar">Comprobar</button>
+      <button id="btn-explicaciones">Mostrar Explicaciones</button>
+      <button id="btn-puntaje">Ver Puntaje</button>
+      <button id="btn-reiniciar">Reiniciar</button>
+      <button id="btn-resultados"><i class="fas fa-chart-line"></i> Resultados</button>
+    </div>
+    <h2 id="tituloEvaluacion"></h2>
+    <div id="preguntas-area"></div>
+  </div>
+
+  <!-- POPUP GRÁFICO UNIFICADO -->
+<div id="popup-container">
+  <!-- Botón para cerrar el popup -->
+  <button id="btn-cerrar-popup"
+          onclick="cerrarPopup()"
+          style="
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ccc;
+            color: #000;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+          ">
+    Cerrar
+  </button>
+
+  <!-- Canvas del gráfico -->
+  <canvas id="grafico"></canvas>
+
+  <!-- Botón para descargar el gráfico, dentro del mismo contenedor -->
+  <button id="btn-descargar-grafico"
+          onclick="descargarGrafico()"
+          style="
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #25447e;
+            color: #fff;
+            cursor: pointer;
+          ">
+    <i class="fas fa-download"></i> Descargar Gráfico
+  </button>
+</div>
+
+
+
+  <!-- RESUMEN -->
+  <div id="resultados-summary" class="hidden" style="margin-top:20px;">
+    <h3>Resumen de Resultados</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse;">
+      <thead><tr><th>Total</th><th>Aciertos</th><th>Errores</th><th>%</th></tr></thead>
+      <tbody id="tabla-resultados"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ----------------------------------------------------
+// 1) LÓGICA DEL BUILDER
+// ----------------------------------------------------
+let preguntas = [];
+let editor = document.getElementById('builder-container');
+
+document.getElementById('btn-abrir-builder').onclick = ()=>{
+  editor.classList.toggle('hidden');
+};
+
+// Agregar opción dinámica
+document.getElementById('btn-add-opcion').onclick = ()=>{
+  let idx = document.querySelectorAll('.opcion-builder').length;
+  let div = document.createElement('div'); div.classList.add('opcion-builder');
+  div.innerHTML = `
+    <input type="radio" name="correcta" value="${idx}"> 
+    <input type="text" placeholder="Texto opción" style="width:80%;">
+  `;
+  document.getElementById('opciones-container').appendChild(div);
+};
+
+// Guardar pregunta al array
+async function savePregunta(){
+  let enun = document.getElementById('txt-enunciado').value.trim();
+  if(!enun){ alert('Enunciado requerido.'); return; }
+  let exp = document.getElementById('txt-explicacion').value.trim();
+  let ref = document.getElementById('txt-refuerzo').value.trim();
+  // Imagen a dataURL
+  let imgFile = document.getElementById('file-imagen').files[0];
+  let imgSrc = '';
+  if(imgFile){
+    imgSrc = await new Promise(r=>{
+      let reader = new FileReader(); reader.onload=e=>r(e.target.result);
+      reader.readAsDataURL(imgFile);
+    });
+  }
+  // Opciones y correcta
+  let opts = Array.from(document.querySelectorAll('.opcion-builder')).map(div=>div.querySelector('input[type=text]').value.trim());
+  let sel = document.querySelector('input[name=correcta]:checked');
+  if(opts.length<2 || !sel){ alert('Necesitas al menos 2 opciones y marcar la correcta.'); return; }
+  let correctIdx = parseInt(sel.value);
+  // Generar letra a/b/c...
+  let correctLetter = String.fromCharCode(97+correctIdx);
+  preguntas.push({ enun, imgSrc, opts, correctIdx, correctLetter, exp, ref });
+  // Limpieza formulario
+  document.getElementById('txt-enunciado').value = '';
+  document.getElementById('txt-explicacion').value = '';
+  document.getElementById('txt-refuerzo').value = '';
+  document.getElementById('file-imagen').value = '';
+  document.getElementById('opciones-container').innerHTML = '<h3>Opciones de Respuesta</h3>';
+  // Actualizar lista
+  let li = document.createElement('div'); li.textContent = `Pregunta ${preguntas.length}: ${enun.substring(0,50)}...`;
+  document.getElementById('lista-preguntas').appendChild(li);
+  document.getElementById('btn-finalizar').classList.remove('hidden');
+}
+document.getElementById('btn-save-pregunta').onclick = savePregunta;
+
+// Finalizar builder y mostrar registro estudiante
+document.getElementById('btn-finalizar').onclick = ()=>{
+  document.getElementById('builder-container').classList.add('hidden');
+  document.getElementById('registro-container').classList.remove('hidden');
+  document.getElementById('tituloEvaluacion').textContent = preguntas.length + ' Preguntas Generadas';
+};
+
+// ----------------------------------------------------
+// 2) LÓGICA DE REGISTRO Y RENDERIZADO DEL TEST
+// ----------------------------------------------------
+let registroForm = document.getElementById('registro-form');
+registroForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  let n = document.getElementById('nombre').value.trim();
+  let m = document.getElementById('email').value.trim();
+  if(!n||!m){ alert('Completa nombre y correo.'); return; }
+  document.getElementById('registro-container').classList.add('hidden');
+  let area = document.getElementById('preguntas-area');
+  area.innerHTML='';
+  preguntas.forEach((q,i)=>{
+    let div = document.createElement('div'); div.classList.add('pregunta');
+    // Imagen si existe
+    let html = `<p><strong>${i+1}. ${q.enun}</strong></p>`;
+    if(q.imgSrc) html += `<img src="${q.imgSrc}" style="max-width:200px;"><br>`;
+    // Opciones
+    q.opts.forEach((t,j)=>{
+      let letter = String.fromCharCode(97+j);
+      html += `<div class="opcion"><label><input type="radio" name="resp${i}" value="${letter}"> ${letter}) ${t}</label></div>`;
+    });
+    // Contenedor retro y exp+ref
+    html += `<div class="retroalimentacion-container"></div>
+             <div class="explicacion hidden"><p>${q.exp||''}</p><p><a href="${q.ref||'#'}" target="_blank">Refuerzo</a></p></div>`;
+    div.innerHTML = html;
+    area.appendChild(div);
+  });
+  document.getElementById('cuestionario-container').classList.remove('hidden');
+  document.getElementById('menuContenedor').style.display='block';
+});
+
+// ----------------------------------------------------
+// 3) REUTILIZACIÓN DE FUNCIONES DE TU SCRIPT ORIGINAL
+// ----------------------------------------------------
+function verificarRespuestas(){
+  let totalOK = true;
+  preguntas.forEach((q,i)=>{
+    let sel = document.querySelector(`input[name=resp${i}]:checked`);
+    if(!sel){ totalOK=false; return; }
+    let cont = document.querySelectorAll('.pregunta')[i];
+    let retro = cont.querySelector('.retroalimentacion-container');
+    let refLink = cont.querySelector('.explicacion a');
+    if(sel.value===q.correctLetter){
+      retro.textContent='RESPUESTA CORRECTA'; retro.style.cssText='background:#0f530e;color:#fff;padding:4px;border-radius:4px;';
+    } else {
+      retro.textContent='RESPUESTA INCORRECTA'; retro.style.cssText='background:#FF0000;color:#fff;padding:4px;border-radius:4px;';
+      refLink.parentElement.style.display = ''; totalOK=false;
+    }
+  });
+  if(!totalOK) return;
+  alert('¡Todas las respuestas son correctas!');
+}
+function toggleExplicaciones(){
+  let all = document.querySelectorAll('.explicacion');
+  all.forEach(d=> d.classList.toggle('hidden'));
+}
+function calcularPuntaje(){
+  let aciertos=0;
+  for(let i=0;i<preguntas.length;i++){
+    let sel = document.querySelector(`input[name=resp${i}]:checked`);
+    if(!sel){ alert('Responde todas antes de ver puntaje.'); return; }
+    if(sel.value===preguntas[i].correctLetter) aciertos++;
+  }
+  let pct = (aciertos/preguntas.length*100).toFixed(2);
+  if(confirm(`PUNTAJE: ${aciertos}/${preguntas.length} (${pct}%). Descargar Excel?`)){
+    generarArchivoExcel();
+  }
+}
+function reiniciarEvaluacion(){ location.reload(); }
+
+
+function generarArchivoExcel() {
+  // 1) Preparar datos generales
+  const nombreEvaluacion = document.getElementById('tituloEvaluacion').innerText;
+  const estudiante      = document.getElementById('nombre').value;
+  const fecha           = new Date().toLocaleDateString();
+
+  // 2) Cabecera + fila vacía + títulos de columnas
+  const datos = [
+    ["NOMBRE DE LA EVALUACIÓN", "ESTUDIANTE", "Fecha"],
+    [ nombreEvaluacion,       estudiante,     fecha ],
+    [],
+    ["Pregunta", "Tu Respuesta", "Opción Correcta", "Calificación", "Puntuación", "Porcentaje", "Refuerzo del Tema"]
+  ];
+
+  // 3) Recorremos cada pregunta y volcamos fila con estilos
+  let totalCorrectas = 0;
+  preguntas.forEach((q, i) => {
+    const sel = document.querySelector(`input[name=resp${i}]:checked`);
+    const tuResp = sel ? sel.value : "";
+    const corr  = q.correctLetter;
+    const esOk  = tuResp === corr;
+    if (esOk) totalCorrectas++;
+
+    const calif  = esOk ? "Correcta" : "Incorrecta";
+    const punten = esOk ? 1 : 0;
+    const pct    = ((punten / 1) * 100).toFixed(2) + "%";
+    const refUrl = esOk ? "" : (q.ref || "");
+
+    // Para “Incorrecta” aplicamos negrita y rojo
+    const cellCalif = esOk
+      ? "Correcta"
+      : { v: "Incorrecta", s: { font: { bold: true, color: { rgb: "FF0000" } } } };
+
+    datos.push([
+      `Pregunta ${i+1}`,
+      tuResp,
+      corr,
+      cellCalif,
+      `${punten}/1`,
+      pct,
+      refUrl
+    ]);
+  });
+
+  // 4) Fila final con totales
+  const porcTotal = ((totalCorrectas / preguntas.length) * 100).toFixed(2) + "%";
+  datos.push([
+    "Calificación", "", "", "",
+    `${totalCorrectas}/${preguntas.length}`,
+    porcTotal,
+    ""
+  ]);
+
+  // 5) Generar Excel con SheetJS
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+
+  // 6) Nombre de archivo: título + fecha + hora
+  const ahora = new Date();
+  const fechaFile = `${ahora.getFullYear()}_${ahora.getMonth()+1}_${ahora.getDate()}`;
+  const horaFile  = `${ahora.getHours()}_${ahora.getMinutes()}`;
+  const safeTitle = nombreEvaluacion.replace(/[^a-z0-9]/gi,"_").toLowerCase();
+  const filename  = `Resultados_de_${safeTitle}_${fechaFile}_Hora_${horaFile}.xlsx`;
+
+  XLSX.writeFile(wb, filename);
+}
+
+
+let myPieChart;
+// Nueva función para generar y actualizar el gráfico de torta
+function generarGrafico() {
+    const total = preguntas.length;
+    let countOk = 0;
+
+    preguntas.forEach((q, i) => {
+        // 1) selector dinámico de la respuesta marcada
+        const sel = document.querySelector(`input[name="resp${i}"]:checked`);
+        if (!sel) return;  // si no hay nada seleccionado, lo ignoramos
+
+        // 2) valor de la respuesta y valor correcto, normalizados a mayúsculas
+        const user = sel.value.trim().toUpperCase();
+        const corr = q.correctLetter.trim().toUpperCase();
+
+        if (user === corr) countOk++;
+    });
+
+    const countNo = total - countOk;
+    console.log(`Total ${total} — OK ${countOk} — NO ${countNo}`);
+
+    // 3) destruyo el gráfico anterior
+    if (myPieChart) myPieChart.destroy();
+
+    // 4) lo vuelvo a dibujar
+    const ctx = document.getElementById('grafico').getContext('2d');
+    myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Correctas', 'Incorrectas'],
+            datasets: [{
+                data: [countOk, countNo],
+                backgroundColor: ['#0f530e','#FF0000']
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { size: 14 } }
+                },
+                datalabels: {
+                    display: true,
+                    color: 'white',
+                    font: { size: 12 }
+                }
+            },
+            elements: {
+                arc: {
+                    borderColor: 'white',
+                    borderWidth: 2
+                }
+            }
+        }
+    });
+}
+
+
+function mostrarGrafico(){
+  document.getElementById('popup-container').style.display='block';
+  generarGrafico();
+}
+
+
+function cerrarPopup(){ document.getElementById('popup-container').style.display='none'; }
+
+
+function descargarGrafico(){
+  if(!myPieChart) return;
+  const a = document.createElement('a');
+  a.href = myPieChart.toBase64Image();
+  a.download = 'grafico.png';
+  a.click();
+}
+
+function verResultados(){
+  verificarRespuestas();
+  calcularPuntaje();
+  // tabla resumen
+  let ok=0;
+  preguntas.forEach((q,i)=>{ if(document.querySelector(`input[name=resp${i}]:checked`).value===q.correctLetter) ok++; });
+  let tbody=document.getElementById('tabla-resultados');
+  tbody.innerHTML = `<tr><td>${preguntas.length}</td><td>${ok}</td><td>${preguntas.length-ok}</td><td>${(ok/preguntas.length*100).toFixed(2)}%</td></tr>`;
+  document.getElementById('resultados-summary').classList.remove('hidden');
+  mostrarGrafico();
+}
+// ENLACES MENÚ
+document.getElementById('btn-verificar').onclick=verificarRespuestas;
+document.getElementById('btn-explicaciones').onclick=toggleExplicaciones;
+document.getElementById('btn-puntaje').onclick=calcularPuntaje;
+document.getElementById('btn-reiniciar').onclick=reiniciarEvaluacion;
+document.getElementById('btn-resultados').onclick=verResultados;
+</script>
+</body>
+</html>

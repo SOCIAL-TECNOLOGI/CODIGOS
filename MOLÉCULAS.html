@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Molécula Química Interactiva</title>
+  <style>
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="https://www.chemdoodle.com/ChemDoodleWeb/ChemDoodleWeb.8.min.js"></script>
+  <script>
+    // Configuración de la escena 3D
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Creación de la molécula química
+    const molStructure = new ChemDoodle.io.SmilesParser().parse("C1=CC=CC=C1"); // Cambia la fórmula aquí
+    const molRenderer = new ChemDoodle.ViewerCanvas('molCanvas', 200, 200);
+    molRenderer.specs.bonds_width_2D = 2;
+    molRenderer.specs.bonds_color = 'black';
+    molRenderer.loadMolecule(molStructure);
+
+    // Agregar la molécula a la escena
+    const molTexture = new THREE.Texture(molRenderer.drawing);
+    const molMaterial = new THREE.MeshBasicMaterial({ map: molTexture });
+    const molGeometry = new THREE.PlaneGeometry(5, 5);
+    const molMesh = new THREE.Mesh(molGeometry, molMaterial);
+    scene.add(molMesh);
+
+    // Posición de la cámara
+    camera.position.z = 5;
+
+    // Animación de rotación
+    const animate = () => {
+      requestAnimationFrame(animate);
+      molMesh.rotation.x += 0.005;
+      molMesh.rotation.y += 0.005;
+      renderer.render(scene, camera);
+    };
+
+    // Llamada a la función de animación
+    animate();
+  </script>
+</body>
+</html>

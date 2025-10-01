@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Plataforma DCE–SIEE</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; }
+    h1, h2 { color: #2c3e50; }
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #2c3e50; color: #fff; }
+    .highlight { background: #eafaf1; border-left: 5px solid #27ae60; padding: 10px; margin-top: 10px; }
+    .comparison { display: flex; gap: 20px; margin-top: 20px; }
+    .comparison div { flex: 1; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .closing { background: #27ae60; color: #fff; padding: 20px; border-radius: 12px; text-align: center; font-size: 1.2em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Demo Plataforma DCE–SIEE</h1>
+  <h2>Caso: Colegio Bartolomé Mitre – Lenguaje 10°</h2>
+
+  <div class="container">
+    <!-- Matriz alineada -->
+    <div class="card">
+      <h3>Matriz alineada DCE–SIEE</h3>
+      <table>
+        <tr>
+          <th>Estándar</th>
+          <th>Competencia</th>
+          <th>Evidencia</th>
+          <th>Tarea/Nivel</th>
+          <th>SIEE</th>
+        </tr>
+        <tr>
+          <td>Caracterizar literatura medieval y renacentista</td>
+          <td>Lectora crítica</td>
+          <td>Comparación de autores y estilos</td>
+          <td>Cuadro comparativo (N2)</td>
+          <td>Básico</td>
+        </tr>
+        <tr>
+          <td>Reconocer evolución del español</td>
+          <td>Semántico-pragmática</td>
+          <td>Explica origen del castellano</td>
+          <td>Ensayo corto (N3)</td>
+          <td>Alto</td>
+        </tr>
+        <tr>
+          <td>Producir textos poéticos (soneto)</td>
+          <td>Lectora–escritora</td>
+          <td>Análisis métrico y rima</td>
+          <td>Escribir un soneto (N4)</td>
+          <td>Superior</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Ítems ICFES -->
+    <div class="card">
+      <h3>3 Ítems tipo ICFES</h3>
+      <div class="highlight">
+        <strong>Pregunta 1:</strong> Diferencia entre texto medieval y renacentista.<br>
+        ✅ Correcta: B. Teocentrismo vs Humanismo.<br>
+        <em>Justificación: Edad Media centrada en Dios, Renacimiento en el ser humano.</em>
+      </div>
+      <div class="highlight">
+        <strong>Pregunta 2:</strong> Origen del castellano.<br>
+        ✅ Correcta: B. Relacionar evidencias con evolución de una lengua.<br>
+        <em>Justificación: Competencia semántico-pragmática.</em>
+      </div>
+      <div class="highlight">
+        <strong>Pregunta 3:</strong> Característica de un soneto barroco.<br>
+        ✅ Correcta: B. 14 versos endecasílabos (2 cuartetos + 2 tercetos).<br>
+        <em>Justificación: Propia estructura del soneto clásico.</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estratificación DBA -->
+  <div class="card">
+    <h3>Estratificación de DBAs</h3>
+    <table>
+      <tr>
+        <th>DBA</th>
+        <th>Estrato</th>
+        <th>Justificación</th>
+      </tr>
+      <tr>
+        <td>Reconoce exponentes literarios de una época</td>
+        <td>N1 – Bajo</td>
+        <td>Identificación básica de autores.</td>
+      </tr>
+      <tr>
+        <td>Caracteriza la literatura en un momento histórico</td>
+        <td>N2 – Básico</td>
+        <td>Compara rasgos y estilos.</td>
+      </tr>
+      <tr>
+        <td>Construye textos con sentido global</td>
+        <td>N3 – Alto</td>
+        <td>Producción propia con coherencia.</td>
+      </tr>
+      <tr>
+        <td>Participa en discursos orales críticos</td>
+        <td>N4 – Superior</td>
+        <td>Analiza y argumenta con criterio.</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Comparativo -->
+  <h3>Comparativo: Antes vs Ahora</h3>
+  <div class="comparison">
+    <div>
+      <h4>Antes</h4>
+      <ul>
+        <li>Revisión manual: 2 semanas.</li>
+        <li>Tablas Excel: 30 horas.</li>
+        <li>Ajuste SIEE: 10 horas.</li>
+        <li>Creación ítems: 5 horas.</li>
+        <li><strong>Total: 60–80 horas.</strong></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Ahora</h4>
+      <ul>
+        <li>Cargar archivo Word.</li>
+        <li>Plataforma genera matriz + ítems + estratificación.</li>
+        <li><strong>Total: 2 minutos.</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Cierre -->
+  <div class="closing">
+    "Si quiere esto para todo el colegio, basta con adquirir la licencia mensual, semestral o anual. <br>
+    Lo que antes tomaba semanas ahora se hace en minutos."
+  </div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector de Imágenes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        input {
+            margin-bottom: 10px;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/2.3.0/tesseract.min.js"></script>
+</head>
+<body>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="readImage()">Convertir a Texto</button>
+    <div id="output"></div>
+
+    <script>
+        async function readImage() {
+            const input = document.getElementById('imageInput');
+            const output = document.getElementById('output');
+
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+
+                    img.onload = async function () {
+                        recognizeText(img, output);
+                    };
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function recognizeText(image, output) {
+            const result = await Tesseract.recognize(
+                image,
+                'spa', // Idioma español
+                { logger: info => console.log(info) }
+            );
+
+            output.innerText = result.data.text;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de huella ecológica</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+    <style>
+        
+/* Restablece los estilos por defecto del navegador */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos globales */
+body {
+  font-family: sans-serif;
+  background-color: #fff;
+}
+
+/* Contenedor principal */
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Grupo de formulario */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+/* Control de formulario */
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+}
+
+/* Botón */
+.btn {
+  background-color: #008CBA;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+/* Resultado */
+.resultado {
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+
+
+    </style>
+
+
+
+<div class="container">
+    <h1>Calculadora de huella ecológica</h1>
+    <form action="index.php" method="POST">
+      <div class="form-group">
+        <label for="consumo-electricidad">Consumo anual de electricidad (kWh)</label>
+        <input type="number" class="form-control" id="consumo-electricidad" name="consumo-electricidad" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-agua">Consumo anual de agua (m3)</label>
+        <input type="number" class="form-control" id="consumo-agua" name="consumo-agua" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-alimentos">Consumo anual de alimentos (kg)</label>
+        <input type="number" class="form-control" id="consumo-alimentos" name="consumo-alimentos" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-combustible">Consumo anual de combustible (litros)</label>
+        <input type="number" class="form-control" id="consumo-combustible" name="consumo-combustible" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-transporte">Consumo anual de transporte (km)</label>
+        <input type="number" class="form-control" id="consumo-transporte" name="consumo-transporte" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-productos">Consumo anual de productos (kg)</label>
+        <input type="number" class="form-control" id="consumo-productos" name="consumo-productos" required>
+      </div>
+      <div class="form-group">
+        <label for="consumo-residuos">Producción anual de residuos (kg)</label>
+        <input type="number" class="form-control" id="consumo-residuos" name="consumo-residuos" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Calcular</button>
+    </form>
+    <div class="resultado"></div>
+
+  </div>
+
+<script>
+
+// Activamos el botón de calcular
+$("#calcular").prop("disabled", false);
+
+$(document).ready(function() {
+  // Evento de clic en el botón de calcular
+  $("#calcular").click(function() {
+    // Obtenemos los datos del formulario
+    var consumoElectricidad = $("#consumo-electricidad").val();
+    var consumoAgua = $("#consumo-agua").val();
+    var consumoAlimentos = $("#consumo-alimentos").val();
+    var consumoCombustible = $("#consumo-combustible").val();
+    var consumoTransporte = $("#consumo-transporte").val();
+    var consumoProductos = $("#consumo-productos").val();
+    var consumoResiduos = $("#consumo-residuos").val();
+
+    // Calculamos la huella ecológica de cada tipo de consumo
+    var huellaElectricidad = consumoElectricidad * 0.0000086;
+    var huellaAgua = consumoAgua * 0.000008;
+    var huellaAlimentos = consumoAlimentos * 0.0000025;
+    var huellaCombustible = consumoCombustible * 0.000002;
+    var huellaTransporte = consumoTransporte * 0.000004;
+    var huellaProductos = consumoProductos * 0.000001;
+    var huellaResiduos = consumoResiduos * 0.00000005;
+
+    // Devolvemos la huella ecológica total en hectáreas globales
+    var huellaEcologica = huellaElectricidad + huellaAgua + huellaAlimentos + huellaCombustible + huellaTransporte + huellaProductos + huellaResiduos;
+
+    // Mostramos la huella ecológica en pantalla
+    $("#resultado").html("Tu huella ecológica es de <b>" + huellaEcologica + "</b> hectáreas globales.");
+
+    // Activamos el botón de calcular
+    $("#calcular").prop("disabled", false);
+  });
+});
+
+</script>
+
+</body>
+
+</html>

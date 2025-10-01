@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lienzo con Fondo Cambiable y Dibujo Táctil</title>
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #lienzoContenedor {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+
+
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+   
+    #menuBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      cursor: move;
+    }
+
+    #menuBtn button {
+    /* Estilos existentes... */
+    border-radius: 50%; /* Hace que el botón tenga forma circular */
+    width: 45px; /* Ajusta el ancho del botón según tus necesidades */
+    height: 45px; /* Ajusta la altura del botón según tus necesidades */
+    background-color: #88b5d3;
+    border: 2px solid #ffffff; /* Cambia el color del borde ajustando el valor hex o el nombre del color */
+  }
+
+
+    #menu {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 50px;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #menuBtn:hover #menu {
+      display: block;
+    }
+
+
+    /* Estilo para hacer los botones ovalados */
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 15px; /* Ajusta este valor según sea necesario */
+    }
+
+    /* Estilo para los colores predefinidos */
+    #coloresPredefinidos {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .colorSquare {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+   
+    #menuDesplegable {
+      position: fixed;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+
+
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+
+      /* Estilo para el contenedor del selector de color personalizado */
+      .colorSelectorContainer {
+      display: flex;
+      align-items: center;
+    }
+
+    .colorSelectorIcon {
+      margin-right: 5px;
+    }
+
+    .colorSelectorIcon i {
+      font-size: 24px;
+      color: #107c8a;
+    }
+
+    .colorSelector {
+      display: none; /* Oculta la visualización estándar del selector de color */
+    }
+
+
+/* Agrega un cursor de puntero al ícono de la regla */
+.fa-ruler {
+      cursor: pointer;
+    }
+
+    /* Corrige la pseudoclase :hover */
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+
+    
+  </style>
+</head>
+
+<body>
+  <div id="lienzoContenedor">
+    <canvas id="miLienzo"></canvas>
+  </div>
+
+  
+  <!-- Agregar el atributo draggable al botón -->
+  <div id="menuBtn">
+    <button onclick="toggleMenu()">
+      <i class="fas fa-pencil-alt" id="pencilIcon"></i>
+    </button>
+    
+    <div id="menuDesplegable">
+      <div>
+        <label for="grosorSelector"></label>
+
+        <div id="coloresPredefinidos">
+
+          <div class="colorSquare" style="background-color: #ff0000;" onclick="seleccionarColor('#ff0000')"></div>
+          <div class="colorSquare" style="background-color: #00ff00;" onclick="seleccionarColor('#00ff00')"></div>
+          <div class="colorSquare" style="background-color: #0000ff;" onclick="seleccionarColor('#0000ff')"></div>
+          <div class="colorSquare" style="background-color: #ffff00;" onclick="seleccionarColor('#ffff00')"></div>
+          <div class="colorSquare" style="background-color: #ff00ff;" onclick="seleccionarColor('#ff00ff')"></div>
+          <div class="colorSquare" style="background-color: #00ffff;" onclick="seleccionarColor('#00ffff')"></div>
+          <div class="colorSquare" style="background-color: #000000;" onclick="seleccionarColor('#000000')"></div>
+          <div class="colorSquare" style="background-color: #ffffff;" onclick="seleccionarColor('#ffffff')"></div>
+          <div class="colorSquare" style="background-color: #800080;" onclick="seleccionarColor('#800080')"></div>
+          <div class="colorSquare" style="background-color: #4caf50;" onclick="seleccionarColor('#4caf50')"></div>
+          <div class="colorSquare" style="background-color: #ffa500;" onclick="seleccionarColor('#ffa500')"></div>
+
+
+      <!-- Selector de grosor -->
+      <div>
+        <input type="range" id="grosorSelector" min="1" max="100" value="1.5" onchange="actualizarGrosor()" style="margin-right: 3px;">
+        </div>
+
+
+
+        </div>
+      
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 10px;">
+          
+         
+          
+          
+          <div class="colorSelectorContainer">
+            <label for="colorSelector" class="colorSelectorIcon">
+              <i class="fas fa-palette" style="font-size: 24px; color: #107c8a;"></i>
+            </label>
+            <input type="color" id="colorSelector" value="#ffffff" onchange="actualizarColor()" class="colorSelector">
+          </div>
+          
+          
+         
+          <button onclick="borrarLienzo()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-trash-alt" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          
+          <button onclick="toggleFullScreen()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-expand" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          <button onclick="cambiarColor()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-fill-drip" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          
+        
+          <button onclick="guardarDibujo()" style="border: none; background: none; padding: 0; cursor: pointer; margin-right: 10px;">
+            <i class="fas fa-save" style="font-size: 24px;color: #107c8a;"></i>
+          </button>
+
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin: 3px;">
+
+            <!-- Ícono de borrador -->
+            <div class="colorSquare" style="background-color: #107c8a; width: 25px; height: 25px; margin-right: 3px;" onclick="seleccionarColor('#107c8a')">
+              <i class="fas fa-eraser" style="color: white; font-size: 20px; line-height: 25px; text-align: center;"></i>
+            </div>
+      </div>
+    </div>
+  </div>
+  
+     
+     
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+  <script>
+    const lienzoContenedor = document.getElementById('lienzoContenedor');
+    const lienzo = document.getElementById('miLienzo');
+    const contexto = lienzo.getContext('2d');
+    const grosorSelector = document.getElementById('grosorSelector');
+    const colorSelector = document.getElementById('colorSelector');
+
+    let dibujando = false;
+    let trazos = []; // Almacena los trazos dibujados
+
+    lienzo.width = window.innerWidth * 6;
+    lienzo.height = window.innerHeight * 6;
+
+    
+    lienzo.addEventListener('pointerdown', iniciarDibujo);
+    lienzo.addEventListener('pointermove', dibujar);
+    lienzo.addEventListener('pointerup', finalizarDibujo);
+    lienzo.addEventListener('pointercancel', finalizarDibujo);
+
+    // Establecer el color de fondo por defecto
+    cambiarColorDeFondo('#107c8a');
+
+    function cambiarColorDeFondo(color) {
+      contexto.fillStyle = color;
+      contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+
+      // Vuelve a dibujar los trazos almacenados
+      trazos.forEach(trazo => {
+        contexto.beginPath();
+        contexto.moveTo(trazo[0].x, trazo[0].y);
+        trazo.forEach(punto => {
+          contexto.lineWidth = punto.grosor; // Establecer el grosor del punto actual
+          contexto.strokeStyle = punto.color; // Establecer el color del punto actual
+          contexto.lineTo(punto.x, punto.y);
+          contexto.stroke();
+        });
+        contexto.closePath();
+      });
+    }
+
+    function actualizarGrosor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function actualizarColor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function seleccionarColor(color) {
+      colorSelector.value = color;
+      actualizarColor();
+    }
+
+    function iniciarDibujo(event) {
+      if (!isInMenu(event)) {
+        dibujando = true;
+        const rect = lienzo.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        contexto.beginPath();
+        const punto = {
+          x: x,
+          y: y,
+          grosor: grosorSelector.value,
+          color: colorSelector.value,
+        };
+        trazos.push([punto]);
+        contexto.moveTo(x, y);
+      }
+    }
+
+    function dibujar(event) {
+      if (dibujando) {
+        if (!isInMenu(event)) {
+          event.preventDefault();
+          const rect = lienzo.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          contexto.lineWidth = grosorSelector.value; // Establecer el grosor actual
+          contexto.strokeStyle = colorSelector.value; // Establecer el color actual
+          contexto.lineTo(x, y);
+          contexto.stroke();
+
+          // Almacena el punto actual en los trazos
+          const punto = { x, y, grosor: grosorSelector.value, color: colorSelector.value };
+          trazos[trazos.length - 1].push(punto);
+        }
+      }
+    }
+
+    function finalizarDibujo() {
+      if (dibujando) {
+        contexto.closePath();
+        dibujando = false;
+      }
+    }
+
+    function cambiarColor() {
+      const nuevoColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+      colorSelector.value = nuevoColor;
+      actualizarColor();
+      cambiarColorDeFondo(nuevoColor);
+    }
+
+    function borrarLienzo() {
+      trazos = []; // Limpia también los trazos almacenados
+      colorSelector.value = '#ffffff'; // Establecer el color por defecto al borrar
+      grosorSelector.value = 1.5; // Establecer el grosor predeterminado al borrar
+      actualizarColor();
+      actualizarGrosor();
+      cambiarColorDeFondo('#107c8a');
+      actualizarLapiz(); // Agregar esta línea para actualizar el lápiz
+    }
+
+
+    function toggleMenu() {
+  const menu = document.getElementById('menu');
+  const menuBtn = document.getElementById('menuBtn');
+  const pencilIcon = document.getElementById('pencilIcon');
+
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    pencilIcon.classList.remove('button-menu-opened');
+  } else {
+    menu.style.display = 'block';
+    pencilIcon.classList.add('button-menu-opened');
+  }
+}
+
+
+    function isInMenu(event) {
+      const menuBtn = document.getElementById('menuBtn');
+      const rect = menuBtn.getBoundingClientRect();
+      const x = event.clientX;
+      const y = event.clientY;
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+  
+
+function cargarDibujo() {
+  // Obtiene el archivo seleccionado
+  const archivoSeleccionado = document.querySelector('input[type="file"]').files[0];
+
+  // Crea un nuevo objeto FileReader
+  const fileReader = new FileReader();
+
+  // Asigna un evento de carga al objeto FileReader
+  fileReader.onload = function() {
+    // Obtiene los datos del archivo
+    const datosArchivo = this.result;
+
+    // Actualiza el lienzo con los datos del archivo
+    contexto.putImageData(datosArchivo, 0, 0);
+  };
+
+  // Lee el archivo
+  fileReader.readAsDataURL(archivoSeleccionado);
+}
+
+
+
+
+
+function guardarDibujo() {
+    // Obtiene los datos del lienzo
+    const datosLienzo = lienzo.toDataURL();
+
+    // Crea un enlace de descarga
+    const enlaceDescarga = document.createElement('a');
+    enlaceDescarga.href = datosLienzo;
+    enlaceDescarga.download = 'dibujo.png';
+
+    // Añade el enlace al documento y simula un clic para iniciar la descarga
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+    document.body.removeChild(enlaceDescarga);
+  }
+
+
+  let isDragging = false;
+    let offsetX, offsetY;
+
+    menuBtn.addEventListener('mousedown', startDragging);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDragging);
+
+    function startDragging(e) {
+      if (e.target.tagName.toLowerCase() === 'button') {
+        isDragging = true;
+        offsetX = e.clientX - menuBtn.getBoundingClientRect().left;
+        offsetY = e.clientY - menuBtn.getBoundingClientRect().top;
+      }
+    }
+
+    function drag(e) {
+      if (isDragging) {
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+
+        menuBtn.style.left = `${x}px`;
+        menuBtn.style.top = `${y}px`;
+
+        menu.style.left = `${e.clientX}px`;
+        menu.style.top = `${e.clientY}px`;
+      }
+    }
+
+    function stopDragging() {
+      isDragging = false;
+    }
+
+
+
+
+
+
+
+
+  </script>
+</body>
+
+</html>

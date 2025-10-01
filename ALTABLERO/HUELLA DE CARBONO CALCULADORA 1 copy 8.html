@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+
+         /* Estilos generales */
+         body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e8f0fe;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px; /* Ajustado el tamaño del encabezado */
+        }
+
+        #calculadora {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        #calculadora:hover {
+            transform: scale(1.02);
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            color: #333;
+        }
+
+        input[type="number"] {
+            width: calc(60% - 22px);
+            height: 40px;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="number"]:focus {
+            border-color: #3e8e41;
+            outline: none;
+        }
+
+        .totalPeso {
+            font-size: 14px;
+            color: #666;
+            margin-top: -10px;
+        }
+
+        .botones {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #437244;
+            color: #ffffff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        button:hover {
+            background-color: #4b7090;
+            transform: scale(1.05);
+        }
+
+        #resultado {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+            font-size: 15px;
+            transition: opacity 0.5s ease;
+            opacity: 0;
+        }
+
+        #resultado.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        #otrosImpactos {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e0f7e4;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+        }
+
+        .accordion {
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .accordion-item {
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .accordion-header {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 15px;
+            background-color: white;
+        }
+
+        .accordion-content.active {
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Huella de Carbono, Ahorro Energético y de Agua</h1>
+    <form id="calculadora">
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Cantidad de Material Reciclado</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="cantCuadernos">Cantidad de Cuadernos:</label>
+                    <input type="number" id="cantCuadernos" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total cuadernos: <span id="pesoCuadernosCantidad">0</span> g</p>
+                    <label for="cantBotellas">Cantidad de Botellas:</label>
+                    <input type="number" id="cantBotellas" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total botellas: <span id="pesoBotellasCantidad">0</span> g</p>
+                    <label for="cantLatas">Cantidad de Latas:</label>
+                    <input type="number" id="cantLatas" step="1" placeholder="Ej. 10">
+                    <p class="totalPeso">Peso total latas: <span id="pesoLatasCantidad">0</span> g</p>
+                </div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(event)">
+                    <span>Peso de Material Reciclado (kg)</span>
+                    <span>+</span>
+                </div>
+                <div class="accordion-content">
+                    <label for="pesoCuadernos">Peso de Cuadernos:</label>
+                    <input type="number" id="pesoCuadernos" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    <label for="pesoBotellas">Peso de Botellas:</label>
+                    <input type="number" id="pesoBotellas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                    <label for="pesoLatas">Peso de Latas:</label>
+                    <input type="number" id="pesoLatas" step="0.001" placeholder="Ej. 0.5"><br><br>
+                </div>
+            </div>
+        </div>
+        <div class="botones">
+            <button type="submit">Calcular</button>
+            <button type="button" id="reiniciar" onclick="reiniciarFormulario()">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+
+        <div id="otrosImpactos">
+            <h3>Otros Impactos Ambientales</h3>
+            <p><strong>Ahorro de Energía:</strong> <span id="ahorroEnergia">0</span> kWh</p>
+            <p><strong>Ahorro de Agua:</strong> <span id="ahorroAgua">0</span> litros</p>
+            <p><strong>Árboles necesarios para absorber CO₂:</strong> <span id="AbsorcionCO2">0</span></p>
+            <p> <strong>Árboles salvados:</strong> <span id="arbolesSalvados">0.00</span></p>
+
+        </div>
+
+
+
+    </form>
+
+   
+
+    <!-- Contenedor flotante para el resultado de la huella de carbono -->
+    <div id="resultado">Al reciclar, evitas las emisiones de: <span id="huellaValor">0</span> kgCO₂</div>
+
+    <script>
+        const pesoCuaderno = 160; // 160 g
+        const pesoBotella = 13; // 13 g
+        const pesoLata = 12; // 12 g
+        const energiaCuaderno = 0.64; // kWh por cada cuaderno reciclado
+        const energiaBotella = 0.224; // kWh por cada botella reciclada
+        const energiaLata = 0.168; // kWh por cada lata reciclada
+        const aguaCuaderno = 4.024; // litros de agua ahorrados por cuaderno (190 g)
+        const aguaBotella = 0.0234; // litros de agua ahorrados por botella (13 g)
+        const aguaLata = 0.0168; // litros de agua ahorrados por lata (12 g)
+
+        const resultadoDiv = document.getElementById('resultado');
+        const ahorroEnergiaSpan = document.getElementById('ahorroEnergia');
+        const ahorroAguaSpan = document.getElementById('ahorroAgua');
+        const huellaValor = document.getElementById('huellaValor');
+
+        function calcularImpactos() {
+    const cuadernosCantidad = parseFloat(document.getElementById('cantCuadernos').value) || 0;
+    const botellasCantidad = parseFloat(document.getElementById('cantBotellas').value) || 0;
+    const latasCantidad = parseFloat(document.getElementById('cantLatas').value) || 0;
+    const cuadernosPeso = (parseFloat(document.getElementById('pesoCuadernos').value) || 0) * 1000;
+    const botellasPeso = (parseFloat(document.getElementById('pesoBotellas').value) || 0) * 1000;
+    const latasPeso = (parseFloat(document.getElementById('pesoLatas').value) || 0) * 1000;
+
+    const totalCuadernos = cuadernosCantidad > 0 ? cuadernosCantidad : (cuadernosPeso / pesoCuaderno);
+    const totalBotellas = botellasCantidad > 0 ? botellasCantidad : (botellasPeso / pesoBotella);
+    const totalLatas = latasCantidad > 0 ? latasCantidad : (latasPeso / pesoLata);
+
+    const huellaEvitada = (totalCuadernos * 0.2192 + totalBotellas * 0.0195 + totalLatas * 0.108);
+    const ahorroEnergia = (totalCuadernos * energiaCuaderno + totalBotellas * energiaBotella + totalLatas * energiaLata);
+    const ahorroAgua = (totalCuadernos * aguaCuaderno + totalBotellas * aguaBotella + totalLatas * aguaLata);
+
+    huellaValor.textContent = huellaEvitada.toFixed(2);
+    resultadoDiv.classList.add('visible');
+
+    ahorroEnergiaSpan.textContent = ahorroEnergia.toFixed(2);
+    ahorroAguaSpan.textContent = ahorroAgua.toFixed(2);
+    document.getElementById('otrosImpactos').classList.add('visible');
+
+    AbsorcionCO2(); // Llamar para calcular absorción CO2
+}
+        document.getElementById('calculadora').addEventListener('submit', (e) => {
+            e.preventDefault();
+            calcularImpactos();
+            AbsorcionCO2(); // Llamar para calcular absorción CO2
+        });
+
+        function reiniciarFormulario() {
+    // Limpiar todos los campos de entrada
+    document.getElementById('cantCuadernos').value = '';
+    document.getElementById('cantBotellas').value = '';
+    document.getElementById('cantLatas').value = '';
+    document.getElementById('pesoCuadernos').value = '';
+    document.getElementById('pesoBotellas').value = '';
+    document.getElementById('pesoLatas').value = '';
+
+    // Limpiar los resultados de peso
+    document.getElementById('pesoCuadernosCantidad').textContent = '0';
+    document.getElementById('pesoBotellasCantidad').textContent = '0';
+    document.getElementById('pesoLatasCantidad').textContent = '0';
+
+    // Limpiar los resultados ambientales
+    huellaValor.textContent = '0';
+    ahorroEnergiaSpan.textContent = '0';
+    ahorroAguaSpan.textContent = '0';
+
+    // Limpiar los resultados de árboles
+    document.getElementById('AbsorcionCO2').textContent = '0'; // Asegúrate de que este ID sea correcto
+    document.getElementById('arbolesSalvados').textContent = '0.00'; // Asegúrate de que este ID sea correcto
+
+    // Ocultar la sección de resultados si está visible
+    resultadoDiv.classList.remove('visible');
+    document.getElementById('otrosImpactos').classList.remove('visible');
+
+    // Llamar a la función para calcular árboles salvados
+    calcularArbolesSalvados(); // Esto asegurará que los árboles salvados se muestren correctamente como cero
+}
+
+
+        function toggleAccordion(event) {
+            const header = event.currentTarget;
+            const content = header.nextElementSibling;
+            const isActive = content.classList.contains('active');
+            document.querySelectorAll('.accordion-content').forEach(c => {
+                c.classList.remove('active');
+                c.style.display = 'none';
+                header.querySelector('span:last-child').textContent = '+';
+            });
+            if (!isActive) {
+                content.classList.add('active');
+                content.style.display = 'block';
+                header.querySelector('span:last-child').textContent = '-';
+            }
+        }
+
+        function actualizarPesoTotal() {
+    const cantCuadernos = parseInt(document.getElementById('cantCuadernos').value) || 0;
+    const cantBotellas = parseInt(document.getElementById('cantBotellas').value) || 0;
+    const cantLatas = parseInt(document.getElementById('cantLatas').value) || 0;
+
+    document.getElementById('pesoCuadernosCantidad').textContent = (cantCuadernos * pesoCuaderno).toFixed(2);
+    document.getElementById('pesoBotellasCantidad').textContent = (cantBotellas * pesoBotella).toFixed(2);
+    document.getElementById('pesoLatasCantidad').textContent = (cantLatas * pesoLata).toFixed(2);
+}
+
+document.getElementById('cantCuadernos').addEventListener('input', actualizarPesoTotal);
+document.getElementById('cantBotellas').addEventListener('input', actualizarPesoTotal);
+document.getElementById('cantLatas').addEventListener('input', actualizarPesoTotal);
+
+// Kg de CO₂ por tonelada según material reciclado
+const emisionesCuaderno = 0.2192; // 1370 kg CO₂ por tonelada de papel reciclado
+const emisionesBotella = 1500; // 1500 kg CO₂ por tonelada de PET reciclado
+const emisionesLata = 9000; // 9000 kg CO₂ por tonelada de aluminio reciclado
+const absorcionArbol = 167; // 167 kg CO₂ que absorbe un árbol al año
+
+
+ // Definición de constantes
+ const co2PorCuaderno = 0.26; // kg de CO₂ por cuaderno
+ const co2PorArbol = 167; // kg de CO₂ que absorbe un árbol anualmente
+ const co2PorTonelada = 1370; // kg de CO₂ emitidos por tonelada de papel reciclado
+
+function AbsorcionCO2() {
+    // Leer las cantidades ingresadas
+    const cuadernosCantidad = parseFloat(document.getElementById('cantCuadernos').value) || 0;
+
+    // Leer el peso ingresado
+    const cuadernosPeso = parseFloat(document.getElementById('pesoCuadernos').value) || 0; // en kg
+
+    // Calcular CO₂ evitado por cantidad
+    const co2CuadernosCantidad = cuadernosCantidad * emisionesCuaderno; // kg
+
+    // Calcular CO₂ evitado por peso
+    const co2CuadernosPeso = (cuadernosPeso / 1000) * co2PorTonelada; // kg
+
+    // Total CO₂ NO EMITIDO considerando ambas entradas
+    const totalCo2Evitado = co2CuadernosCantidad + co2CuadernosPeso;
+
+    // Calcular árboles necesarios para absorber el CO₂ evitado
+    const arbolesNecesarios = (totalCo2Evitado / absorcionArbol).toFixed(2);
+    document.getElementById('AbsorcionCO2').textContent = arbolesNecesarios;
+}
+
+function calcularArbolesSalvados() {
+    // Obtiene la cantidad de cuadernos
+    const cantCuadernos = parseInt(document.getElementById('cantCuadernos').value) || 0;
+    
+    // Obtiene el peso ingresado en kg
+    const pesoCuadernos = parseFloat(document.getElementById('pesoCuadernos').value) || 0; // en kg
+
+    let totalCuadernos = 0;
+
+    // Verifica si se ingresó una cantidad o un peso y calcula el total de cuadernos
+    if (cantCuadernos > 0) {
+        totalCuadernos = cantCuadernos * pesoCuaderno / 1000; // Convertir a kg
+    } else if (pesoCuadernos > 0) {
+        totalCuadernos = pesoCuadernos; // Ya está en kg
+    }
+
+    // Calcula el número de árboles salvados
+    const arbolesSalvados = totalCuadernos * 0.017;
+
+    // Muestra el resultado en un elemento específico
+    document.getElementById('arbolesSalvados').textContent = arbolesSalvados.toFixed(2);
+}
+
+// Asegúrate de llamar a la función al actualizar la cantidad de cuadernos o el peso
+document.getElementById('cantCuadernos').addEventListener('input', () => {
+    actualizarPesoTotal();
+    calcularArbolesSalvados(); // Llama a la función de árboles salvados
+});
+
+document.getElementById('pesoCuadernos').addEventListener('input', () => {
+    calcularArbolesSalvados(); // Llama a la función de árboles salvados
+});
+
+
+
+
+</script>
+</body>
+</html>

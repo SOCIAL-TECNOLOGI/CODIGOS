@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lienzo con Fondo Cambiable y Dibujo Táctil</title>
+  
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #lienzoContenedor {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+
+
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+   
+    #menuBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      cursor: move;
+    }
+
+    #menuBtn button {
+    /* Estilos existentes... */
+    border-radius: 50%; /* Hace que el botón tenga forma circular */
+    width: 45px; /* Ajusta el ancho del botón según tus necesidades */
+    height: 45px; /* Ajusta la altura del botón según tus necesidades */
+    background-color: #88b5d3;
+    border: 2px solid #ffffff; /* Cambia el color del borde ajustando el valor hex o el nombre del color */
+  }
+
+
+    #menu {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 50px;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #menuBtn:hover #menu {
+      display: block;
+    }
+
+
+    /* Estilo para hacer los botones ovalados */
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 15px; /* Ajusta este valor según sea necesario */
+    }
+
+    /* Estilo para los colores predefinidos */
+    #coloresPredefinidos {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .colorSquare {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: 0.1px solid #107c8a; /* Ajusta el color y grosor del borde según tus preferencias */
+    }
+
+   
+    #menuDesplegable {
+      position: fixed;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+
+
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+
+      /* Estilo para el contenedor del selector de color personalizado */
+      .colorSelectorContainer {
+      display: flex;
+      align-items: center;
+    }
+
+ 
+
+    .colorSelectorIcon {
+      margin-right: 5px;
+    }
+
+    .colorSelectorIcon i {
+      font-size: 24px;
+      color: #107c8a;
+    }
+
+    .colorSelector {
+      display: none; /* Oculta la visualización estándar del selector de color */
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+/* Agrega un cursor de puntero al ícono de la regla */
+.fa-ruler {
+      cursor: pointer;
+    }
+
+    /* Corrige la pseudoclase :hover */
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+
+    /* Estilo para el botón de deshacer */
+    #deshacerBtn {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #deshacerBtn:hover {
+      background-color: #c0392b;
+    }
+    
+
+
+    /* Estilo para el botón de deshacer */
+    #rehacerBtn {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #rehacerBtn:hover {
+      background-color: #c0392b;
+    }
+
+
+    #contenedorBotones {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+
+
+
+#contenedorBotones button {
+  margin-bottom: 8px;
+  padding: 0.5px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
+
+#contenedorBotones button:hover {
+  background-color: #f0f0f0;
+}
+
+
+
+#contenedorBotones {
+      position: fixed;
+      top: 50px;
+      left: 10px; /* Ajusta según sea necesario */
+      z-index: 1000;
+      cursor: move;
+      transform: translateY(50%);
+
+    }
+
+
+
+/* Estilos para el contenedor flotante del selector de grosor */
+#contenedorSelectorGrosor {
+      position: fixed;
+      top: 10px;
+      right: 30px;
+      background-color: #ffffff;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      cursor: move; /* Cursor de arrastre */
+      max-width: 140px; /* Ancho máximo para evitar que se agrande sin control */
+    }
+
+
+    body {
+  margin: 0;
+  overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+}
+
+
+body {
+  margin: 0;
+  overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+}
+
+
+
+#campoGranContenedor {
+  height: 50px;
+  width: 100%;
+  background-color: #f0f0f0;
+}
+
+#granContenedor {
+  /* Agrega estilos según tus necesidades */
+  display: none;
+}
+
+#btnDesplegar {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+
+#granContenedor {
+  position: fixed;
+  top: 50%;
+  left: 10px; /* Ajusta según sea necesario */
+  transform: translateY(-50%);
+  background-color: #f0f0f0; /* Ajusta el color de fondo según tus preferencias */
+  padding: 20px; /* Ajusta el relleno según sea necesario */
+  border-radius: 10px; /* Ajusta el radio de borde según sea necesario */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ajusta la sombra según sea necesario */
+  z-index: 999; /* Ajusta el índice Z según sea necesario para que esté por encima de otros elementos */
+}
+
+
+
+
+
+
+
+
+    
+
+  </style>
+</head>
+
+<body>
+  
+  <div id="lienzoContenedor">
+    <canvas id="miLienzo"></canvas>
+   
+  </div>
+
+  
+  <div id="contenedorBotones">
+
+                  <div class="colorSelectorContainer">
+                    <label for="colorSelector" class="colorSelectorIcon">
+                      <i class="fas fa-palette" style="font-size: 24px; color: #107c8a;"></i>
+                    </label>
+                    <input type="color" id="colorSelector" value="#ffffff" onchange="actualizarColor()" class="colorSelector">
+                  </div><br>
+                  
+                  <div class="colorSquare" style="background-color: #ffffff;" onclick="seleccionarColor('#ffffff')"></div><br>
+                <!-- Ícono de borrador -->
+                <div class="colorSquare" style="background-color: #107c8a; width: 25px; height: 25px; margin-right: 3px;" onclick="seleccionarColor('#107c8a')">
+                  <i class="fas fa-eraser" style="color: white; font-size: 20px; line-height: 25px; text-align: center;"></i>
+                </div>
+              </button><br>
+              <button id="deshacerBtn" onclick="deshacerTrazo" style="border: none; background: none; padding: 0; cursor: pointer; margin-right: 10px;">
+                <i class="fas fa-undo" style="font-size: 24px; color: #107c8a;"></i>
+              </button>
+              <button id="rehacerBtn" onclick="rehacerTrazo" style="border: none; background: none; padding: 0; cursor: pointer; margin-right: 10px;">
+                <i class="fas fa-redo" style="font-size: 24px; color: #107c8a;"></i> 
+              </button><br>
+
+              <button onclick="borrarLienzo()" style="margin-right: 10px; background: none; border: none;">
+                <i class="fas fa-trash-alt" style="font-size: 24px; color: #107c8a;"></i>
+              </button><br>
+
+
+  </div>
+  
+<!-- Contenedor flotante del selector de grosor -->
+<div id="contenedorSelectorGrosor" draggable="true">
+  <div>
+    <input type="range" id="grosorSelector" min="1" max="100" value="1" onchange="actualizarGrosor()" style="width: 100px;">
+  </div>
+
+
+</div>
+
+
+<i id="iconoGrosor" class="fas fa-arrow-up" onclick="toggleSelectorGrosor()"></i>
+
+
+  <!-- Agregar el atributo draggable al botón -->
+  <div id="menuBtn">
+    <button onclick="toggleMenu()">
+      <i class="fas fa-pencil-alt" id="pencilIcon"></i>
+    </button>
+    
+    <div id="menuDesplegable">
+      <div>
+        <label for="grosorSelector"></label>
+
+        <div id="coloresPredefinidos">
+          <div class="colorSquare" style="background-color: #000000;" onclick="seleccionarColor('#000000')"></div>
+          <div class="colorSquare" style="background-color: #00ff00;" onclick="seleccionarColor('#00ff00')"></div>
+          <div class="colorSquare" style="background-color: #00ffff;" onclick="seleccionarColor('#00ffff')"></div>
+          <div class="colorSquare" style="background-color: #ffa500;" onclick="seleccionarColor('#ffa500')"></div>
+          <div class="colorSquare" style="background-color: #ff0000;" onclick="seleccionarColor('#ff0000')"></div>
+    
+          <div class="colorSquare" style="background-color: #0000ff;" onclick="seleccionarColor('#0000ff')"></div>
+          <div class="colorSquare" style="background-color: #ffff00;" onclick="seleccionarColor('#ffff00')"></div>
+          
+          <div class="colorSquare" style="background-color: #ff00ff;" onclick="seleccionarColor('#ff00ff')"></div>
+        
+          <div class="colorSquare" style="background-color: #800080;" onclick="seleccionarColor('#800080')"></div>
+          <div class="colorSquare" style="background-color: #4caf50;" onclick="seleccionarColor('#4caf50')"></div>
+          
+
+
+          <button onclick="cambiarColor()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-fill-drip" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+
+
+
+<!-- Agregar dentro del div con id "menuDesplegable" -->
+<div id="coloresFondoPredefinidos" style="display: flex; flex-direction: row;">
+  <div class="colorSquare" style="background-color: #8d8d8d;" onclick="cambiarColorFondo('#8d8d8d')"></div>
+  <div class="colorSquare" style="background-color: #3c573e;" onclick="cambiarColorFondo('#3c573e')"></div>
+  <div class="colorSquare" style="background-color: #107c8a;" onclick="cambiarColorFondo('#107c8a')"></div>
+  <div class="colorSquare" style="background-color: #140265;" onclick="cambiarColorFondo('#140265')"></div>
+  <div class="colorSquare" style="background-color: #000000;" onclick="cambiarColorFondo('#000000')"></div>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; margin: 10px;">
+          
+         
+  <button onclick="guardarDibujo()" style="border: none; background: none; padding: 0; cursor: pointer; margin-right: 10px;">
+    <i class="fas fa-save" style="font-size: 24px;color: #107c8a;"></i>
+  </button>
+  <div style="display: flex; align-items: center; justify-content: space-between; margin: 3px;">
+
+</div>
+
+
+
+</div>
+
+
+
+        </div>
+      
+
+       
+  </div>
+
+     <!-- Agrega el contenedor GRAN CONTENEDOR -->
+  <div id="granContenedor">
+      <div class="controls">
+        <input type="color" id="colorPicker" value="#000000"> <!-- Selector de color -->
+    <input type="range" id="brushSizeInput" min="1" max="10" value="5"> <!-- Rango de tamaño del pincel -->
+        <input type="file" id="imageInput" accept="image/*" multiple>
+        <button id="previousButton">Anterior</button>
+        <button id="nextButton">Siguiente</button>
+        <button id="clearButton">Limpiar</button>
+        <button id="saveButton">Guardar</button>
+        <button id="undoButton">Deshacer</button>
+        <button id="redoButton">Rehacer</button>
+  
+  
+   
+    <input type="number" id="timerInput" placeholder="Configurar tiempo (segundos)">
+    <button id="startTimerButton">Iniciar Cronómetro</button>
+    <button id="resetTimerButton">Reiniciar Cronómetro</button>
+    <div id="timerDisplay">Tiempo restante: <span id="timerValue">0</span> segundos</div>
+  
+  
+    <audio id="timerSound">
+        <source src="sound.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+    
+        
+    </div>
+    </div>
+  
+  </div>
+  
+     
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  
+
+
+  <script>
+    const lienzoContenedor = document.getElementById('lienzoContenedor');
+    const lienzo = document.getElementById('miLienzo');
+    const contexto = lienzo.getContext('2d');
+    const grosorSelector = document.getElementById('grosorSelector');
+    const colorSelector = document.getElementById('colorSelector');
+// Agrega estas variables al principio de tu script
+let historialTrazos = [];
+let historialTrazosDeshacer = [];
+let trazoActual = [];
+
+
+
+    let dibujando = false;
+    let trazos = []; // Almacena los trazos dibujados
+
+    lienzo.width = window.innerWidth * 6;
+    lienzo.height = window.innerHeight * 6;
+
+    
+    lienzo.addEventListener('pointerdown', iniciarDibujo);
+    lienzo.addEventListener('pointermove', dibujar);
+    lienzo.addEventListener('pointerup', finalizarDibujo);
+    lienzo.addEventListener('pointercancel', finalizarDibujo);
+
+    // Establecer el color de fondo por defecto
+    cambiarColorDeFondo('#107c8a');
+
+    function cambiarColorDeFondo(color) {
+      contexto.fillStyle = color;
+      contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+
+      // Vuelve a dibujar los trazos almacenados
+      trazos.forEach(trazo => {
+        contexto.beginPath();
+        contexto.moveTo(trazo[0].x, trazo[0].y);
+        trazo.forEach(punto => {
+          contexto.lineWidth = punto.grosor; // Establecer el grosor del punto actual
+          contexto.strokeStyle = punto.color; // Establecer el color del punto actual
+          contexto.lineTo(punto.x, punto.y);
+          contexto.stroke();
+        });
+        contexto.closePath();
+      });
+    }
+
+    function actualizarGrosor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function actualizarColor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function seleccionarColor(color) {
+      colorSelector.value = color;
+      actualizarColor();
+    }
+
+    function iniciarDibujo(event) {
+      if (!isInMenu(event)) {
+        dibujando = true;
+        const rect = lienzo.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        contexto.beginPath();
+        const punto = {
+          x: x,
+          y: y,
+          grosor: grosorSelector.value,
+          color: colorSelector.value,
+        };
+        trazos.push([punto]);
+        contexto.moveTo(x, y);
+      }
+    }
+
+    function dibujar(event) {
+      if (dibujando) {
+        if (!isInMenu(event)) {
+          event.preventDefault();
+          const rect = lienzo.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          contexto.lineWidth = grosorSelector.value; // Establecer el grosor actual
+          contexto.strokeStyle = colorSelector.value; // Establecer el color actual
+          contexto.lineTo(x, y);
+          contexto.stroke();
+
+          // Almacena el punto actual en los trazos
+          const punto = { x, y, grosor: grosorSelector.value, color: colorSelector.value };
+          trazos[trazos.length - 1].push(punto);
+        }
+      }
+    }
+
+    function finalizarDibujo() {
+      if (dibujando) {
+        contexto.closePath();
+        dibujando = false;
+      }
+    }
+
+    function cambiarColor() {
+      const nuevoColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+      colorSelector.value = nuevoColor;
+      actualizarColor();
+      cambiarColorDeFondo(nuevoColor);
+    }
+
+    function borrarLienzo() {
+      trazos = []; // Limpia también los trazos almacenados
+      colorSelector.value = '#ffffff'; // Establecer el color por defecto al borrar
+      grosorSelector.value = 1.5; // Establecer el grosor predeterminado al borrar
+      actualizarColor();
+      actualizarGrosor();
+      cambiarColorDeFondo('#107c8a');
+      actualizarLapiz(); // Agregar esta línea para actualizar el lápiz
+    }
+
+
+    function toggleMenu() {
+  const menu = document.getElementById('menu');
+  const menuBtn = document.getElementById('menuBtn');
+  const pencilIcon = document.getElementById('pencilIcon');
+
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    pencilIcon.classList.remove('button-menu-opened');
+  } else {
+    menu.style.display = 'block';
+    pencilIcon.classList.add('button-menu-opened');
+  }
+}
+
+
+    function isInMenu(event) {
+      const menuBtn = document.getElementById('menuBtn');
+      const rect = menuBtn.getBoundingClientRect();
+      const x = event.clientX;
+      const y = event.clientY;
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+  
+
+function cargarDibujo() {
+  // Obtiene el archivo seleccionado
+  const archivoSeleccionado = document.querySelector('input[type="file"]').files[0];
+
+  // Crea un nuevo objeto FileReader
+  const fileReader = new FileReader();
+
+  // Asigna un evento de carga al objeto FileReader
+  fileReader.onload = function() {
+    // Obtiene los datos del archivo
+    const datosArchivo = this.result;
+
+    // Actualiza el lienzo con los datos del archivo
+    contexto.putImageData(datosArchivo, 0, 0);
+  };
+
+  // Lee el archivo
+  fileReader.readAsDataURL(archivoSeleccionado);
+}
+
+
+
+
+
+function guardarDibujo() {
+    // Obtiene los datos del lienzo
+    const datosLienzo = lienzo.toDataURL();
+
+    // Crea un enlace de descarga
+    const enlaceDescarga = document.createElement('a');
+    enlaceDescarga.href = datosLienzo;
+    enlaceDescarga.download = 'dibujo.png';
+
+    // Añade el enlace al documento y simula un clic para iniciar la descarga
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+    document.body.removeChild(enlaceDescarga);
+  }
+
+
+  let isDragging = false;
+    let offsetX, offsetY;
+
+    menuBtn.addEventListener('mousedown', startDragging);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDragging);
+
+    function startDragging(e) {
+      if (e.target.tagName.toLowerCase() === 'button') {
+        isDragging = true;
+        offsetX = e.clientX - menuBtn.getBoundingClientRect().left;
+        offsetY = e.clientY - menuBtn.getBoundingClientRect().top;
+      }
+    }
+
+    function drag(e) {
+      if (isDragging) {
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+
+        menuBtn.style.left = `${x}px`;
+        menuBtn.style.top = `${y}px`;
+
+        menu.style.left = `${e.clientX}px`;
+        menu.style.top = `${e.clientY}px`;
+      }
+    }
+
+    function stopDragging() {
+      isDragging = false;
+    }
+
+
+function obtenerColorDeFondo() {
+  // Obtén el color actual del fondo del lienzo
+  return contexto.fillStyle;
+}
+
+
+function cambiarColorFondo(color) {
+  // Cambia el color de fondo del lienzo
+  cambiarColorDeFondo(color);
+
+  // Actualiza el color del lápiz si es necesario
+  actualizarLapiz();
+}
+
+
+function actualizarLapiz() {
+  // Obtén el color actual del fondo del lienzo
+  const colorFondo = obtenerColorDeFondo();
+
+  // Convierte el color del fondo a un objeto con propiedades r, g, b
+  const rgbColorFondo = hexToRgb(colorFondo);
+
+  // Calcula el brillo del color del fondo (mayor brillo = más claro)
+  const brillo = calcularBrillo(rgbColorFondo);
+
+  // Establece el color del lápiz en función del brillo del fondo
+  const colorLapiz = brillo > 128 ? '#000000' : '#ffffff';
+  colorSelector.value = colorLapiz;
+
+  // Actualiza el color del lápiz
+  actualizarColor();
+}
+
+
+function hexToRgb(hex) {
+  // Convierte un color hexadecimal a un objeto RGB
+  const bigint = parseInt(hex.substring(1), 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return { r, g, b };
+}
+
+
+function calcularBrillo(color) {
+  // Calcula el brillo de un color en función de sus componentes RGB
+  return (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
+}
+
+
+function generarColorConBrillo(brillo) {
+  // Genera un color con el brillo especificado
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  const color = `rgb(${r},${g},${b})`;
+  return ajustarBrillo(color, brillo);
+}
+
+// Modifica la función iniciarDibujo para comenzar un nuevo trazo
+function iniciarDibujo(event) {
+  if (!isInMenu(event)) {
+    dibujando = true;
+    const rect = lienzo.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Comienza un nuevo trazo y lo agrega al historial
+    trazoActual = [{ x, y, grosor: grosorSelector.value, color: colorSelector.value }];
+    historialTrazos.push(trazoActual);
+
+    contexto.beginPath();
+    contexto.moveTo(x, y);
+  }
+}
+
+// Modifica la función dibujar para agregar puntos al trazo actual
+function dibujar(event) {
+  if (dibujando) {
+    if (!isInMenu(event)) {
+      event.preventDefault();
+      const rect = lienzo.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      contexto.lineWidth = grosorSelector.value;
+      contexto.strokeStyle = colorSelector.value;
+      contexto.lineTo(x, y);
+      contexto.stroke();
+
+      // Almacena el punto actual en el trazo actual
+      const punto = { x, y, grosor: grosorSelector.value, color: colorSelector.value };
+      trazoActual.push(punto);
+    }
+  }
+}
+
+// Función para deshacer el último trazo
+function deshacerTrazo() {
+  if (historialTrazos.length > 0) {
+    historialTrazosDeshacer.push(historialTrazos.pop()); // Mueve el último trazo al historial de deshacer
+    limpiarLienzo(); // Limpia el lienzo
+    redrawTrazos(); // Vuelve a dibujar los trazos restantes
+  }
+}
+
+// Función para rehacer el último trazo deshecho
+function rehacerTrazo() {
+  if (historialTrazosDeshacer.length > 0) {
+    historialTrazos.push(historialTrazosDeshacer.pop()); // Mueve el último trazo del historial de deshacer al historial
+    limpiarLienzo(); // Limpia el lienzo
+    redrawTrazos(); // Vuelve a dibujar los trazos restantes
+  }
+}
+
+// Función para limpiar el lienzo
+function limpiarLienzo() {
+  contexto.fillStyle = obtenerColorDeFondo();
+  contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+}
+
+// Función para volver a dibujar todos los trazos en el historial
+function redrawTrazos() {
+  historialTrazos.forEach(trazo => {
+    contexto.beginPath();
+    contexto.moveTo(trazo[0].x, trazo[0].y);
+    trazo.forEach(punto => {
+      contexto.lineWidth = punto.grosor;
+      contexto.strokeStyle = punto.color;
+      contexto.lineTo(punto.x, punto.y);
+      contexto.stroke();
+    });
+    contexto.closePath();
+  });
+}
+
+// Agrega el evento para deshacer al botón correspondiente
+const deshacerBtn = document.getElementById('deshacerBtn');
+deshacerBtn.addEventListener('click', deshacerTrazo);
+
+// Agrega el evento para rehacer al botón correspondiente
+const rehacerBtn = document.getElementById('rehacerBtn');
+rehacerBtn.addEventListener('click', rehacerTrazo);
+
+
+
+
+let isDraggingContainer = false;
+    let offsetXContainer, offsetYContainer;
+
+    // Agrega eventos para hacer el contenedor arrastrable
+    document.getElementById('contenedorBotones').addEventListener('mousedown', startDraggingContainer);
+    document.addEventListener('mousemove', dragContainer);
+    document.addEventListener('mouseup', stopDraggingContainer);
+
+    function startDraggingContainer(e) {
+      isDraggingContainer = true;
+      offsetXContainer = e.clientX - document.getElementById('contenedorBotones').getBoundingClientRect().left;
+      offsetYContainer = e.clientY - document.getElementById('contenedorBotones').getBoundingClientRect().top;
+    }
+
+    function dragContainer(e) {
+      if (isDraggingContainer) {
+        const x = e.clientX - offsetXContainer;
+        const y = e.clientY - offsetYContainer;
+
+        document.getElementById('contenedorBotones').style.left = `${x}px`;
+        document.getElementById('contenedorBotones').style.top = `${y}px`;
+      }
+    }
+
+    function stopDraggingContainer() {
+      isDraggingContainer = false;
+    }
+
+
+
+
+// Obtén el contenedor del selector de grosor
+const contenedorSelectorGrosor = document.getElementById('contenedorSelectorGrosor');
+
+// Inicializa las variables para el arrastre
+let isDraggingSelectorGrosor = false;
+let offsetXSelectorGrosor, offsetYSelectorGrosor;
+
+// Agrega eventos de arrastre al contenedor del selector de grosor
+contenedorSelectorGrosor.addEventListener('mousedown', startDraggingSelectorGrosor);
+document.addEventListener('mousemove', dragSelectorGrosor);
+document.addEventListener('mouseup', stopDraggingSelectorGrosor);
+
+// Función para iniciar el arrastre
+function startDraggingSelectorGrosor(e) {
+  isDraggingSelectorGrosor = true;
+  offsetXSelectorGrosor = e.clientX - contenedorSelectorGrosor.getBoundingClientRect().left;
+  offsetYSelectorGrosor = e.clientY - contenedorSelectorGrosor.getBoundingClientRect().top;
+}
+
+// Función para arrastrar
+function dragSelectorGrosor(e) {
+  if (isDraggingSelectorGrosor) {
+    const x = e.clientX - offsetXSelectorGrosor;
+    const y = e.clientY - offsetYSelectorGrosor;
+
+    contenedorSelectorGrosor.style.left = `${x}px`;
+    contenedorSelectorGrosor.style.top = `${y}px`;
+  }
+}
+
+// Función para detener el arrastre
+function stopDraggingSelectorGrosor() {
+  isDraggingSelectorGrosor = false;
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const granContenedor = document.getElementById("granContenedor");
+  const btnDesplegar = document.getElementById("btnDesplegar");
+
+  btnDesplegar.addEventListener("mouseover", function() {
+    granContenedor.classList.remove("oculto");
+  });
+
+  btnDesplegar.addEventListener("mouseout", function() {
+    granContenedor.classList.add("oculto");
+  });
+});
+
+
+
+const canvas = document.getElementById('whiteboard');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const imageInput = document.getElementById('imageInput');
+const previousButton = document.getElementById('previousButton');
+const nextButton = document.getElementById('nextButton');
+const clearButton = document.getElementById('clearButton');
+const saveButton = document.getElementById('saveButton');
+const undoButton = document.getElementById('undoButton');
+const redoButton = document.getElementById('redoButton');
+
+
+
+canvas.width = 1400; // Ancho del lienzo
+canvas.height = 630; // Alto del lienzo
+
+let imageLoaded = false;
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let brushColor = '#000000'; // Color del pincel
+let brushSize = 5; // Tamaño del pincel
+let drawingHistory = [];
+let historyIndex = -1;
+let currentImageIndex = -1;
+let images = [];
+let currentImage = new Image();
+
+// Función para guardar el dibujo como imagen
+function saveDrawing() {
+    const dataURL = canvas.toDataURL();
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'drawing.png';
+    a.click();
+}
+
+// Función para cargar una imagen
+function loadNewImage(file) {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            currentImage.src = event.target.result;
+            currentImage.onload = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+                imageLoaded = true;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Función para deshacer el último paso
+clearButton.addEventListener('click', () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawingHistory = [];
+    historyIndex = -1;
+    imageLoaded = false;
+    imageInput.value = ''; // Limpiar el input de carga de imagen
+    images = []; // Limpiar la lista de imágenes
+    currentImageIndex = -1;
+});
+
+
+
+// Función para deshacer el último paso
+undoButton.addEventListener('click', () => {
+    if (historyIndex > 0) {
+        historyIndex--;
+        redraw();
+    }
+});
+
+// Función para rehacer el último paso
+redoButton.addEventListener('click', () => {
+    if (historyIndex < drawingHistory.length - 1) {
+        historyIndex++;
+        redraw();
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// Manejador de eventos para cargar imágenes
+imageInput.addEventListener('change', (e) => {
+    images = Array.from(e.target.files);
+    currentImageIndex = 0;
+    loadNewImage(images[currentImageIndex]);
+});
+
+// Función para redibujar el lienzo
+function redraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (imageLoaded) {
+        ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+    }
+
+    for (let i = 0; i <= historyIndex; i++) {
+        ctx.putImageData(drawingHistory[i], 0, 0);
+    }
+}
+
+// Función para manejar el dibujo
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mousemove', draw);
+
+function startDrawing(e) {
+    isDrawing = true;
+    [lastX, lastY] = [e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top];
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+
+    if (historyIndex < drawingHistory.length - 1) {
+        drawingHistory = drawingHistory.slice(0, historyIndex + 1);
+    }
+}
+
+function stopDrawing() {
+    isDrawing = false;
+    ctx.closePath();
+
+    const drawingData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    drawingHistory.push(drawingData);
+    historyIndex = drawingHistory.length - 1;
+}
+
+function draw(e) {
+    if (isDrawing) {
+        const x = e.clientX - canvas.getBoundingClientRect().left;
+        const y = e.clientY - canvas.getBoundingClientRect().top;
+        ctx.strokeStyle = brushColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        [lastX, lastY] = [x, y];
+    }
+}
+
+// Manejadores de eventos para la navegación de imágenes
+previousButton.addEventListener('click', () => {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+nextButton.addEventListener('click', () => {
+    if (currentImageIndex < images.length - 1) {
+        currentImageIndex++;
+        loadNewImage(images[currentImageIndex]);
+    }
+});
+
+
+// Obtén referencias a los elementos de color y tamaño del pincel
+const colorPicker = document.getElementById('colorPicker');
+const brushSizeInput = document.getElementById('brushSizeInput');
+
+// Agrega manejadores de eventos para cambios en el color y el tamaño del pincel
+colorPicker.addEventListener('input', (e) => {
+    brushColor = e.target.value;
+    ctx.strokeStyle = brushColor;
+});
+
+brushSizeInput.addEventListener('input', (e) => {
+    brushSize = e.target.value;
+    ctx.lineWidth = brushSize;
+});
+
+
+// Obtén referencias a los elementos relacionados con el cronómetro
+const timerInput = document.getElementById('timerInput');
+const startTimerButton = document.getElementById('startTimerButton');
+const resetTimerButton = document.getElementById('resetTimerButton');
+const timerDisplay = document.getElementById('timerDisplay');
+const timerValue = document.getElementById('timerValue');
+
+let timerInterval;
+let remainingTime = 0;
+
+function updateTimerDisplay() {
+    timerValue.textContent = remainingTime;
+}
+
+
+startTimerButton.addEventListener('click', () => {
+    const newTime = parseInt(timerInput.value);
+    if (!isNaN(newTime) && newTime > 0) {
+        clearInterval(timerInterval); // Detener el cronómetro anterior
+        remainingTime = newTime;
+        updateTimerDisplay();
+
+        // Iniciar el nuevo cronómetro
+        timerInterval = setInterval(() => {
+            if (remainingTime > 0) {
+                remainingTime--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+    }
+});
+
+resetTimerButton.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    remainingTime = 0;
+    timerInput.value = ''; // Limpiar el input de configuración
+    updateTimerDisplay();
+});
+
+// Llamar a updateTimerDisplay inicialmente para mostrar "0 segundos"
+updateTimerDisplay();
+
+
+
+
+
+  </script>
+</body>
+
+</html>

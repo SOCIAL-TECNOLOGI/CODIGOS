@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR + Texto a Voz (Preguntas ICFES)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      padding: 30px;
+      text-align: center;
+    }
+    .contenedor {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      max-width: 650px;
+      margin: auto;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #25d366;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #128c7e; }
+    .btn-detener { background: #e53935; }
+    .btn-detener:hover { background: #b71c1c; }
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1f1f1;
+      border-radius: 6px;
+      text-align: left;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h2>📷 Pregunta en Imagen → 📝 Texto → 🔊 Audio</h2>
+
+    <input type="file" id="inputImagen" accept="image/*"><br>
+    <img id="preview" style="display:none;"><br>
+
+    <button id="btnOCR">🔍 Transcribir Imagen</button>
+    <button id="btnLeer">🔊 Leer Texto</button>
+    <button id="btnDetener" class="btn-detener">⏹️ Detener</button>
+
+    <div id="resultado">Aquí aparecerá el texto transcrito...</div>
+  </div>
+
+  <!-- Librería Tesseract.js para OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script>
+    const inputImagen = document.getElementById("inputImagen");
+    const preview = document.getElementById("preview");
+    const btnOCR = document.getElementById("btnOCR");
+    const btnLeer = document.getElementById("btnLeer");
+    const btnDetener = document.getElementById("btnDetener");
+    const resultado = document.getElementById("resultado");
+
+    let textoReconocido = "";
+
+    // Vista previa de la imagen cargada
+    inputImagen.addEventListener("change", e => {
+      const archivo = e.target.files[0];
+      if (archivo) {
+        const url = URL.createObjectURL(archivo);
+        preview.src = url;
+        preview.style.display = "block";
+      }
+    });
+
+    // OCR con Tesseract.js
+    btnOCR.addEventListener("click", async () => {
+      if (!preview.src) {
+        alert("Por favor selecciona una imagen.");
+        return;
+      }
+
+      resultado.innerHTML = "⏳ Procesando imagen...";
+      const { data: { text } } = await Tesseract.recognize(preview.src, 'spa'); // español
+      textoReconocido = text.trim();
+      resultado.innerHTML = textoReconocido || "⚠️ No se detectó texto.";
+    });
+
+    // Leer texto con voz
+    btnLeer.addEventListener("click", () => {
+      if (!textoReconocido) {
+        alert("Primero debes transcribir una imagen.");
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(textoReconocido);
+      utter.lang = "es-ES";
+      utter.rate = 1;
+      speechSynthesis.speak(utter);
+    });
+
+    // Detener lectura
+    btnDetener.addEventListener("click", () => {
+      speechSynthesis.cancel();
+    });
+  </script>
+</body>
+</html>

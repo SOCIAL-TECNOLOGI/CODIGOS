@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ruletas de Verbos con Niveles y Glosario</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9fafb;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 { color: #1d4ed8; margin-bottom:30px; }
+
+  /* Estilo pestañas */
+  .tabs { display: flex; justify-content: center; margin-bottom: 20px; }
+  .tab {
+    padding: 10px 20px;
+    border: 2px solid #1d4ed8;
+    border-bottom: none;
+    cursor: pointer;
+    background: #e0e7ff;
+    margin: 0 5px;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    transition: background .3s;
+  }
+  .tab:hover { background: #c7d2fe; }
+  .tab.active {
+    background: #1d4ed8;
+    color: white;
+  }
+
+  .ruleta-section { display: none; }
+  .ruleta-section.active { display: block; }
+
+  .ruleta-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin: 0 auto;
+  }
+  canvas {
+    border-radius: 50%;
+    border: 8px solid #1d4ed8;
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+  }
+  .puntero {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid #dc2626;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #059669;
+    color: white;
+    cursor: pointer;
+    transition: background .3s;
+  }
+  button:hover { background: #047857; }
+  .resultado {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1e293b;
+  }
+  .glosario {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #374151;
+    background: #f3f4f6;
+    border-radius: 6px;
+    padding: 8px;
+    display: inline-block;
+    max-width: 300px;
+  }
+</style>
+</head>
+<body>
+  <h1>🎯 Ruletas de Verbos – Taxonomía de Bloom</h1>
+
+  <!-- Pestañas -->
+  <div class="tabs">
+    <div class="tab active" data-target="saber">📘 Saber</div>
+    <div class="tab" data-target="hacer">🛠️ Hacer</div>
+    <div class="tab" data-target="ser">🤝 Ser</div>
+  </div>
+
+  <!-- Sección Saber -->
+  <div id="saber" class="ruleta-section active">
+    <div class="ruleta-container">
+      <div class="puntero"></div>
+      <canvas id="ruletaSaber" width="400" height="400"></canvas>
+    </div>
+    <button onclick="girar('saber')">🎲 Girar Ruleta Saber</button>
+    <div id="resultadoSaber" class="resultado">👉 Haz girar la ruleta</div>
+    <div id="glosarioSaber" class="glosario"></div>
+  </div>
+
+  <!-- Sección Hacer -->
+  <div id="hacer" class="ruleta-section">
+    <div class="ruleta-container">
+      <div class="puntero"></div>
+      <canvas id="ruletaHacer" width="400" height="400"></canvas>
+    </div>
+    <button onclick="girar('hacer')">🎲 Girar Ruleta Hacer</button>
+    <div id="resultadoHacer" class="resultado">👉 Haz girar la ruleta</div>
+    <div id="glosarioHacer" class="glosario"></div>
+  </div>
+
+  <!-- Sección Ser -->
+  <div id="ser" class="ruleta-section">
+    <div class="ruleta-container">
+      <div class="puntero"></div>
+      <canvas id="ruletaSer" width="400" height="400"></canvas>
+    </div>
+    <button onclick="girar('ser')">🎲 Girar Ruleta Ser</button>
+    <div id="resultadoSer" class="resultado">👉 Haz girar la ruleta</div>
+    <div id="glosarioSer" class="glosario"></div>
+  </div>
+
+<script>
+const colores = ["#f87171","#fb923c","#facc15","#4ade80","#60a5fa","#a78bfa","#f472b6"];
+
+// Diccionario de niveles
+const niveles = {
+  1: { color: "#f87171", nombre: "Nivel 1 – Recordar/Imitar", glosario:"Reconocer, identificar, repetir, imitar. Base de memoria y reproducción." },
+  2: { color: "#fb923c", nombre: "Nivel 2 – Comprender/Ejecutar", glosario:"Explicar, describir, practicar, aplicar con apoyo. Implica comprensión básica." },
+  3: { color: "#facc15", nombre: "Nivel 3 – Analizar/Aplicar/Valorar", glosario:"Analizar, comparar, coordinar, valorar, aplicar con autonomía. Requiere juicio intermedio." },
+  4: { color: "#4ade80", nombre: "Nivel 4 – Crear/Innovar/Transformar", glosario:"Diseñar, planificar, transformar, liderar, innovar. Implica producción original y síntesis." }
+};
+
+// Verbos
+const verbos = {
+  saber: {
+    4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser: {
+    4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+function getAllVerbs(dim) {
+  return Object.values(verbos[dim]).flat();
+}
+
+const estados = {
+  saber: {angulo:0, girando:false, canvas:document.getElementById("ruletaSaber"), res:document.getElementById("resultadoSaber"), glo:document.getElementById("glosarioSaber")},
+  hacer: {angulo:0, girando:false, canvas:document.getElementById("ruletaHacer"), res:document.getElementById("resultadoHacer"), glo:document.getElementById("glosarioHacer")},
+  ser:   {angulo:0, girando:false, canvas:document.getElementById("ruletaSer"),   res:document.getElementById("resultadoSer"),   glo:document.getElementById("glosarioSer")}
+};
+
+// Dibujar ruleta
+function dibujarRuleta(dim) {
+  const {canvas, angulo} = estados[dim];
+  const ctx = canvas.getContext("2d");
+  const lista = getAllVerbs(dim);
+  const arc = Math.PI * 2 / lista.length;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for (let i=0;i<lista.length;i++) {
+    const ang = angulo + i * arc;
+    ctx.beginPath();
+    ctx.fillStyle = colores[i % colores.length];
+    ctx.moveTo(200,200);
+    ctx.arc(200,200,200,ang,ang+arc);
+    ctx.fill();
+    ctx.save();
+    ctx.fillStyle = "black";
+    ctx.translate(200 + Math.cos(ang + arc/2)*120,
+                  200 + Math.sin(ang + arc/2)*120);
+    ctx.rotate(ang + arc/2 + Math.PI/2);
+    ctx.font = "bold 11px Arial";
+    ctx.fillText(lista[i], -ctx.measureText(lista[i]).width/2, 0);
+    ctx.restore();
+  }
+}
+
+function girar(dim) {
+  const estado = estados[dim];
+  if (estado.girando) return;
+  estado.girando = true;
+  const lista = getAllVerbs(dim);
+  let vueltas = Math.floor(Math.random()*3)+4;
+  let anguloFinal = estado.angulo + vueltas*2*Math.PI + Math.random()*2*Math.PI;
+  let duracion = 4000;
+  let inicio=null;
+
+  function animar(t) {
+    if(!inicio) inicio=t;
+    const progreso=(t-inicio)/duracion;
+    if(progreso<1) {
+      estado.angulo += (anguloFinal-estado.angulo)*0.05;
+      dibujarRuleta(dim);
+      requestAnimationFrame(animar);
+    } else {
+      estado.angulo=anguloFinal;
+      dibujarRuleta(dim);
+      mostrarResultado(dim);
+      estado.girando=false;
+    }
+  }
+  requestAnimationFrame(animar);
+}
+
+function mostrarResultado(dim) {
+  const estado = estados[dim];
+  const lista = getAllVerbs(dim);
+  const grados = estado.angulo*180/Math.PI+90;
+  const indice = Math.floor((360-(grados%360))/(360/lista.length))%lista.length;
+  const verbo = lista[indice];
+
+  // Buscar el nivel
+  let nivelEncontrado;
+  for (let nivel in verbos[dim]) {
+    if (verbos[dim][nivel].includes(verbo)) {
+      nivelEncontrado = parseInt(nivel);
+      break;
+    }
+  }
+  const infoNivel = niveles[nivelEncontrado];
+  estado.res.innerHTML = `✨ Verbo seleccionado: <b>${verbo}</b><br>
+  <span style="color:${infoNivel.color}">${infoNivel.nombre}</span>`;
+  estado.glo.innerHTML = `<b>Glosario:</b> ${infoNivel.glosario}`;
+}
+
+// Inicial
+dibujarRuleta("saber");
+dibujarRuleta("hacer");
+dibujarRuleta("ser");
+
+// Cambio de pestañas
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".ruleta-section").forEach(s=>s.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.target).classList.add("active");
+  });
+});
+</script>
+</body>
+</html>

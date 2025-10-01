@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lienzo con Fondo Cambiable y Dibujo Táctil</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    body,
+    html {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #lienzoContenedor {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+
+
+
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+   
+    #menuBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      cursor: move;
+    }
+
+    #menuBtn button {
+    /* Estilos existentes... */
+    border-radius: 50%; /* Hace que el botón tenga forma circular */
+    width: 45px; /* Ajusta el ancho del botón según tus necesidades */
+    height: 45px; /* Ajusta la altura del botón según tus necesidades */
+    background-color: #88b5d3;
+    border: 2px solid #ffffff; /* Cambia el color del borde ajustando el valor hex o el nombre del color */
+  }
+
+
+    #menu {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 50px;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #menuBtn:hover #menu {
+      display: block;
+    }
+
+
+    /* Estilo para hacer los botones ovalados */
+    button,
+    input {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 15px; /* Ajusta este valor según sea necesario */
+    }
+
+    /* Estilo para los colores predefinidos */
+    #coloresPredefinidos {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .colorSquare {
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+   
+    #menuDesplegable {
+      position: fixed;
+      background-color: #d6d9db;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+
+
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+
+      /* Estilo para el contenedor del selector de color personalizado */
+      .colorSelectorContainer {
+      display: flex;
+      align-items: center;
+    }
+
+    .colorSelectorIcon {
+      margin-right: 5px;
+    }
+
+    .colorSelectorIcon i {
+      font-size: 24px;
+      color: #107c8a;
+    }
+
+    .colorSelector {
+      display: none; /* Oculta la visualización estándar del selector de color */
+    }
+
+
+/* Agrega un cursor de puntero al ícono de la regla */
+.fa-ruler {
+      cursor: pointer;
+    }
+
+    /* Corrige la pseudoclase :hover */
+    #menuBtn:hover #menuDesplegable {
+      display: block;
+    }
+
+
+
+    #contenedorImagen {
+            position: fixed;
+            top: 50%;
+            left: 70%;
+            transform: translate(-50%, -50%);
+            display: none;
+            max-width: 80%;
+            max-height: 80%;
+        }
+
+ 
+
+        #labelSubirImagenes {
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#labelSubirImagenes:hover {
+    background-color: #2980b9;
+}
+
+#inputImagen {
+    display: none; /* Oculta el input original */
+}
+
+
+
+        
+        #imagenActual {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: 1px solid #ccc;
+        }
+
+        #ajustarTamaño {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #3498db;
+            cursor: grab;
+        }
+
+        #ajustarTamaño:active {
+            cursor: grabbing;
+        }
+
+
+
+        #contenedorPDF {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+#inputPDF {
+    margin-bottom: 10px;
+}
+
+#pdfViewer {
+    width: 100%;
+    height: 80vh; /* Ajusta la altura según tus necesidades */
+}
+
+
+
+#botonSubirPDF,
+#inputImagen {
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#botonSubirPDF {
+    background-color: #3498db;
+    color: #ffffff;
+}
+
+#inputImagen {
+    background-color: #2980b9;
+    color: #ffffff;
+}
+
+#botonSubirPDF:hover,
+#inputImagen:hover {
+    background-color: #2980b9;
+}
+
+
+
+
+
+
+
+
+
+
+
+    
+  </style>
+</head>
+
+<body>
+  <div id="lienzoContenedor">
+    <canvas id="miLienzo"></canvas>
+  </div>
+
+  
+
+
+ 
+ 
+
+  <!-- Agregar el atributo draggable al botón -->
+  <div id="menuBtn">
+    <button onclick="toggleMenu()">
+      <i class="fas fa-pencil-alt" id="pencilIcon"></i>
+    </button>
+    
+    <div id="menuDesplegable">
+      <div>
+        <label for="grosorSelector"></label>
+
+        <div id="coloresPredefinidos">
+
+          <div class="colorSquare" style="background-color: #ff0000;" onclick="seleccionarColor('#ff0000')"></div>
+          <div class="colorSquare" style="background-color: #00ff00;" onclick="seleccionarColor('#00ff00')"></div>
+          <div class="colorSquare" style="background-color: #0000ff;" onclick="seleccionarColor('#0000ff')"></div>
+          <div class="colorSquare" style="background-color: #ffff00;" onclick="seleccionarColor('#ffff00')"></div>
+          <div class="colorSquare" style="background-color: #ff00ff;" onclick="seleccionarColor('#ff00ff')"></div>
+          <div class="colorSquare" style="background-color: #00ffff;" onclick="seleccionarColor('#00ffff')"></div>
+          <div class="colorSquare" style="background-color: #000000;" onclick="seleccionarColor('#000000')"></div>
+          <div class="colorSquare" style="background-color: #ffffff;" onclick="seleccionarColor('#ffffff')"></div>
+          <div class="colorSquare" style="background-color: #800080;" onclick="seleccionarColor('#800080')"></div>
+          <div class="colorSquare" style="background-color: #4caf50;" onclick="seleccionarColor('#4caf50')"></div>
+          <div class="colorSquare" style="background-color: #ffa500;" onclick="seleccionarColor('#ffa500')"></div>
+
+
+      <!-- Selector de grosor -->
+      <div>
+        <input type="range" id="grosorSelector" min="1" max="50" value="1.5" onchange="actualizarGrosor()" style="margin-right: 3px;">
+        </div>
+
+
+
+        </div>
+      
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 10px;">
+          
+         
+          
+          
+          <div class="colorSelectorContainer">
+            <label for="colorSelector" class="colorSelectorIcon">
+              <i class="fas fa-palette" style="font-size: 24px; color: #107c8a;"></i>
+            </label>
+            <input type="color" id="colorSelector" value="#ffffff" onchange="actualizarColor()" class="colorSelector">
+          </div>
+          
+          
+         
+          <button onclick="borrarLienzo()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-trash-alt" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          
+          <button onclick="toggleFullScreen()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-expand" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          <button onclick="cambiarColor()" style="margin-right: 10px; background: none; border: none;">
+            <i class="fas fa-fill-drip" style="font-size: 24px; color: #107c8a;"></i>
+          </button>
+          
+          
+        
+          <button onclick="guardarDibujo()" style="border: none; background: none; padding: 0; cursor: pointer; margin-right: 10px;">
+            <i class="fas fa-save" style="font-size: 24px;color: #107c8a;"></i>
+          </button>
+
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin: 3px;">
+
+            <!-- Ícono de borrador -->
+            <div class="colorSquare" style="background-color: #107c8a; width: 25px; height: 25px; margin-right: 3px;" onclick="seleccionarColor('#107c8a')">
+              <i class="fas fa-eraser" style="color: white; font-size: 20px; line-height: 25px; text-align: center;"></i>
+            </div>
+
+    
+
+
+
+      </div>
+    </div>
+  </div>
+  
+
+<!-- Contenedor de imágenes fuera del menú -->
+<div id="contenedorImagen">
+  <img id="imagenActual" src="" alt="Imagen">
+  <div id="ajustarTamaño" draggable="true"></div>
+
+
+
+</div>
+
+  <!-- Agregar el input de archivo para cargar imágenes -->
+  <label for="inputImagen" id="labelSubirImagenes">Subir imágenes</label>
+  <input type="file" id="inputImagen" accept="image/*" multiple>
+
+
+     
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+  
+
+  <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+   
+  const lienzoContenedor = document.getElementById('lienzoContenedor');
+    const lienzo = document.getElementById('miLienzo');
+    const contexto = lienzo.getContext('2d');
+    const grosorSelector = document.getElementById('grosorSelector');
+    const colorSelector = document.getElementById('colorSelector');
+
+  
+   // Asegúrate de que el elemento canvas esté definido antes de establecer su ancho
+
+// Cambia "canvas" a "miLienzo"
+const canvas = document.getElementById("miLienzo");
+    lienzo.width = window.innerWidth * 6;
+    lienzo.height = window.innerHeight * 6;
+
+    let dibujando = false;
+    let trazos = []; // Almacena los trazos dibujados
+
+
+ // Resto del código...
+
+    
+ lienzo.addEventListener('pointerdown', iniciarDibujo);
+    lienzo.addEventListener('pointermove', dibujar);
+    lienzo.addEventListener('pointerup', finalizarDibujo);
+    lienzo.addEventListener('pointercancel', finalizarDibujo);
+
+    // Establecer el color de fondo por defecto
+    cambiarColorDeFondo('#107c8a');
+
+    function cambiarColorDeFondo(color) {
+      contexto.fillStyle = color;
+      contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+
+      // Vuelve a dibujar los trazos almacenados
+      trazos.forEach(trazo => {
+        contexto.beginPath();
+        contexto.moveTo(trazo[0].x, trazo[0].y);
+        trazo.forEach(punto => {
+          contexto.lineWidth = punto.grosor; // Establecer el grosor del punto actual
+          contexto.strokeStyle = punto.color; // Establecer el color del punto actual
+          contexto.lineTo(punto.x, punto.y);
+          contexto.stroke();
+        });
+        contexto.closePath();
+      });
+    }
+
+    function actualizarGrosor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function actualizarColor() {
+      // No es necesario hacer nada aquí porque ya se actualiza en tiempo real en la función dibujar
+    }
+
+    function seleccionarColor(color) {
+      colorSelector.value = color;
+      actualizarColor();
+    }
+
+    function iniciarDibujo(event) {
+  if (!isInMenu(event)) {
+    dibujando = true;
+    const rect = lienzo.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    contexto.beginPath();
+    const punto = {
+      x: x,
+      y: y,
+      grosor: grosorSelector.value,
+      color: colorSelector.value,
+    };
+    trazos.push([punto]);
+    contexto.moveTo(x, y);
+  }
+}
+
+
+    function dibujar(event) {
+      if (dibujando) {
+        if (!isInMenu(event)) {
+          event.preventDefault();
+          const rect = lienzo.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          contexto.lineWidth = grosorSelector.value; // Establecer el grosor actual
+          contexto.strokeStyle = colorSelector.value; // Establecer el color actual
+          contexto.lineTo(x, y);
+          contexto.stroke();
+
+          // Almacena el punto actual en los trazos
+          const punto = { x, y, grosor: grosorSelector.value, color: colorSelector.value };
+          trazos[trazos.length - 1].push(punto);
+        }
+      }
+    }
+
+    function finalizarDibujo() {
+      if (dibujando) {
+        contexto.closePath();
+        dibujando = false;
+      }
+    }
+
+    function cambiarColor() {
+      const nuevoColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+      colorSelector.value = nuevoColor;
+      actualizarColor();
+      cambiarColorDeFondo(nuevoColor);
+    }
+
+    function borrarLienzo() {
+      trazos = []; // Limpia también los trazos almacenados
+      colorSelector.value = '#ffffff'; // Establecer el color por defecto al borrar
+      grosorSelector.value = 1.5; // Establecer el grosor predeterminado al borrar
+      actualizarColor();
+      actualizarGrosor();
+      cambiarColorDeFondo('#107c8a');
+      actualizarLapiz(); // Agregar esta línea para actualizar el lápiz
+    }
+
+
+    function isInMenu(event) {
+      const menuBtn = document.getElementById('menuBtn');
+      const rect = menuBtn.getBoundingClientRect();
+      const x = event.clientX;
+      const y = event.clientY;
+      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+  
+
+function cargarDibujo() {
+  // Obtiene el archivo seleccionado
+  const archivoSeleccionado = document.querySelector('input[type="file"]').files[0];
+
+  // Crea un nuevo objeto FileReader
+  const fileReader = new FileReader();
+
+  // Asigna un evento de carga al objeto FileReader
+  fileReader.onload = function() {
+    // Obtiene los datos del archivo
+    const datosArchivo = this.result;
+
+    // Actualiza el lienzo con los datos del archivo
+    contexto.putImageData(datosArchivo, 0, 0);
+  };
+
+  // Lee el archivo
+  fileReader.readAsDataURL(archivoSeleccionado);
+}
+
+
+
+
+function guardarDibujo() {
+    // Obtiene los datos del lienzo
+    const datosLienzo = lienzo.toDataURL();
+
+    // Crea un enlace de descarga
+    const enlaceDescarga = document.createElement('a');
+    enlaceDescarga.href = datosLienzo;
+    enlaceDescarga.download = 'dibujo.png';
+
+    // Añade el enlace al documento y simula un clic para iniciar la descarga
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+    document.body.removeChild(enlaceDescarga);
+  }
+
+
+  let isDragging = false;
+    let offsetX, offsetY;
+
+    menuBtn.addEventListener('mousedown', startDragging);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDragging);
+
+    function startDragging(e) {
+      if (e.target.tagName.toLowerCase() === 'button') {
+        isDragging = true;
+        offsetX = e.clientX - menuBtn.getBoundingClientRect().left;
+        offsetY = e.clientY - menuBtn.getBoundingClientRect().top;
+      }
+    }
+
+    function drag(e) {
+      if (isDragging) {
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+
+        menuBtn.style.left = `${x}px`;
+        menuBtn.style.top = `${y}px`;
+
+        menu.style.left = `${e.clientX}px`;
+        menu.style.top = `${e.clientY}px`;
+      }
+    }
+
+    function stopDragging() {
+      isDragging = false;
+    }
+
+
+const inputImagen = document.getElementById('inputImagen');
+const contenedorImagen = document.getElementById('contenedorImagen');
+const imagenActual = document.getElementById('imagenActual');
+const ajustarTamaño = document.getElementById('ajustarTamaño');
+const botonAnterior = document.getElementById('botonAnterior');
+const botonSiguiente = document.getElementById('botonSiguiente');
+
+let imagenes = [];
+let imagenIndex = 0;
+
+inputImagen.addEventListener('change', cargarImagen);
+botonAnterior.addEventListener('click', mostrarImagenAnterior);
+botonSiguiente.addEventListener('click', mostrarImagenSiguiente);
+
+
+
+
+
+
+
+
+// Corrección en la función cargarImagen
+function cargarImagen() {
+  imagenes = [];
+  imagenIndex = 0;
+
+  const files = inputImagen.files;
+
+  if (files) {
+    for (let i = 0; i < files.length; i++) {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const img = new Image();
+
+        img.onload = function () {
+          // Añade la imagen al array de imágenes
+          imagenes.push(img);
+
+          if (i === files.length - 1) {
+            // Muestra la primera imagen al cargar todas
+            mostrarImagen(imagenIndex);
+          }
+        };
+
+        img.src = e.target.result;
+      };
+
+      reader.readAsDataURL(files[i]);
+    }
+  }
+}
+
+function isInCanvas(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  return x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height;
+}
+
+
+
+// Cambia el nombre de la función a "mostrarImagenEnCanvas" y pasa el canvas como argumento
+function mostrarImagenEnCanvas(canvas, imagen) {
+  canvas.getContext("2d").drawImage(imagen, 0, 0);
+}
+
+// Luego, puedes llamar a esta función pasando tu canvas como argumento
+mostrarImagenEnCanvas(canvas, imagen);
+
+
+
+// Cambia "mostrarImagen(imagen)" a "mostrarImagen(this)"
+for (var i = 0; i < imagenes.length; i++) {
+  imagenes[i].addEventListener("load", function() {
+    mostrarImagen(this);
+  });
+}
+
+
+
+function mostrarImagenAnterior() {
+    if (imagenIndex > 0) {
+        mostrarImagen(imagenIndex - 1);
+    }
+}
+
+function mostrarImagenSiguiente() {
+    if (imagenIndex < imagenes.length - 1) {
+        mostrarImagen(imagenIndex + 1);
+    }
+}
+
+
+
+ajustarTamaño.addEventListener('mousedown', () => {
+    isDragging = true;
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const newWidth = e.clientX - contenedorImagen.getBoundingClientRect().left;
+        const newHeight = e.clientY - contenedorImagen.getBoundingClientRect().top;
+
+        contenedorImagen.style.width = `${newWidth}px`;
+        contenedorImagen.style.height = `${newHeight}px`;
+    }
+});
+
+let isDraggingImage = false;
+
+contenedorImagen.addEventListener('mousedown', (e) => {
+    isDraggingImage = true;
+    offsetX = e.clientX - contenedorImagen.getBoundingClientRect().left;
+    offsetY = e.clientY - contenedorImagen.getBoundingClientRect().top;
+});
+
+document.addEventListener('mouseup', () => {
+    isDraggingImage = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDraggingImage) {
+        const newLeft = e.clientX - offsetX;
+        const newTop = e.clientY - offsetY;
+
+        contenedorImagen.style.left = `${newLeft}px`;
+        contenedorImagen.style.top = `${newTop}px`;
+    }
+});
+
+contenedorImagen.addEventListener('mousedown', (e) => {
+    isDraggingImage = true;
+    offsetX = e.clientX - contenedorImagen.getBoundingClientRect().left;
+    offsetY = e.clientY - contenedorImagen.getBoundingClientRect().top;
+    contenedorImagen.classList.add('dragging');
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDraggingImage) {
+        contenedorImagen.classList.remove('dragging');
+    }
+    isDraggingImage = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDraggingImage) {
+        const newLeft = e.clientX - offsetX;
+        const newTop = e.clientY - offsetY;
+
+        contenedorImagen.style.left = `${newLeft}px`;
+        contenedorImagen.style.top = `${newTop}px`;
+    }
+});
+
+ajustarTamaño.addEventListener('mousedown', () => {
+    isDragging = true;
+    contenedorImagen.classList.add('dragging');
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        contenedorImagen.classList.remove('dragging');
+    }
+    isDragging = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const newWidth = e.clientX - contenedorImagen.getBoundingClientRect().left;
+        const newHeight = e.clientY - contenedorImagen.getBoundingClientRect().top;
+
+        contenedorImagen.style.width = `${newWidth}px`;
+        contenedorImagen.style.height = `${newHeight}px`;
+    }
+});
+
+
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' && contenedorImagen.style.display === 'block') {
+        limpiarImagen();
+    }
+});
+
+function limpiarImagen() {
+  imagenes.splice(imagenIndex, 1);
+  contenedorImagen.style.display = 'none';
+  if (imagenIndex > 0) {
+    mostrarImagen(imagenIndex - 1);
+  } else if (imagenes.length > 0) {
+    mostrarImagen(0);
+  } else {
+    cambiarColorFondo('#000000'); // Cambiar color de fondo si no hay imágenes
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (contenedorImagen.style.display === 'block') {
+        switch (e.key) {
+            case 'Delete':
+                limpiarImagen();
+                break;
+            case 'ArrowLeft':
+                mostrarImagenAnterior();
+                break;
+            case 'ArrowRight':
+                mostrarImagenSiguiente();
+                break;
+        }
+    }
+});
+
+
+const zoomStep = 0.1; // Puedes ajustar el valor según tu preferencia
+let zoomLevel = 1;
+
+contenedorImagen.addEventListener('wheel', (e) => {
+    e.preventDefault();
+
+    if (e.deltaY < 0) {
+        // Zoom in
+        zoomLevel += zoomStep;
+    } else {
+        // Zoom out
+        zoomLevel -= zoomStep;
+    }
+
+    contenedorImagen.style.transform = `scale(${zoomLevel})`;
+});
+
+
+const botonSubirPDF = document.getElementById('botonSubirPDF');
+const contenedorPDF = document.getElementById('contenedorPDF');
+const inputPDF = document.getElementById('inputPDF');
+const botonCerrarPDF = document.getElementById('botonCerrarPDF');
+const pdfViewer = document.getElementById('pdfViewer');
+
+botonSubirPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'block';
+});
+
+botonCerrarPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'none';
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+function cargarPDF() {
+    const file = inputPDF.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pdfData = e.target.result;
+            pdfViewer.src = pdfData;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+
+contenedorPDF.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        contenedorPDF.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+botonCerrarPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'none';
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+
+
+botonCerrarPDF.addEventListener('click', () => {
+    limpiarPDF();
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+function cargarPDF() {
+    const file = inputPDF.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pdfData = e.target.result;
+            pdfViewer.src = pdfData;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function limpiarPDF() {
+    // Limpiar el visor de PDF
+    pdfViewer.src = '';
+
+    // Ocultar el contenedor de PDF
+    contenedorPDF.style.display = 'none';
+
+    // Salir del modo de pantalla completa si está activo
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+
+    // Limpiar el input de archivo
+    inputPDF.value = '';
+}
+
+
+
+});
+
+
+   
+
+
+ 
+  function toggleMenu() {
+  const menu = document.getElementById('menu');
+  const menuBtn = document.getElementById('menuBtn');
+  const pencilIcon = document.getElementById('pencilIcon');
+
+  // Verifica si el elemento 'menu' existe antes de intentar acceder a sus propiedades
+  if (menu) {
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+      pencilIcon.classList.remove('button-menu-opened');
+    } else {
+      menu.style.display = 'block';
+      pencilIcon.classList.add('button-menu-opened');
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Asigna el evento mousemove al área de dibujo en lugar del botón del menú
+function mostrarImagen(imagen) {
+  // Agrega la imagen al lienzo
+  var canvas = document.getElementById("canvas");
+  canvas.getContext("2d").drawImage(imagen, 0, 0);
+}
+
+// Agrega la imagen al lienzo cuando se completa la carga de la imagen
+var imagenes = document.querySelectorAll("img");
+for (var i = 0; i < imagenes.length; i++) {
+  imagenes[i].addEventListener("load", function() {
+    mostrarImagen(imagen);
+  });
+}
+
+
+// Agrega un nuevo elemento que representa las dimensiones y posición del lienzo
+const lienzoRect = lienzoContenedor.getBoundingClientRect();
+
+// Asigna el evento mousemove al área de dibujo en lugar del botón del menú
+lienzoContenedor.addEventListener('mousemove', mostrarImagen);
+
+function mostrarImagen(imagen) {
+  // Agrega la imagen al lienzo
+  var canvas = document.getElementById("canvas");
+  canvas.getContext("2d").drawImage(imagen, 0, 0);
+}
+
+// Agrega la imagen al lienzo cuando se completa la carga de la imagen
+var imagenes = document.querySelectorAll("img");
+for (var i = 0; i < imagenes.length; i++) {
+  imagenes[i].addEventListener("load", function() {
+    mostrarImagen(imagen);
+  });
+}
+
+
+
+
+// Agrega una nueva función para verificar si el mouse está sobre el lienzo
+function isInCanvas(event) {
+  const rect = lienzo.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  return x >= 0 && x <= lienzo.width && y >= 0 && y <= lienzo.height;
+}
+
+// Actualiza la función mostrarImagen para verificar si el mouse está sobre el lienzo
+function mostrarImagen(event) {
+  // Solo muestra la imagen si no estás sobre el botón del menú y si el mouse está sobre el lienzo
+  if (!isInMenu(event) && isInCanvas(event)) {
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // Muestra la imagen en el contenedor
+    // Puedes personalizar esta lógica según tus necesidades
+    if (imagenes.length > 0) {
+      contenedorImagen.style.left = `${x}px`;
+      contenedorImagen.style.top = `${y}px`;
+      contenedorImagen.style.display = 'block';
+    }
+  }
+}
+
+
+
+
+  </script>
+</body>
+
+</html>

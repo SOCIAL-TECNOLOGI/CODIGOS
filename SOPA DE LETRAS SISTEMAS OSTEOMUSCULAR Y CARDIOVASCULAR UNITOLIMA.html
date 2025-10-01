@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sopa de Letras – Sistema Osteomuscular y Cardiovascular</title>
+ <style>
+  :root {
+    --panel: #111827; --borde: #1f2937; --texto: #e5e7eb; --suave: #9ca3af;
+    --p0: #22d3ee; --p1: #a78bfa; --ok:#34d399; --warn:#f59e0b; --danger:#ef4444;
+    --found-grad: linear-gradient(135deg, rgba(167,139,250,.18), rgba(34,211,238,.18));
+    --select-grad: linear-gradient(135deg, rgba(34,211,238,.35), rgba(52,211,153,.35));
+    --hint-grad: linear-gradient(135deg, rgba(245,158,11,.45), rgba(234,179,8,.35));
+  }
+  body { 
+    margin:0; background:#0b1022; color:var(--texto); 
+    font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial; 
+  }
+  header { padding:20px; }
+  h1 { margin:0 0 6px; font-size:24px; }
+  .sub { margin:0; color:var(--suave); font-size:14px; }
+
+  .envoltorio { display:grid; gap:20px; grid-template-columns:1fr; padding:0 20px 40px; }
+  @media(min-width:980px){ .envoltorio{ grid-template-columns:1fr minmax(340px,460px); } }
+
+  .panel{ 
+    background:rgba(17,24,39,.6); border:1px solid var(--borde); border-radius:14px; 
+    box-shadow:0 10px 30px rgba(0,0,0,.45); backdrop-filter: blur(6px); 
+  }
+  .superior{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--borde); }
+  .controles{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  input[type="text"], input[type="number"]{ 
+    background:#0c1428; border:1px solid var(--borde); color:var(--texto); 
+    padding:6px 10px; border-radius:8px; font-weight:600; 
+  }
+  input[type="number"]{ width:110px; text-align:center; }
+  button{ 
+    border:1px solid var(--borde); background:#0b1224; color:var(--texto); 
+    cursor:pointer; padding:6px 10px; border-radius:8px; font-weight:600; font-size:13px; 
+  }
+
+  .jugadores{ display:flex; gap:8px; flex-wrap:wrap; }
+  .tag{ 
+    padding:4px 8px; border-radius:999px; border:1px solid var(--borde); 
+    display:flex; align-items:center; gap:6px; background:#0b1224; font-weight:700; 
+  }
+  .dot{ width:8px; height:8px; border-radius:50%; }
+  .p0{ color:var(--p0);} .p0 .dot{background:var(--p0);} 
+  .p1{ color:var(--p1);} .p1 .dot{background:var(--p1);} 
+  .turno{ border-color:#334155; box-shadow:0 0 0 2px rgba(255,255,255,.05) inset,0 0 0 4px rgba(34,211,238,.12);} 
+
+  .sopa{ padding:12px; }
+  .grid{ 
+    display:grid; gap:6px; grid-template-columns:repeat(var(--cols),1fr); 
+    max-width:960px; margin:0 auto; touch-action:none; 
+  }
+  .celda{ 
+    aspect-ratio:1/1; display:grid; place-items:center; 
+    border:1px solid rgba(148,163,184,.17); border-radius:8px; 
+    font-weight:800; background:#111827; color:var(--texto); 
+    user-select:none; text-transform:uppercase; 
+  }
+  .celda.seleccion{ background:var(--select-grad); }
+  .celda.acertada{ background:var(--found-grad);} 
+  .celda.acertada.owner0{ box-shadow:inset 0 0 0 2px var(--p0);} 
+  .celda.acertada.owner1{ box-shadow:inset 0 0 0 2px var(--p1);} 
+  .celda.hint{ background:var(--hint-grad); color:#0b1224; }
+
+  .lado{ position:sticky; top:16px; }
+  .lista{ padding:14px 16px; border-bottom:1px solid var(--borde);} 
+  .lista h2{ margin:0 0 8px; font-size:16px;} 
+  .palabras{ display:grid; gap:6px; grid-template-columns:1fr 1fr; } 
+  .palabras button{ 
+    background:#0c1428; border:1px solid rgba(148,163,184,.18); 
+    padding:6px; border-radius:8px; font-size:12px; 
+    display:flex; justify-content:space-between; align-items:center; gap:8px; 
+  }
+  .palabras button .dueno{ font-size:11px; padding:2px 6px; border-radius:999px; border:1px solid #334155; background:#0b1224; }
+  .palabras button.encontrada{ color:#9ef0c6; text-decoration:line-through; }
+  .def-panel{ padding:14px 16px; }
+
+  .hud{ 
+    position:fixed; top:12px; right:12px; z-index:1000; 
+    display:flex; gap:10px; align-items:center; 
+    padding:8px 10px; border-radius:12px; border:1px solid var(--borde); 
+    background:rgba(17,24,39,.8); backdrop-filter:blur(6px);
+  } 
+  .hud .indicadores{ font-size:13px; color:var(--suave);} 
+  .alerta{ font-weight:700; }
+
+/* Forzar texto blanco en HUD */
+.hud .indicadores {
+  color: #ffffff !important; /* siempre blanco */
+}
+
+/* Colores dinámicos de turno en HUD */
+#turnoLbl.turno-p0 {
+  color: var(--p0); /* celeste jugador 1 */
+}
+#turnoLbl.turno-p1 {
+  color: var(--p1); /* morado jugador 2 */
+}
+
+
+
+  /* === Colores dinámicos del cronómetro === */
+  #timerLbl.ok { color: var(--ok); }         /* verde cuando sobra tiempo */
+  #timerLbl.warn { color: var(--warn); }     /* naranja intermedio */
+  #timerLbl.danger { color: var(--danger); } /* rojo crítico */
+
+  /* === Botones con colores vivos === */
+  #btnIniciar {
+    background: #22c55e;     /* verde brillante */
+    border: 1px solid #16a34a;
+    color: #fff;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
+  }
+  #btnIniciar:hover {
+    background: #16a34a;
+    transform: scale(1.05);
+  }
+
+  #btnReiniciar {
+    background: #f97316;     /* naranja */
+    border: 1px solid #ea580c;
+    color: #fff;
+    font-weight: bold;
+  }
+  #btnReiniciar:hover {
+    background: #ea580c;
+  }
+
+  #btnSugerencia {
+    background: #3b82f6;     /* azul */
+    border: 1px solid #2563eb;
+    color: #fff;
+    font-weight: bold;
+  }
+  #btnSugerencia:hover {
+    background: #2563eb;
+  }
+</style>
+
+</head>
+<body>
+  <header>
+    <h1>Sopa de Letras – Sistema Osteomuscular y Cardiovascular</h1>
+    <p class="sub">Encuentra huesos, músculos y partes del sistema cardiovascular. Modo 2 jugadores con puntaje y tiempo.</p>
+  </header>
+
+  <div class="envoltorio">
+    <!-- IZQUIERDA: Tablero y controles -->
+    <section class="panel">
+      <div class="superior">
+        <div class="jugadores">
+          <span class="tag p0" id="tagP0"><span class="dot"></span><span id="nombreP0">Jugador 1</span> · <span id="puntajeP0">0</span></span>
+          <span class="tag p1" id="tagP1"><span class="dot"></span><span id="nombreP1">Jugador 2</span> · <span id="puntajeP1">0</span></span>
+        </div>
+        <div class="controles">
+          <input id="inpP0" type="text" placeholder="Jugador 1"/>
+          <input id="inpP1" type="text" placeholder="Jugador 2"/>
+          <input id="inpTiempo" type="number" min="5" max="120" value="30" title="Segundos por turno"/>
+          <button id="btnIniciar">▶ Iniciar</button>
+          <button id="btnSugerencia">💡 Sugerencia (−1)</button>
+          <button id="btnReiniciar">↻ Reiniciar</button>
+        </div>
+      </div>
+      <div class="sopa"><div id="grid" class="grid" style="--cols:20"></div></div>
+    </section>
+
+    <!-- DERECHA: Lista y definición -->
+    <aside class="panel lado">
+      <div class="lista"><h2>Lista de palabras</h2><div id="listaPalabras" class="palabras"></div></div>
+      <div class="def-panel"><h3>Último hallazgo</h3><div id="defTitulo">—</div><p id="defTexto" class="def-vacio">Busca una palabra…</p></div>
+    </aside>
+  </div>
+
+  <!-- HUD flotante -->
+  <div class="hud">
+    <span class="indicadores" id="contador">Encontradas: 0 / 0</span>
+    <span class="indicadores">Turno: <strong id="turnoLbl">Jugador 1</strong></span>
+    <span class="indicadores">Tiempo: <strong id="timerLbl">00:30</strong></span>
+  </div>
+
+ <script>
+// ===== Palabras + definiciones (Sistema Óseo, Muscular y Cardiovascular) =====
+const definiciones = [
+  { termino: 'FEMUR', definicion: 'Hueso más largo y fuerte del cuerpo humano.' },
+  { termino: 'ESTRIBO', definicion: 'Hueso más pequeño, ubicado en el oído medio.' },
+  { termino: 'COLUMNA', definicion: 'Conjunto de vértebras que protegen la médula espinal.' },
+  { termino: 'BICEPS', definicion: 'Músculo del brazo encargado de la flexión.' },
+  { termino: 'TRICEPS', definicion: 'Músculo del brazo encargado de la extensión.' },
+  { termino: 'CUADRICEPS', definicion: 'Músculo del muslo fundamental para caminar y correr.' },
+  { termino: 'CORAZON', definicion: 'Órgano que bombea la sangre a todo el cuerpo.' },
+  { termino: 'AORTA', definicion: 'Arteria principal que transporta sangre desde el corazón.' },
+  { termino: 'VENACAVA', definicion: 'Vena que transporta la sangre hacia el corazón.' },
+  { termino: 'CAPILARES', definicion: 'Vasos sanguíneos microscópicos donde ocurre el intercambio de gases.' },
+  { termino: 'SANGRE', definicion: 'Tejido líquido que transporta oxígeno y nutrientes.' },
+  { termino: 'PULMONES', definicion: 'Órganos donde ocurre el intercambio de oxígeno y dióxido de carbono.' },
+  { termino: 'MUSCULO', definicion: 'Tejido que permite el movimiento voluntario e involuntario.' },
+  { termino: 'TENDON', definicion: 'Estructura que une músculo con hueso.' },
+  { termino: 'LIGAMENTO', definicion: 'Tejido que conecta huesos entre sí.' }
+];
+
+// ===== Utilidades =====
+const sinAcentos = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const aClave = (s) => sinAcentos(s).toUpperCase().replace(/\s+/g, '');
+const PALABRAS = definiciones.map(d => ({
+  termino: d.termino,
+  clave: aClave(d.termino),
+  definicion: d.definicion
+}));
+
+// ===== Parámetros =====
+const COLS = 20, FILAS = 15;
+const ABC = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+const DIRECCIONES = [
+  {dx: 1, dy: 0}, {dx: -1, dy: 0},
+  {dx: 0, dy: 1}, {dx: 0, dy: -1},
+  {dx: 1, dy: 1}, {dx: -1, dy: -1},
+  {dx: 1, dy: -1}, {dx: -1, dy: 1}
+];
+
+// ===== Estado =====
+let matriz = crearMatriz(FILAS, COLS, '');
+let celdasDOM = [];
+let encontrados = new Set();
+let duenos = new Map();
+let nombres = ['Jugador 1', 'Jugador 2'];
+let puntajes = [0, 0];
+let turno = 0;
+let TURN_TIME = 30;
+let restante = TURN_TIME;
+let timerId = null;
+let seleccionActiva = false;
+let origen = null;
+let destinoActual = null;
+let seleccionRuta = [];
+
+// ===== DOM =====
+const gridEl = document.getElementById('grid');
+const listaEl = document.getElementById('listaPalabras');
+const contadorEl = document.getElementById('contador');
+const defTituloEl = document.getElementById('defTitulo');
+const defTextoEl = document.getElementById('defTexto');
+const tagP0 = document.getElementById('tagP0');
+const tagP1 = document.getElementById('tagP1');
+const nombreP0 = document.getElementById('nombreP0');
+const nombreP1 = document.getElementById('nombreP1');
+const puntajeP0 = document.getElementById('puntajeP0');
+const puntajeP1 = document.getElementById('puntajeP1');
+const turnoLbl = document.getElementById('turnoLbl');
+const timerLbl = document.getElementById('timerLbl');
+const inpP0 = document.getElementById('inpP0');
+const inpP1 = document.getElementById('inpP1');
+const inpTiempo = document.getElementById('inpTiempo');
+const btnIniciar = document.getElementById('btnIniciar');
+const btnReiniciar = document.getElementById('btnReiniciar');
+const btnSugerencia = document.getElementById('btnSugerencia');
+
+// ===== Sonidos =====
+let audioCtx = null;
+function beep(ok=true){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = ok? 'triangle':'sawtooth';
+    o.frequency.value = ok? 880 : 220;
+    g.gain.value = 0.001;
+    o.connect(g); g.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    g.gain.exponentialRampToValueAtTime(0.08, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + (ok?0.25:0.45));
+    o.start(); o.stop(now + (ok?0.28:0.48));
+  }catch(e){}
+}
+
+// ===== Inicio =====
+document.addEventListener('DOMContentLoaded', init);
+btnReiniciar.addEventListener('click', ()=>nuevaPartida(true));
+btnSugerencia.addEventListener('click', usarSugerencia);
+// Iniciar → solo cronómetro
+btnIniciar.addEventListener('click', ()=>{ detenerTimer(); iniciarTurno(); });
+
+function init(){
+  gridEl.style.setProperty('--cols', COLS);
+  construirLista();
+  nuevaPartida(false);   // genera sopa y tablero al inicio
+  prepararInteraccionPointer();
+}
+
+// ===== Nueva partida (solo para botón Reiniciar o carga inicial) =====
+function nuevaPartida(resetNames = true){
+  if(resetNames){
+    nombres = [inpP0.value?.trim() || 'Jugador 1', inpP1.value?.trim() || 'Jugador 2'];
+    TURN_TIME = Math.max(5, Math.min(120, Number(inpTiempo.value) || 30));
+  }
+  puntajes = [0,0];
+  turno = 0;
+  actualizarUIJugadores();
+  generarSopa();
+  renderGrid();
+  mostrarDefVacia();
+  actualizarContador();
+  detenerTimer(); // dejamos cronómetro parado hasta que se le dé a Iniciar
+}
+
+// ===== UI =====
+function actualizarUIJugadores(){
+  nombreP0.textContent = nombres[0];
+  nombreP1.textContent = nombres[1];
+  puntajeP0.textContent = String(puntajes[0]);
+  puntajeP1.textContent = String(puntajes[1]);
+
+  // Turno en etiquetas de jugadores
+  tagP0.classList.toggle('turno', turno===0);
+  tagP1.classList.toggle('turno', turno===1);
+
+  // Turno en HUD (jugador activo con color)
+  turnoLbl.textContent = nombres[turno];
+  turnoLbl.classList.remove("turno-p0","turno-p1");
+  if(turno===0) turnoLbl.classList.add("turno-p0");
+  else turnoLbl.classList.add("turno-p1");
+}
+
+
+// ===== Matriz / Sopa =====
+function crearMatriz(f,c,val){ return Array.from({length:f},()=>Array.from({length:c},()=>val)); }
+function generarSopa(){
+  matriz = crearMatriz(FILAS, COLS, '');
+  encontrados.clear();
+  duenos.clear();
+  for(const p of PALABRAS){ colocarPalabra(p.clave); }
+  for(let y=0;y<FILAS;y++){
+    for(let x=0;x<COLS;x++){
+      if(!matriz[y][x]) matriz[y][x] = ABC[Math.floor(Math.random()*ABC.length)];
+    }
+  }
+  listaEl.querySelectorAll('button').forEach(b=>{
+    b.classList.remove('encontrada');
+    const chip=b.querySelector('.dueno'); if(chip) chip.remove();
+  });
+}
+function colocarPalabra(pal){
+  const intentosMax = 800;
+  for(let intento=0; intento<intentosMax; intento++){
+    const dir = DIRECCIONES[Math.floor(Math.random()*DIRECCIONES.length)];
+    const minX = dir.dx===-1 ? pal.length-1 : 0;
+    const maxX = dir.dx===1  ? COLS-pal.length : COLS-1;
+    const minY = dir.dy===-1 ? pal.length-1 : 0;
+    const maxY = dir.dy===1  ? FILAS-pal.length : FILAS-1;
+    const x0 = aleatorio(minX, maxX);
+    const y0 = aleatorio(minY, maxY);
+    if(cabe(pal,x0,y0,dir.dx,dir.dy)){
+      for(let i=0;i<pal.length;i++){
+        const x=x0+i*dir.dx, y=y0+i*dir.dy;
+        matriz[y][x]=pal[i];
+      }
+      return true;
+    }
+  }
+  // fallback horizontal
+  for(let y=0;y<FILAS;y++){
+    for(let x=0;x<=COLS-pal.length;x++){
+      if(cabe(pal,x,y,1,0)){
+        for(let i=0;i<pal.length;i++) matriz[y][x+i]=pal[i];
+        return true;
+      }
+    }
+  }
+  return false;
+}
+function cabe(pal,x0,y0,dx,dy){
+  for(let i=0;i<pal.length;i++){
+    const x=x0+i*dx, y=y0+i*dy;
+    if(x<0||y<0||x>=COLS||y>=FILAS) return false;
+    const actual = matriz[y][x];
+    if(actual && actual!==pal[i]) return false;
+  }
+  return true;
+}
+function aleatorio(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function renderGrid(){
+  gridEl.innerHTML='';
+  celdasDOM = [];
+  for(let y=0;y<FILAS;y++){
+    for(let x=0;x<COLS;x++){
+      const div=document.createElement('div');
+      div.className='celda';
+      div.textContent = matriz[y][x];
+      div.dataset.x=x; div.dataset.y=y;
+      gridEl.appendChild(div);
+      celdasDOM.push(div);
+    }
+  }
+}
+function construirLista(){
+  listaEl.innerHTML='';
+  PALABRAS.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.type='button'; btn.dataset.clave=p.clave; btn.title=p.definicion;
+    btn.innerHTML = `<span>${p.termino}</span>`;
+    btn.addEventListener('click',()=>mostrarDefinicion(p.termino,p.definicion));
+    listaEl.appendChild(btn);
+  });
+}
+function actualizarContador(){ contadorEl.textContent = `Encontradas: ${encontrados.size} / ${PALABRAS.length}`; }
+
+// ===== Interacción =====
+function prepararInteraccionPointer(){
+  gridEl.addEventListener('pointerdown', (e)=>{
+    const cel = e.target;
+    if(!cel.classList.contains('celda')) return;
+    e.preventDefault();
+    limpiarSeleccionTemporal();
+    seleccionActiva = true;
+    origen = { x:+cel.dataset.x, y:+cel.dataset.y };
+    destinoActual = {...origen};
+    construirRuta(origen, destinoActual);
+  });
+  gridEl.addEventListener('pointermove', (e)=>{
+    if(!seleccionActiva) return;
+    const elem = document.elementFromPoint(e.clientX, e.clientY);
+    if(!elem || !elem.classList.contains('celda')) return;
+    destinoActual = { x:+elem.dataset.x, y:+elem.dataset.y };
+    construirRuta(origen, destinoActual);
+  });
+  document.addEventListener('pointerup', ()=>{
+    if(!seleccionActiva) return;
+    const ok = comprobarSeleccion();
+    limpiarSeleccionTemporal();
+    seleccionActiva = false; origen = null; destinoActual = null; seleccionRuta = [];
+    if(!ok){ beep(false); cambiarTurno(); }
+  });
+}
+function construirRuta(o, d){
+  limpiarSeleccionTemporal();
+  seleccionRuta = [];
+  const dxRaw = d.x - o.x;
+  const dyRaw = d.y - o.y;
+  const ax = Math.abs(dxRaw), ay = Math.abs(dyRaw);
+  if(ax===0 && ay===0){
+    seleccionRuta.push({x:o.x, y:o.y});
+    marcarCelda(o.x, o.y, 'seleccion');
+    return;
+  }
+  let sdx = Math.sign(dxRaw), sdy = Math.sign(dyRaw);
+  const diagonal = (ax===ay && ax>0);
+  if(!diagonal){ if(ax>ay){ sdy = 0; } else if(ay>ax){ sdx = 0; } }
+  const pasos = Math.max(ax, ay);
+  for(let i=0;i<=pasos;i++){
+    const xx = o.x + i*sdx;
+    const yy = o.y + i*sdy;
+    if(xx<0||yy<0||xx>=COLS||yy>=FILAS) break;
+    seleccionRuta.push({x:xx, y:yy});
+  }
+  for(const {x,y} of seleccionRuta){ marcarCelda(x,y,'seleccion'); }
+}
+function marcarCelda(x,y,clase){ const idx=y*COLS+x; celdasDOM[idx]?.classList.add(clase); }
+function limpiarSeleccionTemporal(){ celdasDOM.forEach(c=>c.classList.remove('seleccion')); }
+
+// ===== Comprobación =====
+function comprobarSeleccion(){
+  if(seleccionRuta.length<2) return false;
+  const letras = seleccionRuta.map(({x,y})=>matriz[y][x]).join('');
+  const letrasInv = letras.split('').reverse().join('');
+  const match = PALABRAS.find(p=>p.clave===letras || p.clave===letrasInv);
+  if(!match || encontrados.has(match.clave)) return false;
+  for(const {x,y} of seleccionRuta){
+    const idx=y*COLS+x; const cel=celdasDOM[idx];
+    cel.classList.remove('seleccion');
+    cel.classList.add('acertada', `owner${turno}`);
+  }
+  encontrados.add(match.clave); duenos.set(match.clave, turno); puntajes[turno]+=1; beep(true);
+  actualizarUIJugadores(); actualizarContador(); mostrarDefinicion(match.termino, match.definicion); marcarLista(match);
+  if(encontrados.size===PALABRAS.length){ detenerTimer(); anunciarGanador(); }
+  else { iniciarTurno(); }
+  return true;
+}
+function marcarLista(match){
+  const btn = listaEl.querySelector(`button[data-clave="${match.clave}"]`);
+  if(!btn) return; btn.classList.add('encontrada');
+  const chip=document.createElement('span'); chip.className='dueno';
+  chip.style.borderColor=turno===0?'var(--p0)':'var(--p1)';
+  chip.style.color=turno===0?'var(--p0)':'var(--p1)';
+  chip.textContent=nombres[turno];
+  btn.appendChild(chip);
+}
+
+// ===== Cronómetro =====
+function iniciarTurno(){ 
+  detenerTimer(); 
+  restante = TURN_TIME; 
+  actualizarTimerLbl(); 
+  timerId = setInterval(()=>{ 
+    restante -= 1; 
+    actualizarTimerLbl(); 
+    if(restante <= 0){ detenerTimer(); beep(false); cambiarTurno(); } 
+  },1000); 
+}
+function detenerTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
+function actualizarTimerLbl(){
+  const m = String(Math.floor(restante/60)).padStart(2,'0');
+  const s = String(restante%60).padStart(2,'0');
+  timerLbl.textContent = `${m}:${s}`;
+  timerLbl.classList.remove("ok","warn","danger");
+  if(restante > 10){ timerLbl.classList.add("ok"); }
+  else if(restante > 5){ timerLbl.classList.add("warn"); }
+  else { timerLbl.classList.add("danger"); }
+}
+function cambiarTurno(){ turno = 1-turno; actualizarUIJugadores(); iniciarTurno(); }
+
+// ===== Definiciones =====
+function mostrarDefinicion(titulo,texto){ defTituloEl.textContent=titulo; defTextoEl.textContent=texto; defTextoEl.classList.remove('def-vacio'); }
+function mostrarDefVacia(){ defTituloEl.textContent='—'; defTextoEl.textContent='Busca una palabra…'; defTextoEl.classList.add('def-vacio'); }
+
+// ===== Sugerencia =====
+function usarSugerencia(){
+  const pendientes = PALABRAS.filter(p=>!encontrados.has(p.clave));
+  if(pendientes.length===0) return;
+  const target = pendientes[Math.floor(Math.random()*pendientes.length)];
+  const pos = localizarPalabra(target.clave);
+  if(!pos) return;
+  const idx = pos.y*COLS + pos.x;
+  const cel=celdasDOM[idx];
+  cel.classList.add('hint');
+  setTimeout(()=>cel.classList.remove('hint'),2000);
+  puntajes[turno] = Math.max(0, puntajes[turno]-1);
+  actualizarUIJugadores();
+}
+function localizarPalabra(clave){
+  const L = clave.length;
+  for(let y=0;y<FILAS;y++){
+    for(let x=0;x<COLS;x++){
+      for(const d of DIRECCIONES){
+        let ok=true;
+        for(let i=0;i<L;i++){
+          const xx=x+i*d.dx, yy=y+i*d.dy;
+          if(xx<0||yy<0||xx>=COLS||yy>=FILAS){ ok=false; break;}
+          if(matriz[yy][xx]!==clave[i]){ ok=false; break; }
+        }
+        if(ok) return {x,y,dx:d.dx,dy:d.dy};
+      }
+    }
+  }
+  return null;
+}
+function anunciarGanador(){
+  const [p0,p1] = puntajes;
+  const msg = p0===p1 ? '¡Empate!' : (p0>p1 ? `${nombres[0]} gana 🎉` : `${nombres[1]} gana 🎉`);
+  alert(msg);
+}
+actualizarContador();
+</script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potenciación – Nivel 2</title>
+<style>
+  body {
+    background:#0f172a; color:white; font-family:Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100vh; margin:0;
+  }
+  h1 { margin-bottom:20px; color:#22d3ee; }
+  #potencia {
+    font-size:60px; margin:20px; position:relative;
+  }
+  sup { font-size:40px; color:#facc15; }
+
+  .area {
+    margin:15px; padding:15px; border:2px dashed #64748b; border-radius:6px;
+    min-width:320px; min-height:80px; display:flex; gap:10px; justify-content:center; align-items:center;
+    font-size:22px; flex-wrap:wrap; text-align:center;
+  }
+  .label {
+    padding:10px 18px; background:#3b82f6; border-radius:8px;
+    cursor:grab; font-weight:bold; font-size:22px; user-select:none;
+  }
+  .symbol {
+    font-size:24px; font-weight:bold; color:#facc15;
+    display:flex; align-items:center;
+  }
+  #feedback { margin-top:20px; font-size:20px; text-align:center; }
+   button{
+    margin-top:16px; padding:10px 18px; font-size:18px; font-weight:800; cursor:pointer;
+    border-radius:10px; border:1px solid #0ea5b0; background:#22d3ee; color:#00212a;
+  }
+  button:hover{filter:brightness(1.05)}
+#feedback {
+  margin-top:20px;
+  font-size:20px;
+  text-align:center;
+}
+
+#feedback sup {
+  font-size: 0.8em;       
+  vertical-align: super;  
+  color: #facc15;         
+  margin-left: 2px;
+}
+
+
+
+</style>
+</head>
+<body>
+  <h1>🔢 Juego de Potenciación – Nivel 2</h1>
+  <div id="potencia"></div>
+
+  <div id="zonaMultiplicacion" class="area">Arrastra aquí las fichas</div>
+
+  <div id="labelsContainer" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;"></div>
+
+  <div id="feedback">Arrastra las fichas de la base tantas veces como indica el exponente.</div>
+  <button id="btnNueva">↪  Nueva Potencia</button>
+
+<script>
+
+let base, exp;
+let usadas = []; // historial de potencias usadas
+let todas = [];  // lista con todas las combinaciones posibles
+
+const potEl   = document.getElementById('potencia');
+const labelsC = document.getElementById('labelsContainer');
+const zonaMul = document.getElementById('zonaMultiplicacion');
+const fbEl    = document.getElementById('feedback');
+const btnNew  = document.getElementById('btnNueva');
+
+btnNew.addEventListener('click', nuevaPotencia);
+
+// ✅ Generamos TODAS las combinaciones posibles al inicio
+function generarTodas(){
+  todas = [];
+  for(let b=2;b<=6;b++){
+    for(let e=2;e<=4;e++){
+      todas.push({b,e});
+    }
+  }
+}
+generarTodas();
+
+function nuevaPotencia(){
+  // si ya usamos todas, reiniciar
+  if(usadas.length === todas.length){
+    usadas = [];
+    fbEl.textContent = "🔄 Ya jugaste todas las potencias. Se reinicia la lista.";
+  }
+
+  // elegir una potencia que no esté en usadas
+  let opciones = todas.filter(pe =>
+    !usadas.some(u => u.b===pe.b && u.e===pe.e)
+  );
+  let elegido = opciones[Math.floor(Math.random()*opciones.length)];
+
+  base = elegido.b;
+  exp  = elegido.e;
+  usadas.push(elegido); // guardamos como usada
+
+  potEl.innerHTML = `${base}<sup>${exp}</sup>`;
+  reset();
+  generarFichas();
+}
+
+function reset(){
+  zonaMul.innerHTML = "Arrastra aquí las fichas";
+  labelsC.innerHTML = "";
+  fbEl.textContent = "Arrastra las fichas de la base tantas veces como indica el exponente.";
+}
+
+function generarFichas(){
+  for(let i=0;i<exp;i++){
+    const div = document.createElement('div');
+    div.className='label';
+    div.textContent = String(base);
+    div.draggable = true;
+    div.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text', base);
+      e.dataTransfer.setData('id', setTempId(div));
+    });
+    labelsC.appendChild(div);
+  }
+}
+
+function setTempId(el){
+  if(!el.id){
+    el.id = 'f_'+Math.random().toString(36).slice(2);
+  }
+  return el.id;
+}
+
+zonaMul.addEventListener('dragover', e=> e.preventDefault());
+zonaMul.addEventListener('drop', e=>{
+  e.preventDefault();
+  const val = e.dataTransfer.getData('text');
+  const id  = e.dataTransfer.getData('id');
+  const ficha = document.getElementById(id);
+
+  if(ficha){
+    if(zonaMul.textContent.includes("Arrastra aquí las fichas")){
+      zonaMul.innerHTML = "";
+    }
+    if(zonaMul.querySelectorAll('.label').length>0){
+      const symbol = document.createElement('div');
+      symbol.className='symbol';
+      symbol.textContent="×";
+      zonaMul.appendChild(symbol);
+    }
+    zonaMul.appendChild(ficha);
+  }
+
+  if(zonaMul.querySelectorAll('.label').length===exp){
+    mostrarResultado();
+  }
+});
+
+function mostrarResultado(){
+  let valor = Math.pow(base,exp);
+
+  zonaMul.innerHTML = "";
+  Array(exp).fill(0).forEach((_,i)=>{
+    if(i>0){
+      const symbol = document.createElement('div');
+      symbol.className='symbol';
+      symbol.textContent="×";
+      zonaMul.appendChild(symbol);
+    }
+    const ficha = document.createElement('div');
+    ficha.className='label correct';
+    ficha.textContent = String(base);
+    zonaMul.appendChild(ficha);
+  });
+  const igual = document.createElement('div');
+  igual.className='symbol'; igual.textContent="=";
+  zonaMul.appendChild(igual);
+
+  const res = document.createElement('div');
+  res.className='label'; res.style.background="#16a34a";
+  res.textContent = valor;
+  zonaMul.appendChild(res);
+
+  fbEl.innerHTML = `🎉 ¡Excelente! ${base}<sup>${exp}</sup> = ${valor}`;
+}
+
+nuevaPotencia();
+
+
+</script>
+
+</body>
+</html>

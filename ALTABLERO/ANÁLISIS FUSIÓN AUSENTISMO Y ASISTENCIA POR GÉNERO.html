@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gráficos de Asistencia y Ausentismo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container1, #chart-container2 {
+            width: 80%;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>Gráficos de Asistencia y Ausentismo</h2>
+    <textarea id="dataInput" placeholder="Pega la información aquí..."></textarea>
+    
+    <div id="chart-container1">
+        <button onclick="crearGraficoPorFecha()">Crear Gráfico por Fecha</button>
+        <canvas id="myChart1"></canvas>
+        <button id="downloadBtn1" onclick="descargarGrafico('myChart1', 'grafico_por_fechas')">Descargar Gráfico</button>
+    </div>
+
+    <div id="chart-container2">
+        <button onclick="crearGraficoComparativo()">Crear Gráfico Comparativo</button>
+        <canvas id="myChart2"></canvas>
+        <button id="downloadBtn2" style="display: none;" onclick="descargarGrafico('myChart2', 'grafico_comparativo')">Descargar Gráfico Comparativo</button>
+    </div>
+
+    <div id="tablaContainer">
+        <h3>Comparativo de Asistencia y Ausentismo por Género (%)</h3>
+        <table id="tablaGenero">
+            <tr>
+                <th></th>
+                <th>Ausentismo (%)</th>
+                <th>Asistencia (%)</th>
+            </tr>
+            <tr>
+                <td>Hombres</td>
+                <td id="ausentismoHombres"></td>
+                <td id="asistenciaHombres"></td>
+            </tr>
+            <tr>
+                <td>Mujeres</td>
+                <td id="ausentismoMujeres"></td>
+                <td id="asistenciaMujeres"></td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        let myChart1, myChart2; // Variables globales para almacenar los gráficos
+
+        function crearGraficoPorFecha() {
+            resetearDescargas();
+            
+            // Obtener los datos del textarea
+            let inputData = document.getElementById('dataInput').value.trim();
+            let rows = inputData.split('\n');
+
+            // Eliminar la primera fila que es el encabezado
+            rows.shift();
+
+            // Preparar arrays para almacenar datos
+            let fechas = [];
+            let ausentismoMasculino = [];
+            let asistenciaMasculina = [];
+            let ausentismoFemenino = [];
+            let asistenciaFemenina = [];
+
+            // Recorrer cada fila de datos
+            rows.forEach(row => {
+                let cols = row.split('\t');
+                fechas.push(cols[0]);
+                ausentismoMasculino.push(parseFloat(cols[1]));
+                asistenciaMasculina.push(parseFloat(cols[2]));
+                ausentismoFemenino.push(parseFloat(cols[3]));
+                asistenciaFemenina.push(parseFloat(cols[4]));
+            });
+
+            // Calcular totales para cada fecha
+            let totalMasculino = ausentismoMasculino.map((value, index) => value + asistenciaMasculina[index]);
+            let totalFemenino = ausentismoFemenino.map((value, index) => value + asistenciaFemenina[index]);
+
+            // Crear datasets para Chart.js
+            let datasets = [{
+                label: 'Ausentismo Masculino',
+                data: ausentismoMasculino,
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Asistencia Masculina',
+                data: asistenciaMasculina,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Ausentismo Femenino',
+                data: ausentismoFemenino,
+                backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Asistencia Femenina',
+                data: asistenciaFemenina,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }];
+
+            // Crear el gráfico por fecha usando Chart.js
+            let ctx1 = document.getElementById('myChart1').getContext('2d');
+            myChart1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1 // Ajuste para mostrar de 1 en 1 en el eje Y
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Asistencia y Ausentismo por Fecha',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    let datasetLabel = tooltipItem.dataset.label || '';
+                                    let value = tooltipItem.raw.toFixed(2);
+                                    let percentage = ((tooltipItem.raw / (datasetLabel.includes('Masculina') ? totalMasculino[tooltipItem.dataIndex] : totalFemenino[tooltipItem.dataIndex])) * 100).toFixed(2);
+                                    return `${datasetLabel}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mostrar botón de descarga del gráfico por fecha
+            document.getElementById('downloadBtn1').style.display = 'inline-block';
+        }
+
+        // Función para descargar el gráfico
+        function descargarGrafico(chartId, fileName) {
+            // Obtener el canvas del gráfico por su ID
+            let canvas = document.getElementById(chartId);
+            
+            // Crear un enlace para descargar
+            let link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `${fileName}.png`;
+            
+            // Simular clic en el enlace para descargar el archivo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Función para resetear descargas al cambiar datos
+        function resetearDescargas() {
+            // Ocultar botones de descarga al cambiar datos
+            document.getElementById('downloadBtn1').style.display = 'none';
+            document.getElementById('downloadBtn2').style.display = 'none';
+        }
+
+        function crearGraficoComparativo() {
+            resetearDescargas();
+
+            // Obtener los datos del textarea
+            let inputData = document.getElementById('dataInput').value.trim();
+            let rows = inputData.split('\n');
+
+            // Eliminar la primera fila que es el encabezado
+            rows.shift();
+
+            // Preparar arrays para almacenar datos
+            let ausentismoMasculino = [];
+            let asistenciaMasculina = [];
+            let ausentismoFemenino = [];
+            let asistenciaFemenina = [];
+
+            // Recorrer cada fila de datos
+            rows.forEach(row => {
+                let cols = row.split('\t');
+                ausentismoMasculino.push(parseFloat(cols[1]));
+                asistenciaMasculina.push(parseFloat(cols[2]));
+                ausentismoFemenino.push(parseFloat(cols[3]));
+                asistenciaFemenina.push(parseFloat(cols[4]));
+            });
+
+            // Calcular totales para hombres y mujeres
+            let totalAusentismoHombres = ausentismoMasculino.reduce((a, b) => a + b, 0);
+            let totalAsistenciaHombres = asistenciaMasculina.reduce((a, b) => a + b, 0);
+            let totalAusentismoFemenino = ausentismoFemenino.reduce((a, b) => a + b, 0);
+            let totalAsistenciaFemenino = asistenciaFemenina.reduce((a, b) => a + b, 0);
+
+            // Calcular porcentajes
+            let totalHombres = totalAusentismoHombres + totalAsistenciaHombres;
+            let totalMujeres = totalAusentismoFemenino + totalAsistenciaFemenino;
+
+            let ausentismoHombresPorcentaje = (totalAusentismoHombres / totalHombres * 100).toFixed(2);
+            let asistenciaHombresPorcentaje = (totalAsistenciaHombres / totalHombres * 100).toFixed(2);
+            let ausentismoMujeresPorcentaje = (totalAusentismoFemenino / totalMujeres * 100).toFixed(2);
+            let asistenciaMujeresPorcentaje = (totalAsistenciaFemenino / totalMujeres * 100).toFixed(2);
+
+            // Mostrar resultados en la tabla
+            document.getElementById('ausentismoHombres').textContent = ausentismoHombresPorcentaje + '%';
+            document.getElementById('asistenciaHombres').textContent = asistenciaHombresPorcentaje + '%';
+            document.getElementById('ausentismoMujeres').textContent = ausentismoMujeresPorcentaje + '%';
+            document.getElementById('asistenciaMujeres').textContent = asistenciaMujeresPorcentaje + '%';
+
+            // Crear datasets para Chart.js
+            let datasets = [{
+                label: 'Ausentismo Masculino',
+                data: [ausentismoHombresPorcentaje],
+                backgroundColor: ['rgba(255, 99, 132, 0.5)'],
+                borderColor: ['rgba(255, 99, 132, 1)'],
+                borderWidth: 1
+            }, {
+                label: 'Asistencia Masculina',
+                data: [asistenciaHombresPorcentaje],
+                backgroundColor: ['rgba(54, 162, 235, 0.5)'],
+                borderColor: ['rgba(54, 162, 235, 1)'],
+                borderWidth: 1
+            }, {
+                label: 'Ausentismo Femenino',
+                data: [ausentismoMujeresPorcentaje],
+                backgroundColor: ['rgba(255, 206, 86, 0.5)'],
+                borderColor: ['rgba(255, 206, 86, 1)'],
+                borderWidth: 1
+            }, {
+                label: 'Asistencia Femenina',
+                data: [asistenciaMujeresPorcentaje],
+                backgroundColor: ['rgba(75, 192, 192, 0.5)'],
+                borderColor: ['rgba(75, 192, 192, 1)'],
+                borderWidth: 1
+            }];
+
+            // Crear el gráfico comparativo por género usando Chart.js
+            let ctx2 = document.getElementById('myChart2').getContext('2d');
+            myChart2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Género'],
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparativo de Asistencia y Ausentismo por Género (%)',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    let datasetLabel = tooltipItem.dataset.label || '';
+                                    let value = tooltipItem.raw.toFixed(2);
+                                    return `${datasetLabel}: ${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mostrar botón de descarga del gráfico comparativo por género
+            document.getElementById('downloadBtn2').style.display = 'inline-block';
+        }
+    
+    
+    
+    </script>
+</body>
+</html>

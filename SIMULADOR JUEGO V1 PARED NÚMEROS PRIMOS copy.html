@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Invaders 🚀</title>
+<style>
+  body { background:black; color:#fff; font-family:"Press Start 2P",monospace; text-align:center; padding:20px; overflow:hidden; }
+  h1 { color:#00ffcc; text-shadow:2px 2px #ff00ff; }
+
+  /* 🚀 Nave y rayo */
+  .nave { font-size:60px; cursor:pointer; }
+  .nave:hover { transform:scale(1.1); }
+
+  .laser {
+    width: 12px;
+    height: 0;
+    margin: 0 auto;
+    background: linear-gradient(to bottom, #ff00ff, #ff66ff, transparent);
+    box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff33ff;
+    border-radius: 4px;
+    transition: height 0.6s ease-out;
+    filter: blur(1px);
+  }
+
+  /* 🧱 Pared */
+  .pared {
+    margin:20px auto;
+    width:300px; min-height:120px;
+    background:#222;
+    border:4px solid #00ffcc;
+    display:flex; flex-wrap:wrap;
+    gap:10px; justify-content:center; align-items:center;
+    font-size:20px; font-weight:bold;
+    transition:box-shadow 0.3s ease;
+    padding:10px;
+  }
+
+  /* 🧱 Ladrillos */
+  .ladrillo {
+    width:60px; height:34px;
+    border-radius:6px;
+    font-weight:bold; color:black;
+    display:flex; justify-content:center; align-items:center;
+    cursor:grab; position:absolute;
+    animation:flotar 4s infinite alternate;
+    user-select:none;
+  }
+  .paredItem { position:relative; animation:none; cursor:default; }
+  .p2{background:#00ffcc;} .p3{background:#ff00ff;}
+  .p5{background:#ffff00;} .p7{background:#ff6600;}
+
+  @keyframes flotar {
+    from { transform: translateY(0) rotate(0); }
+    to   { transform: translateY(-25px) rotate(8deg); }
+  }
+
+  /* 👽 Marciano */
+  #marciano { margin-top:20px; opacity:0; transition:opacity 0.6s ease; }
+  #marciano.visible{opacity:1;}
+  #fraseMarciano{font-size:14px;color:#00ffcc;text-shadow:1px 1px #ff00ff;}
+</style>
+</head>
+<body>
+  <h1>🚀 Prime Invaders</h1>
+  <div class="nave" onclick="disparar()">🚀</div>
+  <div class="laser" id="laser"></div>
+  <div class="pared" id="pared"></div>
+
+  <div id="marciano"><p id="fraseMarciano"></p></div>
+
+  <!-- 🎵 Sonidos -->
+  <audio id="sndLaser" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="sndExplode" src="https://actions.google.com/sounds/v1/explosions/explosion.ogg"></audio>
+  <audio id="sndPlace" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+<script>
+let numero = 84;
+let factores = [];
+let colocados = {};
+let totalEsperado = 0;
+
+// ✅ Generar factores primos con repetidos
+function factoresPrimos(n){
+  const out=[]; let d=2;
+  while(n>1){
+    while(n%d===0){ out.push(d); n/=d; }
+    d++;
+  }
+  return out;
+}
+
+// ✅ Narrar con voz y texto
+function hablar(texto){
+  document.getElementById("fraseMarciano").textContent = texto;
+  document.getElementById("marciano").classList.add("visible");
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang="es-ES"; voz.pitch=0.7; voz.rate=0.9;
+  speechSynthesis.speak(voz);
+}
+
+// ✅ Cómo narrar potencias
+function narrarPotencia(base,exp){
+  base=parseInt(base);
+  let texto="";
+  if(exp===0) texto=`${base} a la cero es uno`;
+  else if(exp===1) texto=`${base}`;
+  else if(exp===2) texto=`${base} al cuadrado`;
+  else if(exp===3) texto=`${base} al cubo`;
+  else if(exp===4) texto=`${base} a la cuarta`;
+  else if(exp===5) texto=`${base} a la quinta`;
+  else texto=`${base} a la ${exp}`;
+  hablar(texto);
+}
+
+// ✅ Construir expresión final con superíndices
+function expresionConSuperindices(colocados){
+  let out=[];
+  Object.entries(colocados).forEach(([base,exp])=>{
+    out.push(exp>1? `${base}<sup>${exp}</sup>` : `${base}`);
+  });
+  return out.join(" × ");
+}
+
+// ✅ Narración final
+function narrarFinal(colocados, numero){
+  let partes=[];
+  Object.entries(colocados).forEach(([base,exp])=>{
+    base=parseInt(base);
+    if(exp===0) partes.push(`${base} a la cero es uno`);
+    else if(exp===1) partes.push(`${base}`);
+    else if(exp===2) partes.push(`${base} al cuadrado`);
+    else if(exp===3) partes.push(`${base} al cubo`);
+    else if(exp===4) partes.push(`${base} a la cuarta`);
+    else partes.push(`${base} a la ${exp}`);
+  });
+  const frase=`Misión completada: ${partes.join(" por ")} es igual a ${numero}`;
+  hablar(frase);
+  document.getElementById("pared").innerHTML = `¡Misión completada! ${expresionConSuperindices(colocados)} = ${numero}`;
+}
+
+// ✅ Disparo de la nave
+function disparar(){
+  const pared = document.getElementById("pared");
+  const laser = document.getElementById("laser");
+
+  // Reset pared
+  pared.innerHTML="💥";
+  colocados={};
+  setTimeout(()=> pared.innerHTML="",700);
+
+  // Eliminar ladrillos previos
+  document.querySelectorAll(".ladrillo").forEach(l => l.remove());
+
+  // Sonido + rayo
+  document.getElementById("sndLaser").play();
+  laser.style.height="220px";
+
+  setTimeout(()=>{
+    laser.style.height="0";
+    document.getElementById("sndExplode").play();
+
+    // Generar factores flotando
+    factores=factoresPrimos(numero);
+    totalEsperado=factores.length;
+
+    factores.forEach((f,i)=>{
+      const ladrillo=document.createElement("div");
+      ladrillo.classList.add("ladrillo","p"+f);
+      ladrillo.textContent=f;
+      ladrillo.draggable=true;
+      ladrillo.id="l"+i;
+      ladrillo.addEventListener("dragstart",ev=>ev.dataTransfer.setData("text",ladrillo.id));
+      ladrillo.style.left=Math.random()*(window.innerWidth-80)+"px";
+      ladrillo.style.top=Math.random()*(window.innerHeight-150)+"px";
+      document.body.appendChild(ladrillo);
+    });
+
+    // ✅ Narración inicial
+    hablar("Terrícola, arrastra los factores primos a la pared y une los repetidos en potencias.");
+
+  },1000);
+}
+
+// ✅ Pared como zona de drop
+const pared=document.getElementById("pared");
+pared.addEventListener("dragover",ev=>ev.preventDefault());
+pared.addEventListener("drop",soltar);
+
+function soltar(ev){
+  ev.preventDefault();
+  const data=ev.dataTransfer.getData("text");
+  const ladrillo=document.getElementById(data);
+  if(!ladrillo)return;
+
+  const valor=parseInt(ladrillo.textContent);
+  colocados[valor]=(colocados[valor]||0)+1;
+  ladrillo.remove();
+  document.getElementById("sndPlace").play();
+  actualizarPared();
+}
+
+// ✅ Actualizar pared con potencias
+function actualizarPared(){
+  const cont=document.getElementById("pared");
+  cont.innerHTML="";
+  let producto=1;
+  let sumaExps=0;
+
+  Object.entries(colocados).forEach(([base,exp])=>{
+    base=parseInt(base);
+    producto*=Math.pow(base,exp);
+    sumaExps+=exp;
+
+    const brick=document.createElement("div");
+    brick.classList.add("ladrillo","paredItem","p"+base);
+    brick.innerHTML = exp>1 ? `${base}<sup>${exp}</sup>` : base;
+    cont.appendChild(brick);
+
+    // narrar cada vez que se forma o actualiza una potencia
+    narrarPotencia(base,exp);
+  });
+
+  if(sumaExps===totalEsperado){
+    if(producto===numero){
+      narrarFinal(colocados,numero);
+    } else {
+      hablar("Revisa los factores, aún no coincide.");
+    }
+  }
+}
+</script>
+
+
+
+</body>
+</html>

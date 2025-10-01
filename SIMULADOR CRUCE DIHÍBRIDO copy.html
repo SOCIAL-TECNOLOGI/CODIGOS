@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador Genético (Mono, Di, Trihíbrido)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial; padding: 20px; margin: 0;
+      background: #f9f9f9; color: #000;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background: #1e1e1e;
+      color: #f9f9f9;
+    }
+    label, select, input, button { font-size: 16px; margin: 10px; }
+    .cuadro { margin-top: 20px; overflow-x: auto; }
+    table { border-collapse: collapse; margin: 0 auto; }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: center;
+      min-width: 120px;
+      background: inherit;
+      color: inherit;
+    }
+    th { background-color: #eee; }
+    body.dark-mode th {
+      background-color: #333;
+    }
+    .fenotipo {
+      font-weight: bold;
+      color: #2c3e50;
+      text-align: center;
+      margin-top: 10px;
+    }
+    body.dark-mode .fenotipo {
+      color: #ecf0f1;
+    }
+    #graficoFenotipos, #graficoGenotipos {
+      width: 400px;
+      height: 400px;
+      margin: 30px auto;
+      display: block;
+    }
+    .leyenda {
+      text-align: center;
+      font-style: italic;
+      margin-top: 10px;
+    }
+    .btn-descarga {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-descarga:hover {
+      background: #219150;
+    }
+    .btn-toggle-dark {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 12px;
+      background: #34495e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 999;
+    }
+    .btn-toggle-dark:hover {
+      background: #2c3e50;
+    }
+
+#analisisRubrica {
+max-width: 600px;
+margin: 30px auto;
+padding: 20px;
+border-radius: 10px;
+background: #f0f3f4;
+color: #2c3e50;
+}
+body.dark-mode #analisisRubrica {
+background: #2a2a2a;
+color: #ecf0f1;
+}
+
+
+
+
+  </style>
+</head>
+<body>
+
+<button class="btn-toggle-dark" onclick="toggleDarkMode()">🌙</button>
+
+<h1>🧬 Simulador de Cruce Genético</h1>
+
+<label>Tipo de cruce:
+  <select id="tipoCruce" onchange="actualizarSelectores()">
+    <option value="1">Monohíbrido (1 gen)</option>
+    <option value="2" selected>Dihíbrido (2 genes)</option>
+    <option value="3">Trihíbrido (3 genes)</option>
+  </select>
+</label>
+
+<label>Progenitor 1:
+  <input id="gen1" value="BbEe" onchange="actualizarFenotipos()">
+</label>
+
+<label>Progenitor 2:
+  <input id="gen2" value="BbEe" onchange="actualizarFenotipos()">
+</label>
+
+<button onclick="generarCuadro()">🔬 Generar Cruce</button>
+
+<div class="fenotipo" id="fenotipo1"></div>
+<div class="fenotipo" id="fenotipo2"></div>
+
+<div id="exportarContenido">
+  <div class="cuadro" id="cuadro"></div>
+  <canvas id="graficoFenotipos"></canvas>
+  <div class="leyenda" id="leyendaFenotipos"></div>
+  <canvas id="graficoGenotipos"></canvas>
+  <div class="leyenda" id="proporcionClasica"></div>
+</div>
+
+<div id="analisisRubrica"></div>
+<button class="btn-descarga" onclick="exportarComoImagen()">📸 Descargar Resultado como Imagen</button>
+
+<script>
+let chartFenotipo, chartGenotipo;
+
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  if (chartFenotipo || chartGenotipo) generarCuadro();
+}
+
+function actualizarSelectores() {
+  const tipo = parseInt(document.getElementById('tipoCruce').value);
+  const ej = tipo === 1 ? 'Bb' : tipo === 2 ? 'BbEe' : 'BbEeRr';
+  document.getElementById('gen1').value = ej;
+  document.getElementById('gen2').value = ej;
+  actualizarFenotipos();
+  document.getElementById('cuadro').innerHTML = '';
+}
+
+function actualizarFenotipos() {
+  const g1 = document.getElementById('gen1').value;
+  const g2 = document.getElementById('gen2').value;
+  document.getElementById('fenotipo1').innerText = `Genotipo 1: ${g1}`;
+  document.getElementById('fenotipo2').innerText = `Genotipo 2: ${g2}`;
+}
+
+function generarCuadro() {
+  const g1 = document.getElementById('gen1').value.trim();
+  const g2 = document.getElementById('gen2').value.trim();
+  const tipo = parseInt(document.getElementById('tipoCruce').value);
+  const gam1 = obtenerGametas(g1, tipo);
+  const gam2 = obtenerGametas(g2, tipo);
+
+  let html = '<table><tr><th></th>';
+  gam2.forEach(g => html += `<th>${g}</th>`);
+  html += '</tr>';
+
+  let fenotipos = {}, genotipos = {};
+
+  gam1.forEach(gm1 => {
+    html += `<tr><th>${gm1}</th>`;
+    gam2.forEach(gm2 => {
+      const genes = combinarGametas(gm1, gm2);
+      const fenotipo = obtenerFenotipo(genes);
+      fenotipos[fenotipo] = (fenotipos[fenotipo] || 0) + 1;
+      genotipos[genes] = (genotipos[genes] || 0) + 1;
+      html += `<td>${genes}<br><small>${fenotipo}</small></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</table>';
+  document.getElementById('cuadro').innerHTML = html;
+  graficar(fenotipos, genotipos);
+  mostrarProporcionClasica(fenotipos);
+  mostrarRubricaAutomatica(fenotipos);
+}
+
+function obtenerGametas(genotipo, tipo) {
+  const genes = [];
+  for (let i = 0; i < tipo * 2; i += 2) {
+    genes.push([genotipo[i], genotipo[i+1]]);
+  }
+  return combinar(genes);
+}
+
+function combinar(arrays) {
+  return arrays.reduce((acc, curr) => {
+    const res = [];
+    acc.forEach(a => {
+      curr.forEach(b => {
+        res.push(a + b);
+      });
+    });
+    return res;
+  });
+}
+
+function combinarGametas(g1, g2) {
+  let result = '';
+  for (let i = 0; i < g1.length; i += 2) {
+    const par = [g1[i], g2[i], g1[i+1], g2[i+1]].sort();
+    result += par.join('');
+  }
+  return result;
+}
+
+function obtenerFenotipo(genotipo) {
+  const resultado = [];
+  for (let i = 0; i < genotipo.length; i += 2) {
+    const alelos = [genotipo[i], genotipo[i + 1]];
+    const letras = alelos.map(a => a.toUpperCase());
+    const letra = letras[0];
+    const dominante = alelos.some(a => a === letra);
+    resultado.push(dominante ? letra : letra.toLowerCase());
+  }
+  return resultado
+    .map((g, i) => ({ base: g.toUpperCase(), valor: g }))
+    .sort((a, b) => a.base.localeCompare(b.base))
+    .map(e => e.valor)
+    .join(' - ');
+}
+
+function graficar(fenotipos, genotipos) {
+  if (chartFenotipo) chartFenotipo.destroy();
+  if (chartGenotipo) chartGenotipo.destroy();
+
+  const colores = Object.keys(fenotipos).map((_, i) => `hsl(${i * 50}, 60%, 70%)`);
+  const modoOscuro = document.body.classList.contains('dark-mode');
+
+  chartFenotipo = new Chart(document.getElementById('graficoFenotipos'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(fenotipos),
+      datasets: [{ data: Object.values(fenotipos), backgroundColor: colores }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: modoOscuro ? '#fff' : '#000' }
+        },
+        datalabels: {
+          formatter: (val, ctx) => `${val} (${(val * 100 / Object.values(fenotipos).reduce((a,b)=>a+b)).toFixed(1)}%)`,
+          color: '#000000',
+          font: {
+            weight: 'bold'
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  chartGenotipo = new Chart(document.getElementById('graficoGenotipos'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(genotipos),
+      datasets: [{ label: 'Frecuencia de Genotipos', data: Object.values(genotipos), backgroundColor: 'steelblue' }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          color: '#fff', anchor: 'end', align: 'top', font: { weight: 'bold' }
+        }
+      },
+      scales: {
+        x: { ticks: { color: modoOscuro ? '#fff' : '#000' } },
+        y: { beginAtZero: true, ticks: { color: modoOscuro ? '#fff' : '#000' } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  document.getElementById('leyendaFenotipos').innerHTML = `Fenotipos únicos: ${Object.keys(fenotipos).length}`;
+}
+
+function mostrarProporcionClasica(fenotipos) {
+  const valores = Object.values(fenotipos);
+  const total = valores.reduce((a, b) => a + b, 0);
+
+  function mcd(a, b) { return b === 0 ? a : mcd(b, a % b); }
+  const factor = valores.reduce((a, b) => mcd(a, b));
+  const simplificada = valores.map(v => v / factor);
+  const simplificadaOrdenada = [...simplificada].sort((a, b) => b - a).join(':');
+  const original = valores.join(':');
+
+  const clasicas = {
+    '3:1': 'Monohíbrido clásico',
+    '9:3:3:1': 'Dihíbrido clásico',
+    '27:9:9:9:3:3:3:1': 'Trihíbrido clásico'
+  };
+
+  // Ordenar proporciones clásicas también
+  const proporcionesOrdenadas = Object.fromEntries(
+    Object.entries(clasicas).map(([clave, valor]) => {
+      const ordenada = clave.split(':').map(Number).sort((a, b) => b - a).join(':');
+      return [ordenada, valor];
+    })
+  );
+
+  const descripcion = proporcionesOrdenadas[simplificadaOrdenada]
+    ? ` (${proporcionesOrdenadas[simplificadaOrdenada]})` : '';
+
+  document.getElementById('proporcionClasica').innerHTML =
+    `<strong>Proporción real:</strong> ${original}<br>` +
+    `<strong>Proporción simplificada:</strong> ${simplificadaOrdenada}${descripcion}`;
+}
+
+function simplificarYOrdenarProporcion(proporcionStr) {
+  const valores = proporcionStr.split(':').map(Number);
+  function mcd(a, b) { return b === 0 ? a : mcd(b, a % b); }
+  const factor = valores.reduce((a, b) => mcd(a, b));
+  const simplificada = valores.map(v => v / factor);
+  return simplificada.sort((a, b) => b - a).join(':');
+}
+
+
+
+function mostrarRubricaAutomatica(fenotipos) {
+  const tipo = parseInt(document.getElementById('tipoCruce').value);
+  const valores = Object.values(fenotipos);
+  const total = valores.reduce((a, b) => a + b, 0);
+
+  function mcd(a, b) { return b === 0 ? a : mcd(b, a % b); }
+  const factor = valores.reduce((a, b) => mcd(a, b));
+  const simplificadaReal = valores.map(v => v / factor);
+  const simplificadaOrdenada = [...simplificadaReal].sort((a, b) => b - a).join(':');
+  const original = valores.join(':');
+
+  const proporcionesEsperadas = {
+    1: '3:1',
+    2: '9:3:3:1',
+    3: '27:9:9:9:3:3:3:1'
+  };
+
+  const esperadaOrdenada = simplificarYOrdenarProporcion(proporcionesEsperadas[tipo]);
+
+  const encabezados = {
+    1: 'Monohíbrido Aa x Aa',
+    2: 'Dihíbrido AaBb x AaBb',
+    3: 'Trihíbrido AaBbCc x AaBbCc'
+  };
+
+  const esCorrecto = simplificadaOrdenada === esperadaOrdenada;
+  const check = esCorrecto ? '✅' : '❌';
+  const porcentajes = valores.map(v => ((v / total) * 100).toFixed(1) + '%').join(' - ');
+
+  const rubrica = `
+    <h3>✅ Resultado Esperado</h3>
+    <ul>
+      <li><strong>Monohíbrido Aa x Aa</strong><br>✔️ → Proporción real: 3:1</li>
+      <li><strong>Dihíbrido AaBb x AaBb</strong><br>✔️ → Proporción real: 9:3:3:1</li>
+      <li><strong>Trihíbrido AaBbCc x AaBbCc</strong><br>✔️ → Proporción real: 27:9:9:9:3:3:3:1</li>
+    </ul>
+    <hr>
+    <h3>📊 Resultado Obtenido</h3>
+    <strong>${encabezados[tipo]}</strong><br>
+    <strong>Proporción real:</strong> ${original}<br>
+    <strong>Proporción simplificada:</strong> ${simplificadaOrdenada} ${check}<br>
+    <strong>Proporción porcentual:</strong> ${porcentajes}
+  `;
+
+  document.getElementById('analisisRubrica').innerHTML = rubrica;
+}
+
+
+
+</script>
+
+</body>
+</html>

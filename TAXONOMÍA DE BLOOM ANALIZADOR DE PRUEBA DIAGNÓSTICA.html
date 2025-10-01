@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Taxonomía de Bloom</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9fafb; color: #333; }
+  h1 { color: #1d4ed8; }
+  h2 { margin-top: 30px; color: #059669; }
+  input[type="file"], select, button { margin: 10px 0; padding: 6px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; }
+  th { background: #1d4ed8; color: #fff; }
+  .ok { background: #d1fae5; }     
+  .error { background: #fee2e2; }  
+  .alerta { background: #fde68a; } 
+  #chartContainer { margin-top: 30px; max-width: 1000px; }
+</style>
+</head>
+<body>
+
+<h1>📊 Análisis Diagnóstico - Taxonomía de Bloom</h1>
+<p>Sube el archivo Excel con los resultados de la prueba:</p>
+<input type="file" id="inputExcel" accept=".xlsx,.xls" />
+
+<div id="tablaResultados"></div>
+<div id="chartContainer"><canvas id="chartVerbos"></canvas></div>
+<div id="tablaStats"></div>
+<div id="tablaResponses"></div>
+
+<h2>📌 Informe Individual</h2>
+<select id="docenteSelect"><option value="">-- Selecciona un docente --</option></select>
+<div id="informeDocente"></div>
+<button id="btnPDF" style="display:none;">📥 Descargar Informe en PDF</button>
+
+<script>
+// ================== DATA COMPLETA ==================
+const DATA = {
+  saber: {
+    4: ["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3: ["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2: ["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1: ["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4: ["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3: ["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2: ["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1: ["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser: {
+    4: ["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3: ["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2: ["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1: ["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+// Construir diccionario de niveles correctos automáticamente
+let nivelesCorrectos = {};
+for (let dim in DATA) {
+  for (let nivel in DATA[dim]) {
+    DATA[dim][nivel].forEach(v => {
+      nivelesCorrectos[v] = parseInt(nivel);
+    });
+  }
+}
+
+let docentes = [];
+let verbosGlobal = [];
+
+document.getElementById('inputExcel').addEventListener('change', handleFile, false);
+document.getElementById('docenteSelect').addEventListener('change', mostrarInforme);
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const data = new Uint8Array(evt.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+
+    // ---------- SUMMARY REPORT ----------
+    const sheetSummary = workbook.Sheets["Summary Report"];
+    const jsonSummary = XLSX.utils.sheet_to_json(sheetSummary, {header:1});
+    verbosGlobal = [];
+    let porcentajes = {1:[], 2:[], 3:[], 4:[]}, nivelPredominante = [];
+
+    for (let i = 4; i < jsonSummary.length; i++) {
+      const row = jsonSummary[i];
+      if (row && row[1]) {
+        let verbo = row[1].toString().trim();
+        verbosGlobal.push(verbo);
+        let p1 = parseFloat(row[2] || 0), p2 = parseFloat(row[4] || 0),
+            p3 = parseFloat(row[6] || 0), p4 = parseFloat(row[8] || 0);
+        porcentajes[1].push((p1*100).toFixed(1));
+        porcentajes[2].push((p2*100).toFixed(1));
+        porcentajes[3].push((p3*100).toFixed(1));
+        porcentajes[4].push((p4*100).toFixed(1));
+        const niveles = [p1,p2,p3,p4];
+        nivelPredominante.push(niveles.indexOf(Math.max(...niveles)) + 1);
+      }
+    }
+    let html = "<h2>📑 Resultados por Verbo (Summary Report)</h2>";
+    html += "<table><tr><th>Verbo</th><th>Nivel Correcto</th><th>%N1</th><th>%N2</th><th>%N3</th><th>%N4</th><th>Predominante</th></tr>";
+    for (let i = 0; i < verbosGlobal.length; i++) {
+      const correcto = nivelesCorrectos[verbosGlobal[i]] || "-";
+      const pred = nivelPredominante[i];
+      const clase = (pred === correcto) ? "ok" : "error";
+      html += `<tr class="${clase}"><td>${verbosGlobal[i]}</td><td>${correcto}</td>
+        <td>${porcentajes[1][i]}%</td><td>${porcentajes[2][i]}%</td>
+        <td>${porcentajes[3][i]}%</td><td>${porcentajes[4][i]}%</td><td>${pred}</td></tr>`;
+    }
+    html += "</table>";
+    document.getElementById("tablaResultados").innerHTML = html;
+
+    const ctx = document.getElementById("chartVerbos").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: verbosGlobal,
+        datasets: [
+          {label: "Nivel 1", data: porcentajes[1], backgroundColor: "#b91c1c"},
+          {label: "Nivel 2", data: porcentajes[2], backgroundColor: "#d97706"},
+          {label: "Nivel 3", data: porcentajes[3], backgroundColor: "#eab308"},
+          {label: "Nivel 4", data: porcentajes[4], backgroundColor: "#65a30d"}
+        ]
+      },
+      options: { responsive: true, scales: { y: {beginAtZero:true, max:100} } }
+    });
+
+    // ---------- STATISTICS ----------
+    const sheetStats = workbook.Sheets["Statistics"];
+    const jsonStats = XLSX.utils.sheet_to_json(sheetStats, {header:1});
+    let stats = [];
+    for (let i = 4; i < jsonStats.length; i++) {
+      const row = jsonStats[i];
+      if (row && row[1]) {
+        stats.push({ verbo: row[1], mean: row[4], median: row[5], std: row[6], variance: row[7] });
+      }
+    }
+    let htmlStats = "<h2>📊 Análisis Estadístico (Statistics)</h2><table><tr><th>Verbo</th><th>Media</th><th>Mediana</th><th>Desv.Est.</th><th>Varianza</th></tr>";
+    stats.forEach(s => {
+      const clase = (s.std > 1) ? "alerta" : "";
+      htmlStats += `<tr class="${clase}"><td>${s.verbo}</td><td>${s.mean}</td><td>${s.median}</td><td>${s.std}</td><td>${s.variance}</td></tr>`;
+    });
+    htmlStats += "</table>";
+    document.getElementById("tablaStats").innerHTML = htmlStats;
+
+    // ---------- RESPONSES ----------
+    const sheetResponses = workbook.Sheets["Responses"];
+    const jsonResponses = XLSX.utils.sheet_to_json(sheetResponses, {header:1});
+    docentes = [];
+    for (let i = 1; i < jsonResponses.length; i++) {
+      const row = jsonResponses[i];
+      if (row && row[6]) {
+        docentes.push({
+          nombre: row[6], apellidos: row[7], telefono: row[8], correo: row[9],
+          respuestas: row, puntaje: row[80]
+        });
+      }
+    }
+    let htmlResp = "<h2>👩‍🏫 Docentes (Responses)</h2><table><tr><th>Nombre</th><th>Apellidos</th><th>Teléfono</th><th>Correo</th><th>Puntaje</th></tr>";
+    docentes.forEach(d => {
+      const clase = (d.puntaje >= 40) ? "ok" : "error";
+      htmlResp += `<tr class="${clase}"><td>${d.nombre}</td><td>${d.apellidos}</td><td>${d.telefono}</td><td>${d.correo}</td><td>${d.puntaje}</td></tr>`;
+    });
+    htmlResp += "</table>";
+    document.getElementById("tablaResponses").innerHTML = htmlResp;
+
+    // llenar select
+    const select = document.getElementById("docenteSelect");
+    select.innerHTML = "<option value=''>-- Selecciona un docente --</option>";
+    docentes.forEach((d,i)=> select.innerHTML += `<option value="${i}">${d.nombre} ${d.apellidos}</option>`);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function mostrarInforme() {
+  const idx = document.getElementById("docenteSelect").value;
+  if (idx === "") return;
+  const docente = docentes[idx];
+  const promedio = (docentes.reduce((a,b)=>a+b.puntaje,0)/docentes.length).toFixed(1);
+
+  let correctos = [], errados = [];
+  let colInicio = 10; // donde empiezan los verbos en Responses
+  for (let i = 0; i < verbosGlobal.length; i++) {
+    const verbo = verbosGlobal[i];
+    const respuesta = parseInt(docente.respuestas[colInicio+i]);
+    const correcto = nivelesCorrectos[verbo];
+    if (respuesta === correcto) {
+      correctos.push(verbo);
+    } else {
+      errados.push(`${verbo} (marcó ${respuesta}, correcto ${correcto})`);
+    }
+  }
+
+  let html = `<h3>Informe de ${docente.nombre} ${docente.apellidos}</h3>
+  <p><b>Correo:</b> ${docente.correo} | <b>Tel:</b> ${docente.telefono}</p>
+  <p><b>Puntaje:</b> ${docente.puntaje} / 70 (Promedio grupal: ${promedio})</p>
+  <p><b>Verbos Correctos:</b> ${correctos.length}</p>
+  <ul>${correctos.map(v=>`<li>✅ ${v}</li>`).join("")}</ul>
+  <p><b>Verbos Errados:</b> ${errados.length}</p>
+  <ul>${errados.map(v=>`<li>❌ ${v}</li>`).join("")}</ul>`;
+
+  document.getElementById("informeDocente").innerHTML = html;
+  document.getElementById("btnPDF").style.display = "inline-block";
+
+  // Generar PDF
+  document.getElementById("btnPDF").onclick = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Informe de ${docente.nombre} ${docente.apellidos}`, 10, 10);
+    doc.text(`Correo: ${docente.correo} | Tel: ${docente.telefono}`, 10, 20);
+    doc.text(`Puntaje: ${docente.puntaje} / 70 (Promedio grupal: ${promedio})`, 10, 30);
+    doc.text("✅ Verbos Correctos:", 10, 40);
+    correctos.forEach((v,i)=> doc.text(`- ${v}`, 15, 50+i*6));
+    let startY = 50 + correctos.length*6 + 10;
+    doc.text("❌ Verbos Errados:", 10, startY);
+    errados.forEach((v,i)=> doc.text(`- ${v}`, 15, startY+10+i*6));
+    doc.save(`Informe_${docente.nombre}_${docente.apellidos}.pdf`);
+  };
+}
+</script>
+
+</body>
+</html>

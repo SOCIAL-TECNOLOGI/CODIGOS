@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha384-ezjWvZi0yvl7Lw8R6ZNMT5YQZUcRSgqCK5Q/8e6+phLg5I3a8r6YekCE2e1ymk9Y" crossorigin="anonymous">
+    <title>Dibujo de Figuras Geométricas</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #interface-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            border: 1px solid #000;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="interface-container">
+        <button onclick="selectTool('circle')">Círculo</button>
+        <button onclick="selectTool('triangle')">Triángulo</button>
+        <button onclick="selectTool('rectangle')">Rectángulo</button>
+        <button onclick="selectTool('line')">Línea Recta</button>
+        <label for="colorPicker"></label>
+        <input type="color" id="colorPicker" onchange="setColor()">
+        <button onclick="undo()">Borrar</button>
+        <button onclick="clearCanvas()">Limpiar</button>
+        <button onclick="activatePenTool()">Lápiz Digital</button>
+    </div>
+
+    <canvas id="drawingCanvas" width="5000" height="2500"></canvas>
+
+
+    <script>
+        let canvas = document.getElementById("drawingCanvas");
+        let context = canvas.getContext("2d");
+
+        let isDrawing = false;
+        let selectedTool = "circle";
+        let figures = [];
+        let currentFigure = null;
+        let selectedColor = "#000000"; // Color por defecto es negro
+        let isPenActive = false;
+
+        function selectTool(tool) {
+            selectedTool = tool;
+            isPenActive = false;
+        }
+
+        function activatePenTool() {
+            isPenActive = true;
+            selectedTool = "pen";
+        }
+
+        function setColor() {
+            selectedColor = document.getElementById("colorPicker").value;
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            let rect = canvas.getBoundingClientRect();
+            let x = isPenActive ? e.clientX - rect.left : e.clientX;
+            let y = isPenActive ? e.clientY - rect.top : e.clientY;
+
+            // Crear una nueva figura al comenzar a dibujar
+            currentFigure = {
+                tool: selectedTool,
+                color: selectedColor,
+                points: [{ x: x, y: y }]
+            };
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            let rect = canvas.getBoundingClientRect();
+            let x = isPenActive ? e.clientX - rect.left : e.clientX;
+            let y = isPenActive ? e.clientY - rect.top : e.clientY;
+
+            // Limpiar el lienzo antes de dibujar la próxima figura
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar las figuras previas
+            drawPreviousFigures();
+
+            context.beginPath();
+            context.strokeStyle = selectedColor;
+
+            // Dibujar la figura actual
+            drawFigure(currentFigure);
+
+            switch (selectedTool) {
+                case "circle":
+                case "triangle":
+                case "rectangle":
+                case "line":
+                    // Actualizar las coordenadas finales de la figura
+                    currentFigure.endX = x;
+                    currentFigure.endY = y;
+                    // Dibujar la figura actual
+                    drawFigure(currentFigure);
+                    break;
+                case "pen":
+                    currentFigure.points.push({ x: x, y: y });
+                    drawFigure(currentFigure);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                // Almacenar la figura dibujada solo si estamos dibujando
+                figures.push(currentFigure);
+            }
+            isDrawing = false;
+            currentFigure = null;
+        }
+
+        function drawPreviousFigures() {
+            figures.forEach(drawFigure);
+        }
+
+        function drawFigure(figure) {
+            context.beginPath();
+            context.strokeStyle = figure.color;
+
+            switch (figure.tool) {
+                case "circle":
+                    context.arc(figure.points[0].x, figure.points[0].y, calculateRadius(figure), 0, 2 * Math.PI);
+                    context.stroke();
+                    break;
+                case "triangle":
+                    context.moveTo((figure.points[0].x + figure.endX) / 2, figure.points[0].y);
+                    context.lineTo(figure.points[0].x, figure.endY);
+                    context.lineTo(figure.endX, figure.endY);
+                    context.closePath();
+                    context.stroke();
+                    break;
+                case "rectangle":
+                    context.rect(figure.points[0].x, figure.points[0].y, figure.endX - figure.points[0].x, figure.endY - figure.points[0].y);
+                    context.stroke();
+                    break;
+                case "line":
+                    context.moveTo(figure.points[0].x, figure.points[0].y);
+                    context.lineTo(figure.endX, figure.endY);
+                    context.stroke();
+                    break;
+                case "pen":
+                    for (let i = 0; i < figure.points.length - 1; i++) {
+                        context.moveTo(figure.points[i].x, figure.points[i].y);
+                        context.lineTo(figure.points[i + 1].x, figure.points[i + 1].y);
+                        context.stroke();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function calculateRadius(figure) {
+            const dx = figure.endX - figure.points[0].x;
+            const dy = figure.endY - figure.points[0].y;
+            return Math.sqrt(dx ** 2 + dy ** 2);
+        }
+
+        function undo() {
+            // Deshacer la última figura dibujada
+            figures.pop();
+            // Limpiar el lienzo y volver a dibujar las figuras restantes
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawPreviousFigures();
+        }
+
+        function clearCanvas() {
+            // Borrar todo el lienzo
+            figures = [];
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseout", stopDrawing);
+    </script>
+</body>
+
+</html>

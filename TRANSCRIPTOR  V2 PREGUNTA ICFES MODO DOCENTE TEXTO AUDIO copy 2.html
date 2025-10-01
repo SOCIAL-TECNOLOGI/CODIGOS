@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Evaluación Inclusiva ICFES - Docente</title>
+  <style>
+    body{font-family:Arial, sans-serif;background:#f4f4f9;padding:20px;}
+    h2{text-align:center;}
+    .pregunta{background:#fff;padding:20px;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.1);margin-bottom:30px;max-width:850px;}
+    img.preview{max-width:120px;margin-top:8px;border:2px solid #ccc;border-radius:6px;display:none;}
+    textarea{width:100%;min-height:80px;margin-top:10px;padding:8px;font-size:14px;border-radius:6px;border:1px solid #bbb;}
+
+    button,input,select,label.subir{margin:5px;padding:8px 15px;font-size:14px;border:none;border-radius:6px;cursor:pointer;}
+    .btn-voz{background:#2196f3;color:#fff;}         /* Azul por defecto */
+    .btn-voz.reproduciendo{background:#4caf50;}      /* Verde leyendo */
+    .btn-voz.pausado{background:#fbc02d;}            /* Amarillo en pausa */
+    .btn-stop{background:#e53935;color:#fff;}        /* Rojo detener */
+    .btn-procesar{background:#2196f3;color:#fff;}
+    .btn-agregar{background:#673ab7;color:#fff;}
+    .btn-guardar{background:#009688;color:#fff;}
+
+    .opcion{border:1px solid #ddd;padding:10px;margin-top:8px;border-radius:6px;}
+    .subir{display:inline-block;background:#eee;border:2px dashed #bbb;padding:10px;cursor:pointer;text-align:center;width:120px;}
+    .subir:hover{background:#ddd;}
+    .subir span{font-size:20px;color:#666;}
+    input[type="file"].oculto{position:absolute;left:-9999px;opacity:0;width:1px;height:1px;}
+  </style>
+</head>
+<body>
+  <h2>👨‍🏫 MODO DOCENTE - Crear Banco de Preguntas</h2>
+
+  <div id="contenedorPreguntas"></div>
+
+  <button id="btnAgregar" class="btn-agregar">➕ Agregar Pregunta</button>
+  <button id="btnExportarJSON" class="btn-guardar">💾 Exportar Banco (JSON)</button>
+
+  <!-- OCR con Tesseract.js -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+ 
+<script>
+
+let contadorPreguntas = 0;
+let bancoPreguntas = [];
+
+// ================================
+// Controlador de Voz Centralizado
+// ================================
+function createSpeechController(){
+  let utter = null;
+  let state = 'idle';
+  let currentBtn = null;
+  let currentText = '';
+  let lastIndex = 0;  // posición exacta en el texto
+
+  function setBtn(btn, mode){
+    if (!btn) return;
+    btn.classList.remove('reproduciendo','pausado');
+    if (mode==='idle'){ btn.textContent='🔊 Escuchar Pregunta'; }
+    if (mode==='playing'){ btn.textContent='⏸️ Pausar Lectura'; btn.classList.add('reproduciendo'); }
+    if (mode==='paused'){ btn.textContent='▶️ Reanudar Lectura'; btn.classList.add('pausado'); }
+  }
+
+  function startFrom(index){
+    // Asegurar que no cortemos palabra
+    while(index > 0 && currentText[index] !== ' '){
+      index--; 
+    }
+    const slice = currentText.slice(index);
+    if (!slice) { reset(); return; }
+
+    try { speechSynthesis.cancel(); } catch(e){}
+
+    utter = new SpeechSynthesisUtterance(slice);
+    utter.lang = 'es-ES';
+    utter.rate = 1;
+
+    utter.onboundary = e=>{
+      if (typeof e.charIndex === 'number') {
+        lastIndex = index + e.charIndex; // guardamos progreso exacto
+      }
+    };
+
+    utter.onend = ()=>{
+      if (state !== 'paused'){ // terminó lectura completa
+        reset();
+      }
+    };
+
+    speechSynthesis.speak(utter);
+    state = 'playing';
+    setBtn(currentBtn,'playing');
+  }
+
+  function speak(text, btn){
+    if (currentBtn && currentBtn !== btn) setBtn(currentBtn,'idle');
+    currentBtn = btn;
+    currentText = text;
+    lastIndex = 0;
+    startFrom(0);
+  }
+
+  function pause(){
+    if (state === 'playing' && speechSynthesis.speaking){
+      speechSynthesis.pause();
+      state = 'paused';
+      setBtn(currentBtn,'paused');
+    }
+  }
+
+  function resume(){
+    if (state === 'paused'){
+      speechSynthesis.resume();
+
+      // Fallback si el motor no reanuda bien (bug típico de Chrome)
+      setTimeout(()=>{
+        if (!speechSynthesis.speaking){
+          startFrom(lastIndex || 0);
+        } else {
+          state = 'playing';
+          setBtn(currentBtn,'playing');
+        }
+      }, 150);
+    }
+  }
+
+  function stop(){
+    speechSynthesis.cancel();
+    reset();
+  }
+
+  function reset(){
+    utter = null;
+    state = 'idle';
+    lastIndex = 0;
+    if (currentBtn) setBtn(currentBtn,'idle');
+  }
+
+  return {
+    toggle(text, btn){
+      if (currentBtn !== btn || state === 'idle'){ speak(text, btn); return; }
+      if (state === 'playing'){ pause(); return; }
+      if (state === 'paused'){ resume(); return; }
+    },
+    stop
+  };
+}
+
+// ✅ Instancia global del controlador
+const speechController = createSpeechController();
+
+// ================================
+// Construcción de preguntas
+// ================================
+function crearPregunta(datos = null){
+  contadorPreguntas++;
+  const qid = contadorPreguntas;
+
+  const div = document.createElement('div');
+  div.classList.add('pregunta');
+  div.id = 'pregunta'+qid;
+
+  div.innerHTML = `
+    <h3>Pregunta ${qid}</h3>
+    <textarea id="textoPregunta${qid}" placeholder="✍️ Escribe la pregunta (opcional si no subes imagen)">${(datos && datos.texto)?datos.texto:""}</textarea>
+    <label class="subir" for="inputImagen${qid}">📷 <span>Pregunta</span></label>
+    <input class="oculto" type="file" id="inputImagen${qid}" accept="image/*"/>
+    <img id="preview${qid}" class="preview"><br>
+    <button id="btnOCR${qid}" class="btn-procesar">🔍 Procesar Imagen</button>
+    <button id="btnLeer${qid}" class="btn-voz">🔊 Escuchar Pregunta</button>
+    <button id="btnDetener${qid}" class="btn-stop">⏹️ Detener</button>
+
+    <h4>Opciones de Respuesta:</h4>
+    ${['A','B','C','D'].map(op=>`
+      <div class="opcion">
+        <label>Texto opción ${op}:
+          <input type="text" id="texto${op}${qid}" value="${(datos && datos[op])? (datos[op].texto||'') : ''}">
+        </label><br>
+        <label class="subir" for="imagen${op}${qid}">📷 <span>Opción ${op}</span></label>
+        <input class="oculto" type="file" id="imagen${op}${qid}" accept="image/*"/>
+        <img id="preview${op}${qid}" class="preview"
+             src="${(datos && datos[op] && datos[op].imagen)?datos[op].imagen:''}"
+             style="display:${(datos && datos[op] && datos[op].imagen)?'block':'none'};">
+      </div>
+    `).join('')}
+    <label><strong>✅ Respuesta Correcta:</strong></label>
+    <select id="respuestaCorrecta${qid}">
+      <option value="">-- Selecciona --</option>
+      <option value="A" ${(datos && datos.correcta==='A')?'selected':''}>A</option>
+      <option value="B" ${(datos && datos.correcta==='B')?'selected':''}>B</option>
+      <option value="C" ${(datos && datos.correcta==='C')?'selected':''}>C</option>
+      <option value="D" ${(datos && datos.correcta==='D')?'selected':''}>D</option>
+    </select>
+  `;
+
+  document.getElementById('contenedorPreguntas').appendChild(div);
+
+  const textarea = document.getElementById(`textoPregunta${qid}`);
+  const btnLeer = document.getElementById(`btnLeer${qid}`);
+  const btnDetener = document.getElementById(`btnDetener${qid}`);
+  const previewPregunta = document.getElementById(`preview${qid}`);
+  const inputPregunta = document.getElementById(`inputImagen${qid}`);
+  const btnOCR = document.getElementById(`btnOCR${qid}`);
+
+  inputPregunta.addEventListener('change', e=>{
+    const archivo = e.target.files?.[0];
+    if(!archivo) return;
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      previewPregunta.src = ev.target.result;
+      previewPregunta.style.display = 'block';
+    };
+    reader.readAsDataURL(archivo);
+  });
+
+  ['A','B','C','D'].forEach(op=>{
+    const inputOp = document.getElementById(`imagen${op}${qid}`);
+    const prevOp = document.getElementById(`preview${op}${qid}`);
+    inputOp.addEventListener('change', e=>{
+      const archivo = e.target.files?.[0];
+      if(!archivo) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{
+        prevOp.src = ev.target.result;
+        prevOp.style.display = 'block';
+      };
+      reader.readAsDataURL(archivo);
+    });
+  });
+
+  btnOCR.addEventListener('click', async ()=>{
+    if(!previewPregunta.src){ alert('Sube una imagen primero.'); return; }
+    btnOCR.textContent = '⏳ Procesando...';
+    try{
+      const { data:{ text } } = await Tesseract.recognize(previewPregunta.src,'spa');
+      textarea.value = (text||'').trim();
+      alert(`✅ Pregunta ${qid} procesada y transcrita.`);
+    }catch(err){
+      console.error(err);
+      alert('❌ Error en OCR.');
+    }finally{
+      btnOCR.textContent = '🔍 Procesar Imagen';
+    }
+  });
+
+  btnLeer.addEventListener('click', ()=>{
+    const txt = textarea.value.trim();
+    if(!txt){ alert('No hay texto para leer.'); return; }
+    speechController.toggle(txt, btnLeer);
+  });
+
+  btnDetener.addEventListener('click', ()=>{ speechController.stop(); });
+
+  bancoPreguntas.push({
+    id: qid,
+    texto: (datos && datos.texto) ? datos.texto : ''
+  });
+}
+
+// Primera pregunta
+crearPregunta();
+document.getElementById('btnAgregar').addEventListener('click', ()=>crearPregunta());
+
+document.getElementById('btnExportarJSON').addEventListener('click', ()=>{
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(bancoPreguntas,null,2));
+  const a = document.createElement('a');
+  a.href = dataStr;
+  a.download = 'banco_preguntas.json';
+  a.click();
+});
+
+
+</script>
+
+  
+</body>
+</html>

@@ -1,0 +1,753 @@
+User
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lienzo interactivo</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #botonBorrar, #botonBorrarTrazos, #botonFullScreen, #controles {
+            position: fixed;
+            top: 20px;
+        }
+
+        #botonBorrar, #botonBorrarTrazos, #botonFullScreen {
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #botonBorrar {
+            left: 20px;
+            background-color: #4ca3af;
+            color: #ffffff;
+        }
+
+        #botonBorrar:hover {
+            background-color: #45a049;
+        }
+
+        #botonBorrarTrazos {
+            left: 150px;
+            background-color: #4CAF50;
+            color: #ffffff;
+        }
+
+        #botonBorrarTrazos:hover {
+            background-color: #c0392b;
+        }
+
+        #botonFullScreen {
+            left: 250px;
+            background-color: #3498db;
+            color: #ffffff;
+        }
+
+        #botonFullScreen:hover {
+            background-color: #2980b9;
+        }
+
+        #controles {
+            right: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        label {
+            margin-right: 5px;
+        }
+
+        input[type="range"], input[type="color"] {
+            margin-bottom: 10px;
+        }
+
+        #contenedorImagen {
+            position: fixed;
+            top: 50%;
+            left: 70%;
+            transform: translate(-50%, -50%);
+            display: none;
+            max-width: 80%;
+            max-height: 80%;
+        }
+
+
+        #labelSubirImagenes {
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#labelSubirImagenes:hover {
+    background-color: #2980b9;
+}
+
+#inputImagen {
+    display: none; /* Oculta el input original */
+}
+
+
+
+        
+        #imagenActual {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: 1px solid #ccc;
+        }
+
+        #ajustarTamaño {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #3498db;
+            cursor: grab;
+        }
+
+        #ajustarTamaño:active {
+            cursor: grabbing;
+        }
+
+        #contenedorPDF {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+#inputPDF {
+    margin-bottom: 10px;
+}
+
+#pdfViewer {
+    width: 100%;
+    height: 80vh; /* Ajusta la altura según tus necesidades */
+}
+
+
+
+#botonSubirPDF,
+#inputImagen {
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+#botonSubirPDF {
+    background-color: #3498db;
+    color: #ffffff;
+}
+
+#inputImagen {
+    background-color: #2980b9;
+    color: #ffffff;
+}
+
+#botonSubirPDF:hover,
+#inputImagen:hover {
+    background-color: #2980b9;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+    </style>
+   
+<body>
+    <div>
+
+
+
+        
+    </div>
+    
+    <canvas id="lienzo"></canvas>
+    <button id="botonBorrar">Color Fondo</button>
+    <button id="botonBorrarTrazos">Borrar</button>
+    <button id="modoTactil">Modo Táctil</button>
+    <button id="botonFullScreen">
+        <i class="fas fa-expand"></i></button>
+        <button id="botonSubirPDF">Subir PDF</button>
+
+
+        
+
+    <!-- Agrega esto después del botón FullScreen en el cuerpo del documento -->
+    <label for="inputImagen" id="labelSubirImagenes">Subir imágenes</label>
+    <input type="file" id="inputImagen" accept="image/*" multiple>
+    
+    <div id="contenedorImagen">
+        <img id="imagenActual" src="" alt="Imagen">
+        <div id="ajustarTamaño" draggable="true"></div>
+    </div>
+    <button id="botonAnterior">Anterior</button>
+    <button id="botonSiguiente">Siguiente</button>
+
+    <div id="contenedorPDF">
+        <input type="file" id="inputPDF" accept=".pdf">
+        <button id="botonCerrarPDF">Cerrar</button>
+        <iframe id="pdfViewer" frameborder="0"></iframe>
+    </div>
+    
+
+    <div id="controles">
+        <label for="grosor"></label>
+        <input type="range" id="grosor" min="0.2" max="20" value="2">
+        <label for="color"></label>
+        <input type="color" id="color" value="#ffffff">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="script.js"></script>
+
+
+
+
+    
+<SCript>
+let dibujando = false;
+
+const canvas = document.getElementById('lienzo');
+const ctx = canvas.getContext('2d');
+const inputGrosor = document.getElementById('grosor');
+const inputColor = document.getElementById('color');
+const trazos = [];
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight * 20;
+
+function cambiarColorFondo(color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    trazos.forEach(trazo => dibujarTrazo(trazo));
+}
+
+cambiarColorFondo('#000000');  // Establecer color por defecto (negro)
+
+ // Configurar eventos para entrada táctil de la tableta gráfica
+canvas.addEventListener('pointerdown', iniciarDibujo);
+        canvas.addEventListener('pointerup', finalizarDibujo);
+        canvas.addEventListener('pointermove', dibujar);
+        canvas.addEventListener('pointerleave', finalizarDibujo);
+
+        function iniciarDibujo(e) {
+            dibujando = true;
+            const { x, y } = obtenerCoordenadas(e);
+            trazos.push({ color: inputColor.value, grosor: inputGrosor.value, puntos: [{ x, y }] });
+            dibujar(e);
+        }
+
+        
+        function finalizarDibujo() {
+            dibujando = false;
+            ctx.beginPath();
+        }
+
+        function dibujar(e) {
+            if (!dibujando) return;
+
+            const { x, y } = obtenerCoordenadas(e);
+
+            ctx.lineWidth = inputGrosor.value;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = inputColor.value;
+
+            const trazoActual = trazos[trazos.length - 1];
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            trazoActual.puntos.push({ x, y });
+        }
+
+        function obtenerCoordenadas(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+
+        
+
+        function finalizarDibujo() {
+            if (dibujando) {
+                dibujando = false;
+                ctx.beginPath();
+            }
+        }
+
+        function dibujar(e) {
+            if (!dibujando) return;
+
+            const { x, y } = obtenerCoordenadas(e);
+
+            ctx.lineWidth = inputGrosor.value;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = inputColor.value;
+
+            const trazoActual = trazos[trazos.length - 1];
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            trazoActual.puntos.push({ x, y });
+        }
+
+        function obtenerCoordenadas(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+
+function iniciarDibujo(e) {
+    dibujando = true;
+    const { x, y } = obtenerCoordenadas(e);
+    trazos.push({ color: inputColor.value, grosor: inputGrosor.value, puntos: [{ x, y }] });
+    dibujar(e);
+}
+
+function finalizarDibujo() {
+    dibujando = false;
+    ctx.beginPath();
+}
+
+function dibujar(e) {
+    if (!dibujando) return;
+
+    const { x, y } = obtenerCoordenadas(e);
+
+    ctx.lineWidth = inputGrosor.value;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = inputColor.value;
+
+    const trazoActual = trazos[trazos.length - 1];
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    trazoActual.puntos.push({ x, y });
+}
+
+function obtenerCoordenadas(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches && e.touches.length > 0) {
+        return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top
+        };
+    } else {
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+}
+
+
+
+       
+
+
+
+function dibujar(e) {
+    if (!dibujando) return;
+
+    ctx.lineWidth = inputGrosor.value;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = inputColor.value;
+
+    const rect = canvas.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+
+    ctx.lineTo(offsetX, offsetY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(offsetX, offsetY);
+
+    trazos[trazos.length - 1].puntos.push({ x: offsetX, y: offsetY });
+}
+
+function dibujarTrazo(trazo) {
+    ctx.lineWidth = trazo.grosor;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = trazo.color;
+
+    ctx.beginPath();
+    ctx.moveTo(trazo.puntos[0].x, trazo.puntos[0].y);
+
+    for (let i = 1; i < trazo.puntos.length; i++) {
+        ctx.lineTo(trazo.puntos[i].x, trazo.puntos[i].y);
+        ctx.stroke();
+    }
+
+    ctx.closePath();
+}
+
+function borrarTrazos() {
+    trazos.length = 0;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    cambiarColorFondo('#2f5f71');
+}
+
+botonFullScreen.addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        document.documentElement.requestFullscreen();
+    }
+});
+
+botonBorrar.addEventListener('click', () => {
+    const colorAleatorio = '#' + Math.floor(Math.random() * 16777215).toString(16);
+    cambiarColorFondo(colorAleatorio);
+});
+
+botonBorrarTrazos.addEventListener('click', borrarTrazos);
+
+// Establece el nuevo ancho del lienzo, por ejemplo, el doble del ancho actual
+canvas.width = window.innerWidth * 2;
+
+const inputImagen = document.getElementById('inputImagen');
+const contenedorImagen = document.getElementById('contenedorImagen');
+const imagenActual = document.getElementById('imagenActual');
+const ajustarTamaño = document.getElementById('ajustarTamaño');
+const botonAnterior = document.getElementById('botonAnterior');
+const botonSiguiente = document.getElementById('botonSiguiente');
+
+let imagenes = [];
+let imagenIndex = 0;
+
+inputImagen.addEventListener('change', cargarImagen);
+botonAnterior.addEventListener('click', mostrarImagenAnterior);
+botonSiguiente.addEventListener('click', mostrarImagenSiguiente);
+
+function cargarImagen() {
+    imagenes = [];
+    imagenIndex = 0;
+
+    const files = inputImagen.files;
+    if (files) {
+        for (let i = 0; i < files.length; i++) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                imagenes.push(e.target.result);
+                if (i === files.length - 1) {
+                    mostrarImagen(imagenIndex);
+                }
+            };
+            reader.readAsDataURL(files[i]);
+        }
+    }
+}
+
+function mostrarImagen(index) {
+    imagenIndex = index;
+    imagenActual.src = imagenes[index];
+    contenedorImagen.style.display = 'block';
+}
+
+function mostrarImagenAnterior() {
+    if (imagenIndex > 0) {
+        mostrarImagen(imagenIndex - 1);
+    }
+}
+
+function mostrarImagenSiguiente() {
+    if (imagenIndex < imagenes.length - 1) {
+        mostrarImagen(imagenIndex + 1);
+    }
+}
+
+let isDragging = false;
+
+ajustarTamaño.addEventListener('mousedown', () => {
+    isDragging = true;
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const newWidth = e.clientX - contenedorImagen.getBoundingClientRect().left;
+        const newHeight = e.clientY - contenedorImagen.getBoundingClientRect().top;
+
+        contenedorImagen.style.width = `${newWidth}px`;
+        contenedorImagen.style.height = `${newHeight}px`;
+    }
+});
+
+let isDraggingImage = false;
+let offsetX = 0;
+let offsetY = 0;
+
+contenedorImagen.addEventListener('mousedown', (e) => {
+    isDraggingImage = true;
+    offsetX = e.clientX - contenedorImagen.getBoundingClientRect().left;
+    offsetY = e.clientY - contenedorImagen.getBoundingClientRect().top;
+});
+
+document.addEventListener('mouseup', () => {
+    isDraggingImage = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDraggingImage) {
+        const newLeft = e.clientX - offsetX;
+        const newTop = e.clientY - offsetY;
+
+        contenedorImagen.style.left = `${newLeft}px`;
+        contenedorImagen.style.top = `${newTop}px`;
+    }
+});
+
+contenedorImagen.addEventListener('mousedown', (e) => {
+    isDraggingImage = true;
+    offsetX = e.clientX - contenedorImagen.getBoundingClientRect().left;
+    offsetY = e.clientY - contenedorImagen.getBoundingClientRect().top;
+    contenedorImagen.classList.add('dragging');
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDraggingImage) {
+        contenedorImagen.classList.remove('dragging');
+    }
+    isDraggingImage = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDraggingImage) {
+        const newLeft = e.clientX - offsetX;
+        const newTop = e.clientY - offsetY;
+
+        contenedorImagen.style.left = `${newLeft}px`;
+        contenedorImagen.style.top = `${newTop}px`;
+    }
+});
+
+ajustarTamaño.addEventListener('mousedown', () => {
+    isDragging = true;
+    contenedorImagen.classList.add('dragging');
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        contenedorImagen.classList.remove('dragging');
+    }
+    isDragging = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const newWidth = e.clientX - contenedorImagen.getBoundingClientRect().left;
+        const newHeight = e.clientY - contenedorImagen.getBoundingClientRect().top;
+
+        contenedorImagen.style.width = `${newWidth}px`;
+        contenedorImagen.style.height = `${newHeight}px`;
+    }
+});
+
+
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Delete' && contenedorImagen.style.display === 'block') {
+        limpiarImagen();
+    }
+});
+
+function limpiarImagen() {
+    imagenes.splice(imagenIndex, 1);
+    contenedorImagen.style.display = 'none';
+    if (imagenIndex > 0) {
+        mostrarImagen(imagenIndex - 1);
+    } else if (imagenes.length > 0) {
+        mostrarImagen(0);
+    } else {
+        cambiarColorFondo('#000000'); // Cambiar color de fondo si no hay imágenes
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (contenedorImagen.style.display === 'block') {
+        switch (e.key) {
+            case 'Delete':
+                limpiarImagen();
+                break;
+            case 'ArrowLeft':
+                mostrarImagenAnterior();
+                break;
+            case 'ArrowRight':
+                mostrarImagenSiguiente();
+                break;
+        }
+    }
+});
+
+
+const zoomStep = 0.1; // Puedes ajustar el valor según tu preferencia
+let zoomLevel = 1;
+
+contenedorImagen.addEventListener('wheel', (e) => {
+    e.preventDefault();
+
+    if (e.deltaY < 0) {
+        // Zoom in
+        zoomLevel += zoomStep;
+    } else {
+        // Zoom out
+        zoomLevel -= zoomStep;
+    }
+
+    contenedorImagen.style.transform = `scale(${zoomLevel})`;
+});
+
+
+const botonSubirPDF = document.getElementById('botonSubirPDF');
+const contenedorPDF = document.getElementById('contenedorPDF');
+const inputPDF = document.getElementById('inputPDF');
+const botonCerrarPDF = document.getElementById('botonCerrarPDF');
+const pdfViewer = document.getElementById('pdfViewer');
+
+botonSubirPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'block';
+});
+
+botonCerrarPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'none';
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+function cargarPDF() {
+    const file = inputPDF.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pdfData = e.target.result;
+            pdfViewer.src = pdfData;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+
+contenedorPDF.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        contenedorPDF.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+botonCerrarPDF.addEventListener('click', () => {
+    contenedorPDF.style.display = 'none';
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+
+
+botonCerrarPDF.addEventListener('click', () => {
+    limpiarPDF();
+});
+
+inputPDF.addEventListener('change', cargarPDF);
+
+function cargarPDF() {
+    const file = inputPDF.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pdfData = e.target.result;
+            pdfViewer.src = pdfData;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function limpiarPDF() {
+    // Limpiar el visor de PDF
+    pdfViewer.src = '';
+
+    // Ocultar el contenedor de PDF
+    contenedorPDF.style.display = 'none';
+
+    // Salir del modo de pantalla completa si está activo
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    }
+
+    // Limpiar el input de archivo
+    inputPDF.value = '';
+}
+
+// Resto del código...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</SCript>
+       
+</body>
+</html>

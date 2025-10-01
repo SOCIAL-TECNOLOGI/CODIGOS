@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acordeón con Ventanas Emergentes</title>
+<style>
+
+
+  /* Estilos para el contenedor del acordeón */
+  .accordion-container {
+    display: flex;
+    justify-content: center; /* Centrar horizontalmente */
+  }
+
+  /* Estilos para el acordeón */
+  .accordion {
+    max-width: 100%;
+    width: 600px;
+    margin: 0 auto;
+  }
+
+  .accordion-button {
+    background-color: #27AE60; /* Color de fondo personalizado */
+    color: #fff;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%; /* Ancho del contenedor */
+    text-align: left;
+    border: none;
+    outline: none;
+    margin-bottom: 5px; /* Espacio entre las pestañas */
+border-radius: 20px; /* Bordes redondeados */
+  }
+
+  .accordion-button span.arrow {
+    float: left;
+    margin-right: 5px; /* Espacio entre el icono y el texto */
+  }
+
+  .accordion-button.open {
+    background-color: #4E849A; /* Color de fondo cuando está abierta */
+  }
+
+  .panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    text-align: center; /* Centra el contenido horizontalmente */
+  }
+
+  .arrow {
+    float: right;
+  }
+
+  .down {
+    transform: rotate(180deg);
+  }
+
+  /* Estilos para los botones dentro de la pestaña */
+  .panel-button {
+    background-color: #27AE60; /* Color de fondo del botón abrir modal */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 20px; /* Bordes redondeados */
+    margin: 5px; /* Espacio entre los botones */
+  }
+</style>
+
+
+<div class="accordion-container">
+  <div class="accordion">
+    <button class="accordion-button"><span class="arrow">&#9660;</span> REGISTRARSE</button>
+    <div class="panel">
+
+ 
+      <button class="panel-button" onclick="openModal('https://academia.fedusocial.org/session/clase-gratis-aula-los-tutores---academia-fedusocial--2024#/home?source=embed')">Inscribirme en la clase</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Función para abrir la ventana emergente centrada
+  function openModal(url) {
+    var windowWidth = 800; // Ancho deseado de la ventana emergente
+    var windowHeight = 600; // Alto deseado de la ventana emergente
+    var windowFeatures = "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes";
+
+    // Calcular las coordenadas para centrar la ventana emergente
+    var windowLeft = (window.screen.width - windowWidth) / 2;
+    var windowTop = (window.screen.height - windowHeight) / 2;
+
+    // Agregar coordenadas al string de características de la ventana emergente
+    windowFeatures += ",left=" + windowLeft + ",top=" + windowTop + ",width=" + windowWidth + ",height=" + windowHeight;
+
+    // Abrir la ventana emergente
+    window.open(url, "_blank", windowFeatures);
+  }
+
+  // Función para ocultar el contenido de todas las pestañas
+  function hideAllContent() {
+    var allPanels = document.querySelectorAll('.panel');
+    allPanels.forEach(function(panel) {
+      panel.style.maxHeight = null;
+    });
+    var allArrows = document.querySelectorAll('.arrow');
+    allArrows.forEach(function(arrow) {
+      arrow.classList.remove('down');
+    });
+  }
+
+  // Asignar evento a todos los botones de abrir modal dentro del acordeón
+  window.onload = function() {
+    // Ocultar contenido al cargar la página
+    hideAllContent();
+
+    // Agregar funcionalidad al acordeón
+    var accordionButtons = document.querySelectorAll(".accordion-button");
+    accordionButtons.forEach(function(button) {
+      button.addEventListener("click", function() {
+        var panel = this.nextElementSibling;
+        if (panel.style.maxHeight) {
+          panel.style.maxHeight = null;
+          this.querySelector('.arrow').classList.remove('down');
+          this.classList.remove('open'); // Quitar la clase de abierta
+        } else {
+          // Cerrar todas las pestañas antes de abrir una nueva
+          hideAllContent();
+          // Abrir la pestaña clicada
+          panel.style.maxHeight = panel.scrollHeight + "px";
+          this.querySelector('.arrow').classList.add('down');
+          this.classList.add('open'); // Agregar la clase de abierta
+        }
+      });
+    });
+  };
+</script>

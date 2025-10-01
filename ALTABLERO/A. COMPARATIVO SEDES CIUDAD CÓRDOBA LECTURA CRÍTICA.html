@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos de Barras</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        #graficos {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .grafico {
+            width: 45%;
+            margin: 10px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gráficos de Lectura Crítica</h1>
+    <div id="graficos"></div>
+
+    <script>
+        
+        const respuestasCorrectas = {
+    1: 'B', 2: 'B', 3: 'D', 4: 'C', 5: 'B', 6: 'A', 7: 'D', 8: 'A', 9: 'D',
+    10: 'C', 11: 'D', 12: 'B', 13: 'B', 14: 'A'
+};
+
+
+
+     const datosTabla =`Pregunta,Institución,A (Conteo),A (%),B (Conteo),B (%),C (Conteo),C (%),D (Conteo),D (%)
+1,CIUDAD CÓRDOBA - SEDE PRINCIPAL,13,22.00%,31,53.00%,13,22.00%,2,3.00%
+1,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,4,11.00%,28,80.00%,1,3.00%,2,6.00%
+2,CIUDAD CÓRDOBA - SEDE PRINCIPAL,4,7.00%,4,7.00%,10,17.00%,41,69.00%
+2,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,2,6.00%,2,6.00%,5,14.00%,26,74.00%
+3,CIUDAD CÓRDOBA - SEDE PRINCIPAL,6,10.00%,18,31.00%,18,31.00%,17,29.00%
+3,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,7,20.00%,8,23.00%,7,20.00%,13,37.00%
+4,CIUDAD CÓRDOBA - SEDE PRINCIPAL,16,28.00%,14,24.00%,20,34.00%,8,14.00%
+4,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,4,11.00%,16,46.00%,11,31.00%,4,11.00%
+5,CIUDAD CÓRDOBA - SEDE PRINCIPAL,22,38.00%,20,34.00%,4,7.00%,12,21.00%
+5,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,16,46.00%,14,40.00%,0,0.00%,5,14.00%
+6,CIUDAD CÓRDOBA - SEDE PRINCIPAL,20,35.00%,22,39.00%,10,18.00%,5,9.00%
+6,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,23,66.00%,3,9.00%,5,14.00%,4,11.00%
+7,CIUDAD CÓRDOBA - SEDE PRINCIPAL,9,16.00%,12,21.00%,9,16.00%,27,47.00%
+7,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,3,9.00%,6,17.00%,1,3.00%,25,71.00%
+8,CIUDAD CÓRDOBA - SEDE PRINCIPAL,12,22.00%,10,18.00%,15,27.00%,18,33.00%
+8,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,16,46.00%,5,14.00%,5,14.00%,9,26.00%
+9,CIUDAD CÓRDOBA - SEDE PRINCIPAL,12,22.00%,8,15.00%,11,20.00%,24,44.00%
+9,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,6,17.00%,6,17.00%,4,11.00%,19,54.00%
+10,CIUDAD CÓRDOBA - SEDE PRINCIPAL,12,22.00%,14,26.00%,19,35.00%,9,17.00%
+10,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,6,17.00%,2,6.00%,24,69.00%,3,9.00%
+11,CIUDAD CÓRDOBA - SEDE PRINCIPAL,7,13.00%,14,26.00%,18,34.00%,14,26.00%
+11,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,3,9.00%,17,49.00%,9,26.00%,6,17.00%
+12,CIUDAD CÓRDOBA - SEDE PRINCIPAL,9,17.00%,24,45.00%,4,8.00%,16,30.00%
+12,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,4,11.00%,24,69.00%,4,11.00%,3,9.00%
+13,CIUDAD CÓRDOBA - SEDE PRINCIPAL,6,12.00%,12,23.00%,27,52.00%,7,13.00%
+13,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,5,14.00%,17,49.00%,6,17.00%,7,20.00%
+14,CIUDAD CÓRDOBA - SEDE PRINCIPAL,23,45.00%,6,12.00%,3,6.00%,19,37.00%
+14,CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA,18,51.00%,2,6.00%,3,9.00%,12,34.00%`;
+
+    const graficosDiv = document.getElementById('graficos');
+    const filas = datosTabla.trim().split('\n');
+    const encabezados = filas[0].split(',');
+    const preguntas = {};
+
+    // Reemplazo de nombres de instituciones para etiquetas cortas
+
+const nombreInstituciones = {
+    "CIUDAD CÓRDOBA - SEDE PRINCIPAL": "CIUDAD CÓRDOBA - SP",
+    "CIUDAD CÓRDOBA - SEDE ENRIQUE OLAYA HERRERA": "CIUDAD CÓRDOBA - EOH"
+};
+
+for (let i = 1; i < filas.length; i++) {
+    const valores = filas[i].split(',');
+    const pregunta = valores[0];
+    let institucion = nombreInstituciones[valores[1]] || valores[1];
+    const conteos = [parseInt(valores[2]), parseInt(valores[4]), parseInt(valores[6]), parseInt(valores[8])];
+
+    if (!preguntas[pregunta]) {
+        preguntas[pregunta] = {};
+    }
+    preguntas[pregunta][institucion] = conteos;
+}
+
+for (let pregunta in preguntas) {
+    const datosPregunta = preguntas[pregunta];
+    const instituciones = Object.keys(datosPregunta);
+    const opciones = ['A', 'B', 'C', 'D'];
+    const respuesta = respuestasCorrectas[pregunta] || '?';
+
+    const canvasContainer = document.createElement('div');
+    canvasContainer.classList.add('grafico');
+    graficosDiv.appendChild(canvasContainer);
+
+    const tituloPregunta = document.createElement('h2');
+    tituloPregunta.textContent = `Pregunta ${pregunta} - Solución: ${respuesta}`;
+    canvasContainer.appendChild(tituloPregunta);
+
+    const canvas = document.createElement('canvas');
+    canvasContainer.appendChild(canvas);
+
+    const data = {
+        labels: opciones,
+        datasets: instituciones.map((inst, idx) => ({
+            label: inst,
+            data: datosPregunta[inst],
+            backgroundColor: idx === 0 ? '#6EC1E4' : '#F7B7A3'
+        }))
+    };
+
+    new Chart(canvas, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+    
+        const descargarPDF = () => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const graficos = document.querySelectorAll('.grafico canvas');
+    const preguntas = document.querySelectorAll('.grafico h2');
+    const anchoPagina = 210;
+    const altoPagina = 297;
+    const margen = 10;
+
+    const anchoGrafico = (anchoPagina - 3 * margen) / 2;
+    const altoGrafico = (altoPagina - 7 * margen - 40) / 3;
+    const alturaTexto = 6;
+
+    let x = margen;
+    let y = 35;
+    let contador = 0;
+
+    pdf.setFontSize(14);
+    pdf.text('Cuestionario de Lectura Crítica', 105, 20, { align: 'center' });
+
+    graficos.forEach((canvas, index) => {
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        const numeroPregunta = index + 1;
+        const respuesta = respuestasCorrectas[numeroPregunta] || '?';
+        const titulo = `Pregunta ${numeroPregunta} - Solución: ${respuesta}`;
+
+        pdf.setFontSize(9);
+        pdf.text(titulo, x + 2, y - 2);
+        pdf.addImage(imgData, 'PNG', x, y, anchoGrafico, altoGrafico);
+
+        contador++;
+
+        if (contador % 2 === 0) {
+            x = margen;
+            y += altoGrafico + alturaTexto + 5;
+        } else {
+            x += anchoGrafico + margen;
+        }
+
+        if (contador % 6 === 0 && index < graficos.length - 1) {
+            pdf.addPage();
+            y = 35;
+            x = margen;
+            pdf.setFontSize(14);
+            pdf.text('Cuestionario de Lectura Crítica', 105, 20, { align: 'center' });
+        }
+    });
+
+    pdf.save('Cuestionario_de_Lectura_Crítica.pdf');
+};
+
+document.body.insertAdjacentHTML('beforeend', '<button onclick="descargarPDF()">Descargar PDF</button>');
+
+
+
+    </script>
+</body>
+</html>
+
+
+    <script>
+  

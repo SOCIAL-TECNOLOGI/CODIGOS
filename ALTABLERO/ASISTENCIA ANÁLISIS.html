@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gráfico y Tabla de Asistencia y Ausentismo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #chart-container {
+            width: 80%; /* Ajusta el ancho del contenedor del gráfico */
+            margin: 20px auto;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>Gráfico y Tabla de Asistencia y Ausentismo</h2>
+    <textarea id="dataInput" placeholder="Pega la información aquí..."></textarea>
+    <button onclick="crearGrafico()">Crear Gráfico</button>
+    <button id="downloadBtn" style="display: none;" onclick="descargarGrafico()">Descargar Gráfico</button>
+    <div id="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+    <div id="tablaContainer">
+        <h3>Comparativo de Asistencia y Ausentismo por Género (%)</h3>
+        <table id="tablaGenero">
+            <tr>
+                <th></th>
+                <th>Ausentismo (%)</th>
+                <th>Asistencia (%)</th>
+            </tr>
+            <tr>
+                <td>Hombres</td>
+                <td id="ausentismoHombres"></td>
+                <td id="asistenciaHombres"></td>
+            </tr>
+            <tr>
+                <td>Mujeres</td>
+                <td id="ausentismoMujeres"></td>
+                <td id="asistenciaMujeres"></td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        let myChart; // Variable global para almacenar el gráfico
+
+        function crearGrafico() {
+            // Obtener los datos del textarea
+            let inputData = document.getElementById('dataInput').value.trim();
+            let rows = inputData.split('\n');
+
+            // Eliminar la primera fila que es el encabezado
+            rows.shift();
+
+            // Preparar arrays para almacenar datos
+            let ausentismoMasculino = [];
+            let asistenciaMasculina = [];
+            let ausentismoFemenino = [];
+            let asistenciaFemenina = [];
+
+            // Recorrer cada fila de datos
+            rows.forEach(row => {
+                let cols = row.split('\t');
+                ausentismoMasculino.push(parseFloat(cols[1]));
+                asistenciaMasculina.push(parseFloat(cols[2]));
+                ausentismoFemenino.push(parseFloat(cols[3]));
+                asistenciaFemenina.push(parseFloat(cols[4]));
+            });
+
+            // Calcular totales para hombres y mujeres
+            let totalAusentismoHombres = ausentismoMasculino.reduce((a, b) => a + b, 0);
+            let totalAsistenciaHombres = asistenciaMasculina.reduce((a, b) => a + b, 0);
+            let totalAusentismoMujeres = ausentismoFemenino.reduce((a, b) => a + b, 0);
+            let totalAsistenciaMujeres = asistenciaFemenina.reduce((a, b) => a + b, 0);
+
+            // Calcular porcentajes
+            let totalHombres = totalAusentismoHombres + totalAsistenciaHombres;
+            let totalMujeres = totalAusentismoMujeres + totalAsistenciaMujeres;
+            let porcentajeAusentismoHombres = ((totalAusentismoHombres / totalHombres) * 100).toFixed(2);
+            let porcentajeAsistenciaHombres = ((totalAsistenciaHombres / totalHombres) * 100).toFixed(2);
+            let porcentajeAusentismoMujeres = ((totalAusentismoMujeres / totalMujeres) * 100).toFixed(2);
+            let porcentajeAsistenciaMujeres = ((totalAsistenciaMujeres / totalMujeres) * 100).toFixed(2);
+
+            // Mostrar resultados en la tabla
+            document.getElementById('ausentismoHombres').textContent = `${porcentajeAusentismoHombres}%`;
+            document.getElementById('asistenciaHombres').textContent = `${porcentajeAsistenciaHombres}%`;
+            document.getElementById('ausentismoMujeres').textContent = `${porcentajeAusentismoMujeres}%`;
+            document.getElementById('asistenciaMujeres').textContent = `${porcentajeAsistenciaMujeres}%`;
+
+            // Crear el gráfico usando Chart.js
+            let ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Hombres', 'Mujeres'],
+                    datasets: [{
+                        label: 'Ausentismo Hombres',
+                        data: [porcentajeAusentismoHombres, 0],
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Asistencia Hombres',
+                        data: [porcentajeAsistenciaHombres, 0],
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Ausentismo Mujeres',
+                        data: [0, porcentajeAusentismoMujeres],
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Asistencia Mujeres',
+                        data: [0, porcentajeAsistenciaMujeres],
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 10, // Ajuste para mostrar de 10 en 10 en el eje Y
+                                callback: function(value) {
+                                    return value + '%'; // Añadir % a los valores del eje Y
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Comparativo de Asistencia y Ausentismo por Género (%)'
+                        }
+                    }
+                }
+            });
+
+            // Mostrar botón de descarga
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+        }
+
+        function descargarGrafico() {
+            // Obtener el canvas del gráfico
+            let canvas = document.getElementById('myChart');
+
+            // Crear un canvas temporal con fondo blanco
+            let tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            let tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Dibujar el gráfico en el canvas temporal
+            tempCtx.drawImage(canvas, 0, 0);
+
+            // Crear un enlace temporal para descargar la imagen
+            let downloadLink = document.createElement('a');
+            downloadLink.href = tempCanvas.toDataURL('image/png');
+            downloadLink.download = 'grafico.png';
+            document.body.appendChild(downloadLink); // Necesario para Firefox
+
+            // Simular clic en el enlace para descargar
+            downloadLink.click();
+
+            // Limpiar el enlace después de la descarga
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potenciación – Paso a Paso</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#0f172a; --borde:#233044; --texto:#e5e7eb;
+    --cel:#22d3ee; --exh:#facc15; --ok:#22c55e; --bad:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:radial-gradient(1200px 800px at 70% -20%, #172033, #0b1220);
+    color:var(--texto); font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+    display:flex; flex-direction:column; align-items:center; padding:24px;
+  }
+  h1{margin:0 0 10px; font-size:28px; color:var(--cel)}
+  #potencia{font-size:68px; margin:10px 0 16px}
+  #potencia sup{font-size:44px; color:var(--exh)}
+  .panel{
+    width:min(980px, 94%); background:rgba(15,23,42,.7); border:1px solid var(--borde);
+    border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,.45); padding:16px; margin-bottom:14px;
+    backdrop-filter: blur(6px);
+  }
+
+  /* Fase base/exponente */
+  .dropzones{display:flex; gap:16px; justify-content:center; flex-wrap:wrap}
+  .dropzone{
+    min-width:160px; min-height:96px; border:2px dashed #334155; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; padding:10px 14px;
+    text-align:center; background:#0b1426; font-size:18px;
+  }
+  .dropzone.correct{border-style:solid; border-color:#14532d; background:#0f1d14}
+  .dropzone.wrong{border-style:solid; border-color:#7f1d1d; background:#1b0f12}
+
+  .labels{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px}
+  .label{
+    background:#1e293b; border:1px solid #2a3a59; color:#e5e7eb; font-weight:800;
+    padding:10px 18px; border-radius:10px; cursor:grab; font-size:22px; user-select:none;
+  }
+
+  /* Fase multiplicación */
+  #explicacion{font-size:22px; text-align:center; margin:10px 0 6px; display:none}
+  #fichasBase{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0 6px}
+  #multWrap{display:flex; flex-direction:column; align-items:center; gap:10px}
+  #multZone{
+    min-height:70px; min-width:min(520px, 90%); border:2px dashed #334155; border-radius:12px;
+    padding:12px; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px;
+    background:#0b1426; text-align:center; font-size:20px;
+  }
+  #resultado{font-size:22px; margin-top:6px}
+  .token{
+    padding:8px 14px; background:#0e2a3a; border:1px solid #2a3a59; border-radius:10px; font-weight:900;
+    color:#e5e7eb;
+  }
+  .x{opacity:.7; margin:0 6px}
+  #feedback{margin-top:10px; text-align:center}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+  button{
+    margin-top:16px; padding:10px 18px; font-size:18px; font-weight:800; cursor:pointer;
+    border-radius:10px; border:1px solid #0ea5b0; background:#22d3ee; color:#00212a;
+  }
+  button:hover{filter:brightness(1.05)}
+</style>
+</head>
+<body>
+
+  <h1>🔢 Juego de Potenciación – Paso a Paso</h1>
+  <div id="potencia"></div>
+
+  <!-- Fase 1: identificar base y exponente -->
+  <section id="faseBaseExp" class="panel">
+    <div class="dropzones">
+      <div id="baseZone" class="dropzone">Aquí va la <b>Base</b></div>
+      <div id="expZone"  class="dropzone">Aquí va el <b>Exponente</b></div>
+    </div>
+    <div id="labelsContainer" class="labels"></div>
+    <div id="feedback" class="">Arrastra el número correcto a cada recuadro.</div>
+  </section>
+
+  <!-- Fase 2: multiplicación reiterada -->
+  <section id="faseMult" class="panel" style="display:none">
+    <div id="explicacion"></div>
+    <div id="fichasBase"></div>
+    <div id="multWrap">
+      <div id="multZone">Arrastra aquí las fichas de la base repetida</div>
+      <div id="resultado"></div>
+    </div>
+  </section>
+
+  <button id="btnNueva">↪ Nueva Potencia</button>
+
+<script>
+let base, exp;
+let baseOK=false, expOK=false;
+let colocados = 0;          // cuántas fichas ya se soltaron en multZone
+let productoParcial = 1;    // para mostrar cálculo progresivo
+
+const potEl = document.getElementById('potencia');
+const fase1 = document.getElementById('faseBaseExp');
+const fase2 = document.getElementById('faseMult');
+const baseZone = document.getElementById('baseZone');
+const expZone  = document.getElementById('expZone');
+const labels   = document.getElementById('labelsContainer');
+const fichasBase = document.getElementById('fichasBase');
+const multZone = document.getElementById('multZone');
+const explicacion = document.getElementById('explicacion');
+const resultado = document.getElementById('resultado');
+const feedback = document.getElementById('feedback');
+
+document.getElementById('btnNueva').addEventListener('click', nuevaPotencia);
+
+function nuevaPotencia(){
+  // rango didáctico
+  base = Math.floor(Math.random()*8)+2; // 2..9
+  exp  = Math.floor(Math.random()*4)+2; // 2..5
+  potEl.innerHTML = `${base}<sup>${exp}</sup>`;
+  // reset fase 1
+  fase1.style.display = 'block';
+  baseZone.className = 'dropzone'; baseZone.textContent = 'Aquí va la Base';
+  expZone.className  = 'dropzone'; expZone.textContent  = 'Aquí va el Exponente';
+  labels.innerHTML = '';
+  feedback.className=''; feedback.textContent='Arrastra el número correcto a cada recuadro.';
+  baseOK=false; expOK=false;
+
+  // reset fase 2
+  fase2.style.display='none';
+  explicacion.style.display='none'; explicacion.textContent='';
+  fichasBase.innerHTML='';
+  multZone.innerHTML='Arrastra aquí las fichas de la base repetida';
+  resultado.textContent='';
+  colocados=0; productoParcial=1;
+
+  // crea etiquetas para base y exponente (desordenadas)
+  const fichas = [
+    {txt:String(base), tipo:'num-base'},
+    {txt:String(exp),  tipo:'num-exp'}
+  ].sort(()=>Math.random()-0.5);
+
+  fichas.forEach(f=>{
+    const d=document.createElement('div');
+    d.className='label'; d.textContent=f.txt; d.draggable=true; d.dataset.tipo=f.tipo;
+    d.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('tipo', f.tipo);
+      e.dataTransfer.setData('valor', f.txt);
+    });
+    labels.appendChild(d);
+  });
+}
+
+// drop fase 1
+[baseZone,expZone].forEach(zone=>{
+  zone.addEventListener('dragover', e=>e.preventDefault());
+  zone.addEventListener('drop', e=>{
+    e.preventDefault();
+    const tipo = e.dataTransfer.getData('tipo');
+    const val  = e.dataTransfer.getData('valor');
+
+    if(zone===baseZone){
+      if(tipo==='num-base'){
+        zone.textContent = val; zone.className='dropzone correct'; baseOK=true;
+        feedback.textContent='✅ Muy bien, esa es la BASE.'; feedback.className='ok';
+      }else{
+        zone.className='dropzone wrong'; feedback.textContent='❌ Ese número no es la base.'; feedback.className='bad';
+      }
+    }else{
+      if(tipo==='num-exp'){
+        zone.textContent = val; zone.className='dropzone correct'; expOK=true;
+        feedback.textContent='✅ Correcto, ese es el EXPONENTE.'; feedback.className='ok';
+      }else{
+        zone.className='dropzone wrong'; feedback.textContent='❌ Ese número no es el exponente.'; feedback.className='bad';
+      }
+    }
+
+    if(baseOK && expOK){ mostrarFaseMult(); }
+  });
+});
+
+function mostrarFaseMult(){
+  // ocultar fase 1, mostrar fase 2
+  fase1.style.display='none';
+  fase2.style.display='block';
+
+  // explicación y fichas repetidas de la base
+  explicacion.style.display='block';
+  explicacion.textContent = `Esto significa multiplicar ${base} por sí mismo ${exp} ${exp===1?'vez':'veces'}:`;
+
+  // crear exactamente "exp" fichas de la base en un contenedor propio (visible)
+  fichasBase.innerHTML='';
+  for(let i=0;i<exp;i++){
+    const f=document.createElement('div');
+    f.className='label';
+    f.textContent=String(base);
+    f.draggable=true;
+    f.dataset.tipo='repetida';
+    f.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('tipo','repetida');
+      e.dataTransfer.setData('valor', String(base));
+      // para poder eliminar la ficha al soltarla
+      e.dataTransfer.setData('id', String(Date.now()+i));
+      f.dataset.id = e.dataTransfer.getData('id');
+    });
+    fichasBase.appendChild(f);
+  }
+}
+
+// drop en zona de multiplicación
+multZone.addEventListener('dragover', e=>e.preventDefault());
+multZone.addEventListener('drop', e=>{
+  e.preventDefault();
+  const tipo = e.dataTransfer.getData('tipo');
+  const valor = e.dataTransfer.getData('valor');
+  const id = e.dataTransfer.getData('id');
+
+  if(tipo!=='repetida') return;
+  if(colocados>=exp) return; // no más de las necesarias
+
+  // quitar ficha original para que no la usen dos veces
+  const usada = [...fichasBase.querySelectorAll('.label')].find(n=>n.dataset.id===id);
+  if(usada){ usada.remove(); }
+
+  // construir expresión visual
+  if(multZone.textContent.includes('Arrastra')) multZone.textContent='';
+  if(colocados>0){
+    const times = document.createElement('span'); times.className='x'; times.textContent='×';
+    multZone.appendChild(times);
+  }
+  const tok = document.createElement('span'); tok.className='token'; tok.textContent=valor;
+  multZone.appendChild(tok);
+
+  // actualizar parciales
+  productoParcial *= base;
+  colocados++;
+
+  // si ya están todas las fichas, mostrar resultado + potencia
+  if(colocados===exp){
+    const igual = document.createElement('span'); igual.className='x'; igual.textContent=' = ';
+    multZone.appendChild(igual);
+
+    const res = document.createElement('span'); res.className='token'; res.textContent = String(productoParcial);
+    multZone.appendChild(res);
+
+    resultado.innerHTML = `✅ Resultado: <b>${Array(exp).fill(base).join(' × ')}</b> = <b>${productoParcial}</b> → <b>${base}<sup>${exp}</sup></b>`;
+    resultado.className='ok';
+  }else{
+    resultado.innerHTML = `Progreso: <b>${Array(colocados).fill(base).join(' × ')}</b>${colocados<exp?' …':''}`;
+    resultado.className='';
+  }
+});
+
+nuevaPotencia();
+</script>
+</body>
+</html>
