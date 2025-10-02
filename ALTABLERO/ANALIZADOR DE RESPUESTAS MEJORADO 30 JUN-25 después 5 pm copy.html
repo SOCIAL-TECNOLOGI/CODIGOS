@@ -124,6 +124,51 @@
         color: #333;
     }
 
+/* Fondo oscuro semitransparente */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1000; 
+  left: 0;
+  top: 0;
+  width: 100%; 
+  height: 100%; 
+  background-color: rgba(0,0,0,0.5);
+}
+
+/* Caja centrada */
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border: 2px solid #888;
+  border-radius: 8px;
+  width: 70%;
+  max-width: 700px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Botón de cierre (X) */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover { color: #000; }
+
+/* Estilo del bloque de ejemplo */
+#exampleData {
+  text-align: left;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
+}
 
 
 
@@ -167,6 +212,30 @@
     <button onclick="downloadChartAsImage()">Descargar Gráfico de Barras</button>
     <button onclick="createDoughnutChart()">Crear Gráfico Circular</button>
     <button onclick="downloadDoughnutChartAsImage()">Descargar Gráfico Circular como Imagen</button>
+<button onclick="openExampleModal()">📖 Ver Ejemplo de Datos</button>
+
+<!-- Modal de ejemplo -->
+<div id="exampleModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeExampleModal()">&times;</span>
+    <h3>Ejemplo de Datos a Pegar</h3>
+    <pre id="exampleData">
+Range   Mean   Median   Standard Deviation   Variance
+From    To
+1       10     82,50   83,00   4,75   22,56
+11      20     70,20   71,00   6,40   40,96
+21      30     55,80   56,00   7,10   50,41
+31      40     43,60   44,00   8,30   68,89
+41      50     28,90   29,00   9,50   90,25
+    </pre>
+    <button onclick="copyExample()">📋 Copiar Ejemplo</button>
+  </div>
+</div>
+
+
+
+
+   
 
     <h2>Tabla Generada</h2>
     <table id="data-table">
@@ -212,6 +281,12 @@
 </div>
 
 
+
+
+
+
+
+
 <script>
 
 let currentSortMode = "original";  // original | asc | desc
@@ -243,51 +318,51 @@ function calculateComplexityLevels(meanValues) {
 
 function generateTable() {
     const inputText = document.getElementById("input-text").value.trim();
+    const lines = inputText.split("\n").map(l => l.trim()).filter(l => l.length > 0);
     const tableBody = document.querySelector("#data-table tbody");
     tableBody.innerHTML = "";
+
+    // Ignorar las 2 primeras líneas (encabezados)
+    const dataLines = lines.slice(2);
 
     let nivel1 = 0, nivel2 = 0, nivel3 = 0, nivel4 = 0;
     let questionCount = 0;
     let meanValues = [];
-    const sectionRegex = /Range\s+Mean\s+Median\s+Standard\s+Deviation\s+Variance\s*\nFrom\s+To\s*\n(\d+)\s+(\d+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)/g;
-    let matches;
 
-    while ((matches = sectionRegex.exec(inputText)) !== null) {
-        const [, , , meanStr] = matches;
-        const mean = parseFloat(meanStr.replace(',', '.'));
+    // Primero extraer todos los means
+    dataLines.forEach(line => {
+        const parts = line.split(/\s+/);
+        const mean = parseFloat(parts[2].replace(",", "."));
         meanValues.push(mean);
-    }
+    });
 
+    // Calcular cuartiles
     const { q1, q2, q3 } = calculateComplexityLevels(meanValues);
 
-    sectionRegex.lastIndex = 0;
-    let index = 0;
-    while ((matches = sectionRegex.exec(inputText)) !== null) {
-        const [, , , meanStr, medianStr, stdDevStr, varianceStr] = matches;
-        const mean = parseFloat(meanStr.replace(',', '.'));
-        const median = parseFloat(medianStr.replace(',', '.'));
-        const stdDev = parseFloat(stdDevStr.replace(',', '.'));
-        const variance = parseFloat(varianceStr.replace(',', '.'));
+    // Ahora procesar fila por fila
+    dataLines.forEach((line, i) => {
+        const parts = line.split(/\s+/);
 
+        const mean = parseFloat(parts[2].replace(",", "."));
+        const median = parseFloat(parts[3].replace(",", "."));
+        const stdDev = parseFloat(parts[4].replace(",", "."));
+        const variance = parseFloat(parts[5].replace(",", "."));
 
-if (mean <= q1) {
-    nivel = "Nivel 4"; clase = "nivel-4"; nivel4++;
-} else if (mean <= q2) {
-    nivel = "Nivel 3"; clase = "nivel-3"; nivel3++;
-} else if (mean <= q3) {
-    nivel = "Nivel 2"; clase = "nivel-2"; nivel2++;
-} else {
-    nivel = "Nivel 1"; clase = "nivel-1"; nivel1++;
-}
-
-
-
+        let nivel, clase;
+        if (mean > q3) {
+            nivel = "Nivel 1"; clase = "nivel-1"; nivel1++;
+        } else if (mean > q2) {
+            nivel = "Nivel 2"; clase = "nivel-2"; nivel2++;
+        } else if (mean > q1) {
+            nivel = "Nivel 3"; clase = "nivel-3"; nivel3++;
+        } else {
+            nivel = "Nivel 4"; clase = "nivel-4"; nivel4++;
+        }
 
         const row = document.createElement("tr");
         row.classList.add(clase);
-        row.setAttribute("data-complexity", nivel);
         row.innerHTML = `
-            <td>Pregunta ${++index}</td>
+            <td>Pregunta ${i+1}</td>
             <td>${mean.toFixed(2)}</td>
             <td>${median.toFixed(2)}</td>
             <td>${stdDev.toFixed(2)}</td>
@@ -296,31 +371,17 @@ if (mean <= q1) {
         `;
         tableBody.appendChild(row);
         questionCount++;
-    }
+    });
 
     document.getElementById("summary").innerText =
         `Total: ${questionCount} preguntas | Nivel 1: ${nivel1} | Nivel 2: ${nivel2} | Nivel 3: ${nivel3} | Nivel 4: ${nivel4}`;
 
-// Guardar orden original
-originalOrder = Array.from(document.querySelectorAll("#data-table tbody tr")).map(row => row.cloneNode(true));
+    // Guardar orden original
+    originalOrder = Array.from(document.querySelectorAll("#data-table tbody tr")).map(row => row.cloneNode(true));
+    currentSortMode = "original";
 
-// Reiniciar modo de orden
-currentSortMode = "original";
-
-// Construcción del mapa pregunta → nivel
-const levelsMap = {};
-Array.from(document.querySelectorAll("#data-table tbody tr")).forEach(row => {
-    const pregunta = row.cells[0].innerText;
-    const nivel = row.cells[5].innerText;
-    levelsMap[pregunta] = nivel;
-});
-
-
-// Mostrar tabla explicativa
-buildComplexityExplanation(meanValues);
-
-
-    }
+    buildComplexityExplanation(meanValues);
+}
 
 function buildComplexityExplanation(meanValues) {
     const sorted = [...meanValues].sort((a, b) => a - b);
@@ -819,7 +880,20 @@ function restoreOriginalOrder() {
     if (sortBtn) sortBtn.innerText = "🔽 Ordenar por Complejidad (Nivel 4 → Nivel 1)";
 }
 
+function openExampleModal() {
+  document.getElementById("exampleModal").style.display = "block";
+}
 
+function closeExampleModal() {
+  document.getElementById("exampleModal").style.display = "none";
+}
+
+function copyExample() {
+  const exampleText = document.getElementById("exampleData").innerText;
+  navigator.clipboard.writeText(exampleText).then(() => {
+    alert("Ejemplo copiado al portapapeles ✅");
+  });
+}
 
 </script>
 
