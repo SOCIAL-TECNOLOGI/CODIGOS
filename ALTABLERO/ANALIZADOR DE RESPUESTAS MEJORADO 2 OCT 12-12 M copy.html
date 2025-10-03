@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador de Complejidad</title>
+
+  <!-- Librerías externas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    #data-table th, #data-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    #data-table th { background-color: #4CAF50; color: white; }
+
+    /* Colores por cuartil */
+    .nivel-1 { background-color: #ccffcc; }
+    .nivel-2 { background-color: #ffffcc; }
+    .nivel-3 { background-color: #f8c837; }
+    .nivel-4 { background-color: #f6c4c4; }
+
+    #chart-container { width: 60%; height: 300px; margin-top: 10px; }
+    #legend, #summary { margin-top: 10px; text-align: center; font-weight: bold; }
+    #myChart { display: block; margin: 0 auto; background-color: white; }
+
+    button {
+      background-color: #f0f0f0; border: 1px solid #a0a0a0;
+      padding: 6px 14px; margin: 4px 3px; font-size: 13px;
+      border-radius: 4px; cursor: pointer;
+    }
+    button:hover { background-color: #e0e0e0; }
+    #input-section { display: none; margin-bottom: 10px; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);}
+    .modal-content {
+      background-color: #fff; margin: 10% auto; padding: 20px; border: 2px solid #888;
+      border-radius: 8px; width: 70%; max-width: 700px; text-align: center;
+    }
+    .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; }
+    .close:hover { color: #000; }
+    #exampleData {
+      text-align: left; background: #f9f9f9; padding: 10px; border-radius: 6px;
+      border: 1px solid #ddd; max-height: 300px; overflow-y: auto;
+    }
+
+    /* Explicación */
+    #complexity-explanation {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9f9ff;
+      border: 2px solid #cce;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 14.5px;
+    }
+    #complexity-explanation h3 { margin-top: 0; color: #333399; }
+    #complexity-explanation ul { margin-left: 20px; }
+    #complexity-explanation table {
+      border-collapse: collapse;
+      width: 80%;
+      margin: 15px auto;
+      background-color: #fff;
+      border: 1px solid #bbb;
+    }
+    #complexity-explanation th, #complexity-explanation td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #complexity-explanation th {
+      background-color: #e0e0ff;
+      color: #333;
+    }
+
+    /* Gráficos lado a lado */
+    #charts-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+   #chart-container {
+  flex: 1;
+  min-width: 700px;   /* ancho mínimo del gráfico de barras */
+  height: 450px;      /* altura mayor */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#myChart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+    #doughnut-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 400px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Ingrese la evaluación en el formato adecuado</h2>
+  <button onclick="toggleInput()">📂 Abrir Área de Texto</button>
+  <div id="input-section">
+    <textarea id="input-text" rows="20" cols="100" placeholder="Pegue aquí la evaluación..."></textarea><br>
+    <input type="file" id="file-input" accept=".txt, .xlsx">
+  </div>
+
+  <button id="sortComplexityBtn" onclick="sortTableByCuartil()">🔽 Ordenar por Cuartil (4 → 1)</button>
+  <button onclick="downloadTableAsXLSX()">Descargar Tabla en XLSX</button>
+  <button onclick="downloadTableAsImage()">Descargar Tabla como Imagen</button>
+  <button onclick="clearInputs()">Limpiar Todo</button>
+  <button onclick="openExampleModal()">📖 Ver Ejemplo de Datos</button>
+
+  <!-- Modal -->
+  <div id="exampleModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeExampleModal()">&times;</span>
+      <h3>Ejemplo de Datos a Pegar</h3>
+      <pre id="exampleData">
+Range   Mean   Median   Standard Deviation   Variance
+From    To
+1       10     82,50   83,00   4,75   22,56
+11      20     70,20   71,00   6,40   40,96
+21      30     55,80   56,00   7,10   50,41
+31      40     43,60   44,00   8,30   68,89
+41      50     28,90   29,00   9,50   90,25
+      </pre>
+      <button onclick="copyExample()">📋 Copiar Ejemplo</button>
+    </div>
+  </div>
+
+  <h2>Tabla Generada</h2>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Pregunta</th>
+        <th>Promedio</th>
+        <th>Mediana</th>
+        <th>Desviación estándar</th>
+        <th>Varianza</th>
+        <th>Cuartil</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<div style="margin-top:10px; font-weight:bold; text-align:center;">
+  <span style="background:#ccffcc; padding:4px 10px;">Cuartil 1 (fácil)</span>
+  <span style="background:#ffffcc; padding:4px 10px;">Cuartil 2</span>
+  <span style="background:#f8c837; padding:4px 10px;">Cuartil 3</span>
+  <span style="background:#f6c4c4; padding:4px 10px;">Cuartil 4 (difícil)</span>
+</div>
+
+
+
+  <div id="summary"></div>
+  <div id="complexity-explanation"></div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="downloadBothBtn" onclick="downloadBothCharts()" style="display: none;">📥 Descargar Ambos Gráficos</button>
+  </div>
+
+  <div id="charts-container">
+    <div id="chart-container">
+      <canvas id="myChart"></canvas>
+      <div id="legend" style="text-align: center; display: none;">Promedio por Preguntas</div>
+    </div>
+
+    <div id="doughnut-wrapper">
+      <canvas id="doughnutChart" width="350" height="350" style="display: none;"></canvas>
+      <div id="doughnut-legend" style="text-align: center; display: none;">Porcentaje según Cuartil</div>
+    </div>
+  </div>
+
+<script>
+/* ---------------- Variables globales ---------------- */
+let currentSortMode = "original";
+let originalOrder = [];
+let barChartReady = false;
+let doughnutChartReady = false;
+
+/* ---------------- Lectura de archivo ---------------- */
+document.getElementById("file-input").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    if (file.name.endsWith(".txt")) {
+        reader.onload = e => { document.getElementById("input-text").value = e.target.result; autoProcess(); };
+        reader.readAsText(file);
+    } else if (file.name.endsWith(".xlsx")) {
+        reader.onload = e => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const text = XLSX.utils.sheet_to_csv(sheet, { FS: "\t" });
+            document.getElementById("input-text").value = text;
+            autoProcess();
+        };
+        reader.readAsArrayBuffer(file);
+    }
+});
+
+/* ---------------- Procesamiento automático ---------------- */
+function autoProcess() { generateTable(); createChart(); createDoughnutChart(); }
+
+document.getElementById("input-text").addEventListener("input", function() {
+    if (this.value.trim().length > 0) autoProcess();
+});
+
+/* ---------------- Ejemplo ---------------- */
+function copyExample() {
+  const exampleText = document.getElementById("exampleData").innerText;
+  navigator.clipboard.writeText(exampleText).then(() => {
+    document.getElementById("input-text").value = exampleText;
+    autoProcess();
+    closeExampleModal();
+  });
+}
+
+/* ---------------- Cuartiles ---------------- */
+function calculateComplexityLevels(meanValues) {
+    const sorted = [...meanValues].sort((a,b)=>a-b);
+    const q1 = sorted[Math.floor(sorted.length*0.25)];
+    const q2 = sorted[Math.floor(sorted.length*0.50)];
+    const q3 = sorted[Math.floor(sorted.length*0.75)];
+    return { q1,q2,q3 };
+}
+
+/* ---------------- Generación de tabla ---------------- */
+function generateTable() {
+    const inputText = document.getElementById("input-text").value.trim();
+    const lines = inputText.split("\n").map(l=>l.trim()).filter(l=>l.length>0);
+    const tableBody = document.querySelector("#data-table tbody");
+    tableBody.innerHTML="";
+
+    let startIndex = 1;
+    if (lines[1] && lines[1].toLowerCase().includes("from")) startIndex = 2;
+    const dataLines = lines.slice(startIndex);
+
+    let cu1=0,cu2=0,cu3=0,cu4=0, count=0, meanValues=[];
+    dataLines.forEach(line=>{
+        const parts=line.split(/\s+/);
+        const mean=parseFloat(parts[2].replace(",",".")); meanValues.push(mean);
+    });
+    const {q1,q2,q3}=calculateComplexityLevels(meanValues);
+
+    dataLines.forEach((line,i)=>{
+        const parts=line.split(/\s+/);
+        const mean=parseFloat(parts[2].replace(",",".")); 
+        const median=parseFloat(parts[3].replace(",",".")); 
+        const stdDev=parseFloat(parts[4].replace(",",".")); 
+        const variance=parseFloat(parts[5].replace(",",".")); 
+        let cuartil, clase;
+        if(mean>q3){ cuartil="Cuartil 1 (más fácil)"; clase="nivel-1"; cu1++; }
+        else if(mean>q2){ cuartil="Cuartil 2"; clase="nivel-2"; cu2++; }
+        else if(mean>q1){ cuartil="Cuartil 3"; clase="nivel-3"; cu3++; }
+        else{ cuartil="Cuartil 4 (más difícil)"; clase="nivel-4"; cu4++; }
+        const row=document.createElement("tr");
+        row.classList.add(clase);
+        row.innerHTML=`<td>Pregunta ${i+1}</td><td>${mean.toFixed(2)}</td><td>${median.toFixed(2)}</td><td>${stdDev.toFixed(2)}</td><td>${variance.toFixed(2)}</td><td>${cuartil}</td>`;
+        tableBody.appendChild(row); count++;
+    });
+
+    document.getElementById("summary").innerText=`Total: ${count} preguntas | Cuartil 1 (fácil): ${cu1} | Cuartil 2: ${cu2} | Cuartil 3: ${cu3} | Cuartil 4 (difícil): ${cu4}`;
+    originalOrder = Array.from(tableBody.rows).map(r=>r.cloneNode(true));
+    currentSortMode="original";
+    buildComplexityExplanation(meanValues);
+}
+
+/* ---------------- Explicación ---------------- */
+function buildComplexityExplanation(meanValues) {
+    const sorted = [...meanValues].sort((a, b) => a - b);
+    const q1 = sorted[Math.floor(sorted.length * 0.25)];
+    const q2 = sorted[Math.floor(sorted.length * 0.50)];
+    const q3 = sorted[Math.floor(sorted.length * 0.75)];
+
+    const explanationHTML = `
+        <h3>📘 Explicación de los Cuartiles de Dificultad</h3>
+        <p>
+            Las preguntas se clasifican en <strong>cuatro cuartiles estadísticos</strong>, 
+            con base en el <strong>promedio de aciertos</strong> de los estudiantes. 
+            Esto permite ver la <strong>dificultad relativa</strong> de cada ítem.
+        </p>
+
+        <ul>
+            <li><strong>Cuartil 1 (más fácil):</strong> Preguntas con los <strong>promedios más altos</strong>, 
+                suelen ser ítems que la mayoría de estudiantes responde bien.</li>
+            <li><strong>Cuartil 2:</strong> Preguntas de <strong>dificultad media-baja</strong>, 
+                donde un grupo moderado de estudiantes presenta errores.</li>
+            <li><strong>Cuartil 3:</strong> Preguntas de <strong>dificultad media-alta</strong>, 
+                suelen discriminar mejor el nivel de comprensión porque dividen a los estudiantes entre quienes logran resolverlas y quienes no.</li>
+            <li><strong>Cuartil 4 (más difícil):</strong> Preguntas con los <strong>promedios más bajos</strong>, 
+                que resultan difíciles para la mayoría de estudiantes.</li>
+        </ul>
+
+        <p><strong>Rangos definidos dinámicamente en esta evaluación:</strong></p>
+        <table border="1" style="width: 80%; margin: auto; text-align: center; border-collapse: collapse;">
+            <thead style="background-color: #f0f0f0;">
+                <tr>
+                    <th>Cuartil</th>
+                    <th>Rango de Promedio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Cuartil 4 (más difícil)</td><td>Promedio ≤ ${q1.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 3</td><td>${q1.toFixed(2)} &lt; Promedio ≤ ${q2.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 2</td><td>${q2.toFixed(2)} &lt; Promedio ≤ ${q3.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 1 (más fácil)</td><td>Promedio &gt; ${q3.toFixed(2)}</td></tr>
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById("complexity-explanation").innerHTML = explanationHTML;
+
+    // Guardar tabla para exportar a Excel
+    window.explanationTableForExcel = [
+        ["Cuartil", "Rango de Promedio"],
+        [`Cuartil 4 (más difícil)`, `Promedio ≤ ${q1.toFixed(2)}`],
+        [`Cuartil 3`, `${q1.toFixed(2)} < Promedio ≤ ${q2.toFixed(2)}`],
+        [`Cuartil 2`, `${q2.toFixed(2)} < Promedio ≤ ${q3.toFixed(2)}`],
+        [`Cuartil 1 (más fácil)`, `Promedio > ${q3.toFixed(2)}`]
+    ];
+}
+
+/* ---------------- Ordenar ---------------- */
+function sortTableByCuartil(){
+    const tableBody=document.querySelector("#data-table tbody"); 
+    const rows=Array.from(tableBody.rows); 
+    const sortBtn=document.getElementById("sortComplexityBtn");
+    const order={"Cuartil 1 (más fácil)":1,"Cuartil 2":2,"Cuartil 3":3,"Cuartil 4 (más difícil)":4};
+    if(currentSortMode==="original"||currentSortMode==="asc"){ 
+        currentSortMode="desc"; 
+        sortBtn.innerText="🔽 Ordenar por Cuartil (4 → 1)"; 
+        rows.sort((a,b)=>order[b.cells[5].innerText]-order[a.cells[5].innerText]); 
+    } else { 
+        currentSortMode="asc"; 
+        sortBtn.innerText="🔼 Ordenar por Cuartil (1 → 4)"; 
+        rows.sort((a,b)=>order[a.cells[5].innerText]-order[b.cells[5].innerText]); 
+    }
+    tableBody.innerHTML=""; rows.forEach(r=>tableBody.appendChild(r));
+}
+
+/* ---------------- Descargas ---------------- */
+function downloadTableAsXLSX(){
+    const tableBody=document.querySelector("#data-table tbody"); if(tableBody.rows.length===0){ alert("Primero genere la tabla."); return; }
+    const wb=XLSX.utils.book_new(); const headers=["Pregunta","Promedio","Mediana","Desviación estándar","Varianza","Cuartil","Visual"]; const data=[headers];
+    let cu1=0,cu2=0,cu3=0,cu4=0; 
+    Array.from(tableBody.rows).forEach(r=>{
+        const cells=Array.from(r.cells).map(c=>c.innerText); const cu=cells[5]; let icon=""; 
+        if(cu.includes("Cuartil 4")){icon="⚫";cu4++;} 
+        else if(cu.includes("Cuartil 3")){icon="⚪";cu3++;} 
+        else if(cu.includes("Cuartil 2")){icon="◐";cu2++;} 
+        else if(cu.includes("Cuartil 1")){icon="◉";cu1++;} 
+        cells.push(icon); data.push(cells); 
+    });
+    const ws1=XLSX.utils.aoa_to_sheet(data); XLSX.utils.book_append_sheet(wb,ws1,"Tabla de Preguntas");
+    const total=cu1+cu2+cu3+cu4; 
+    const resumen=[["Cuartil","Cantidad","Visual","Porcentaje"],
+      ["Cuartil 4 (Más difícil)",cu4,"⚫",`${((cu4/total)*100).toFixed(2)}%`],
+      ["Cuartil 3",cu3,"⚪",`${((cu3/total)*100).toFixed(2)}%`],
+      ["Cuartil 2",cu2,"◐",`${((cu2/total)*100).toFixed(2)}%`],
+      ["Cuartil 1 (Más fácil)",cu1,"◉",`${((cu1/total)*100).toFixed(2)}%`],
+      ["Total",total,"","100%"]];
+    const ws2=XLSX.utils.aoa_to_sheet(resumen); XLSX.utils.book_append_sheet(wb,ws2,"Resumen de Cuartiles");
+    if(window.explanationTableForExcel){ const ws3=XLSX.utils.aoa_to_sheet(window.explanationTableForExcel); XLSX.utils.book_append_sheet(wb,ws3,"Explicación Cuartiles"); }
+    XLSX.writeFile(wb,"tabla_cuartiles.xlsx");
+}
+function downloadTableAsImage(){ const table=document.getElementById("data-table"); html2canvas(table).then(c=>{ const link=document.createElement("a"); link.href=c.toDataURL("image/png"); link.download="tabla_cuartiles.png"; link.click(); }); }
+
+/* ---------------- Gráficos ---------------- */
+Chart.register(ChartDataLabels);
+
+
+function createChart() {
+    const tableBody = document.querySelector("#data-table tbody");
+    if (tableBody.rows.length === 0) {
+        alert("Primero genere la tabla.");
+        return;
+    }
+
+    const canvas = document.getElementById("myChart");
+    const ctx = canvas.getContext("2d");
+
+    // Mostrar elementos
+    canvas.style.display = 'block';
+    document.getElementById("legend").style.display = 'block';
+
+    // Destruir gráfico anterior si existe
+    if (window.chartInstance) {
+        window.chartInstance.destroy();
+    }
+
+    // Extraer datos
+    const labels = [], data = [], colors = [];
+    for (const row of tableBody.rows) {
+        labels.push(row.cells[0].innerText);
+        data.push(parseFloat(row.cells[1].innerText));
+        const cuartil = row.cells[5].innerText.trim();
+
+        if (cuartil.includes('Cuartil 4')) colors.push('#ff9999');      // rojo claro
+        else if (cuartil.includes('Cuartil 3')) colors.push('#ffcc99'); // naranja
+        else if (cuartil.includes('Cuartil 2')) colors.push('#ffff99'); // amarillo
+        else if (cuartil.includes('Cuartil 1')) colors.push('#ccffcc'); // verde claro
+        else colors.push('#dddddd'); // fallback gris
+    }
+
+    // Crear gráfico con tamaño grande y responsive
+    window.chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,              // ✅ se adapta al contenedor
+            maintainAspectRatio: false,    // ✅ rompe la proporción fija
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                x: {
+                    ticks: {
+                        maxRotation: labels.length > 15 ? 60 : 0,
+                        minRotation: labels.length > 15 ? 45 : 0,
+                        autoSkip: false
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Pregunta según Cuartil',
+                    font: {
+                        size: 23,
+                        weight: 'bold'
+                    },
+                    padding: { top: 10, bottom: 20 }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: value => value.toFixed(2),
+                    font: {
+                        weight: 'bold',
+                        size: 12
+                    },
+                    color: '#000'
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+    barChartReady = true;
+    checkIfBothChartsReady();
+}
+
+
+
+function createDoughnutChart(){ 
+    const tb=document.querySelector("#data-table tbody"); if(tb.rows.length===0) return; 
+    let c1=0,c2=0,c3=0,c4=0; for(const r of tb.rows){ const cu=r.cells[5].innerText; if(cu.includes("Cuartil 1")) c1++; else if(cu.includes("Cuartil 2")) c2++; else if(cu.includes("Cuartil 3")) c3++; else if(cu.includes("Cuartil 4")) c4++; }
+    const data=[c4,c3,c2,c1]; const labels=["Cuartil 4 (difícil)","Cuartil 3","Cuartil 2","Cuartil 1 (fácil)"]; const colors=["#ff9999","#ffcc99","#ffff99","#ccffcc"]; const total=data.reduce((a,b)=>a+b,0); 
+    const canvas=document.getElementById("doughnutChart"); canvas.style.display="block"; document.getElementById("doughnut-legend").style.display="block"; const ctx=canvas.getContext("2d"); if(window.doughnutChartInstance) window.doughnutChartInstance.destroy(); 
+    window.doughnutChartInstance=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:colors}]},options:{plugins:{datalabels:{color:"#000",formatter:(v)=>`${((v/total)*100).toFixed(1)}% (${v})`}}},plugins:[ChartDataLabels]}); 
+    doughnutChartReady=true; checkIfBothChartsReady(); 
+}
+
+/* ---------------- Ambos gráficos ---------------- */
+function downloadBothCharts(){ 
+    const b=document.getElementById("myChart"), d=document.getElementById("doughnutChart"); 
+    const combined=document.createElement("canvas"); const spacing=50; 
+    combined.width=b.width+d.width+spacing; combined.height=Math.max(b.height,d.height); 
+    const ctx=combined.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,combined.width,combined.height); 
+    ctx.drawImage(b,0,0); ctx.drawImage(d,b.width+spacing,0); 
+    const link=document.createElement("a"); link.href=combined.toDataURL("image/png"); link.download="graficos_cuartiles.png"; link.click(); 
+}
+
+/* ---------------- Utilidades ---------------- */
+function toggleInput(){ const section=document.getElementById("input-section"); section.style.display=(section.style.display==="none"||!section.style.display)?"block":"none"; }
+function clearInputs(){ document.getElementById("input-text").value=""; document.querySelector("#data-table tbody").innerHTML=""; document.getElementById("summary").innerText=""; document.getElementById("myChart").style.display="none"; document.getElementById("legend").style.display="none"; document.getElementById("doughnutChart").style.display="none"; document.getElementById("doughnut-legend").style.display="none"; document.getElementById("downloadBothBtn").style.display="none"; document.getElementById("complexity-explanation").innerHTML=""; barChartReady=false; doughnutChartReady=false; }
+function openExampleModal(){ document.getElementById("exampleModal").style.display="block"; }
+function closeExampleModal(){ document.getElementById("exampleModal").style.display="none"; }
+function checkIfBothChartsReady(){ document.getElementById("downloadBothBtn").style.display=(barChartReady&&doughnutChartReady)?"inline-block":"none"; }
+</script>
+</body>
+</html>

@@ -1,225 +1,155 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Tabla</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        #data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        #data-table th, #data-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        #data-table th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .nivel-1 { background-color: #ccffcc; }
-        .nivel-2 { background-color: #ffffcc; }
-        .nivel-3 { background-color: #f8c837; }
-        .nivel-4 { background-color: #f6c4c4; }
-        #chart-container {
-            width: 100%;
-            height: 400px;
-            margin-top: 20px;
-        }
-
-        #legend {
-            margin-top: 10px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .legend-item {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-right: 5px;
-            border: 1px solid #000;
-        }
-        #summary {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-
-        #myChart {
-            display: block;
-            margin: 0 auto;
-            background-color: white;
-        }
-
-        button {
-            background-color: #f0f0f0;
-            color: #000;
-            border: 1px solid #a0a0a0;
-            padding: 6px 14px;
-            margin: 4px 3px;
-            font-size: 13px;
-            font-family: system-ui, sans-serif;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        button:hover {
-            background-color: #e0e0e0;
-        }
-
-        button:active {
-            background-color: #d0d0d0;
-        }
-
-        #input-section {
-            display: none;
-            margin-bottom: 10px;
-        }
-
-
-
-
-    #complexity-explanation {
-        margin-top: 30px;
-        padding: 20px;
-        background-color: #f9f9ff;
-        border: 2px solid #cce;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        font-size: 14.5px;
-    }
-
-    #complexity-explanation h3 {
-        margin-top: 0;
-        color: #333399;
-    }
-
-    #complexity-explanation ul {
-        margin-left: 20px;
-    }
-
-    #complexity-explanation table {
-        border-collapse: collapse;
-        width: 80%;
-        margin: 15px auto;
-        background-color: #fff;
-        border: 1px solid #bbb;
-    }
-
-    #complexity-explanation th, #complexity-explanation td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-    }
-
-    #complexity-explanation th {
-        background-color: #e0e0ff;
-        color: #333;
-    }
-
-/* Fondo oscuro semitransparente */
-.modal {
-  display: none; 
-  position: fixed; 
-  z-index: 1000; 
-  left: 0;
-  top: 0;
-  width: 100%; 
-  height: 100%; 
-  background-color: rgba(0,0,0,0.5);
-}
-
-/* Caja centrada */
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  border: 2px solid #888;
-  border-radius: 8px;
-  width: 70%;
-  max-width: 700px;
-  text-align: center;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Botón de cierre (X) */
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.close:hover { color: #000; }
-
-/* Estilo del bloque de ejemplo */
-#exampleData {
-  text-align: left;
-  background: #f9f9f9;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-
-
-        
-    </style>
-</head>
-<body>
   <meta charset="UTF-8">
-    <title>Analizador de Complejidad</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background-color: #f0f0f0; }
-        #input-section { display: none; margin-bottom: 20px; }
-        #summary, #complexity-explanation { margin-top: 20px; }
-        .nivel-1 { background-color: #ccffcc; }
-        .nivel-2 { background-color: #ffff99; }
-        .nivel-3 { background-color: #ffcc99; }
-        .nivel-4 { background-color: #ff9999; }
-    </style>
-</head>
-<body>
-    <h2>Ingrese la evaluación en el formato adecuado</h2>
-    <button onclick="toggleInput()">📂 Abrir Área de Texto</button>
-    <div id="input-section">
-        <textarea id="input-text" rows="20" cols="100" placeholder="Pegue aquí la evaluación..."></textarea><br>
-        <input type="file" id="file-input" accept=".txt">
-    </div>
-    <button onclick="generateTable()">Generar Tabla</button>
-    <button onclick="restoreOriginalOrder()">🔄 Reiniciar tabla</button>
-    <button id="sortComplexityBtn" onclick="sortTableByComplexity()">🔽 Ordenar por Complejidad (Nivel 4 → Nivel 1)</button>
-    <button onclick="downloadTableAsXLSX()">Descargar Tabla en XLSX</button>
-    <button onclick="downloadTableAsImage()">Descargar Tabla como Imagen</button>
-    <button onclick="clearInputs()">Limpiar Todo</button>
-    <button onclick="createChart()">Crear Gráfico de Barras</button>
-    <button onclick="downloadChartAsImage()">Descargar Gráfico de Barras</button>
-    <button onclick="createDoughnutChart()">Crear Gráfico Circular</button>
-    <button onclick="downloadDoughnutChartAsImage()">Descargar Gráfico Circular como Imagen</button>
-<button onclick="openExampleModal()">📖 Ver Ejemplo de Datos</button>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador de Complejidad</title>
 
-<!-- Modal de ejemplo -->
-<div id="exampleModal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="closeExampleModal()">&times;</span>
-    <h3>Ejemplo de Datos a Pegar</h3>
-    <pre id="exampleData">
+  <!-- Librerías externas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Estilos -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    #data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #data-table th, #data-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    #data-table th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    /* Colores por cuartil */
+   .cuartil-1 { background-color: #ccffcc; }  /* fácil */
+   .cuartil-2 { background-color: #ffffcc; }  /* medio-bajo */
+   .cuartil-3 { background-color: #f8c837; }  /* medio-alto */
+   .cuartil-4 { background-color: #f6c4c4; }  /* difícil */
+
+    #chart-container {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+    }
+
+    #legend {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #summary {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #myChart {
+      display: block;
+      margin: 0 auto;
+      background-color: white;
+    }
+
+    button {
+      background-color: #f0f0f0;
+      color: #000;
+      border: 1px solid #a0a0a0;
+      padding: 6px 14px;
+      margin: 4px 3px;
+      font-size: 13px;
+      font-family: system-ui, sans-serif;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    button:hover { background-color: #e0e0e0; }
+    button:active { background-color: #d0d0d0; }
+
+    #input-section {
+      display: none;
+      margin-bottom: 10px;
+    }
+
+    /* Explicación */
+    #complexity-explanation {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9f9ff;
+      border: 2px solid #cce;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 14.5px;
+    }
+    #complexity-explanation h3 { margin-top: 0; color: #333399; }
+    #complexity-explanation ul { margin-left: 20px; }
+    #complexity-explanation table {
+      border-collapse: collapse;
+      width: 80%;
+      margin: 15px auto;
+      background-color: #fff;
+      border: 1px solid #bbb;
+    }
+    #complexity-explanation th, #complexity-explanation td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #complexity-explanation th {
+      background-color: #e0e0ff;
+      color: #333;
+    }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);}
+    .modal-content {
+      background-color: #fff; margin: 10% auto; padding: 20px; border: 2px solid #888;
+      border-radius: 8px; width: 70%; max-width: 700px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: #000; }
+    #exampleData {
+      text-align: left; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #ddd; max-height: 300px; overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Ingrese la evaluación en el formato adecuado</h2>
+  <button onclick="toggleInput()">📂 Abrir Área de Texto</button>
+  <div id="input-section">
+    <textarea id="input-text" rows="20" cols="100" placeholder="Pegue aquí la evaluación..."></textarea><br>
+    <input type="file" id="file-input" accept=".txt">
+  </div>
+
+  <button onclick="generateTable()">Generar Tabla</button>
+  <button id="sortComplexityBtn" onclick="sortTableByCuartil()">🔽 Ordenar por Cuartil (4 → 1)</button>
+  <button onclick="downloadTableAsXLSX()">Descargar Tabla en XLSX</button>
+  <button onclick="downloadTableAsImage()">Descargar Tabla como Imagen</button>
+  <button onclick="clearInputs()">Limpiar Todo</button>
+  <button onclick="createChart()">Crear Gráfico de Barras</button>
+  <button onclick="downloadChartAsImage()">Descargar Gráfico de Barras</button>
+  <button onclick="createDoughnutChart()">Crear Gráfico Circular</button>
+  <button onclick="downloadDoughnutChartAsImage()">Descargar Gráfico Circular como Imagen</button>
+  <button onclick="openExampleModal()">📖 Ver Ejemplo de Datos</button>
+
+  <!-- Modal -->
+  <div id="exampleModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeExampleModal()">&times;</span>
+      <h3>Ejemplo de Datos a Pegar</h3>
+      <pre id="exampleData">
 Range   Mean   Median   Standard Deviation   Variance
 From    To
 1       10     82,50   83,00   4,75   22,56
@@ -227,63 +157,53 @@ From    To
 21      30     55,80   56,00   7,10   50,41
 31      40     43,60   44,00   8,30   68,89
 41      50     28,90   29,00   9,50   90,25
-    </pre>
-    <button onclick="copyExample()">📋 Copiar Ejemplo</button>
-  </div>
-</div>
-
-
-
-
-   
-
-    <h2>Tabla Generada</h2>
-    <table id="data-table">
-        <thead>
-            <tr>
-                <th>Pregunta</th>
-                <th>Promedio</th>
-                <th>Mediana</th>
-                <th>Desviación estándar</th>
-                <th>Varianza</th>
-                <th>Complejidad</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <div id="summary"></div>
-   
-
-<div id="complexity-explanation"></div>
-
-
-
-
-
-    <div style="text-align: center; margin-top: 20px;">
-        <button id="downloadBothBtn" onclick="downloadBothCharts()" style="display: none;">📥 Descargar Ambos Gráficos</button>
+      </pre>
+      <button onclick="copyExample()">📋 Copiar Ejemplo</button>
     </div>
-
- 
-
-<div id="charts-container" style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
-  <div id="chart-container" style="overflow-x: auto;">
-  <canvas id="myChart" style="width: 100%;"></canvas>
-  <div id="legend" style="text-align: center; display: none;">Promedio por Preguntas</div>
-</div>
-
-
-  <div>
-    <canvas id="doughnutChart" width="350" height="350" style="display: none;"></canvas>
-    <div id="doughnut-legend" style="text-align: center; display: none;">Porcentaje según Complejidad</div>
   </div>
+
+  <h2>Tabla Generada</h2>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Pregunta</th>
+        <th>Promedio</th>
+        <th>Mediana</th>
+        <th>Desviación estándar</th>
+        <th>Varianza</th>
+        <th>Cuartil</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<div style="margin-top:10px; font-weight:bold; text-align:center;">
+  <span style="background:#ccffcc; padding:4px 10px;">Cuartil 1 (fácil)</span>
+  <span style="background:#ffffcc; padding:4px 10px;">Cuartil 2</span>
+  <span style="background:#f8c837; padding:4px 10px;">Cuartil 3</span>
+  <span style="background:#f6c4c4; padding:4px 10px;">Cuartil 4 (difícil)</span>
 </div>
 
 
 
 
+  <div id="summary"></div>
+  <div id="complexity-explanation"></div>
 
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="downloadBothBtn" onclick="downloadBothCharts()" style="display: none;">📥 Descargar Ambos Gráficos</button>
+  </div>
+
+  <div id="charts-container" style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
+    <div id="chart-container" style="overflow-x: auto;">
+      <canvas id="myChart" style="width: 100%;"></canvas>
+      <div id="legend" style="text-align: center; display: none;">Promedio por Preguntas</div>
+    </div>
+    <div>
+      <canvas id="doughnutChart" width="350" height="350" style="display: none;"></canvas>
+      <div id="doughnut-legend" style="text-align: center; display: none;">Porcentaje según Cuartil</div>
+    </div>
+  </div>
 
 
 
@@ -291,7 +211,6 @@ From    To
 
 let currentSortMode = "original";  // original | asc | desc
 let originalOrder = []; // Para guardar el orden original
-
 
 let barChartReady = false;
 let doughnutChartReady = false;
@@ -325,11 +244,11 @@ function generateTable() {
     // Ignorar las 2 primeras líneas (encabezados)
     const dataLines = lines.slice(2);
 
-    let nivel1 = 0, nivel2 = 0, nivel3 = 0, nivel4 = 0;
+    let cuartil1 = 0, cuartil2 = 0, cuartil3 = 0, cuartil4 = 0;
     let questionCount = 0;
     let meanValues = [];
 
-    // Primero extraer todos los means
+    // Extraer promedios
     dataLines.forEach(line => {
         const parts = line.split(/\s+/);
         const mean = parseFloat(parts[2].replace(",", "."));
@@ -339,7 +258,7 @@ function generateTable() {
     // Calcular cuartiles
     const { q1, q2, q3 } = calculateComplexityLevels(meanValues);
 
-    // Ahora procesar fila por fila
+    // Procesar fila por fila
     dataLines.forEach((line, i) => {
         const parts = line.split(/\s+/);
 
@@ -348,15 +267,15 @@ function generateTable() {
         const stdDev = parseFloat(parts[4].replace(",", "."));
         const variance = parseFloat(parts[5].replace(",", "."));
 
-        let nivel, clase;
+        let cuartil, clase;
         if (mean > q3) {
-            nivel = "Nivel 1"; clase = "nivel-1"; nivel1++;
+            cuartil = "Cuartil 1 (más fácil)"; clase = "cuartil-1"; cuartil1++;
         } else if (mean > q2) {
-            nivel = "Nivel 2"; clase = "nivel-2"; nivel2++;
+            cuartil = "Cuartil 2"; clase = "cuartil-2"; cuartil2++;
         } else if (mean > q1) {
-            nivel = "Nivel 3"; clase = "nivel-3"; nivel3++;
+            cuartil = "Cuartil 3"; clase = "cuartil-3"; cuartil3++;
         } else {
-            nivel = "Nivel 4"; clase = "nivel-4"; nivel4++;
+            cuartil = "Cuartil 4 (más difícil)"; clase = "cuartil-4"; cuartil4++;
         }
 
         const row = document.createElement("tr");
@@ -367,19 +286,23 @@ function generateTable() {
             <td>${median.toFixed(2)}</td>
             <td>${stdDev.toFixed(2)}</td>
             <td>${variance.toFixed(2)}</td>
-            <td>${nivel}</td>
+            <td>${cuartil}</td>
         `;
         tableBody.appendChild(row);
         questionCount++;
     });
 
     document.getElementById("summary").innerText =
-        `Total: ${questionCount} preguntas | Nivel 1: ${nivel1} | Nivel 2: ${nivel2} | Nivel 3: ${nivel3} | Nivel 4: ${nivel4}`;
+        `Total: ${questionCount} preguntas | Cuartil 1 (fácil): ${cuartil1} | Cuartil 2: ${cuartil2} | Cuartil 3: ${cuartil3} | Cuartil 4 (difícil): ${cuartil4}`;
 
     // Guardar orden original
     originalOrder = Array.from(document.querySelectorAll("#data-table tbody tr")).map(row => row.cloneNode(true));
     currentSortMode = "original";
 
+    // Mostrar la leyenda de colores si estaba oculta
+    document.querySelector("div[style*='margin-top:10px']").style.display = "block";
+
+    // Construir explicación de cuartiles
     buildComplexityExplanation(meanValues);
 }
 
@@ -390,66 +313,66 @@ function buildComplexityExplanation(meanValues) {
     const q3 = sorted[Math.floor(sorted.length * 0.75)];
 
     const explanationHTML = `
-        <h3>📘 Explicación de los Niveles de Complejidad por Cuartiles</h3>
-        <p>Las preguntas se clasifican en cuatro niveles de complejidad con base en el promedio de respuestas correctas que obtuvieron los estudiantes. Esta clasificación se realiza utilizando <strong>cuartiles estadísticos</strong>, que dividen el conjunto de promedios en cuatro partes iguales:</p>
+        <h3>📘 Explicación de los Cuartiles de Dificultad</h3>
+        <p>Las preguntas se clasifican en <strong>cuatro cuartiles estadísticos</strong>, con base en el <strong>promedio de aciertos</strong> 
+        de los estudiantes. Esto permite ver la <strong>dificultad relativa</strong> de cada ítem:</p>
         <ul>
-            <li><strong>Nivel 1 (más fácil):</strong> Preguntas con los <strong>promedios más altos</strong>, respondidas correctamente por la mayoría.</li>
-            <li><strong>Nivel 2:</strong> Promedios entre el tercer y segundo cuartil. Dificultad media-fácil.</li>
-            <li><strong>Nivel 3:</strong> Promedios entre el segundo y primer cuartil. Dificultad media-alta.</li>
-            <li><strong>Nivel 4 (más difícil):</strong> Preguntas con los <strong>promedios más bajos</strong>, donde hubo mayor dificultad.</li>
+            <li><strong>Cuartil 1 (más fácil):</strong> Preguntas con los <strong>promedios más altos</strong>.</li>
+            <li><strong>Cuartil 2:</strong> Dificultad media-baja.</li>
+            <li><strong>Cuartil 3:</strong> Dificultad media-alta.</li>
+            <li><strong>Cuartil 4 (más difícil):</strong> Preguntas con los <strong>promedios más bajos</strong>.</li>
         </ul>
 
         <p><strong>Rangos definidos dinámicamente en esta evaluación:</strong></p>
         <table border="1" style="width: 80%; margin: auto; text-align: center; border-collapse: collapse;">
             <thead style="background-color: #f0f0f0;">
                 <tr>
-                    <th>Nivel</th>
-                    <th>Rango de Promedio (mean)</th>
+                    <th>Cuartil</th>
+                    <th>Rango de Promedio</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td>Nivel 4 (más difícil)</td><td>mean ≤ ${q1.toFixed(2)}</td></tr>
-                <tr><td>Nivel 3</td><td>${q1.toFixed(2)} &lt; mean ≤ ${q2.toFixed(2)}</td></tr>
-                <tr><td>Nivel 2</td><td>${q2.toFixed(2)} &lt; mean ≤ ${q3.toFixed(2)}</td></tr>
-                <tr><td>Nivel 1 (más fácil)</td><td>mean &gt; ${q3.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 4 (más difícil)</td><td>Promedio ≤ ${q1.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 3</td><td>${q1.toFixed(2)} &lt; Promedio ≤ ${q2.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 2</td><td>${q2.toFixed(2)} &lt; Promedio ≤ ${q3.toFixed(2)}</td></tr>
+                <tr><td>Cuartil 1 (más fácil)</td><td>Promedio &gt; ${q3.toFixed(2)}</td></tr>
             </tbody>
         </table>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <img src="A_2D_digital_infographic_titled_&quot;Distribución_por_.png" 
-                 alt="Distribución por cuartiles" 
-                 style="max-width: 90%; height: auto; border: 1px solid #ccc; box-shadow: 2px 2px 6px rgba(0,0,0,0.2);">
-        </div>
     `;
 
     document.getElementById("complexity-explanation").innerHTML = explanationHTML;
+
+    // Guardar tabla para exportar a Excel
+    window.explanationTableForExcel = [
+        ["Cuartil", "Rango de Promedio"],
+        [`Cuartil 4 (más difícil)`, `Promedio ≤ ${q1.toFixed(2)}`],
+        [`Cuartil 3`, `${q1.toFixed(2)} < Promedio ≤ ${q2.toFixed(2)}`],
+        [`Cuartil 2`, `${q2.toFixed(2)} < Promedio ≤ ${q3.toFixed(2)}`],
+        [`Cuartil 1 (más fácil)`, `Promedio > ${q3.toFixed(2)}`]
+    ];
 }
 
-
-
-
-
-// 👇 Pega esto fuera de cualquier otra función
-function sortTableByComplexity() {
+// ✅ Ordenar por cuartil
+function sortTableByCuartil() {
     const tableBody = document.querySelector("#data-table tbody");
     const rows = Array.from(tableBody.rows);
     const sortBtn = document.getElementById("sortComplexityBtn");
 
-    const levelOrder = {
-        "Nivel 1": 1,
-        "Nivel 2": 2,
-        "Nivel 3": 3,
-        "Nivel 4": 4
+    const cuartilOrder = {
+        "Cuartil 1 (más fácil)": 1,
+        "Cuartil 2": 2,
+        "Cuartil 3": 3,
+        "Cuartil 4 (más difícil)": 4
     };
 
     if (currentSortMode === "original" || currentSortMode === "asc") {
         currentSortMode = "desc";
-        sortBtn.innerText = "🔽 Ordenar por Complejidad (Nivel 4 → Nivel 1)";
-        rows.sort((a, b) => levelOrder[b.cells[5].innerText.trim()] - levelOrder[a.cells[5].innerText.trim()]);
+        sortBtn.innerText = "🔽 Ordenar por Cuartil (4 → 1)";
+        rows.sort((a, b) => cuartilOrder[b.cells[5].innerText.trim()] - cuartilOrder[a.cells[5].innerText.trim()]);
     } else {
         currentSortMode = "asc";
-        sortBtn.innerText = "🔼 Ordenar por Complejidad (Nivel 1 → Nivel 4)";
-        rows.sort((a, b) => levelOrder[a.cells[5].innerText.trim()] - levelOrder[b.cells[5].innerText.trim()]);
+        sortBtn.innerText = "🔼 Ordenar por Cuartil (1 → 4)";
+        rows.sort((a, b) => cuartilOrder[a.cells[5].innerText.trim()] - cuartilOrder[b.cells[5].innerText.trim()]);
     }
 
     tableBody.innerHTML = "";
@@ -458,7 +381,7 @@ function sortTableByComplexity() {
 
 
 
-
+// 👇 Pega esto fuera de cualquier otra función
 function downloadTableAsXLSX() {
     const tableBody = document.querySelector("#data-table tbody");
     if (tableBody.rows.length === 0) {
@@ -468,25 +391,25 @@ function downloadTableAsXLSX() {
 
     const wb = XLSX.utils.book_new();
 
-    const headers = ["Pregunta", "Promedio", "Mediana", "Desviación estándar", "Varianza", "Complejidad", "Visual"];
+    const headers = ["Pregunta", "Promedio", "Mediana", "Desviación estándar", "Varianza", "Cuartil", "Visual"];
     const data = [headers];
 
-    let nivel1 = 0, nivel2 = 0, nivel3 = 0, nivel4 = 0;
+    let cuartil1 = 0, cuartil2 = 0, cuartil3 = 0, cuartil4 = 0;
 
     const rows = Array.from(tableBody.rows);
     rows.forEach(row => {
         const cells = Array.from(row.cells).map(cell => cell.innerText);
-        const complejidad = cells[5];
+        const cuartil = cells[5];
         let icono = "";
 
-        if (complejidad === 'Nivel 4') {
-            icono = "⚫"; nivel4++;
-        } else if (complejidad === 'Nivel 3') {
-            icono = "⚪"; nivel3++;
-        } else if (complejidad === 'Nivel 2') {
-            icono = "◐"; nivel2++;
-        } else if (complejidad === 'Nivel 1') {
-            icono = "◉"; nivel1++;
+        if (cuartil.includes('Cuartil 4')) {
+            icono = "⚫"; cuartil4++;
+        } else if (cuartil.includes('Cuartil 3')) {
+            icono = "⚪"; cuartil3++;
+        } else if (cuartil.includes('Cuartil 2')) {
+            icono = "◐"; cuartil2++;
+        } else if (cuartil.includes('Cuartil 1')) {
+            icono = "◉"; cuartil1++;
         }
 
         cells.push(icono);
@@ -496,27 +419,29 @@ function downloadTableAsXLSX() {
     const ws1 = XLSX.utils.aoa_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, ws1, "Tabla de Preguntas");
 
-    const total = nivel1 + nivel2 + nivel3 + nivel4;
+    const total = cuartil1 + cuartil2 + cuartil3 + cuartil4;
     const resumenData = [
-        ["Nivel de Complejidad", "Cantidad de Preguntas", "Visual", "Porcentaje"],
-        ["Nivel 4 (Más difícil)", nivel4, "⚫", `${((nivel4 / total) * 100).toFixed(2)}%`],
-        ["Nivel 3", nivel3, "⚪", `${((nivel3 / total) * 100).toFixed(2)}%`],
-        ["Nivel 2", nivel2, "◐", `${((nivel2 / total) * 100).toFixed(2)}%`],
-        ["Nivel 1 (Más fácil)", nivel1, "◉", `${((nivel1 / total) * 100).toFixed(2)}%`],
+        ["Cuartil de Dificultad", "Cantidad de Preguntas", "Visual", "Porcentaje"],
+        ["Cuartil 4 (Más difícil)", cuartil4, "⚫", `${((cuartil4 / total) * 100).toFixed(2)}%`],
+        ["Cuartil 3", cuartil3, "⚪", `${((cuartil3 / total) * 100).toFixed(2)}%`],
+        ["Cuartil 2", cuartil2, "◐", `${((cuartil2 / total) * 100).toFixed(2)}%`],
+        ["Cuartil 1 (Más fácil)", cuartil1, "◉", `${((cuartil1 / total) * 100).toFixed(2)}%`],
         ["Total", total, "", "100%"]
     ];
 
     const ws2 = XLSX.utils.aoa_to_sheet(resumenData);
-    XLSX.utils.book_append_sheet(wb, ws2, "Resumen de Complejidad");
+    XLSX.utils.book_append_sheet(wb, ws2, "Resumen de Cuartiles");
 
     // Hoja con explicación textual
     if (window.explanationTableForExcel) {
         const ws3 = XLSX.utils.aoa_to_sheet(window.explanationTableForExcel);
-        XLSX.utils.book_append_sheet(wb, ws3, "Explicación Niveles");
+        XLSX.utils.book_append_sheet(wb, ws3, "Explicación Cuartiles");
     }
 
-    XLSX.writeFile(wb, "tabla_complejidad.xlsx");
+    const fecha = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(wb, `tabla_cuartiles_${fecha}.xlsx`);
 }
+
 
 
 function downloadTableAsImage() {
@@ -531,14 +456,14 @@ function downloadTableAsImage() {
     html2canvas(table).then(canvas => {
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
-        link.download = "tabla_complejidad.png";
+        link.download = "tabla_cuartiles.png";
         link.click();
     });
 }
 
 function clearInputs() {
     document.getElementById("input-text").value = "";
-    document.querySelector("#data-table tbody").innerHTML = "";
+    document.querySelector("div[style*='margin-top:10px']").style.display = "none";
     document.getElementById("summary").innerText = "";
 
     // Ocultar gráfico de barras y leyenda
@@ -599,13 +524,13 @@ function createChart() {
     for (const row of tableBody.rows) {
         labels.push(row.cells[0].innerText);
         data.push(parseFloat(row.cells[1].innerText));
-        const nivel = row.cells[5].innerText.trim();
+        const cuartil = row.cells[5].innerText.trim();
 
-        if (nivel === 'Nivel 4') colors.push('#ff9999');      // rojo claro
-        else if (nivel === 'Nivel 3') colors.push('#ffcc99'); // naranja
-        else if (nivel === 'Nivel 2') colors.push('#ffff99'); // amarillo
-        else if (nivel === 'Nivel 1') colors.push('#ccffcc'); // verde claro
-        else colors.push('#dddddd');
+        if (cuartil.includes('Cuartil 4')) colors.push('#ff9999');      // rojo claro
+        else if (cuartil.includes('Cuartil 3')) colors.push('#ffcc99'); // naranja
+        else if (cuartil.includes('Cuartil 2')) colors.push('#ffff99'); // amarillo
+        else if (cuartil.includes('Cuartil 1')) colors.push('#ccffcc'); // verde claro
+        else colors.push('#dddddd'); // fallback gris
     }
 
     // Crear gráfico
@@ -639,7 +564,7 @@ function createChart() {
                 legend: { display: false },
                 title: {
                     display: true,
-                    text: 'Pregunta Según Complejidad',
+                    text: `Pregunta según Cuartil (n=${totalPreguntas})`,
                     font: {
                         size: 23,
                         weight: 'bold'
@@ -692,7 +617,7 @@ function downloadChartAsImage() {
     // Crear enlace de descarga
     const link = document.createElement("a");
     link.href = backgroundCanvas.toDataURL("image/png");
-    link.download = "grafico_promedios.png";
+    link.download = "grafico_cuartiles.png";
     link.click();
 }
 
@@ -709,31 +634,30 @@ function createDoughnutChart() {
         return;
     }
 
-    let nivel1 = 0, nivel2 = 0, nivel3 = 0, nivel4 = 0;
+    let cuartil1 = 0, cuartil2 = 0, cuartil3 = 0, cuartil4 = 0;
 
     for (const row of tableBody.rows) {
-        const complexity = row.cells[5].innerText.trim();
-        if (complexity === 'Nivel 1') nivel1++;
-        else if (complexity === 'Nivel 2') nivel2++;
-        else if (complexity === 'Nivel 3') nivel3++;
-        else if (complexity === 'Nivel 4') nivel4++;
+        const cuartil = row.cells[5].innerText.trim();
+        if (cuartil.includes('Cuartil 1')) cuartil1++;
+        else if (cuartil.includes('Cuartil 2')) cuartil2++;
+        else if (cuartil.includes('Cuartil 3')) cuartil3++;
+        else if (cuartil.includes('Cuartil 4')) cuartil4++;
     }
 
-    const data = [nivel4, nivel3, nivel2, nivel1];
-    const labels = ['Nivel 4', 'Nivel 3', 'Nivel 2', 'Nivel 1'];
+    const data = [cuartil4, cuartil3, cuartil2, cuartil1];
+    const labels = ['Cuartil 4 (difícil)', 'Cuartil 3', 'Cuartil 2', 'Cuartil 1 (fácil)'];
     const colors = ['#ff9999', '#ffcc99', '#ffff99', '#ccffcc'];
     const total = data.reduce((sum, value) => sum + value, 0);
 
-   const canvas = document.getElementById("doughnutChart");
-canvas.style.display = 'block';
-const legend = document.getElementById("doughnut-legend");
-legend.innerHTML = "<strong>Porcentaje según Complejidad</strong>";
-legend.style.display = 'block';
+    const canvas = document.getElementById("doughnutChart");
+    canvas.style.display = 'block';
+    const legend = document.getElementById("doughnut-legend");
+    legend.innerHTML = "<strong>Porcentaje según Cuartil</strong>";
+    legend.style.display = 'block';
 
-
-// Ajustar altura del gráfico circular al del gráfico de barras
-const barCanvas = document.getElementById("myChart");
-canvas.height = barCanvas.height;
+    // Ajustar altura al gráfico de barras
+    const barCanvas = document.getElementById("myChart");
+    canvas.height = barCanvas.height;
 
     const ctx = canvas.getContext("2d");
 
@@ -749,8 +673,7 @@ canvas.height = barCanvas.height;
                 data: data,
                 backgroundColor: colors,
                 borderColor: '#ffffff',
-               borderWidth: 1
-             
+                borderWidth: 1
             }]
         },
         options: {
@@ -809,7 +732,7 @@ function downloadDoughnutChartAsImage() {
 
     const link = document.createElement("a");
     link.href = backgroundCanvas.toDataURL("image/png");
-    link.download = "grafico_circular.png";
+    link.download = "grafico_cuartiles.png";
     link.click();
 }
 
@@ -847,7 +770,7 @@ function downloadBothCharts() {
     // Descargar
     const link = document.createElement("a");
     link.href = combinedCanvas.toDataURL("image/png");
-    link.download = "graficos_combinados.png";
+    link.download = "graficos_cuartiles.png";
     link.click();
 }
 
@@ -869,16 +792,6 @@ function checkIfBothChartsReady() {
     }
 }
 
-function restoreOriginalOrder() {
-    const tableBody = document.querySelector("#data-table tbody");
-    tableBody.innerHTML = "";
-    originalOrder.forEach(row => tableBody.appendChild(row.cloneNode(true)));
-    currentSortMode = "original";
-
-    // Resetear texto del botón de ordenamiento
-    const sortBtn = document.querySelector("button[onclick='sortTableByComplexity()']");
-    if (sortBtn) sortBtn.innerText = "🔽 Ordenar por Complejidad (Nivel 4 → Nivel 1)";
-}
 
 function openExampleModal() {
   document.getElementById("exampleModal").style.display = "block";
@@ -891,7 +804,9 @@ function closeExampleModal() {
 function copyExample() {
   const exampleText = document.getElementById("exampleData").innerText;
   navigator.clipboard.writeText(exampleText).then(() => {
-    alert("Ejemplo copiado al portapapeles ✅");
+    document.getElementById("input-text").value = exampleText; // pegar en textarea
+    alert("Ejemplo copiado y pegado en el área de texto ✅");
+    closeExampleModal();
   });
 }
 

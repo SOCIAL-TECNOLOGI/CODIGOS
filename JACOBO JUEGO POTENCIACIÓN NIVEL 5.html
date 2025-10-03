@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego de Potenciación – Cociente de Potencias</title>
+<style>
+  body {
+    background:#0f172a; color:white; font-family:Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100vh; margin:0;
+  }
+  h1 { margin-bottom:20px; color:#22d3ee; }
+
+  #potencias {
+    display:flex; gap:20px; margin:20px; font-size:40px;
+  }
+  sup { font-size:24px; color:#facc15; }
+
+  .area {
+    margin:15px; padding:20px; border:2px dashed #64748b; border-radius:6px;
+    min-width:420px; min-height:160px; display:flex; gap:12px;
+    justify-content:center; align-items:center; flex-wrap:wrap;
+    font-size:30px; text-align:center;
+    flex-direction:column;
+  }
+  .linea { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
+  .potencia {
+    padding:12px 18px; background:#3b82f6; border-radius:8px;
+    cursor:grab; font-weight:bold; font-size:30px; user-select:none;
+  }
+  .symbol { font-size:32px; font-weight:bold; }
+  .resultado {
+    margin-top:20px; font-size:26px; color:#16a34a; font-weight:bold;
+  }
+  .final-box {
+    margin-top:15px;
+    padding:12px 20px;
+    background:#16a34a;
+    color:white;
+    border-radius:8px;
+    font-size:28px;
+    font-weight:bold;
+    box-shadow:0 0 12px rgba(22,163,74,0.7);
+  }
+  button {
+    margin:10px; padding:10px 20px; font-size:18px;
+    background:#22d3ee; border:none; border-radius:6px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+  <h1>🔢 Juego de Potenciación – Cociente de Potencias</h1>
+
+  <div id="potencias"></div>
+  <div id="zonaFusion" class="area">Arrastra aquí las potencias</div>
+  <div id="feedback" class="resultado">Selecciona un tipo de operación.</div>
+
+  <div>
+    <button id="btnNueva">➡️ Nueva Operación</button>
+    <button id="btnNegativa">⚡ Exponente Negativo</button>
+    <button id="btnCero">⭕ Exponente Cero</button>
+  </div>
+
+<script>
+let base, exp1, exp2;
+const potenciasDiv = document.getElementById("potencias");
+const zonaFusion   = document.getElementById("zonaFusion");
+const feedback     = document.getElementById("feedback");
+
+const btnNueva    = document.getElementById("btnNueva");
+const btnNegativa = document.getElementById("btnNegativa");
+const btnCero     = document.getElementById("btnCero");
+
+// 🎯 Asignar eventos
+btnNueva.addEventListener("click", nuevaOperacion);
+btnNegativa.addEventListener("click", nuevaOperacionNegativa);
+btnCero.addEventListener("click", nuevaOperacionCero);
+
+function limpiarZona(mensaje="Une las potencias para aplicar la regla."){
+  zonaFusion.innerHTML = "Arrastra aquí las potencias";
+  feedback.textContent = mensaje;
+}
+
+// ✅ Nueva Operación (exp1 > exp2 → resultado positivo)
+function nuevaOperacion(){
+  base = randInt(2,5);
+  do {
+    exp1 = randInt(2,5);
+    exp2 = randInt(1,4);
+  } while (exp1 <= exp2); // asegurar positivo
+
+  potenciasDiv.innerHTML = "";
+  crearFicha(base,exp1);
+  crearFicha(base,exp2);
+  limpiarZona("Une las potencias para aplicar la regla.");
+}
+
+// ✅ Exponente Negativo (exp1 < exp2)
+function nuevaOperacionNegativa(){
+  base = randInt(2,5);
+  exp1 = randInt(1,2);
+  exp2 = randInt(exp1+1, exp1+3);
+
+  potenciasDiv.innerHTML = "";
+  crearFicha(base,exp1);
+  crearFicha(base,exp2);
+  limpiarZona("💡 Este ejercicio dará un exponente negativo.");
+}
+
+// ✅ Exponente Cero (exp1 = exp2)
+function nuevaOperacionCero(){
+  base = randInt(2,5);
+  const exp = randInt(2,5);
+  exp1 = exp; 
+  exp2 = exp;
+
+  potenciasDiv.innerHTML = "";
+  crearFicha(base,exp1);
+  crearFicha(base,exp2);
+  limpiarZona("💡 Caso especial: dará exponente cero (se cancelan todos los factores).");
+}
+
+function crearFicha(b,e){
+  const div = document.createElement("div");
+  div.className = "potencia";
+  div.innerHTML = `${b}<sup>${e}</sup>`;
+  div.draggable = true;
+  div.dataset.base = b;
+  div.dataset.exp  = e;
+  div.addEventListener("dragstart", ev=>{
+    ev.dataTransfer.setData("id", setTempId(div));
+  });
+  potenciasDiv.appendChild(div);
+}
+
+function setTempId(el){
+  if(!el.id) el.id = 'f_'+Math.random().toString(36).slice(2);
+  return el.id;
+}
+
+zonaFusion.addEventListener("dragover", e=> e.preventDefault());
+zonaFusion.addEventListener("drop", e=>{
+  e.preventDefault();
+  const id = e.dataTransfer.getData("id");
+  const ficha = document.getElementById(id);
+  if(!ficha) return;
+
+  if(zonaFusion.textContent.includes("Arrastra aquí")) zonaFusion.innerHTML = "";
+  if(!zonaFusion.querySelector(".linea")){
+    const linea = document.createElement("div");
+    linea.className="linea";
+    zonaFusion.appendChild(linea);
+  }
+  zonaFusion.querySelector(".linea").appendChild(ficha);
+
+  const potencias = zonaFusion.querySelectorAll(".potencia");
+  if(potencias.length===1){
+    const symbol = document.createElement("div");
+    symbol.className="symbol";
+    symbol.textContent="/";
+    zonaFusion.querySelector(".linea").appendChild(symbol);
+  } else if(potencias.length===2){
+    mostrarResultado(potencias);
+  }
+});
+
+function mostrarResultado(pots){
+  const b  = Number(pots[0].dataset.base);
+  const e1 = Number(pots[0].dataset.exp);
+  const e2 = Number(pots[1].dataset.exp);
+  const totalExp = e1 - e2;
+  const valor    = Math.pow(b, totalExp);
+
+  const linea = zonaFusion.querySelector(".linea");
+
+  setTimeout(()=>{ 
+    const igual = document.createElement("div");
+    igual.className="symbol"; igual.textContent="=";
+    linea.appendChild(igual); 
+  },600);
+
+  setTimeout(()=>{ 
+    const fusion = document.createElement("div");
+    fusion.className="potencia";
+    fusion.innerHTML = `${b}<sup>${e1}-${e2}</sup>`;
+    fusion.style.background="#22c55e";
+    fusion.querySelector("sup").style.color="black";
+    linea.appendChild(fusion); 
+  },1200);
+
+  setTimeout(()=>{ 
+    const flecha = document.createElement("div");
+    flecha.className="symbol"; flecha.textContent="→";
+    linea.appendChild(flecha); 
+  },1800);
+
+  setTimeout(()=>{ 
+    const res = document.createElement("div");
+    res.className="potencia";
+    res.innerHTML = `${b}<sup>${totalExp}</sup>`;
+    res.querySelector("sup").style.color="black";
+    linea.appendChild(res); 
+  },2400);
+
+  setTimeout(()=>{
+    const multLinea = document.createElement("div");
+    multLinea.className="linea";
+    multLinea.style.marginTop="15px";
+    zonaFusion.appendChild(multLinea);
+
+    const numArr = Array(e1).fill(b);
+    const denArr = Array(e2).fill(b);
+
+    multLinea.innerHTML = `<div style="text-align:center;">
+      <div id="numerador">${numArr.map(x=>`<span>${x}</span>`).join(" × ")}</div>
+      <div style="border-top:2px solid #fff;margin-top:4px;" id="denominador">
+        ${denArr.map(x=>`<span>${x}</span>`).join(" × ")}
+      </div>
+    </div>`;
+
+    let cancelaciones = Math.min(e1,e2), i = 0;
+    const intCancela = setInterval(()=>{
+      if(i<cancelaciones){
+        document.querySelectorAll("#numerador span")[i].style.textDecoration="line-through";
+        document.querySelectorAll("#numerador span")[i].style.color="red";
+        document.querySelectorAll("#denominador span")[i].style.textDecoration="line-through";
+        document.querySelectorAll("#denominador span")[i].style.color="red";
+        i++;
+      } else {
+        clearInterval(intCancela);
+
+        // 🎯 Caso especial: exponente cero
+        if(totalExp === 0){
+          const pasoCero = document.createElement("div");
+          pasoCero.className="final-box";
+          pasoCero.style.background="#3b82f6";
+          zonaFusion.appendChild(pasoCero);
+
+          setTimeout(()=>{
+            pasoCero.innerHTML = `${b}<sup>0</sup>`;
+          },500);
+
+          setTimeout(()=>{
+            pasoCero.innerHTML += ` = 
+              <span style="display:inline-block; text-align:center; margin:0 6px;">
+                <div style="border-bottom:2px solid white;">${b}<sup>1</sup></div>
+                <div>${b}<sup>1</sup></div>
+              </span>`;
+          },1500);
+
+          setTimeout(()=>{
+            pasoCero.innerHTML += ` =
+              <span style="display:inline-block; text-align:center; margin:0 6px;">
+                <div style="border-bottom:2px solid white;">${b}</div>
+                <div>${b}</div>
+              </span>`;
+          },2500);
+
+          setTimeout(()=>{
+            pasoCero.innerHTML += ` = 1 ✅`;
+          },3500);
+        } 
+        // 🎯 Caso especial: exponente negativo
+        else if(totalExp < 0){
+          const pasoNeg = document.createElement("div");
+          pasoNeg.className="final-box";
+          pasoNeg.style.background="#f97316";
+          zonaFusion.appendChild(pasoNeg);
+
+          setTimeout(()=>{
+            pasoNeg.innerHTML = `${b}<sup>${totalExp}</sup>`;
+          },500);
+
+          setTimeout(()=>{
+            pasoNeg.innerHTML += ` = 
+              <span style="display:inline-block; text-align:center;">
+                <div style="border-bottom:2px solid white;">1</div>
+                <div>${b}<sup>${Math.abs(totalExp)}</sup></div>
+              </span>`;
+          },1500);
+          
+          setTimeout(()=>{
+            pasoNeg.innerHTML += ` = 
+              <span style="display:inline-block; text-align:center;">
+                <div style="border-bottom:2px solid white;">1</div>
+                <div>${b**Math.abs(totalExp)}</div>
+              </span>`;
+          },2500);
+
+          setTimeout(()=>{
+            pasoNeg.innerHTML += ` = ${1/Math.pow(b,Math.abs(totalExp))} ✅`;
+          },3500);
+        }
+
+        // 🎯 Caso general (resultado positivo)
+        const potFinal = document.createElement("div");
+        potFinal.className="final-box";
+        if(totalExp < 0){
+          potFinal.innerHTML = `${b}<sup>${totalExp}</sup> = ${1/Math.pow(b,Math.abs(totalExp))}`;
+        } else if(totalExp === 0){
+          potFinal.innerHTML = `${b}<sup>0</sup> = 1`;
+        } else {
+          potFinal.innerHTML = `${b}<sup>${totalExp}</sup> = ${valor}`;
+        }
+        zonaFusion.appendChild(potFinal);
+
+        feedback.textContent = (totalExp===0)
+          ? "🎉 ¡Perfecto! Paso a paso vemos que al cancelar todo queda 1."
+          : (totalExp<0)
+            ? "⚡ ¡Muy bien! El exponente negativo se transforma en fracción."
+            : "🎉 ¡Muy bien! Cancelaste los factores comunes.";
+      }
+    },800);
+  },3000);
+}
+
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+</script>
+</body>
+</html>
