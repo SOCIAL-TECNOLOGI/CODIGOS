@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Articulación Vertical – Caza Mutaciones 🎮</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center, #020617 0%, #000814 100%);
+    color: #ffffff;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #00ffd5;
+    text-shadow: 0 0 15px #00ffd5;
+    margin-bottom: 15px;
+  }
+
+  .slide-container {
+    width: 90%;
+    max-width: 1100px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffd0;
+    border-radius: 20px;
+    padding: 50px 60px;
+    box-shadow: 0 0 40px rgba(0,255,180,0.5);
+    backdrop-filter: blur(8px);
+    position: relative;
+    min-height: 480px;
+    transition: all 0.5s ease;
+    text-align: center;
+  }
+
+  .slide {
+    display: none;
+    animation: fadeIn 1s ease forwards;
+  }
+  .slide.active { display: block; }
+
+  .grado {
+    font-weight: bold;
+    padding: 8px 18px;
+    border-radius: 30px;
+    display: inline-block;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #000;
+  }
+
+  .slide h2 {
+    font-size: 2rem;
+    margin: 10px 0 20px;
+    color: #00ffd0;
+  }
+
+  .slide p {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    margin: 10px 0;
+  }
+
+  .controls {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  button {
+    background: none;
+    border: 3px solid #00ffd0;
+    color: #00ffd0;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 75px;
+    height: 75px;
+    cursor: pointer;
+    font-size: 2rem;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #00ffd0;
+    color: #000;
+    box-shadow: 0 0 25px #00ffd0;
+  }
+
+  #restart {
+    display: none;
+  }
+
+  .progress-bar {
+    width: 0;
+    height: 10px;
+    background: linear-gradient(90deg, #00ffd0, #00bfa5);
+    border-radius: 5px;
+    margin-top: 25px;
+    transition: width 0.6s ease;
+  }
+
+  footer {
+    margin-top: 15px;
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(30px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 Articulación Vertical EBC – DBA – Competencias Saber 11</h1>
+
+<div class="slide-container" id="slideContainer">
+
+  <div class="slide active" data-text="Grado sexto. Se introducen los conceptos de célula, ADN y herencia básica.">
+    <div class="grado" style="background:#00ff88;">Grado 6° – Célula y herencia básica 🌱</div>
+    <h2>Nivel 1 – Atrapa heterocigotos (Aa, Bb)</h2>
+    <p><b>EBC:</b> Reconoce que la célula es la unidad básica de la vida y explica la transmisión de rasgos hereditarios.</p>
+    <p><b>DBA:</b> Comprende funciones básicas de la célula y los mecanismos de herencia biológica.</p>
+  </div>
+
+  <div class="slide" data-text="Grado séptimo. Se fortalece la comprensión de la reproducción y la variabilidad genética.">
+    <div class="grado" style="background:#00bbff;">Grado 7° – Reproducción y variabilidad 🧬</div>
+    <h2>Nivel 2 – Dispara homocigotos (AA, aa)</h2>
+    <p><b>EBC:</b> Explica cómo la reproducción sexual contribuye a la variabilidad genética.</p>
+    <p><b>DBA:</b> Comprende la función de la meiosis y cómo influye en la diversidad biológica.</p>
+  </div>
+
+  <div class="slide" data-text="Grado octavo. Se afianzan los principios de Mendel y la predicción genética.">
+    <div class="grado" style="background:#00ffe6;">Grado 8° – Leyes de Mendel 💎</div>
+    <h2>Nivel 3 – Probabilidades genéticas</h2>
+    <p><b>EBC:</b> Relaciona la herencia mendeliana con la variabilidad de los seres vivos.</p>
+    <p><b>DBA:</b> Determina proporciones genotípicas y fenotípicas en cruces mono y dihíbridos.</p>
+  </div>
+
+  <div class="slide" data-text="Grado noveno. Se trabaja la meiosis y la gametogénesis desde un enfoque celular.">
+    <div class="grado" style="background:#ffee00;">Grado 9° – Meiosis y gametogénesis 🧩</div>
+    <h2>Nivel 4 – Puzzle de meiosis</h2>
+    <p><b>EBC:</b> Relaciona la función de la meiosis con la formación de gametos y la variabilidad genética.</p>
+    <p><b>DBA:</b> Explica los procesos de división celular y su importancia para la reproducción.</p>
+  </div>
+
+  <div class="slide" data-text="Grado décimo. Se estudian mutaciones, evolución y genética de poblaciones.">
+    <div class="grado" style="background:#ffaa00;">Grado 10° – Mutaciones y evolución 🐍</div>
+    <h2>Nivel 5 – Serpiente genética</h2>
+    <p><b>EBC:</b> Explica cómo los cambios genéticos afectan la evolución y diversidad.</p>
+    <p><b>DBA:</b> Analiza el papel de las mutaciones y la selección natural en la variabilidad.</p>
+  </div>
+
+  <div class="slide" data-text="Grado undécimo. Se introduce la genética molecular y la síntesis proteica.">
+    <div class="grado" style="background:#ff4444;">Grado 11° – Genética molecular 🧫</div>
+    <h2>Nivel 6 – Dogma central Match-3</h2>
+    <p><b>EBC:</b> Explica cómo la información genética se traduce en proteínas.</p>
+    <p><b>DBA:</b> Analiza el papel del ADN y ARN en la síntesis proteica y expresión de los caracteres.</p>
+  </div>
+
+  <div class="slide" data-text="Cierre ético y social. Se integran los conocimientos biológicos con la reflexión crítica.">
+    <div class="grado" style="background:#a020f0;">Síntesis – CTSA y bioética 🌍</div>
+    <h2>Nivel 7 – Lectura crítica CTSA</h2>
+    <p><b>EBC:</b> Evalúa las implicaciones sociales y éticas de los avances científicos.</p>
+    <p><b>DBA:</b> Argumenta sobre las aplicaciones biotecnológicas y su impacto ambiental y ético.</p>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button id="prev">⬅️</button>
+  <button id="play">▶️</button>
+  <button id="pause">⏸️</button>
+  <button id="next">➡️</button>
+  <button id="restart">🔄</button>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+<footer>🎮 “Caza Mutaciones” – Secuencia curricular 6°–11° | MEN, Guía 47, DBA y Saber 11 (ICFES)</footer>
+
+<audio id="dnaSound" src="https://actions.google.com/sounds/v1/science_fiction/alien_scanner.ogg"></audio>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progressBar = document.getElementById('progressBar');
+const dnaSound = document.getElementById('dnaSound');
+const restartBtn = document.getElementById('restart');
+
+let current = 0;
+let utterance = null;
+let speechRate = 1;
+let isReading = false;
+let autoMode = true;
+
+function showSlide(index) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[index].classList.add('active');
+  progressBar.style.width = ((index + 1) / slides.length) * 100 + '%';
+  dnaSound.currentTime = 0;
+  dnaSound.play();
+
+  // 🔄 mostrar botón reiniciar solo en la última
+  restartBtn.style.display = (index === slides.length - 1) ? "inline-block" : "none";
+}
+
+function nextSlide() {
+  if (current < slides.length - 1) current++;
+  else {
+    autoMode = false;
+    alert("🎉 Fin de la secuencia didáctica. Gracias por escuchar.");
+    restartBtn.style.display = "inline-block";
+    return;
+  }
+  showSlide(current);
+  if (autoMode) readCurrentSlide();
+}
+
+function prevSlide() {
+  if (current > 0) current--;
+  else current = slides.length - 1;
+  showSlide(current);
+  stopReading();
+}
+
+function stopReading() {
+  speechSynthesis.cancel();
+  isReading = false;
+}
+
+function readCurrentSlide() {
+  stopReading();
+  const slide = slides[current];
+  const text = slide.dataset.text;
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "es-ES";
+  utterance.rate = speechRate;
+  utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith("es") && v.name.toLowerCase().includes("female")) || null;
+  utterance.onend = () => {
+    setTimeout(nextSlide, 5000);
+  };
+  speechSynthesis.speak(utterance);
+  isReading = true;
+}
+
+function reiniciarPresentacion() {
+  stopReading();
+  current = 0;
+  autoMode = true;
+  showSlide(0);
+  setTimeout(readCurrentSlide, 1500);
+}
+
+document.getElementById('next').onclick = nextSlide;
+document.getElementById('prev').onclick = prevSlide;
+document.getElementById('play').onclick = () => { autoMode = true; readCurrentSlide(); };
+document.getElementById('pause').onclick = () => speechSynthesis.pause();
+restartBtn.onclick = reiniciarPresentacion;
+
+window.onload = () => {
+  showSlide(0);
+  setTimeout(readCurrentSlide, 2000);
+};
+</script>
+
+</body>
+</html>

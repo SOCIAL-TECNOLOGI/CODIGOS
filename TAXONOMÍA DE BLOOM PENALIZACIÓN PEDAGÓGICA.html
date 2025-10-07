@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penalización en Modo Examen – Diapositiva Pedagógica</title>
+
+<style>
+  :root {
+    --bg: #0b1224;
+    --panel: #111827;
+    --borde: #1f2937;
+    --txt: #e5e7eb;
+    --accent: #22d3ee;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+
+  body {
+    background: radial-gradient(circle at top right, #1f2937, #0b1224);
+    color: var(--txt);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .slide {
+    background: rgba(17,24,39,0.8);
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    padding: 30px 40px;
+    max-width: 760px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    text-align: center;
+    animation: popIn 0.8s ease;
+  }
+
+  h1 {
+    color: var(--accent);
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    color: var(--green);
+    font-size: 20px;
+    margin: 10px 0 18px;
+  }
+
+  .quote {
+    font-style: italic;
+    color: var(--accent);
+    margin: 14px 0;
+    font-size: 16px;
+  }
+
+  ul {
+    list-style: none;
+    text-align: left;
+    padding-left: 0;
+    font-size: 15px;
+  }
+
+  li {
+    background: rgba(34,211,238,0.05);
+    border-left: 4px solid var(--accent);
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    line-height: 1.4;
+  }
+
+  .modes {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  .mode {
+    background: rgba(17,24,39,0.9);
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 16px 18px;
+    width: 280px;
+    transition: all 0.3s ease;
+  }
+
+  .mode h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+  }
+
+  .mode.practice h3 { color: var(--accent); }
+  .mode.exam h3 { color: var(--red); }
+
+  .mode ul {
+    font-size: 14px;
+  }
+
+  .mode:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(34,211,238,0.3);
+  }
+
+  .footer {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    80% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  /* Botón para mostrar reflexión */
+  #btnReflexion {
+    background: linear-gradient(90deg,#3b82f6,#22d3ee);
+    border: none;
+    color: white;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 10px 18px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  #btnReflexion:hover {
+    transform: scale(1.05);
+    background: linear-gradient(90deg,#2563eb,#0ea5e9);
+  }
+
+  #reflexion {
+    display: none;
+    margin-top: 16px;
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: #bbf7d0;
+    font-weight: 600;
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="slide">
+  <h1>🎓 Por qué solo penalizar en modo examen es más pedagógico</h1>
+  <h2>Basado en el enfoque formativo y la teoría de Bloom</h2>
+
+  <ul>
+    <li>💡 En la práctica, el error es una oportunidad de aprendizaje y reflexión, no un castigo.</li>
+    <li>🧩 Penalizar solo en modo examen refuerza la autonomía y el autocontrol cognitivo.</li>
+    <li>📚 Vygotsky, Bloom y Ausubel destacan que el error orientado por feedback fortalece la comprensión.</li>
+    <li>✅ En la evaluación, la penalización mide precisión y dominio real.</li>
+  </ul>
+
+  <div class="modes">
+    <div class="mode practice">
+      <h3>🧠 Modo Práctica</h3>
+      <ul>
+        <li>No hay penalizaciones.</li>
+        <li>Favorece la exploración y el ensayo-error.</li>
+        <li>Fortalece la motivación intrínseca y la metacognición.</li>
+      </ul>
+    </div>
+
+    <div class="mode exam">
+      <h3>🧮 Modo Examen</h3>
+      <ul>
+        <li>Cada error resta puntos.</li>
+        <li>Cada 3 errores consecutivos penaliza adicionalmente.</li>
+        <li>Evalúa precisión y control adquirido.</li>
+      </ul>
+    </div>
+  </div>
+
+  <button id="btnReflexion">💬 Ver reflexión pedagógica</button>
+
+  <div id="reflexion">
+    “Aprender no se castiga; demostrar dominio sí se mide.”
+    <br><br>
+    Esta estructura refuerza la justicia evaluativa y motiva el esfuerzo autónomo.
+  </div>
+
+  <div class="footer">
+    © 2025 · Adaptación Bloom Competencial · Mario Germán Barbosa Valderrama
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById("btnReflexion");
+  const box = document.getElementById("reflexion");
+  btn.addEventListener("click", () => {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+    btn.textContent = box.style.display === "none"
+      ? "💬 Ver reflexión pedagógica"
+      : "❌ Ocultar reflexión";
+  });
+</script>
+
+</body>
+</html>

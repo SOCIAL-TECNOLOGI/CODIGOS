@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 Secuencia Gamificada – Caza Mutaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center, #020617 0%, #000814 100%);
+    color: #ffffff;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 2.6rem;
+    color: #00ffd5;
+    text-shadow: 0 0 15px #00ffd5;
+  }
+
+  .slide-container {
+    width: 90%;
+    max-width: 1100px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffd0;
+    border-radius: 25px;
+    padding: 60px 70px;
+    box-shadow: 0 0 45px rgba(0,255,180,0.5);
+    backdrop-filter: blur(10px);
+    min-height: 500px;
+    transition: all 0.5s ease;
+  }
+
+  .slide {
+    display: none;
+    animation: fadeIn 1s ease forwards;
+  }
+
+  .slide.active {
+    display: block;
+  }
+
+  .slide h2 {
+    font-size: 2.3rem;
+    color: #00ffd0;
+    margin-bottom: 25px;
+  }
+
+  .slide p {
+    font-size: 1.5rem;
+    line-height: 1.9;
+    margin: 15px 0;
+  }
+
+  mark {
+    background: #00ffd0;
+    color: #000;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 6px;
+  }
+
+  .controls {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  button {
+    background: none;
+    border: 3px solid #00ffd0;
+    color: #00ffd0;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 85px;
+    height: 85px;
+    cursor: pointer;
+    font-size: 2.2rem;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #00ffd0;
+    color: #000;
+    box-shadow: 0 0 25px #00ffd0;
+  }
+
+  .progress-bar {
+    width: 0;
+    height: 10px;
+    background: linear-gradient(90deg, #00ffd0, #00bfa5);
+    border-radius: 5px;
+    margin-top: 25px;
+    transition: width 0.4s ease;
+  }
+
+  footer {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    opacity: 0.8;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(30px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+</style>
+</head>
+
+<body>
+<h1>🧬 Secuencia Didáctica Gamificada – Caza Mutaciones</h1>
+
+<div class="slide-container" id="slides">
+  <div class="slide active" data-text="Nivel 1. Atrapa heterocigotos Aa y Bb. Este primer nivel introduce la diferencia básica entre homocigoto y heterocigoto. El estudiante reconoce símbolos y comprende dominancia y recesividad.">
+    <h2>🎯 Nivel 1 – Atrapa heterocigotos (Aa, Bb)</h2>
+    <p><mark>Justificación:</mark> Introducir la diferencia básica entre homocigoto y heterocigoto. El estudiante reconoce símbolos y dominancia/recesividad.</p>
+    <p><mark>DBA:</mark> “Reconoce cómo la herencia mendeliana explica características observables en organismos.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 2. Dispara a homocigotos AA y aa. Afianza el concepto de reducción de variabilidad genética y permite comprender la contribución de cada tipo de genotipo a la diversidad.">
+    <h2>🚀 Nivel 2 – Dispara homocigotos (AA, aa)</h2>
+    <p><mark>Justificación:</mark> Afianza el concepto de reducción de variabilidad genética. El estudiante discrimina qué genotipos aportan menos diversidad.</p>
+    <p><mark>EBC:</mark> “Explica cómo la combinación de gametos genera descendencia con variabilidad genética.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 3. Probabilidades genéticas. Ejercita el razonamiento probabilístico con cruces monohíbridos y dihíbridos antes de pasar a lo molecular.">
+    <h2>🧩 Nivel 3 – Probabilidades genéticas</h2>
+    <p><mark>Justificación:</mark> Permite ejercitar la predicción probabilística antes de abordar la genética molecular.</p>
+    <p><mark>DBA:</mark> “Determina proporciones genotípicas y fenotípicas en cruces mono y dihíbridos.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 4. Puzzle de meiosis. Conecta las probabilidades con la base celular real. El estudiante identifica fases donde se separan los alelos.">
+    <h2>🧬 Nivel 4 – Puzzle de meiosis</h2>
+    <p><mark>Justificación:</mark> Conecta la probabilidad con la base celular real: cómo se forman los gametos y cuándo se separan alelos.</p>
+    <p><mark>EBC:</mark> “Relaciona la función de la meiosis con la variabilidad genética.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 5. Serpiente genética. Reafirma el concepto de aporte y acumulación de alelos dominantes y recesivos en poblaciones, vinculándolo a la genética de poblaciones.">
+    <h2>🐍 Nivel 5 – Serpiente genética</h2>
+    <p><mark>Justificación:</mark> Reafirma el concepto de acumulación de alelos en poblaciones, puente hacia la genética poblacional.</p>
+    <p><mark>DBA:</mark> “Explica cómo la reproducción sexual y la segregación de alelos generan variabilidad.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 6. Dogma central tipo Match 3. Permite comprender cómo la información genética se traduce en proteínas y cómo las mutaciones afectan esa traducción.">
+    <h2>🧫 Nivel 6 – Dogma central Match-3</h2>
+    <p><mark>Justificación:</mark> Introduce la expresión molecular de los genes y las mutaciones en la síntesis de proteínas.</p>
+    <p><mark>EBC:</mark> “Explica cómo la información genética se traduce en proteínas.”</p>
+  </div>
+
+  <div class="slide" data-text="Nivel 7. Lectura crítica CTSA. Cierra con análisis ético y toma de decisiones sobre biotecnología, transgénicos y pruebas genéticas.">
+    <h2>🌍 Nivel 7 – Lectura crítica CTSA</h2>
+    <p><mark>Justificación:</mark> Cierre con toma de decisiones y análisis ético. Aplica lo genético y molecular a contextos reales.</p>
+    <p><mark>DBA:</mark> “Evalúa las implicaciones sociales y éticas de los avances en genética y biotecnología.”</p>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="prev">⏮️</button>
+  <button id="play">▶️</button>
+  <button id="pause">⏸️</button>
+  <button id="next">⏭️</button>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<footer>🎓 Biología Gamificada | Caza Mutaciones © 2025</footer>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progressBar = document.getElementById('progressBar');
+let current = 0;
+let utterance = null;
+let speechRate = 1;
+let isReading = false;
+
+function showSlide(index) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[index].classList.add('active');
+  progressBar.style.width = ((index + 1) / slides.length) * 100 + '%';
+}
+
+function nextSlide() {
+  if (current < slides.length - 1) current++;
+  else current = 0;
+  showSlide(current);
+  stopReading();
+}
+
+function prevSlide() {
+  if (current > 0) current--;
+  else current = slides.length - 1;
+  showSlide(current);
+  stopReading();
+}
+
+function stopReading() {
+  speechSynthesis.cancel();
+  isReading = false;
+}
+
+function readCurrentSlide() {
+  stopReading();
+  const slide = slides[current];
+  const text = slide.dataset.text;
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "es-ES";
+  utterance.rate = speechRate;
+  utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith("es") && v.name.toLowerCase().includes("female")) || null;
+  utterance.onend = () => {
+    setTimeout(nextSlide, 9000); // Espera más tiempo (9s) antes de avanzar
+  };
+  speechSynthesis.speak(utterance);
+  isReading = true;
+}
+
+document.getElementById('next').onclick = nextSlide;
+document.getElementById('prev').onclick = prevSlide;
+document.getElementById('play').onclick = readCurrentSlide;
+document.getElementById('pause').onclick = () => speechSynthesis.pause();
+
+window.onload = () => showSlide(0);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hoja de Ruta – Piloto SITE–RUTA LATAM 2024–2026</title>
+
+<style>
+  body {
+    background: radial-gradient(circle at center, #0f172a, #000);
+    color: #e2e8f0;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 25px;
+    padding: 30px;
+  }
+  /* Panel lateral */
+  .panel {
+    width: 260px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+    position: sticky;
+    top: 30px;
+    box-shadow: 0 0 20px rgba(56,189,248,0.3);
+  }
+  .panel h2 {
+    text-align: center;
+    color: #38bdf8;
+    margin-bottom: 10px;
+  }
+  .progress-wrap {
+    margin: 15px 0;
+    background: #1e293b;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 25px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+    transition: width 0.4s ease;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 14px;
+    color: #a5f3fc;
+    margin-top: 6px;
+  }
+
+  /* Contenido principal */
+  .timeline {
+    max-width: 900px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 20px 30px;
+    box-shadow: 0 0 20px rgba(56,189,248,0.4);
+  }
+  h1 {
+    color: #38bdf8;
+    font-size: 26px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  h2 {
+    color: #93c5fd;
+    margin-top: 25px;
+  }
+  .phase {
+    margin: 20px 0;
+    padding-left: 10px;
+    border-left: 3px solid #38bdf8;
+  }
+  .checklist {
+    list-style: none;
+    padding: 0;
+  }
+  .checklist li {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #38bdf8;
+    cursor: pointer;
+  }
+  .completed {
+    text-decoration: line-through;
+    color: #64748b;
+  }
+  button {
+    margin-top: 25px;
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover {
+    background: #0ea5e9;
+    color: #fff;
+  }
+  .ods {
+    font-size: 14px;
+    color: #a5f3fc;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Panel lateral estilo cabina -->
+<div class="panel">
+  <h2>🛫 Cabina de Vuelo</h2>
+  <p><strong>Altitud de carrera investigativa:</strong></p>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p class="progress-text" id="progressText">0 % completado</p>
+  <hr style="border:1px solid #334155; margin:15px 0;">
+  <p><strong>ODS en ruta:</strong><br>4 – Educación de calidad<br>8 – Trabajo decente y crecimiento económico<br>12 – Producción y consumo responsable<br>13 – Acción por el clima</p>
+</div>
+
+<!-- Contenido principal -->
+<div class="timeline">
+  <h1>Hoja de Ruta – SITE–RUTA LATAM (2024–2026)</h1>
+  <p>Bitácora profesional rumbo a <strong>WhatWorks Panamá 2026 🇵🇦</strong><br>
+  Estrategia 2024–2026: convertir tu experiencia real en el “prototipo vivo” de SITE–RUTA LATAM</p>
+
+  <h2>🧩 Fase 1 – Despegue (Octubre 2024 – Marzo 2025)</h2>
+  <div class="phase">
+    <ul class="checklist">
+      <li><input type="checkbox"> Documentar evidencia de las 34 capacitaciones docentes.</li>
+      <li><input type="checkbox"> Redactar brief técnico “SITE–RUTA LATAM en construcción”.</li>
+      <li><input type="checkbox"> Contactar Partners of the Americas (Colombia) – carta Panamá 2026.</li>
+      <li><input type="checkbox"> Registrar marca o modelo SITE–RUTA (Fedusocial).</li>
+      <li><input type="checkbox"> Crear dossier fotográfico Comuna 15 y Comuna 18.</li>
+      <li><input type="checkbox"> Elaborar resumen técnico ODS 4, 8, 12, 13.</li>
+    </ul>
+  </div>
+
+  <h2>🧱 Fase 2 – Validación en Campo (Abril – Diciembre 2025)</h2>
+  <p>Objetivo: construir evidencia viva que sustituya al software con datos reales y trazabilidad humana. Mostrar que SITE–RUTA ya funciona como metodología, aunque no sea aún plataforma digital.</p>
+  <div class="phase">
+    <ul class="checklist">
+      <li><input type="checkbox"> Implementar 3 pilotos: Comuna 15, Comuna 18 y 1 municipio SED.</li>
+      <li><input type="checkbox"> Crear bitácora SITE–RUTA analógico (Excel o Google Sheets).</li>
+      <li><input type="checkbox"> Capacitar 100 docentes en trazabilidad educativa <span class="ods">(ODS 4)</span>.</li>
+      <li><input type="checkbox"> Diseñar 3 microemprendimientos escolares circulares <span class="ods">(ODS 8)</span>.</li>
+      <li><input type="checkbox"> Recuperar 3–5 t de residuos y sembrar árboles <span class="ods">(ODS 12–13)</span>.</li>
+      <li><input type="checkbox"> Documentar voluntarios o pasantes en empleos verdes.</li>
+      <li><input type="checkbox"> Publicar 1 informe técnico o póster SITE–RUTA.</li>
+    </ul>
+  </div>
+
+  <h2>🌎 Fase 3 – Crucero hacia WhatWorks 2026 (Enero 2026)</h2>
+  <div class="phase">
+    <ul class="checklist">
+      <li><input type="checkbox"> Consolidar dossier de evidencias SITE–RUTA piloto.</li>
+      <li><input type="checkbox"> Enviar propuesta actualizada a WhatWorks Panamá 2026.</li>
+      <li><input type="checkbox"> Preparar presentación (poster, video, tablero Excel).</li>
+      <li><input type="checkbox"> Solicitar apoyo/logística a Partners Colombia y cooperantes.</li>
+      <li><input type="checkbox"> Presentar informe preliminar de resultados ODS.</li>
+      <li><input type="checkbox"> Viajar y presentar “SITE–RUTA LATAM: Educación Regenerativa”.</li>
+    </ul>
+  </div>
+
+  <h2>📊 Fase 4 – Sostenimiento Post–Evento (Febrero – Diciembre 2026)</h2>
+  <div class="phase">
+    <ul class="checklist">
+      <li><input type="checkbox"> Publicar artículo científico derivado de la conferencia.</li>
+      <li><input type="checkbox"> Gestionar alianzas para Escuelas Circulares LATAM.</li>
+      <li><input type="checkbox"> Formalizar ruta de empleabilidad verde (ODS 8).</li>
+      <li><input type="checkbox"> Escalar SITE–RUTA a 10 nuevas instituciones.</li>
+      <li><input type="checkbox"> Crear versión digital simplificada (demo web/app).</li>
+    </ul>
+  </div>
+
+  <button id="resetBtn">🔄 Reiniciar checklist</button>
+</div>
+
+<script>
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const resetBtn = document.getElementById('resetBtn');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+
+  // Cargar progreso
+  function updateProgress() {
+    const total = checkboxes.length;
+    const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+    const percent = Math.round((checked / total) * 100);
+    progressBar.style.width = percent + "%";
+    progressText.textContent = `Altitud de carrera investigativa: ${percent}% completado`;
+  }
+
+  checkboxes.forEach((cb, index) => {
+    const saved = localStorage.getItem('check_' + index);
+    if (saved === 'true') {
+      cb.checked = true;
+      cb.parentElement.classList.add('completed');
+    }
+    cb.addEventListener('change', () => {
+      localStorage.setItem('check_' + index, cb.checked);
+      cb.parentElement.classList.toggle('completed', cb.checked);
+      updateProgress();
+    });
+  });
+
+  // Inicializar progreso
+  updateProgress();
+
+  // Reiniciar todo
+  resetBtn.addEventListener('click', () => {
+    checkboxes.forEach((cb, index) => {
+      cb.checked = false;
+      cb.parentElement.classList.remove('completed');
+      localStorage.removeItem('check_' + index);
+    });
+    updateProgress();
+  });
+</script>
+
+</body>
+</html>

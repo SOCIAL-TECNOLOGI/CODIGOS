@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caza Mutaciones 🎮 – Secuencia Curricular Gamificada</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center, #020617 0%, #000814 100%);
+    color: #ffffff;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 2.4rem;
+    color: #00ffd5;
+    text-shadow: 0 0 12px #00ffd5;
+  }
+
+  .slide-container {
+    width: 90%;
+    max-width: 1100px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffd0;
+    border-radius: 20px;
+    padding: 50px 60px;
+    box-shadow: 0 0 40px rgba(0,255,180,0.5);
+    backdrop-filter: blur(8px);
+    position: relative;
+    min-height: 450px;
+    transition: all 0.5s ease;
+  }
+
+  .slide {
+    display: none;
+    animation: fadeIn 1s ease forwards;
+  }
+  .slide.active { display: block; }
+
+  .slide h2 {
+    font-size: 2rem;
+    color: #00ffd0;
+    margin-bottom: 15px;
+  }
+
+  .slide p {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    margin: 10px 0;
+  }
+
+  .tag {
+    background: #00ffd0;
+    color: #000;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+  }
+
+  .controls {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+  }
+
+  button {
+    background: none;
+    border: 3px solid #00ffd0;
+    color: #00ffd0;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 75px;
+    height: 75px;
+    cursor: pointer;
+    font-size: 2rem;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #00ffd0;
+    color: #000;
+    box-shadow: 0 0 25px #00ffd0;
+  }
+
+  .progress-bar {
+    width: 0;
+    height: 8px;
+    background: linear-gradient(90deg, #00ffd0, #00bfa5);
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: width 0.4s ease;
+  }
+
+  footer {
+    margin-top: 15px;
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(30px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+</style>
+
+</head>
+<body>
+
+<h1>🧬 Secuencia Curricular Gamificada – Caza Mutaciones 🎮</h1>
+
+<div class="slide-container" id="slides"></div>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="controls">
+  <button id="prev">⏮️</button>
+  <button id="next">⏭️</button>
+</div>
+
+<footer>Basado en DBA y EBC del MEN (2016, 2006) y Marco ICFES Saber 11.</footer>
+
+<script>
+const slidesData = [
+  {
+    nivel: "1️⃣ Atrapa heterocigotos (Aa, Bb)",
+    just: "Introduce la diferencia entre homocigoto y heterocigoto, comprendiendo dominancia y recesividad mediante observación directa.",
+    ebc: "EBC: “Reconoce que los caracteres de los organismos dependen de la información hereditaria y del ambiente, y que la información genética se transmite durante la reproducción.”",
+    dba: "DBA 11.4: Explica la transmisión de características hereditarias a partir de la meiosis y la fecundación.",
+    comp: "Uso comprensivo del conocimiento científico: aplica principios de herencia para interpretar rasgos fenotípicos."
+  },
+  {
+    nivel: "2️⃣ Dispara homocigotos (AA, aa)",
+    just: "Fortalece la comprensión sobre la reducción de variabilidad genética y los efectos de los genotipos homocigotos.",
+    ebc: "EBC: “Explica cómo la combinación de gametos produce la variabilidad genética en la descendencia.”",
+    dba: "DBA 11.4: Explica la transmisión de características hereditarias a partir de la meiosis y la fecundación.",
+    comp: "Explicación de fenómenos: comprende cómo la reproducción sexual contribuye a la variabilidad."
+  },
+  {
+    nivel: "3️⃣ Probabilidades genéticas (¿Qué pasa si…?)",
+    just: "Promueve el razonamiento probabilístico en genética, ejercitando la predicción y el análisis de resultados en cruces genéticos.",
+    ebc: "EBC: “Utiliza modelos y representaciones para explicar la transmisión y expresión de los caracteres hereditarios.”",
+    dba: "DBA 11.5: Determina proporciones genotípicas y fenotípicas resultantes de diferentes tipos de cruces genéticos.",
+    comp: "Indagación: formula y comprueba hipótesis sobre combinaciones genéticas posibles."
+  },
+  {
+    nivel: "4️⃣ Puzzle de meiosis / gametogénesis",
+    just: "Relaciona la probabilidad con la base celular: comprende cómo se forman los gametos y cuándo se separan los alelos.",
+    ebc: "EBC: “Relaciona la función de la meiosis con la variabilidad genética de los organismos.”",
+    dba: "DBA 11.4: Explica la transmisión de características hereditarias a partir de la meiosis y la fecundación.",
+    comp: "Explicación de fenómenos: modela procesos celulares para justificar la diversidad genética."
+  },
+  {
+    nivel: "5️⃣ Serpiente genética (atrapa alelos dominantes)",
+    just: "Consolida la idea de acumulación de alelos y su papel en la genética de poblaciones, sirviendo de puente hacia la evolución.",
+    ebc: "EBC: “Comprende la importancia de la variabilidad genética para la evolución de las especies.”",
+    dba: "DBA 11.6: Evalúa las implicaciones sociales y éticas de la manipulación genética.",
+    comp: "Uso del conocimiento científico: interpreta cómo los cambios genéticos afectan la evolución."
+  },
+  {
+    nivel: "6️⃣ Dogma central tipo Match-3 (codón → aminoácido → proteína)",
+    just: "Transición hacia la biología molecular: el estudiante visualiza cómo la información genética se traduce en función celular.",
+    ebc: "EBC: “Explica cómo la información contenida en el ADN se traduce en proteínas responsables de la estructura y función de los seres vivos.”",
+    dba: "DBA 11.5: Analiza el papel del ADN y del ARN en la síntesis de proteínas y en la expresión de los caracteres.",
+    comp: "Explicación de fenómenos: aplica el modelo del dogma central para interpretar mutaciones."
+  },
+  {
+    nivel: "7️⃣ Lectura crítica CTSA (OGM y pruebas genéticas)",
+    just: "Integra ética, ciencia y sociedad mediante análisis crítico y argumentación basada en evidencias y datos científicos.",
+    ebc: "EBC: “Evalúa las relaciones entre ciencia, tecnología, sociedad y ambiente para la toma de decisiones responsables.”",
+    dba: "DBA 11.6: Evalúa las implicaciones sociales y éticas de la manipulación genética.",
+    comp: "Toma de decisiones informadas: argumenta posturas frente a controversias socio-científicas."
+  }
+];
+
+let current = 0;
+const container = document.getElementById('slides');
+const progress = document.getElementById('progress');
+
+function renderSlide(index) {
+  const s = slidesData[index];
+  container.innerHTML = `
+    <div class="slide active">
+      <div class="tag">Nivel ${index+1} de ${slidesData.length}</div>
+      <h2>${s.nivel}</h2>
+      <p><strong>🎯 Justificación:</strong> ${s.just}</p>
+      <p><strong>📘 ${s.ebc}</strong></p>
+      <p><strong>📗 ${s.dba}</strong></p>
+      <p><strong>🧠 Competencia Saber 11:</strong> ${s.comp}</p>
+    </div>
+  `;
+  progress.style.width = `${((index+1)/slidesData.length)*100}%`;
+}
+
+document.getElementById('next').addEventListener('click', ()=>{
+  current = (current + 1) % slidesData.length;
+  renderSlide(current);
+});
+
+document.getElementById('prev').addEventListener('click', ()=>{
+  current = (current - 1 + slidesData.length) % slidesData.length;
+  renderSlide(current);
+});
+
+// Auto avance cada 12 segundos
+setInterval(()=>{
+  current = (current + 1) % slidesData.length;
+  renderSlide(current);
+}, 12000);
+
+renderSlide(current);
+</script>
+</body>
+</html>

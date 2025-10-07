@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Interactivo – Circuitos Eléctricos ⚡</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; overflow: hidden;
+    height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; font-family: "Poppins", sans-serif; color: #fff;
+  }
+  /* Fondo animado */
+  body::before{
+    content:""; position:absolute; width:200%; height:200%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(34,211,238,0.25), transparent 40%),
+      radial-gradient(circle at 70% 70%, rgba(59,130,246,0.2), transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(147,51,234,0.25), transparent 40%);
+    animation: moveBg 10s infinite alternate ease-in-out;
+    z-index:0; filter: blur(90px); opacity:0; transition: opacity 2s;
+  }
+  body.active::before{ opacity:1; }
+  @keyframes moveBg{ 0%{transform:translate(0,0) scale(1);} 50%{transform:translate(-10%,-10%) scale(1.2);} 100%{transform:translate(10%,10%) scale(1);} }
+
+  /* Pantalla de inicio */
+  #startScreen{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#000; z-index:10; text-align:center; }
+  #startScreen button{ background:#22d3ee; color:#000; border:none; border-radius:10px; padding:15px 30px; font-size:20px; cursor:pointer; box-shadow:0 0 15px rgba(34,211,238,.6); }
+  #startScreen button:hover{ background:#06b6d4; }
+
+  /* Slides */
+  .slides{ display:flex; transition:transform .8s ease-in-out; width:800%; height:100%; z-index:2; }
+  .slide{ min-width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:30px; text-align:center; position:relative; }
+  h2{ color:#22d3ee; margin-bottom:20px; font-size:22px; text-shadow:0 0 10px rgba(34,211,238,.7); }
+  img{ width:180px; height:180px; object-fit:contain; border-radius:12px; box-shadow:0 0 25px rgba(34,211,238,.4); margin-bottom:20px; }
+  .options{ display:flex; flex-direction:column; gap:12px; width:80%; max-width:500px; }
+  button.option{ background:rgba(30,41,59,.9); border:2px solid #22d3ee; color:#fff; padding:12px; border-radius:10px; font-size:16px; cursor:pointer; transition:.3s; }
+  .correct{ background:#16a34a !important; border-color:#16a34a !important; transform:scale(1.1); box-shadow:0 0 20px #22c55e; }
+  .wrong{ background:#dc2626 !important; border-color:#dc2626 !important; transform:scale(1.1); box-shadow:0 0 20px #ef4444; }
+
+  .progress{ position:absolute; bottom:20px; font-size:14px; color:#a5f3fc; text-shadow:0 0 6px #22d3ee; z-index:3; }
+
+  /* Resultado final centrado */
+  #resultBox{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    text-align:center; background:rgba(15,23,42,.85);
+    padding:40px 60px; border-radius:20px; box-shadow:0 0 25px rgba(34,211,238,.5);
+    z-index:9999; pointer-events:auto;
+    animation: resultIn .9s ease;
+  }
+  @keyframes resultIn{ from{ opacity:0; transform:translate(-50%,-60%) scale(.95); } to{ opacity:1; transform:translate(-50%,-50%) scale(1); } }
+  #resultBox h2{ color:#38bdf8; margin-bottom:10px; text-shadow:0 0 10px #22d3ee; }
+  #resultBox p{ font-size:18px; margin:6px 0; }
+  #resultBox button{ margin-top:18px; background:#22d3ee; color:#000; border:none; border-radius:10px; padding:12px 24px; font-size:16px; cursor:pointer; box-shadow:0 0 15px rgba(34,211,238,.6); }
+  #resultBox button:hover{ background:#06b6d4; }
+
+  /* Palpitación */
+  #resultBox.blinking{ animation: resultIn .9s ease, blinkPulse 1.8s infinite ease-in-out 1s; }
+  @keyframes blinkPulse{ 0%,100%{ opacity:1; filter:drop-shadow(0 0 20px #22d3ee);} 50%{ opacity:.65; filter:drop-shadow(0 0 40px #38bdf8);} }
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+  <h1>⚡ Quiz de Circuitos Eléctricos ⚡</h1>
+  <p>Toca el botón para comenzar y activar el sonido 🎧</p>
+  <button type="button" onclick="startQuiz()">Comenzar</button>
+</div>
+
+<div class="slides" id="slidesContainer"></div>
+<div class="progress" id="progress"></div>
+
+<script>
+/* -------------------- DATA -------------------- */
+const questions = [
+  { q: "¿Qué es un circuito eléctrico?",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Simple_circuit_diagram.svg/200px-Simple_circuit_diagram.svg.png",
+    options: ["Conjunto de cables sueltos","Trayectoria cerrada de electrones","Una fuente sin resistencia","Un material aislante"],
+    answer: 1 },
+  { q: "¿Qué representa la fuente de voltaje?",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Battery_symbol.svg/200px-Battery_symbol.svg.png",
+    options: ["Impulsa electrones","Oposición a la corriente","Camino de retorno","Componente aislante"],
+    answer: 0 },
+  { q: "¿Qué es la fuerza electromotriz (FEM)?",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Battery_electromotive_force.svg/200px-Battery_electromotive_force.svg.png",
+    options: ["Calor del conductor","Capacidad de la fuente para mantener corriente","Voltaje negativo","Número de cargas por tiempo"],
+    answer: 1 },
+  { q: "¿Cuál de las siguientes es una pila recargable?",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Lithium_ion_battery_pack.svg/200px-Lithium_ion_battery_pack.svg.png",
+    options: ["Zinc-carbón","Alcalina","Litio-ion","Mercurio"],
+    answer: 2 },
+  { q: "¿Qué mide la resistencia eléctrica?",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Resistor_symbol.svg/200px-Resistor_symbol.svg.png",
+    options: ["Energía total","Oposición al paso de corriente","Voltaje constante","Potencia del generador"],
+    answer: 1 },
+  { q: "En una asociación en serie de resistencias:",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Resistors_series.svg/200px-Resistors_series.svg.png",
+    options: ["Corriente igual en todas","Voltaje igual en todas","Sin continuidad","Mismo calor en cada una"],
+    answer: 0 },
+  { q: "La corriente directa (CD):",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DC_current_flow.svg/200px-DC_current_flow.svg.png",
+    options: ["Cambia de dirección","Fluye siempre igual","Es aleatoria","Solo fluye por aluminio"],
+    answer: 1 },
+  { q: "La corriente alterna (CA) se usa en hogares porque:",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/AC_current_wave.svg/200px-AC_current_wave.svg.png",
+    options: ["Más fácil de almacenar","Produce menos calor","Se transforma fácilmente","No usa cables metálicos"],
+    answer: 2 }
+];
+
+/* -------------------- STATE -------------------- */
+let index = 0, score = 0;
+let audioCtx;
+const slidesContainer = document.getElementById("slidesContainer");
+const progressEl = document.getElementById("progress");
+
+/* -------------------- AUDIO -------------------- */
+function initAudio(){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(type, done){
+  if(!audioCtx){ done?.(); return; }
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+
+  if(type==="correct"){
+    osc.type="sine"; osc.frequency.value=880; gain.gain.value=.3;
+    gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime+.4);
+    osc.start(); osc.stop(audioCtx.currentTime+.45);
+    setTimeout(done, 450);
+  } else {
+    osc.type="square"; osc.frequency.value=160; gain.gain.value=.4;
+    osc.start(); setTimeout(()=>osc.frequency.value=120, 150);
+    gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime+.6);
+    osc.stop(audioCtx.currentTime+.65);
+    setTimeout(done, 650);
+  }
+}
+
+/* -------------------- UI FLOW -------------------- */
+function startQuiz(){
+  document.body.classList.add("active");
+  document.getElementById("startScreen").remove();
+  initAudio();
+  buildSlides();
+  progressEl.textContent = `Pregunta 1/${questions.length}`;
+}
+
+function buildSlides(){
+  slidesContainer.innerHTML = "";           // limpio por si venimos de un reinicio
+  slidesContainer.style.transform = "translateX(0)";
+  slidesContainer.style.pointerEvents = "auto";
+
+  questions.forEach((q, idx) => {
+    const slide = document.createElement("div");
+    slide.className = "slide";
+    slide.innerHTML = `
+      <h2>${idx + 1}. ${q.q}</h2>
+      <img src="${q.img}" alt="imagen">
+      <div class="options">
+        ${q.options.map((opt,i)=>`<button class="option" onclick="selectOption(${idx},${i},this)">${opt}</button>`).join("")}
+      </div>`;
+    slidesContainer.appendChild(slide);
+  });
+}
+
+function selectOption(qIndex, optIndex, btn){
+  const q = questions[qIndex];
+  const buttons = btn.parentElement.querySelectorAll(".option");
+  buttons.forEach(b=>b.disabled=true);
+
+  if(optIndex===q.answer){
+    btn.classList.add("correct");
+    score++;
+    playTone("correct", ()=> setTimeout(nextSlide, 500));
+  } else {
+    btn.classList.add("wrong");
+    playTone("wrong", ()=>{
+      buttons[q.answer].classList.add("correct");     // mostrar correcta sin sonido
+      setTimeout(nextSlide, 700);
+    });
+  }
+}
+
+function nextSlide(){
+  index++;
+  if(index < questions.length){
+    slidesContainer.style.transform = `translateX(-${index*100}%)`;
+    progressEl.textContent = `Pregunta ${index+1}/${questions.length}`;
+  } else {
+    showResult();
+  }
+}
+
+/* ---------- RESULTADO (centrado + palpitación + botón funcional) ---------- */
+function showResult(){
+  // desactiva interacción de slides y limpia su contenido visual
+  slidesContainer.style.pointerEvents = "none";
+  slidesContainer.innerHTML = "";
+  slidesContainer.style.transform = "translateX(0)";
+  progressEl.textContent = "";
+
+  const result = document.createElement("div");
+  result.id = "resultBox";
+  result.classList.add("blinking");
+  result.innerHTML = `
+    <h2>✨ Resultado Final ✨</h2>
+    <p>Tu puntaje: <strong>${score}/${questions.length}</strong></p>
+    <p style="color:#22d3ee;font-size:18px">${((score/questions.length)*100).toFixed(1)}% de aciertos</p>
+    <button id="restartBtn" type="button">Reiniciar 🔁</button>
+  `;
+  document.body.appendChild(result);
+
+  // botón reiniciar totalmente funcional (sin recargar la página)
+  document.getElementById("restartBtn").addEventListener("click", restartQuiz, { once:true });
+}
+
+function restartQuiz(){
+  // Detener palpitación antes de reconstruir
+  const rb = document.getElementById("resultBox");
+  if(rb){ rb.classList.remove("blinking"); rb.remove(); }
+
+  // Reset de estado
+  index = 0; score = 0;
+
+  // Reconstruir interfaz
+  buildSlides();
+  progressEl.textContent = `Pregunta 1/${questions.length}`;
+}
+</script>
+</body>
+</html>

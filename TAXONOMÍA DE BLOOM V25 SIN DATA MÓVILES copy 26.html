@@ -1,0 +1,3054 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Taxonomía de Bloom V25 – Móvil (Tap-to-Place)</title>
+
+
+<style>
+  :root{
+    --bg:#8d1414; --panel:#111827; --borde:#1f2937; --txt:#e5e7eb; --muted:#9ca3af;
+    --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#22d3ee; --vio:#a78bfa;
+    --saber:#38bdf8; --hacer:#fb923c; --ser:#34d399;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;
+    color:var(--txt); background:radial-gradient(1200px 800px at 70% -20%, #1f2937, #0b1022) fixed;
+    -webkit-tap-highlight-color: transparent;
+  }
+  header{padding:16px 16px 8px}
+  h1{margin:0 0 6px; font-size:20px}
+  .sub{margin:0; color:var(--muted); font-size:13px}
+
+  .wrap{display:grid; gap:12px; grid-template-columns:1fr; padding:0 12px 18px}
+  .hidden{display:none !important}
+
+  .panel{background:rgba(17,24,39,.7); border:1px solid var(--borde); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); backdrop-filter: blur(6px)}
+  .top{display:grid; gap:10px; padding:12px}
+  .hud{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .chip{padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:13px}
+  .controls{display:flex; gap:8px; flex-wrap:wrap}
+  button{border:1px solid var(--borde); background:#0b1224; color:#e5e7eb; cursor:pointer; padding:10px 12px; border-radius:10px; font-weight:800; width:100%}
+  .row{display:flex; gap:8px; align-items:center}
+  .row > * {flex:1}
+  input, select{background:#0b1224; color:#e5e7eb; border:1px solid #334155; border-radius:10px; padding:10px; width:100%}
+  .toggle{display:flex; align-items:center; gap:8px; color:#e5e7eb; font-weight:700}
+  .toggle input{width:auto}
+
+  /* Etiquetas de dimensión */
+  .dim-head{display:flex; justify-content:space-between; align-items:center; padding:12px}
+  .dim-title{font-weight:900}
+  .tag{padding:.25rem .6rem; border-radius:999px; font-size:.8rem; font-weight:800; border:1px solid #334155}
+  .tag.saber{color:#dff6ff; background:linear-gradient(90deg, rgba(56,189,248,.18), transparent)}
+  .tag.hacer{color:#fff3e6; background:linear-gradient(90deg, rgba(251,146,60,.18), transparent)}
+  .tag.ser{color:#eafff5; background:linear-gradient(90deg, rgba(52,211,153,.18), transparent)}
+
+  /* Banco */
+  .bank{padding:12px}
+  .bank h3{margin:0 0 10px; font-size:16px}
+  .bank-grid{display:flex; flex-direction:column; gap:10px}
+  .card{
+    --bgc:#0e162a;
+    display:flex; align-items:center; justify-content:center;
+    min-height:52px; padding:12px; border-radius:14px;
+    border:1px solid #2a3a59; background:var(--bgc); color:#e5e7eb;
+    font-weight:900; letter-spacing:.02em; font-size:18px;
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+    user-select:none; touch-action:manipulation;
+  }
+  .card[data-dim="saber"]{--bgc:rgba(56,189,248,.10); border-color:rgba(56,189,248,.35)}
+  .card[data-dim="hacer"]{--bgc:rgba(251,146,60,.10);  border-color:rgba(251,146,60,.35)}
+  .card[data-dim="ser"]  {--bgc:rgba(52,211,153,.10);  border-color:rgba(52,211,153,.35)}
+  .card.selected{outline:3px solid var(--vio)}
+
+  /* Niveles (pila vertical) */
+  .levels{display:grid; gap:12px; padding:12px}
+  .lvl{
+    background:#0b1224; border:1px dashed #334155; border-radius:16px; padding:12px;
+  }
+  .pillbar{display:flex; gap:10px; margin-bottom:8px}
+  .pill{flex:1; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900}
+  .p1{background:#b91c1c}.p2{background:#d97706}.p3{background:#ffee52;color:#0b1022}.p4{background:#65a30d}
+  .lvl h4{margin:0 0 6px; font-size:14px; color:#cbd5e1}
+  .hint{margin:6px 0 10px; color:#9ca3af; font-size:13px}
+  .hint.hidden{display:none}
+  .drop{display:flex; flex-direction:column; gap:8px; min-height:54px}
+
+  /* Feedback */
+  .ok{outline:2px solid #16a34a}
+  .bad{animation:shake .2s linear 2}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* Timer y marcador */
+  .timer{font-weight:900; font-size:22px; letter-spacing:.04em}
+  .timer.low{color:#ffd1d1}
+  .score{font-weight:900; font-size:18px}
+
+  /* Modal final */
+  .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); z-index:100}
+  .card-modal{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:22px; max-width:560px; text-align:center; margin:16px}
+  .card-modal h3{margin:0 0 6px}
+  .card-modal p{margin:6px 0 16px; color:#cbd5e1}
+  .card-modal button{width:auto}
+
+  /* Botoncitos de banco */
+  .btns{display:flex; gap:8px; margin-top:8px}
+  .btns button{flex:1}
+
+  /* Accesibilidad táctil */
+  .touch-target{min-height:48px}
+
+  /* Destello pastilla + contador */
+  .pill.flash{ box-shadow:0 0 0 3px rgba(255,255,255,.25) inset; transform:translateZ(0) scale(0.98); transition:box-shadow .18s, transform .18s; }
+  .lvl .count{ margin-top:6px; font-size:12px; color:#cbd5e1; opacity:.85 }
+  .lvl .count.done{ color:#86efac; font-weight:700 }
+
+  /* Opciones */
+  .opt-panel{margin-top:6px; border-top:1px solid #1f2937; padding-top:8px}
+  .opt-grid{display:grid; gap:8px; grid-template-columns:1fr}
+  @media (min-width:520px){
+    .opt-grid{grid-template-columns:1fr 1fr}
+  }
+  .opt-grid label{display:flex; align-items:center; gap:10px}
+  .opt-grid label > span{min-width:140px; color:#cbd5e1}
+
+  /* Gate: captura de nombre */
+  .gate{position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.55); z-index:200}
+  .gate-card{background:#0b1224; border:1px solid #334155; border-radius:16px; padding:18px; width:min(520px,92vw)}
+  .gate-card h3{margin:0 0 8px}
+  .gate-card p{margin:0 0 12px; color:#cbd5e1}
+  .gate-grid{display:grid; gap:10px; grid-template-columns:1fr}
+  .gate-actions{display:flex; gap:8px; margin-top:10px}
+  .gate-actions button{flex:1}
+
+  /* Desktop: ancho moderado */
+  @media (min-width:720px){
+    .wrap{max-width:820px; margin:0 auto}
+  }
+
+  /* === Estilos del Wizard de Revisión Final === */
+  .rev-wrap{margin-top:6px}
+  .rev-chips{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:8px 0 0}
+  .rv-chip{padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px}
+  .rev-nav{display:flex; gap:8px; justify-content:center; margin-top:14px}
+  .rev-nav button{width:auto; min-width:120px}
+  .rev-step h4{margin:10px 0 6px}
+  details.rev-lev{background:#0b1224; border:1px solid #334155; border-radius:12px; padding:8px 10px; text-align:left}
+  details.rev-lev + details.rev-lev{margin-top:8px}
+  details.rev-lev summary{cursor:pointer; font-weight:800}
+  .rev-ul{list-style:none; padding-left:0; margin:8px 0 0}
+  .rev-ul li{padding:6px 0; border-bottom:1px dashed #334155; font-size:14px; display:flex; gap:6px; align-items:flex-start}
+  .rev-ul li:last-child{border-bottom:none}
+  .rv-tag{font-size:11px; border:1px solid #334155; border-radius:999px; padding:2px 6px; opacity:.9}
+  .rv-ok{color:#86efac; border-color:#14532d}
+  .rv-skip{color:#fde68a; border-color:#854d0e}
+  .rv-pen{color:#fca5a5; border-color:#7f1d1d}
+  .rv-why{opacity:.9}
+
+/* === Acordeón Bloom === */
+.accordion {
+  margin: 12px auto;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  max-width: 820px;
+  width: 100%;
+  background: rgba(17,24,39,.7);   /* mismo fondo translúcido que .panel */
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+}
+
+.accordion-header {
+  background: rgba(17,24,39,.85);
+  color: var(--txt);
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+   border-bottom: 2px solid #a78bfa; /* 👈 línea morada bajo el header */
+}
+
+.accordion-header:hover {
+  background: rgba(31,41,55,.9);
+}
+
+.accordion-header span {
+  transition: transform 0.3s ease;
+}
+
+.accordion-header.active span {
+  transform: rotate(90deg);
+}
+
+.accordion-body {
+  display: none;
+  padding: 0;        /* 👈 evita marco blanco */
+}
+
+.accordion-body.show {
+  display: block;
+}
+
+
+/* Contenedor general para Banco, Niveles y Modal */
+.container {
+  max-width: 820px;   /* mismo ancho que acordeón */
+  margin: 0 auto;     /* centrado */
+  padding: 0 12px;    /* respiro en móviles */
+}
+
+/* Asegura que el modal no ocupe todo el ancho */
+.card-modal {
+  width: 100%;
+  max-width: 820px;   /* igual al acordeón */
+  margin: 0 auto;
+}
+
+.lvl[data-level="1"]{border:1.5px dashed #ef4444}
+.lvl[data-level="2"]{border:1.5px dashed #f79c00}
+.lvl[data-level="3"]{border:1.5px dashed #ffee52}
+.lvl[data-level="4"]{border:1.5px dashed #22c55e}
+
+  
+
+
+/* Barra de progreso responsive */
+#progressWrap{ display:flex; align-items:center; gap:8px; padding:3px 8px; margin:6px auto 10px; background:#0b1224; border:1px solid #334155; border-radius:10px; width:100%; max-width:400px; }
+#progressText{ font-weight:700; font-size:14px; color:#e5e7eb; min-width:40px; text-align:center; }
+#progressBar{ flex:1; height:15px; border-radius:999px; background:#111827; overflow:hidden; width:100%; max-width:300px; }
+#progressFill{ height:100%; width:0%; background:linear-gradient(90deg,#22c55e,#3b82f6); transition:width .25s ease; }
+
+/* 📱 Ajustes para móviles */
+@media (max-width:480px){
+  #progressWrap{ gap:6px; padding:2px 6px; max-width:280px; }
+  #progressText{ font-size:12px; min-width:32px; }
+  #progressBar{ height:10px; max-width:200px; }
+}
+
+
+
+.conflict-actions {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.conflict-count {
+  font-weight: bold;
+  color: #22d3ee;
+  font-size: 14px;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
+}
+
+/* ✨ Animación de parpadeo suave del contador */
+@keyframes flashCount {
+  0% { text-shadow: 0 0 0 rgba(34,211,238,0); transform: scale(1); }
+  50% { text-shadow: 0 0 12px rgba(34,211,238,0.9); transform: scale(1.08); }
+  100% { text-shadow: 0 0 0 rgba(34,211,238,0); transform: scale(1); }
+}
+
+.flashCount {
+  animation: flashCount 1s ease;
+}
+
+.conflict-actions label {
+  font-weight: bold;
+  color: var(--txt);
+}
+
+.conflict-actions select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  font-size: 14px;
+  background: #0b1224;
+  color: var(--txt);
+  cursor: pointer;
+}
+
+.conflict-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg,#3b82f6,#22d3ee);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(34,211,238,0.6);
+}
+
+.conflict-actions button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg,#2563eb,#0ea5e9);
+}
+
+.repractice-controls button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.repractice-controls button:first-child {
+  background: linear-gradient(90deg,#3b82f6,#22d3ee);
+  color: white;
+  box-shadow: 0 0 10px rgba(34,211,238,0.4);
+}
+.repractice-controls button:first-child:hover {
+  background: linear-gradient(90deg,#2563eb,#0ea5e9);
+  transform: scale(1.05);
+}
+
+.repractice-controls button:last-child {
+  background: linear-gradient(90deg,#16a34a,#22c55e);
+  color: white;
+  box-shadow: 0 0 10px rgba(34,197,94,0.4);
+}
+.repractice-controls button:last-child:hover {
+  background: linear-gradient(90deg,#15803d,#16a34a);
+  transform: scale(1.05);
+}
+
+.repractice-controls {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modal[style*="display: grid"] .card-modal {
+  animation: popIn 0.45s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  80% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+
+
+/* ✨ Glow suave según el tipo de dimensión */
+.conflict-count[data-scope="all"] {
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+}
+.conflict-count[data-scope="saber"] {
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+}
+.conflict-count[data-scope="hacer"] {
+  text-shadow: 0 0 8px rgba(251, 146, 60, 0.8);
+}
+.conflict-count[data-scope="ser"] {
+  text-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+
+</style>
+
+
+</head>
+<body>
+<header>
+  <h1>Taxonomía de Bloom – Móvil</h1>
+  <p class="sub">Toca una <strong>tarjeta</strong> (ya viene seleccionada) y luego un <strong>nivel</strong>. Completa SABER → HACER → SER.</p>
+</header>
+
+<!-- Puerta de nombre -->
+<div class="gate" id="nameGate">
+  <div class="gate-card">
+    <h3>👤 Identifícate para empezar</h3>
+    <p>Escribe tu <strong>nombre</strong> y <strong>apellidos</strong>. Se mostrarán en el resultado final para tu captura de pantalla y compartir.</p>
+    <div class="gate-grid">
+      <input id="firstName" placeholder="Nombres" autocomplete="given-name" />
+      <input id="lastName"  placeholder="Apellidos" autocomplete="family-name" />
+    </div>
+    <div class="gate-actions">
+      <button id="startWithName">Comenzar</button>
+    </div>
+    <div class="hint" id="nameError" style="color:#fca5a5; display:none; margin-top:6px">Por favor escribe nombres y apellidos válidos.</div>
+  </div>
+</div>
+
+
+
+<!-- === Acordeón SOLO para la configuración === -->
+<div class="accordion">
+  <div class="accordion-header" id="toggleConfig">
+    ⚙️ Configuración del Juego <span>▶</span>
+  </div>
+  <div class="accordion-body">
+    <section class="panel top">
+      <!-- 👇 aquí va TODO tu panel de controles (hud, timer, opciones, etc) -->
+     <div class="wrap hidden" id="appWrap">
+  <!-- Panel superior: estado + controles -->
+  <section class="panel top">
+    <div class="hud">
+      <span class="chip" id="teacherChip">Docente: —</span>
+      <span class="chip">Aciertos: <strong id="ok">0</strong>/<strong id="total">0</strong></span>
+      <span class="chip">Restantes: <strong id="left">0</strong></span>
+      <span class="chip">Puntos: <strong id="pts">0</strong></span>
+      <span class="chip" id="examBadge" style="display:none">Modo Examen</span>
+    </div>
+
+    <div class="row">
+      <div class="chip" style="flex:0 0 auto">Tiempo</div>
+      <div class="timer" id="timer">05:00</div>
+      <input type="number" id="min" value="5" min="1" class="touch-target" style="max-width:80px">
+      <input type="number" id="sec" value="0" min="0" max="59" class="touch-target" style="max-width:80px">
+      <button id="start">▶ Iniciar</button>
+    </div>
+    <div class="row">
+      <button id="pause">⏸ Pausa</button>
+      <button id="restart">↺ Reiniciar tiempo</button>
+    </div>
+
+    <label class="toggle"><input type="checkbox" id="exam" /> Modo Examen (oculta pistas, -5 por error)</label>
+
+    <div class="row">
+      <button id="reshuffle">🔀 Reorganizar verbos</button>
+      <button id="reset">↻ Reiniciar dimensión</button>
+    </div>
+
+    <!-- PANEL DE OPCIONES -->
+    <div class="opt-panel">
+      <div style="color:#cbd5e1; font-weight:800; margin:6px 0 6px">Opciones</div>
+      <div class="opt-grid">
+        <label class="toggle"><input type="checkbox" id="optHaptics"><span>Vibración (haptics)</span></label>
+        <label class="toggle"><input type="checkbox" id="optTones"><span>Tonos por nivel</span></label>
+        <label><span>Doble toque (ms)</span><input type="number" id="optDoubleTap" min="150" max="800" step="10" value="300"></label>
+        <label><span>Deshacer (límite)</span><input type="number" id="optUndoLimit" min="0" max="200" value="20"></label>
+        <label><span>Penalización “Saltar”</span><input type="number" id="optSkipPenalty" min="-20" max="0" step="1" value="0"></label>
+      </div>
+
+
+
+      <div class="btns" style="margin-top:8px">
+        <button id="saveOptions">💾 Guardar opciones</button>
+        <button id="resetOptions">🧹 Predeterminados</button>
+        <button id="changeName">👤 Cambiar nombre</button>
+        <button id="previewBlank">👁️ Preview informe</button>
+        <button id="previewDemo">🎛️ Preview demo</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Nota: en <strong>Modo Examen</strong> los tonos por nivel se desactivan aunque estén habilitados.</div>
+    </div>
+
+
+
+    
+  </section>
+
+
+    </section>
+  </div>
+</div>
+
+
+<div class="container">
+  <!-- Banco (una sola tarjeta visible) -->
+  <section class="panel bank">
+    <div class="dim-head">
+  <div class="dim-title" id="dimTitle">📘 SABER (Cognitivo)</div>
+  <span id="dimTag" class="tag saber">Dimensión activa</span>
+</div>
+<!-- Barra de progreso en el encabezado de la dimensión -->
+<div id="progressWrap">
+  <span id="progressText">0/0</span>
+  <div id="progressBar">
+    <div id="progressFill"></div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+    <div id="bankHelp" style="padding:0 12px 6px; color:#9ca3af; font-size:13px">
+      Tarjeta actual (ya está seleccionada):
+    </div>
+    <div id="bank" class="bank-grid"></div>
+
+
+    <!-- Acciones del banco -->
+    <div class="btns" id="bankActions" style="padding:6px 0 6px 0">
+      <button id="skipCard">⏭️ Saltar tarjeta</button>
+
+
+    </div>
+
+    <!-- (Los botones A–Z/Desordenar se ocultan en modo 1 tarjeta) -->
+    <div class="btns" id="bankBtns" style="padding:0 0 4px 0; display:none">
+      <button id="sortAZ">🔤 Ordenar A–Z</button>
+      <button id="shuffleBank">🔀 Desordenar</button>
+    </div>
+  </section>
+
+  <!-- Niveles -->
+  <section class="panel">
+    <div class="levels" id="levels">
+      <!-- Se crean por JS -->
+    </div>
+  </section>
+</div>
+
+<!-- === MODAL FINAL CON SELECTOR Y CONTADOR === -->
+<div class="modal" id="modal">
+  <div class="card-modal" id="modalCard">
+    <h3>🎉 ¡Ronda completada!</h3>
+    <p id="finalMsg">Has completado esta práctica.</p>
+
+    <!-- Revisión de resultados -->
+    <div id="reviewWrap" class="rev-wrap"></div>
+
+    <!-- Navegación de revisión -->
+    <div class="rev-nav" id="reviewNav" style="display:none">
+      <button id="revPrev">⟵ Anterior</button>
+      <button id="revNext">Siguiente ⟶</button>
+      <button id="revFinish" style="display:none">Terminar</button>
+    </div>
+
+    <!-- 🔹 Sección de re-práctica -->
+    <div class="conflict-actions">
+      <div id="conflictCount" class="conflict-count">—</div>
+
+      <label for="dimSelect">Re-practicar:</label>
+      <select id="dimSelect">
+        <option value="saber">Saber</option>
+        <option value="hacer">Hacer</option>
+        <option value="ser">Ser</option>
+        <option value="all" selected>Todos</option>
+      </select>
+
+      <button id="repracticeBtn">🔁 Iniciar</button>
+    </div>
+
+    <button id="closeModal">Aceptar</button>
+  </div>
+</div>
+
+<div id="comparativoContainer" style="margin-top:20px; display:none;">
+  <h3 style="text-align:center; margin-bottom:8px;">📊 Comparativo de Pruebas</h3>
+  <canvas id="graficoComparativoProgreso" style="max-width:700px; margin:auto; display:block;"></canvas>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+
+ 
+
+
+
+
+
+
+
+
+const accHeader = document.getElementById("toggleConfig");
+const accBody = accHeader.nextElementSibling;
+
+accHeader.addEventListener("click", () => {
+  accHeader.classList.toggle("active");
+  accBody.classList.toggle("show");
+});
+
+
+
+
+// ================== Preview (deduplicado) ==================
+const _pvBlank = document.getElementById('previewBlank');
+const _pvDemo  = document.getElementById('previewDemo');
+_pvBlank?.addEventListener('click', ()=> openReviewPreview({mode:'blank'}));
+_pvDemo?.addEventListener('click',  ()=> openReviewPreview({mode:'demo'}));
+
+/* ================== PARÁMETROS ================== */
+const DEFAULTS = { haptics:true, tones:true, doubleTapMs:300, undoLimit:20, skipPenalty:0 };
+function toBool(v){ if(v==null) return undefined; const s=String(v).toLowerCase(); return (s==='1'||s==='true'||s==='on'||s==='yes'); }
+function sanitize(o){
+  const r={};
+  if(typeof o.haptics === 'boolean') r.haptics = o.haptics;
+  if(typeof o.tones   === 'boolean') r.tones   = o.tones;
+  if(Number.isFinite(+o.doubleTapMs) && +o.doubleTapMs>=150 && +o.doubleTapMs<=800) r.doubleTapMs = +o.doubleTapMs;
+  if(Number.isFinite(+o.undoLimit)   && +o.undoLimit>=0   && +o.undoLimit<=200)     r.undoLimit   = +o.undoLimit;
+  if(Number.isFinite(+o.skipPenalty) && +o.skipPenalty>=-20 && +o.skipPenalty<=0)   r.skipPenalty = +o.skipPenalty;
+  return r;
+}
+function loadConfig(){
+  let cfg = {...DEFAULTS};
+  try{ const fromLS = JSON.parse(localStorage.getItem('bloomMobileCfg') || '{}'); cfg = {...cfg, ...sanitize(fromLS)}; }catch(e){}
+  const qs = new URLSearchParams(location.search);
+  const q = {};
+  if(qs.has('haptics')) q.haptics = toBool(qs.get('haptics'));
+  if(qs.has('tones'))   q.tones   = toBool(qs.get('tones'));
+  if(qs.has('dbltap'))  q.doubleTapMs = parseInt(qs.get('dbltap'),10);
+  if(qs.has('undo'))    q.undoLimit   = parseInt(qs.get('undo'),10);
+  if(qs.has('skip'))    q.skipPenalty = parseInt(qs.get('skip'),10);
+  cfg = {...cfg, ...sanitize(q)};
+  return cfg;
+}
+let CFG = loadConfig();
+const HAPTICS     = () => CFG.haptics;
+const LEVEL_TONES = () => CFG.tones;
+const DBLTAP      = () => CFG.doubleTapMs;
+const UNDO_LIM    = () => CFG.undoLimit;
+const SKIP_PEN    = () => CFG.skipPenalty;
+// Penalización efectiva del salto: fija −2
+function effectiveSkipPenalty(){ return -2; }
+
+/* ====== Gate nombre ====== */
+const nameGate   = document.getElementById('nameGate');
+const firstNameI = document.getElementById('firstName');
+const lastNameI  = document.getElementById('lastName');
+const startWithNameBtn = document.getElementById('startWithName');
+const nameErr    = document.getElementById('nameError');
+const appWrap    = document.getElementById('appWrap');
+const teacherChip= document.getElementById('teacherChip');
+const changeNameBtn = document.getElementById('changeName');
+
+function loadTeacherName(){ return localStorage.getItem('bloomTeacherName') || ""; }
+function saveTeacherName(v){ localStorage.setItem('bloomTeacherName', v); }
+function updateTeacherChip(n){ teacherChip.textContent = 'Docente: ' + (n||'—'); }
+function validateName(n1, n2){
+  const a=(n1||'').trim(), b=(n2||'').trim();
+  const re = /^[A-Za-zÀ-ÿ\u00f1\u00d1' -]{2,}$/u;
+  return re.test(a)&&re.test(b);
+}
+function openNameGate(prefill){
+  nameGate.style.display='grid';
+  if(prefill){ const [a,...rest]=prefill.split(' '); firstNameI.value=a||''; lastNameI.value=rest.join(' ')||''; }
+  firstNameI.focus();
+}
+function closeNameGate(){ nameGate.style.display='none'; }
+
+/* ================== Datos del juego ================== */
+/* === DATA REDUCIDA DE 24 VERBOS (MIXTO) === */
+const DATA = {
+  
+};
+
+const DIM_ORDER = ["saber","hacer","ser"];
+const TITLE = {
+  saber:"📘 SABER (Cognitivo)",
+  hacer:"🛠️ HACER (Psicomotor)",
+  ser:"🤝 SER (Afectivo/Actitudinal)"
+};
+const POINT_CORRECT = 10;
+const PENALTY_WRONG = -5;
+
+/* ===== Overlay de dimensión ===== */
+const DIM_INFO = {
+  saber:{desc:"Cognitivo: procesos mentales (recordar → crear).", kickerClass:"dimk-saber"},
+  hacer:{desc:"Psicomotor: ejecución, procedimientos y desempeño.", kickerClass:"dimk-hacer"},
+  ser:{  desc:"Afectivo/actitudinal: valores, participación y ética.", kickerClass:"dimk-ser"}
+};
+let dimOverlay=null, dimOverlayTitle=null, dimOverlayDesc=null, dimOverlayKicker=null, dimOverlayBtn=null;
+function ensureDimOverlay(){
+  if(document.getElementById('dimOverlay')){
+    dimOverlay       = document.getElementById('dimOverlay');
+    dimOverlayTitle  = document.getElementById('dimTitleOverlay');
+    dimOverlayDesc   = document.getElementById('dimDescOverlay');
+    dimOverlayKicker = document.getElementById('dimKicker');
+    dimOverlayBtn    = document.getElementById('dimContinue');
+    return;
+  }
+  const css = `
+  .dimov{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); z-index:180}
+  .dimov.show{display:grid}
+  .dimcard{background:#0b1224; border:1px solid #334155; border-radius:18px; padding:22px; width:min(560px,92vw); text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.55)}
+  .dimcard .kicker{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; font-weight:900; border:1px solid #334155; margin-bottom:10px}
+  .dimcard h3{margin:0 0 8px; font-size:20px}
+  .dimcard p{margin:0 0 14px; color:#cbd5e1}
+  .dimk-saber{background:linear-gradient(90deg, rgba(56,189,248,.18), transparent); color:#dff6ff}
+  .dimk-hacer{background:linear-gradient(90deg, rgba(251,146,60,.18), transparent); color:#fff3e6}
+  .dimk-ser{background:linear-gradient(90deg, rgba(52,211,153,.18), transparent); color:#eafff5}
+  `;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+
+  dimOverlay = document.createElement('div'); dimOverlay.id='dimOverlay'; dimOverlay.className='dimov'; dimOverlay.setAttribute('aria-modal','true'); dimOverlay.setAttribute('role','dialog');
+  dimOverlay.innerHTML = `
+    <div class="dimcard">
+      <div id="dimKicker" class="kicker">Nueva dimensión</div>
+      <h3 id="dimTitleOverlay">—</h3>
+      <p id="dimDescOverlay">—</p>
+      <button id="dimContinue">Continuar</button>
+    </div>`;
+  document.body.appendChild(dimOverlay);
+  dimOverlayTitle  = dimOverlay.querySelector('#dimTitleOverlay');
+  dimOverlayDesc   = dimOverlay.querySelector('#dimDescOverlay');
+  dimOverlayKicker = dimOverlay.querySelector('#dimKicker');
+  dimOverlayBtn    = dimOverlay.querySelector('#dimContinue');
+}
+function announceDimension(dim, after){
+  ensureDimOverlay();
+  const info = DIM_INFO[dim] || {desc:"", kickerClass:""};
+  dimOverlayTitle.textContent  = TITLE[dim] || dim.toUpperCase();
+  dimOverlayDesc.textContent   = info.desc || '';
+  dimOverlayKicker.textContent = 'Nueva dimensión';
+  dimOverlayKicker.className   = 'kicker ' + (info.kickerClass || '');
+  const wasRunning = running === true;
+  if (wasRunning) pauseTimer();
+  dimOverlay.classList.add('show');
+  const handler = ()=>{
+    dimOverlay.classList.remove('show');
+    dimOverlayBtn.removeEventListener('click', handler);
+    if (wasRunning) startTimer();
+    if (typeof after === 'function') after();
+  };
+  dimOverlayBtn.addEventListener('click', handler);
+}
+
+/* ================== DOM refs ================== */
+const bankEl      = document.getElementById('bank');
+const levelsEl    = document.getElementById('levels');
+const okEl        = document.getElementById('ok');
+const totalEl     = document.getElementById('total');
+const leftEl      = document.getElementById('left');
+const ptsEl       = document.getElementById('pts');
+const dimTitle    = document.getElementById('dimTitle');
+const dimTag      = document.getElementById('dimTag');
+const examChk     = document.getElementById('exam');
+const examBadge   = document.getElementById('examBadge');
+const btnShuffleAll  = document.getElementById('reshuffle');
+const btnReset       = document.getElementById('reset');
+const timerEl = document.getElementById('timer');
+const minEl   = document.getElementById('min');
+const secEl   = document.getElementById('sec');
+const startBtn= document.getElementById('start');
+const pauseBtn= document.getElementById('pause');
+const restartBtn=document.getElementById('restart');
+const modal   = document.getElementById('modal');
+const finalMsg= document.getElementById('finalMsg');
+const closeModal = document.getElementById('closeModal');
+/* Opciones UI */
+const optHaptics   = document.getElementById('optHaptics');
+const optTones     = document.getElementById('optTones');
+const optDoubleTap = document.getElementById('optDoubleTap');
+const optUndoLimit = document.getElementById('optUndoLimit');
+const optSkipPenalty = document.getElementById('optSkipPenalty');
+/* Acciones banco */
+const skipBtn = document.getElementById('skipCard');
+
+/* ================== Estado ================== */
+let teacherName = "";
+let currentDimIndex = 0;
+let currentDim = DIM_ORDER[currentDimIndex];
+let CARDS = [];              // {verb, level, el|null, locked:false, stats:ref}
+let QUEUE = [];              // tarjetas pendientes
+let selectedCard = null;     // {verb, level, el}
+let points = 0;
+let undoStack = [];          // [{verb, level}]
+let lastTap = {el:null, t:0};
+let levelTapCount = 0;
+// Wizard
+let reviewStep = 0; // 0 resumen, luego 1..DIM_ORDER.length
+let reviewFilter = 'all'; // 'all' | 'conflicts'
+
+/* ===== Stats globales ===== */
+const STATS = {};
+function getStats(dim, verb, level){
+  STATS[dim] = STATS[dim] || {};
+  if(!STATS[dim][verb]){
+    STATS[dim][verb] = {
+      level, taps:0, wrong:0, skips:0, threePen:0, placed:false,
+      firstTry:null, firstDelta:0, solvedIn:0,
+      attempts: []   // 👉 Nuevo campo para guardar intentos
+    };
+  }else{
+    STATS[dim][verb].level = level;
+  }
+  return STATS[dim][verb];
+}
+
+
+
+
+
+
+function clearAllStats(){
+  for(const dim of Object.keys(STATS)){
+    for(const v of Object.keys(STATS[dim])){
+      const l = STATS[dim][v].level || 1;
+      STATS[dim][v] = { 
+        level:l, taps:0, wrong:0, skips:0, threePen:0, placed:false, 
+        firstTry:null, firstDelta:0, solvedIn:0,
+        attempts: []   // 👉 restaura también la lista de intentos
+      };
+    }
+  }
+}
+
+
+/* ====== Criterios y razones ====== */
+
+/* === CRITERIA REDUCIDO === */
+const LEVEL_CRITERIA = {
+
+};
+
+/* === REASONS REDUCIDO === */
+const REASONS = {
+  
+  
+};
+
+/* === VERB_FEEDBACK REDUCIDO === */
+const VERB_FEEDBACK = {
+  
+};
+
+
+function reasonForVerb(dim, verb, level){
+  const r = REASONS[dim]?.[verb] || null;
+  if(r) return r;
+  const crit = LEVEL_CRITERIA[dim]?.[level] || "";
+  return `Está en nivel ${level} porque ${crit.toLowerCase()}`;
+}
+
+/* ================== Utils / Sonidos ================== */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
+function pad2(n){return String(n).padStart(2,'0');}
+let audioCtx;
+function baseCtx(){ try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} return audioCtx; }
+function ding(){ try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type='triangle'; o.frequency.value=900; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22); o.start(); o.stop(t+0.25);}catch(e){} }
+function buzz(){ try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type='sawtooth'; o.frequency.value=180; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+0.38); o.start(); o.stop(t+0.4);}catch(e){} }
+function playTone(freq=660, dur=0.18, type='triangle'){
+  try{ const ctx=baseCtx(); if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination);
+    const t=ctx.currentTime; g.gain.exponentialRampToValueAtTime(0.12,t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.start(); o.stop(t+dur+0.02);
+  }catch(_){}
+}
+const LEVEL_FREQ = {1:440, 2:620, 3:820, 4:1020};
+function playLevelTone(level){ if (examChk.checked || !LEVEL_TONES()) { ding(); return; } playTone(LEVEL_FREQ[level] || 800, 0.18, 'triangle'); }
+
+/* ================== Construcción / Cola ================== */
+function buildModelAndQueue(){
+  CARDS = [];
+  for (const lvl of Object.keys(DATA[currentDim])){
+    for (const v of DATA[currentDim][lvl]){
+      const statsRef = getStats(currentDim, v, +lvl);
+      CARDS.push({verb:v, level:+lvl, el:null, locked:false, stats:statsRef});
+    }
+  }
+  QUEUE = shuffle(CARDS.filter(c=>!c.locked));
+  renderCurrentCard();
+  updateCounters();
+}
+function makeCardEl(card){
+  if(card.el) return card.el;
+  const el = document.createElement('div');
+  el.className = 'card touch-target';
+  el.textContent = card.verb;
+  el.dataset.dim = currentDim;
+  el.dataset.level = String(card.level);
+  el.addEventListener('click', ()=> onCardTap(card.verb, card.level, el));
+  card.el = el;
+  return el;
+}
+function renderCurrentCard(){
+  bankEl.innerHTML = '';
+  const next = QUEUE[0];
+  if(!next){ return; }
+  const el = makeCardEl(next);
+  el.classList.remove('ok');
+  bankEl.appendChild(el);
+  if(selectedCard?.el) selectedCard.el.classList.remove('selected');
+  selectedCard = {verb:next.verb, level:next.level, el:next.el};
+  next.el.classList.add('selected');
+  levelTapCount = 0; // reinicia contador por tarjeta
+}
+
+/* ================== Cabecera / contadores ================== */
+function applyDimHeader(){ dimTitle.textContent = TITLE[currentDim]; dimTag.className = 'tag '+currentDim; }
+
+function updateCounters(){
+  const ok = CARDS.filter(c=>c.locked).length;
+  const total = CARDS.length;
+
+  okEl.textContent = ok;
+  totalEl.textContent = total;
+  leftEl.textContent = (total - ok);
+  ptsEl.textContent = points;
+
+  // 👉 Actualizar barra de progreso
+  const pct = total > 0 ? (ok/total)*100 : 0;
+ 
+}
+
+function updateLevelCounter(level){
+  const total = DATA[currentDim][level].length;
+  const placed = CARDS.filter(c=>c.locked && c.level===level).length;
+  const remaining = total - placed;
+  const el = document.querySelector(`.lvl[data-level="${level}"] .count`);
+  if(el){ el.textContent = `Quedan: ${remaining}/${total}`; el.classList.toggle('done', remaining===0); }
+}
+function updateAllLevelCounters(){ for(let lvl=1; lvl<=4; lvl++) updateLevelCounter(lvl);  }
+
+/* ================== Interacción tarjetas ================== */
+function onCardTap(verb, level, el){
+  const now = Date.now();
+  if (selectedCard && selectedCard.el===el && (now - lastTap.t) < DBLTAP()){
+    el.classList.remove('selected'); selectedCard = null; lastTap = {el:null, t:0}; return;
+  }
+  lastTap = {el, t:now};
+  if(selectedCard?.el === el){ el.classList.remove('selected'); selectedCard = null; return; }
+  if(selectedCard?.el) selectedCard.el.classList.remove('selected');
+  selectedCard = {verb, level, el}; el.classList.add('selected');
+  if(HAPTICS() && navigator.vibrate) navigator.vibrate(15);
+}
+
+/* ================== Tap en nivel/pastilla ================== */
+function onLevelTap(targetLevel, levelBox, dropEl) {
+  if (!selectedCard) return;
+  const cRef = CARDS.find(x => x.el === selectedCard.el);
+  const st = cRef?.stats;
+
+  // Contabiliza toques
+  levelTapCount += 1;
+  if (st) {
+    st.taps += 1;
+
+    // 👉 Guardar cada intento (incluso repetidos)
+    if (!st.attempts) st.attempts = [];
+    st.attempts.push(targetLevel);
+  }
+
+  // Registrar primera intuición (solo una vez)
+  if (st && st.firstTry == null) {
+    st.firstTry = targetLevel;
+    st.firstDelta = (targetLevel - selectedCard.level);
+  }
+
+  // Penalización cada 3 toques
+  if (levelTapCount % 3 === 0) {
+    points -= 2;
+    if (st) st.threePen += 1;
+    updateCounters();
+    toast("Penalización −2: 3 toques de nivel en la misma tarjeta");
+  }
+
+  const correct = (selectedCard.level === targetLevel);
+  levelBox.classList.remove("bad", "ok"); void levelBox.offsetWidth;
+
+  if (correct) {
+    dropEl.appendChild(selectedCard.el);
+    selectedCard.el.classList.remove("selected");
+    selectedCard.el.classList.add("ok");
+    selectedCard.el.style.opacity = "1";
+
+    if (cRef) {
+      cRef.locked = true;
+      if (st) {
+        st.placed = true;
+        st.solvedIn = levelTapCount;
+      }
+    }
+
+    removeFromHint(targetLevel, selectedCard.verb);
+    updateLevelCounter(targetLevel);
+
+    undoStack.push({ verb: selectedCard.verb, level: targetLevel });
+    if (undoStack.length > UNDO_LIM()) undoStack.shift();
+
+    points += POINT_CORRECT;
+    playLevelTone(targetLevel);
+
+    if (QUEUE[0]?.el === selectedCard.el) QUEUE.shift();
+    else {
+      const idx = QUEUE.findIndex(q => q.el === selectedCard.el);
+      if (idx !== -1) QUEUE.splice(idx, 1);
+    }
+    selectedCard = null; updateCounters();
+
+    if (CARDS.every(c => c.locked)) { checkDimensionDone(); }
+    else { renderCurrentCard(); }
+  } else {
+    levelBox.classList.add("bad");
+    if (HAPTICS() && navigator.vibrate) navigator.vibrate(60);
+    buzz();
+    if (st) st.wrong += 1;
+    if (examChk.checked) { points += PENALTY_WRONG; updateCounters(); }
+  }
+
+  updateDimCounter(currentDim);
+}
+
+/* ====== Saltar tarjeta ====== */
+function skipCurrent(){
+  if(QUEUE.length===0) return;
+  if(QUEUE.length===1){ if(HAPTICS() && navigator.vibrate) navigator.vibrate(8); toast('No hay más tarjetas para saltar'); return; }
+  const cur = QUEUE.shift(); QUEUE.push(cur);
+  if(cur?.stats) cur.stats.skips += 1;
+  points += effectiveSkipPenalty(); updateCounters();
+  toast('Tarjeta saltada (−2)');
+  if(HAPTICS() && navigator.vibrate) navigator.vibrate(10);
+  renderCurrentCard();
+}
+skipBtn?.addEventListener('click', skipCurrent);
+
+/* ====== Pistas ====== */
+function removeFromHint(level, verb){
+  const hintEl = document.querySelector(`.hint[data-hint="${level}"]`); if(!hintEl) return;
+  const items = hintEl.textContent.split(',').map(s=>s.trim()).filter(Boolean);
+  const idx = items.findIndex(t => t.localeCompare(verb,'es',{sensitivity:'base'})===0);
+  if(idx!==-1) items.splice(idx,1);
+  hintEl.textContent = items.join(', ');
+  if(items.length===0) hintEl.classList.add('hidden');
+}
+function addBackToHint(level, verb){
+  const hintEl = document.querySelector(`.hint[data-hint="${level}"]`); if(!hintEl) return;
+  const parts = hintEl.textContent ? hintEl.textContent.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  parts.push(verb); parts.sort((a,b)=> a.localeCompare(b,'es',{sensitivity:'base'}));
+  hintEl.textContent = parts.join(', '); hintEl.classList.remove('hidden');
+}
+
+/* ================== Flujo por dimensiones ================== */
+function checkDimensionDone() {
+  // 🚫 Si está en modo re-práctica, no avanzar automáticamente
+  if (conflictMode) {
+    endRound();
+    return;
+  }
+
+  if (!(CARDS.length > 0 && CARDS.every(c => c.locked))) return;
+
+  const nextIndex = currentDimIndex + 1;
+  if (nextIndex < DIM_ORDER.length) {
+    const nextDim = DIM_ORDER[nextIndex];
+    announceDimension(nextDim, () => {
+      currentDimIndex = nextIndex;
+      currentDim = nextDim;
+      undoStack = [];
+      switchDimension(nextDim);
+    });
+  } else {
+    endRound();
+  }
+}
+
+function switchDimension(dim){
+  currentDim = dim; applyDimHeader(); buildLevels(); buildModelAndQueue(); updateAllLevelCounters();
+}
+
+/* ================== Controles generales ================== */
+btnShuffleAll?.addEventListener('click', ()=>{
+  const remaining = CARDS.filter(c=>!c.locked);
+  const current = QUEUE[0];
+  QUEUE = remaining.slice(); shuffle(QUEUE);
+  if(current){ const i = QUEUE.findIndex(q=>q.verb===current.verb && q.level===current.level);
+    if(i>0){ const [it]=QUEUE.splice(i,1); QUEUE.unshift(it); } }
+  renderCurrentCard();
+});
+function resetDimension(){
+  CARDS.forEach(c=>{ c.locked=false; c.el?.classList.remove('ok','selected'); });
+  document.querySelectorAll('.drop').forEach(d=> d.innerHTML='');
+  for(let lvl=1; lvl<=4; lvl++){
+    const hintEl = document.querySelector(`.hint[data-hint="${lvl}"]`);
+    if(hintEl){ hintEl.textContent = DATA[currentDim][lvl].join(', '); hintEl.classList.toggle('hidden', examChk.checked); }
+  }
+  undoStack=[]; points=0; QUEUE = shuffle(CARDS.filter(c=>!c.locked));
+  renderCurrentCard(); updateAllLevelCounters(); updateCounters();
+  updateDimCounter(currentDim);
+
+}
+btnReset?.addEventListener('click', resetDimension);
+
+/* ================== Examen ================== */
+function setSkipPenaltyInputState(){
+  if(!optSkipPenalty) return;
+  optSkipPenalty.disabled = true; optSkipPenalty.value = -2; optSkipPenalty.placeholder = 'Forzado: -2';
+  optSkipPenalty.title = 'La penalización por “Saltar” es fija: −2';
+}
+examChk?.addEventListener('change', ()=>{
+  examBadge.style.display = examChk.checked ? 'inline-block' : 'none';
+  document.querySelectorAll('.hint').forEach(h=> h.classList.toggle('hidden', examChk.checked));
+  setSkipPenaltyInputState();
+  toast(examChk.checked ? 'Modo Examen: tonos desactivados.' : 'Modo normal.');
+});
+
+/* ================== Cronómetro ================== */
+let timerId=null, timeLeft=300, running=false, finished=false;
+function setTimeFromInputs(){ const m=Math.max(0,+minEl.value|0); const s=Math.max(0,Math.min(59,+secEl.value|0)); timeLeft=m*60+s; updateTimer(); }
+function updateTimer(){ timerEl.textContent = `${pad2(Math.floor(timeLeft/60))}:${pad2(timeLeft%60)}`; timerEl.classList.toggle('low', timeLeft<=10); }
+function startTimer(){ if(running) return; running=true; clearInterval(timerId); timerId=setInterval(()=>{ timeLeft--; updateTimer(); if(timeLeft<=0){ timeLeft=0; updateTimer(); endRound(); }},1000); }
+function pauseTimer(){ running=false; clearInterval(timerId); timerId=null; }
+function restartTimer(){ pauseTimer(); setTimeFromInputs(); updateTimer(); }
+startBtn?.addEventListener('click', ()=>{ if(!finished) startTimer(); });
+pauseBtn?.addEventListener('click', pauseTimer);
+restartBtn?.addEventListener('click', restartTimer);
+minEl?.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+secEl?.addEventListener('change', ()=>{ if(!running) setTimeFromInputs(); });
+
+/* ================== Revisión final (Wizard) ================== */
+function ensureReviewStyles(){
+  if(document.getElementById('revStyles')) return;
+  const st=document.createElement('style'); st.id='revStyles';
+  st.textContent=`
+    .rev-nav{display:none; gap:8px; margin-top:12px; justify-content:center}
+    .rev-nav button{width:auto}
+    .rev-step{ text-align:left; margin-top:10px }
+    details.rev-lev{background:#0b1224; border:1px solid #334155; border-radius:12px; padding:8px 10px; text-align:left}
+    details.rev-lev summary{cursor:pointer; font-weight:800}
+    .rev-ul{list-style:none; margin:8px 0 0; padding-left:0}
+    .rev-ul li{padding:6px 0; border-bottom:1px dashed #334155; font-size:14px}
+    .rev-ul li:last-child{border-bottom:none}
+    .rv-chip{ display:inline-block; margin:4px 6px 0 0; padding:6px 10px; border:1px solid #334155; border-radius:999px; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px }
+    .rv-tag{ display:inline-block; padding:2px 6px; border-radius:8px; border:1px solid #334155; margin-right:4px; font-size:11px }
+    .rv-ok{ background:#052e1a; border-color:#14532d; color:#86efac }
+    .rv-skip{ background:#1f2937; color:#fcd34d }
+    .rv-pen{ background:#2a1620; border-color:#7f1d1d; color:#fca5a5 }
+    .rv-conf{ background:#2b1f12; border-color:#b45309; color:#fbbf24 }
+    .rv-why{ color:#cbd5e1 }
+    /* Toolbar */
+    .rev-tools{display:flex; gap:10px; justify-content:flex-end; margin-top:10px}
+    .rev-tools label{display:inline-flex; gap:6px; align-items:center; font-size:13px; opacity:.85}
+    .rev-tools .btn-sm{padding:6px 10px; border-radius:10px; border:1px solid #334155; background:#0b1224; color:#e5e7eb; font-weight:800; font-size:12px}
+    /* Colores por dimensión */
+    #reviewWrap[data-dim="saber"] details.rev-lev summary{ color: var(--saber); }
+    #reviewWrap[data-dim="hacer"] details.rev-lev summary{ color: var(--hacer); }
+    #reviewWrap[data-dim="ser"]   details.rev-lev summary{ color: var(--ser); }
+    #reviewWrap[data-dim="saber"] details.rev-lev{ border-color: rgba(56,189,248,.35); }
+    #reviewWrap[data-dim="hacer"] details.rev-lev{ border-color: rgba(251,146,60,.35); }
+    #reviewWrap[data-dim="ser"]   details.rev-lev{ border-color: rgba(52,211,153,.35); }
+  `;
+  document.head.appendChild(st);
+}
+
+function ensureReviewUI() {
+  ensureReviewStyles();
+  const card = modal.querySelector('.card-modal');
+  let wrap = document.getElementById('reviewWrap');
+  let nav = document.getElementById('reviewNav');
+  let tools = document.getElementById('reviewTools');
+
+  // === Contenedor principal de revisión ===
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'reviewWrap';
+    wrap.className = 'rev-wrap';
+    card.appendChild(wrap);
+  }
+
+  // === Controles de navegación (Anterior / Siguiente / Finalizar) ===
+  if (!nav) {
+    nav = document.createElement('div');
+    nav.id = 'reviewNav';
+    nav.className = 'rev-nav';
+    nav.innerHTML = `
+      <button id="revPrev">⟵ Anterior</button>
+      <button id="revNext">Siguiente ⟶</button>
+      <button id="revFinish">✔ Finalizar</button>`;
+    card.appendChild(nav);
+  }
+
+  // === Contenedor vacío para futuras herramientas (sin filtro) ===
+  if (!tools) {
+    tools = document.createElement('div');
+    tools.id = 'reviewTools';
+    tools.className = 'rev-tools';
+    card.appendChild(tools);
+  }
+
+  const prev = nav.querySelector('#revPrev');
+  const next = nav.querySelector('#revNext');
+  const fini = nav.querySelector('#revFinish');
+
+  // === Navegación entre pasos ===
+  if (!nav.dataset.bound) {
+    prev.addEventListener('click', () => {
+      if (reviewStep > 0) {
+        reviewStep--;
+        renderReview();
+      }
+    });
+
+    next.addEventListener('click', () => {
+      if (reviewStep < DIM_ORDER.length) {
+        reviewStep++;
+        renderReview();
+      }
+    });
+
+    fini.addEventListener('click', closeReviewModal);
+
+    if (closeModal && !closeModal.dataset.bound) {
+      closeModal.addEventListener('click', closeReviewModal);
+      closeModal.dataset.bound = '1';
+    }
+
+    nav.dataset.bound = '1';
+  }
+
+  return { wrap, nav, prev, next, fini, tools };
+}
+
+/* ===== Helpers de conflictos ===== */
+function isConflict(st){
+  if(!st) return false;
+  if((st.firstDelta||0) !== 0) return true;
+  if((st.wrong||0) > 0) return true;
+  if((st.solvedIn||0) > 1) return true;
+  return false;
+}
+
+// === Estado del modo re-práctica ===
+let conflictMode = false;
+let currentConflictScope = null;
+
+// === Recolección de tarjetas conflictivas ===
+function collectConflictCards(scope = 'current') {
+  const list = [];
+  const dimList = scope === 'all' ? DIM_ORDER : [scope];
+
+  dimList.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim] || {})[verb];
+        if (!isConflict(st)) return;
+
+        const d = Math.abs(st.firstDelta || 0);
+        const score =
+          3 * d + 2 * (st.wrong || 0) + Math.max(0, (st.solvedIn || 0) - 1);
+        list.push({ dim, level: +lvl, verb, score });
+      });
+    });
+  });
+
+  return list.sort((a, b) => b.score - a.score);
+}
+
+
+// === Inicia sesión de práctica solo con conflictos ===
+function startConflictPractice({ scope = 'current', max = 12 } = {}) {
+  const pool = collectConflictCards(scope).slice(0, max);
+
+  if (pool.length === 0) {
+    toast(
+      scope === 'all'
+        ? 'No hay conflictos pendientes en ninguna dimensión'
+        : `No hay conflictos pendientes en la dimensión ${scope.toUpperCase()}`
+    );
+    return;
+  }
+
+  // 🧠 Activar modo re-práctica
+  conflictMode = true;
+  currentConflictScope = scope;
+
+  finished = false;
+  modal.style.display = 'none';
+  resetDimension(); // ✅ limpia la interfaz sin borrar STATS generales
+
+  CARDS = pool.map(({ dim, level, verb }) => {
+    const st = getStats(dim, verb, level);
+    return { verb, level, el: null, locked: false, stats: st };
+  });
+
+  QUEUE = shuffle(CARDS.slice());
+  selectedCard = null;
+  undoStack = [];
+  points = 0;
+  updateCounters();
+
+  // 🚫 Mantener fija la dimensión seleccionada durante toda la re-práctica
+  currentDim = pool[0].dim;
+  currentDimIndex = DIM_ORDER.indexOf(currentDim);
+
+  applyDimHeader();
+  buildLevels();
+  renderCurrentCard();
+  updateAllLevelCounters();
+
+  // 💾 Guardar progreso temporal
+  localStorage.setItem(
+    'conflictProgress',
+    JSON.stringify({ scope, remaining: pool.length })
+  );
+
+  toast(
+    `Sesión de conflictos iniciada (${scope === 'all' ? 'todas las dimensiones' : currentDim.toUpperCase()})`
+  );
+}
+
+
+// === Handler del selector en el modal ===
+function handleRepractice() {
+  const selected = document.getElementById('dimSelect').value;
+  startConflictPractice({ scope: selected });
+  updateConflictCount(selected);
+}
+
+// === Evento del botón y del selector ===
+document.getElementById('repracticeBtn').addEventListener('click', handleRepractice);
+document.getElementById('dimSelect').addEventListener('change', e => {
+  updateConflictCount(e.target.value);
+});
+
+// === Inicializa contador al abrir modal ===
+document.addEventListener('DOMContentLoaded', () => {
+  updateConflictCount('all');
+});
+
+
+/* === FUNCIÓN: contar conflictos por dimensión === */
+function countConflictsByDimension() {
+  const result = { saber: 0, hacer: 0, ser: 0 };
+  Object.keys(DATA).forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim] || {})[verb];
+        if (isConflict(st)) result[dim]++;
+      });
+    });
+  });
+  result.total = result.saber + result.hacer + result.ser;
+  return result;
+}
+
+/* === FUNCIÓN: actualizar selector y contador dinámico === */
+function updateConflictSelector(selectedScope = "all") {
+  const counts = countConflictsByDimension();
+  const select = document.getElementById("dimSelect");
+  const btn = document.getElementById("repracticeBtn");
+  const counter = document.getElementById("conflictCount");
+  const resumeBtn = document.getElementById("resumeRepractice");
+  if (!select || !btn || !counter) return;
+
+  // === Actualizar opciones con subtotales ===
+  const options = [
+    { val: "saber", txt: `📘 SABER (${counts.saber})` },
+    { val: "hacer", txt: `🛠️ HACER (${counts.hacer})` },
+    { val: "ser",   txt: `💡 SER (${counts.ser})` },
+    { val: "all",   txt: `🌐 TODOS (${counts.total})` }
+  ];
+  select.innerHTML = "";
+  options.forEach(op => {
+    const opt = document.createElement("option");
+    opt.value = op.val;
+    opt.textContent = op.txt;
+    if (op.val === selectedScope) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  // === Determinar valores según selección ===
+  let value = 0;
+  let label = "";
+  let color = "#a78bfa"; // 💜 violeta por defecto (TODOS)
+
+  switch (selectedScope) {
+    case "saber":
+      value = counts.saber;
+      label = "📘 SABER";
+      color = "#38bdf8";
+      break;
+    case "hacer":
+      value = counts.hacer;
+      label = "🛠️ HACER";
+      color = "#fb923c";
+      break;
+    case "ser":
+      value = counts.ser;
+      label = "💡 SER";
+      color = "#34d399";
+      break;
+    default:
+      value = counts.total;
+      label = "🌐 TOTAL";
+      color = "#a78bfa";
+  }
+
+  // === Actualizar contador visual ===
+  if (value === 0) {
+    counter.textContent = `✅ Sin conflictos en ${label}`;
+    counter.style.color = "#86efac";
+    counter.dataset.scope = selectedScope;
+  } else {
+    counter.textContent = `${label}: ${value} conflicto${value > 1 ? "s" : ""}`;
+    counter.style.color = color;
+    counter.dataset.scope = selectedScope;
+    counter.classList.remove("flashCount");
+    void counter.offsetWidth; // reinicia animación
+    counter.classList.add("flashCount");
+  }
+
+  // === Botón principal ===
+  if (value === 0) {
+    btn.disabled = true;
+    btn.textContent = "Sin conflictos";
+    btn.style.opacity = 0.5;
+    btn.style.cursor = "not-allowed";
+    btn.style.background = "#374151";
+    btn.style.boxShadow = "none";
+  } else {
+    btn.disabled = false;
+    btn.textContent = "🔁 Iniciar";
+    btn.style.opacity = 1;
+    btn.style.cursor = "pointer";
+    btn.style.background = "linear-gradient(90deg,#3b82f6,#22d3ee)";
+    btn.style.boxShadow = "0 0 10px rgba(34,211,238,0.6)";
+  }
+
+  // === Mostrar botón de reanudar si hay progreso guardado ===
+  const saved = localStorage.getItem("conflictProgress");
+  if (resumeBtn) {
+    if (saved) {
+      resumeBtn.style.display = "block";
+      resumeBtn.onclick = () => {
+        const { scope } = JSON.parse(saved);
+        modal.style.display = "none";
+        startConflictPractice({ scope });
+        toast("Reanudaste tu re-práctica pendiente");
+      };
+    } else {
+      resumeBtn.style.display = "none";
+    }
+  }
+}
+
+/* === Eventos del modal === */
+document.getElementById("repracticeBtn").addEventListener("click", () => {
+  const selected = document.getElementById("dimSelect").value;
+  startConflictPractice({ scope: selected });
+  updateConflictSelector(selected);
+});
+
+document.getElementById("dimSelect").addEventListener("change", e => {
+  updateConflictSelector(e.target.value);
+});
+
+document.getElementById("closeModal")?.addEventListener("click", () => updateConflictSelector());
+document.getElementById("revFinish")?.addEventListener("click", () => updateConflictSelector());
+document.addEventListener("DOMContentLoaded", () => updateConflictSelector());
+
+/* === Observar apertura del modal para refrescar === */
+const modalObserver = new MutationObserver(() => {
+  if (modal.style.display !== "none") updateConflictSelector();
+});
+modalObserver.observe(document.getElementById("modal"), { attributes: true });
+
+
+
+/* ===== Render de pasos ===== */
+function badgeDelta(st){
+  const d = st?.firstDelta||0;
+  if(!d) return '';
+  const s = d>0? `+${d}`: `${d}`;
+  return `<span class="rv-tag rv-conf">Δ${s}</span>`;
+}
+
+function renderDimStep(dim){
+  const stats = computeDimStats(dim);
+  finalMsg.innerHTML = TITLE[dim];
+
+  const lvlBox = (lvl)=>{
+    const meta = stats.byLevel[lvl];
+    const avgTaps = meta.total ? (meta.taps/meta.total).toFixed(1) : '0.0';
+    const crit = LEVEL_CRITERIA[dim][lvl];
+
+    const verbs = DATA[dim][lvl].filter(v=>{
+      if(reviewFilter==='all') return true;
+      const st = (STATS[dim]||{})[v];
+      return isConflict(st);
+    });
+
+    const lis = verbs.map(v=>{
+      const st = (STATS[dim]||{})[v] || {};
+      const tags = [];
+      if(st.placed)      tags.push('<span class="rv-tag rv-ok">✔</span>');
+      if(st.skips>0)     tags.push(`<span class="rv-tag rv-skip">⏭×${st.skips}</span>`);
+      if(st.threePen>0)  tags.push(`<span class="rv-tag rv-pen">⚠×${st.threePen}</span>`);
+      if(isConflict(st)) tags.push(badgeDelta(st));
+      const why = reasonForVerb(dim, v, +lvl);
+      return `<li>${tags.join(' ')} <strong>${v}:</strong> <span class="rv-why">${why}</span></li>`;
+    }).join('') || (reviewFilter==='conflicts' ? `<li><em>Sin conflictos en este nivel</em></li>` : '');
+
+    return `
+      <details class="rev-lev">
+        <summary><strong>Nivel ${lvl}</strong> · ${crit} — Aciertos: ${meta.placed}/${meta.total} · Intentos medios: ${avgTaps}</summary>
+        <ul class="rev-ul">${lis}</ul>
+      </details>
+    `;
+  };
+
+  const {wrap} = ensureReviewUI();
+  // contar conflictos en dimensión
+  let conflictsDim = 0;
+  Object.keys(DATA[dim]).forEach(l=> DATA[dim][l].forEach(v=>{ if(isConflict((STATS[dim]||{})[v])) conflictsDim++; }));
+
+  wrap.innerHTML = `
+    <div class="rev-step">
+      <div class="rev-chips">
+        <span class="rv-chip">Aciertos: ${stats.placed}/${stats.total}</span>
+        <span class="rv-chip">Intentos (toques): ${stats.taps}</span>
+        <span class="rv-chip">Saltos (−2): ${stats.skips}</span>
+        <span class="rv-chip">3 toques (−2): ${stats.three}</span>
+        <span class="rv-chip">Conflictos: ${conflictsDim}</span>
+      </div>
+      <h4 style="margin-top:12px">Niveles</h4>
+      ${lvlBox(1)}${lvlBox(2)}${lvlBox(3)}${lvlBox(4)}
+      <p class="hint" style="margin-top:10px">Sugerencia: presta atención a los <strong>Δ</strong> (primera intuición vs. nivel correcto) y a ítems con varios intentos.</p>
+    </div>`;
+}
+
+function ensureReviewBasicsAndContext(){
+  const { nav, wrap } = ensureReviewUI();
+  nav.dataset.step = String(reviewStep);
+  if (wrap){ wrap.dataset.step = String(reviewStep); wrap.dataset.dim = (reviewStep > 0) ? DIM_ORDER[reviewStep - 1] : 'resumen'; }
+}
+function renderReview(){
+  const { nav, prev, next, fini } = ensureReviewUI();
+  if (typeof reviewStep !== 'number' || isNaN(reviewStep)) reviewStep = 0;
+  reviewStep = Math.max(0, Math.min(DIM_ORDER.length, reviewStep));
+
+  if(closeModal) closeModal.style.display = 'none';
+  nav.style.display = 'flex';
+  prev.style.display = (reviewStep > 0) ? 'inline-block' : 'none';
+  next.style.display = (reviewStep < DIM_ORDER.length) ? 'inline-block' : 'none';
+  fini.style.display = (reviewStep === DIM_ORDER.length) ? 'inline-block' : 'none';
+  ensureReviewBasicsAndContext();
+
+  if (reviewStep === 0){ renderSummaryStep(); }
+  else { renderDimStep(DIM_ORDER[reviewStep-1]); }
+}
+
+function closeReviewModal(){
+  const nav  = document.getElementById('reviewNav');
+  const wrap = document.getElementById('reviewWrap');
+  if(closeModal) closeModal.style.display = 'inline-block';
+  if(nav)  nav.style.display = 'none';
+  if(wrap){ wrap.innerHTML=''; wrap.removeAttribute('data-step'); wrap.removeAttribute('data-dim'); }
+  finalMsg.textContent = 'Resultados…';
+  modal.style.display = 'none';
+  const isPreview = modal.dataset.preview === '1';
+  finished = false;
+  if(!isPreview){
+    points = 0; ptsEl.textContent = '0';
+    selectedCard = null; undoStack = [];
+    currentDimIndex = 0; currentDim = DIM_ORDER[0];
+    switchDimension(currentDim);
+    setTimeFromInputs(); updateTimer();
+  }
+  delete modal.dataset.preview;
+}
+
+function endRound() {
+  if (finished) return;
+  finished = true;
+  pauseTimer();
+  reviewStep = 0;
+
+  // 👇 Mensaje de cierre celebratorio
+  finalMsg.innerHTML = `
+    <div style="text-align:center; padding:20px;">
+      <h2 style="margin:0; font-size:24px; color:#16a34a;">🎉 ¡Ronda completada!</h2>
+      <p style="margin:10px 0 0; font-size:16px; color:#e5e7eb;">
+        Has terminado todas las dimensiones del juego Bloom.
+      </p>
+    </div>
+  `;
+
+  // Mostrar modal de resultados
+  modal.dataset.preview = "0";
+  modal.style.display = "grid";
+
+  // Guardar resultados + gráfico comparativo
+  guardarResultadoPrueba();
+  mostrarGraficoComparativo();
+
+  // Renderizar revisión (wizard) después de un pequeño delay
+  setTimeout(() => {
+    renderReview();
+  }, 1200); // espera 1.2s para que se aprecie el mensaje
+
+  // === 🔹 Si está en modo re-práctica, mostrar opciones adicionales ===
+  if (conflictMode) {
+    const modalCard =
+      document.getElementById("modalCard") ||
+      document.querySelector(".card-modal");
+
+    // 🧠 Evita duplicar botones o contadores
+    if (modalCard && !modalCard.querySelector(".repractice-controls")) {
+
+      // 🔢 Crea el contador visual en la parte superior
+      const countDiv = document.createElement("div");
+      countDiv.id = "conflictVisualCount";
+      countDiv.style.marginTop = "8px";
+      countDiv.style.fontWeight = "bold";
+      countDiv.style.fontSize = "15px";
+      countDiv.style.color = "#22d3ee";
+      countDiv.style.textShadow = "0 0 10px rgba(34,211,238,0.5)";
+      countDiv.style.animation = "flashCount 1.2s ease";
+      modalCard.insertBefore(countDiv, finalMsg);
+
+      // 🔁 Actualiza el contador visual
+      const scope = currentConflictScope || "all";
+      const list = collectConflictCards(scope);
+      const count = list.length;
+      const dimLabel =
+        scope === "all"
+          ? "todas las dimensiones"
+          : scope === "saber"
+          ? "SABER"
+          : scope === "hacer"
+          ? "HACER"
+          : "SER";
+
+      countDiv.textContent = `⚡ Tienes ${count} conflicto${
+        count !== 1 ? "s" : ""
+      } pendiente${count !== 1 ? "s" : ""} en ${dimLabel}.`;
+
+      const btnWrap = document.createElement("div");
+      btnWrap.className = "repractice-controls";
+      btnWrap.style.marginTop = "10px";
+      btnWrap.style.display = "flex";
+      btnWrap.style.justifyContent = "center";
+      btnWrap.style.gap = "10px";
+
+      // 🔁 Botón para reintentar los conflictos pendientes
+      const btnRetry = document.createElement("button");
+      btnRetry.textContent = "🔁 Reintentar conflictos pendientes";
+      btnRetry.onclick = () => {
+        modal.style.display = "none";
+        startConflictPractice({ scope: currentConflictScope });
+        updateConflictCount(currentConflictScope);
+      };
+
+      // ✅ Botón para finalizar la re-práctica
+      const btnExit = document.createElement("button");
+      btnExit.textContent = "✅ Finalizar re-práctica";
+      btnExit.onclick = () => {
+        conflictMode = false;
+        currentConflictScope = null;
+
+        // ✨ Mensaje de cierre con animación
+        finalMsg.innerHTML = `
+          <div style="text-align:center; padding:20px;">
+            <h2 style="margin:0; font-size:24px; color:#22d3ee;">🌟 ¡Re-práctica completada!</h2>
+            <p style="margin:10px 0 0; font-size:16px; color:#e5e7eb;">
+              Has finalizado la sesión de conflictos y consolidado tus aprendizajes.
+            </p>
+          </div>
+        `;
+
+        // Oculta los controles
+        btnWrap.style.display = "none";
+        countDiv.style.display = "none";
+
+        // 🎬 Animación de cierre
+        const modalCard = document.querySelector(".card-modal");
+        modalCard.style.animation = "popIn 0.5s ease";
+
+        setTimeout(() => {
+          modal.style.display = "none";
+          localStorage.removeItem("conflictProgress"); // 🧹 Limpieza del guardado
+          toast("Re-práctica finalizada");
+          updateConflictCount("all"); // 🔢 Refresca el contador global
+        }, 1500);
+      };
+
+      btnWrap.appendChild(btnRetry);
+      btnWrap.appendChild(btnExit);
+      modalCard.appendChild(btnWrap);
+    }
+
+    // ✅ Asegura que el contador del modal se actualice
+    updateConflictCount(currentConflictScope || "all");
+  }
+}
+
+
+function computeTotals(){
+  let totalVerbs = 0, placed = 0, skips=0, three=0;
+  DIM_ORDER.forEach(dim=>{
+    const levels = DATA[dim];
+    Object.keys(levels).forEach(lvl=>{
+      totalVerbs += levels[lvl].length;
+      levels[lvl].forEach(v=>{
+        const st = (STATS[dim]||{})[v];
+        if(st){ if(st.placed) placed += 1; skips += (st.skips||0); three += (st.threePen||0); }
+      });
+    });
+  });
+  return { totalVerbs, placed, skips, three };
+}
+function computeDimStats(dim){
+  const levels = DATA[dim];
+  let placed=0, wrong=0, skips=0, three=0, taps=0, total=0;
+  const byLevel = {1:{placed:0,total:0,taps:0},2:{placed:0,total:0,taps:0},3:{placed:0,total:0,taps:0},4:{placed:0,total:0,taps:0}};
+  Object.keys(levels).forEach(lvl=>{
+    const L = +lvl;
+    levels[lvl].forEach(v=>{
+      total++;
+      const st = (STATS[dim]||{})[v] || {};
+      if(st.placed) { placed++; byLevel[L].placed++; }
+      wrong += (st.wrong||0); skips += (st.skips||0); three += (st.threePen||0); taps  += (st.taps||0);
+      byLevel[L].total++; byLevel[L].taps += (st.taps||0);
+    });
+  });
+  return {placed,total,wrong,skips,three,taps,byLevel};
+}
+function renderSummaryStep(){
+  const { totalVerbs, placed, skips, three } = computeTotals();
+  // contar conflictos globales
+  let conflictsAll = 0;
+  DIM_ORDER.forEach(dim=> Object.keys(DATA[dim]).forEach(l=> DATA[dim][l].forEach(v=>{ if(isConflict((STATS[dim]||{})[v])) conflictsAll++; })));
+  finalMsg.innerHTML = `Docente: <strong>${teacherName || '—'}</strong> · Puntos: <strong>${points}</strong> · Tiempo restante: <strong>${timerEl.textContent}</strong>`;
+  const {wrap} = ensureReviewUI();
+  wrap.innerHTML = `
+    <div class="rev-step">
+      <h4>Resumen general</h4>
+      <div class="rev-chips">
+        <span class="rv-chip">Aciertos: ${placed}/${totalVerbs}</span>
+        <span class="rv-chip">Saltos (−2): ${skips}</span>
+        <span class="rv-chip">Penaliz. 3 toques (−2): ${three}</span>
+        <span class="rv-chip">Conflictos: ${conflictsAll}</span>
+      </div>
+      <div class="rev-tools" style="justify-content:flex-start">
+        <button id="rvPracticeAllTop" class="btn-sm">Re-practicar conflictos (todos)</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Consejo: usa “Solo conflictos” y luego “Re-practicar” para afinar tu criterio en verbos de frontera (Δ).</p>
+    </div>`;
+  document.getElementById('rvPracticeAllTop').onclick = ()=> startConflictPractice({scope:'all'});
+}
+
+/* ================== Toast ================== */
+function toast(msg){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.position='fixed'; t.style.left='50%'; t.style.bottom='24px';
+  t.style.transform='translateX(-50%)';
+  t.style.background='#0b1224'; t.style.border='1px solid #334155'; t.style.color='#e5e7eb';
+  t.style.padding='10px 14px'; t.style.borderRadius='12px'; t.style.boxShadow='0 10px 30px rgba(0,0,0,.35)'; t.style.zIndex='200';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .25s'; t.style.opacity='0'; }, 1200);
+  setTimeout(()=>{ t.remove(); }, 1500);
+}
+
+/* ================== Opciones ================== */
+function populateOptionsUI(){
+  optHaptics.checked   = !!HAPTICS();
+  optTones.checked     = !!LEVEL_TONES();
+  optDoubleTap.value   = DBLTAP();
+  optUndoLimit.value   = UNDO_LIM();
+  if(optSkipPenalty){ optSkipPenalty.value = -2; }
+}
+function applyOptionsFromUI({save=false}={}){
+  const next = {
+    haptics: !!optHaptics.checked,
+    tones:   !!optTones.checked,
+    doubleTapMs: Math.max(150, Math.min(800, parseInt(optDoubleTap.value||300,10))),
+    undoLimit:   Math.max(0,   Math.min(200, parseInt(optUndoLimit.value||20,10))),
+    skipPenalty: Math.max(-20, Math.min(0, parseInt((optSkipPenalty?.value)||0,10))),
+  };
+  CFG = {...CFG, ...sanitize(next)};
+  if(undoStack.length > UNDO_LIM()){ undoStack = undoStack.slice(-UNDO_LIM()); }
+  if(save){ localStorage.setItem('bloomMobileCfg', JSON.stringify(CFG)); toast('✅ Opciones guardadas'); }
+  else{ toast('⚙️ Opciones aplicadas'); }
+}
+document.getElementById('saveOptions')?.addEventListener('click', ()=> applyOptionsFromUI({save:true}));
+document.getElementById('resetOptions')?.addEventListener('click', ()=>{
+  CFG = {...DEFAULTS}; localStorage.setItem('bloomMobileCfg', JSON.stringify(CFG));
+  populateOptionsUI(); setSkipPenaltyInputState(); toast('🔄 Opciones restablecidas');
+});
+
+/* ================== Init + delegación + gate ================== */
+function ensureUndoButton(){
+  let undoBtn = document.getElementById('undo');
+  if(!undoBtn && btnReset){
+    undoBtn = document.createElement('button');
+    undoBtn.id = 'undo'; undoBtn.textContent = '↶ Deshacer';
+    btnReset.parentElement?.insertBefore(undoBtn, btnReset.nextSibling);
+  }
+  document.getElementById('undo')?.addEventListener('click', undoLast);
+}
+function init(){
+  populateOptionsUI(); applyDimHeader(); buildLevels(); buildModelAndQueue();
+  setTimeFromInputs(); updateTimer(); ensureUndoButton(); setSkipPenaltyInputState(); ensureDimOverlay(); announceDimension(currentDim);
+
+  levelsEl.addEventListener('click', (ev)=>{
+    const pill = ev.target.closest('.pill');
+    if(pill){
+      const lvl = +pill.dataset.level;
+      const box = levelsEl.querySelector(`.lvl[data-level="${lvl}"]`);
+      const drop = box.querySelector('.drop');
+      if(HAPTICS() && navigator.vibrate) navigator.vibrate(12);
+      pill.classList.add('flash'); setTimeout(()=>pill.classList.remove('flash'), 180);
+      onLevelTap(lvl, box, drop); return;
+    }
+    const box = ev.target.closest('.lvl'); if(!box) return;
+    const lvl = +box.dataset.level; const drop = box.querySelector('.drop');
+    onLevelTap(lvl, box, drop);
+  }, {passive:true});
+}
+function bootstrap(){
+  const stored = loadTeacherName();
+  if(stored){ teacherName = stored; updateTeacherChip(teacherName); nameGate.style.display='none'; appWrap.classList.remove('hidden'); init(); }
+  else{ appWrap.classList.add('hidden'); openNameGate(); }
+}
+/* Gate events */
+startWithNameBtn?.addEventListener('click', ()=>{
+  const n1 = firstNameI.value, n2 = lastNameI.value;
+  if(!validateName(n1,n2)){ nameErr.style.display = 'block'; return; }
+  nameErr.style.display = 'none';
+  teacherName = (n1.trim() + ' ' + n2.trim()).replace(/\s+/g,' '); saveTeacherName(teacherName); updateTeacherChip(teacherName);
+  closeNameGate(); appWrap.classList.remove('hidden'); init();
+});
+[firstNameI,lastNameI].forEach(inp=> inp?.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ startWithNameBtn.click(); }}));
+changeNameBtn?.addEventListener('click', ()=> openNameGate(loadTeacherName()));
+bootstrap();
+
+/* ================== Build niveles ================== */
+function buildLevels(){
+  levelsEl.innerHTML = "";
+  const scale = document.createElement('div');
+  scale.className = 'pillbar';
+  scale.innerHTML = `<div class="pill p1" data-level="1">1</div>
+                     <div class="pill p2" data-level="2">2</div>
+                     <div class="pill p3" data-level="3">3</div>
+                     <div class="pill p4" data-level="4">4</div>`;
+  levelsEl.appendChild(scale);
+  const names = ["Nivel 1 – Bajo","Nivel 2 – Básico","Nivel 3 – Alto","Nivel 4 – Superior"];
+  for (let lvl = 1; lvl <= 4; lvl++){
+    const box  = document.createElement('div'); box.className='lvl'; box.dataset.level=String(lvl);
+    const h4   = document.createElement('h4');  h4.textContent = names[lvl-1];
+    const hint = document.createElement('div'); hint.className='hint'; hint.dataset.hint=String(lvl);
+    hint.textContent = DATA[currentDim][lvl].join(', '); if (examChk.checked || hint.textContent.trim()==='') hint.classList.add('hidden');
+    const count= document.createElement('div'); count.className='count'; count.textContent='';
+    const drop = document.createElement('div'); drop.className='drop'; drop.dataset.level=String(lvl);
+    box.appendChild(h4); box.appendChild(hint); box.appendChild(count); box.appendChild(drop); levelsEl.appendChild(box);
+  }
+  updateAllLevelCounters();
+}
+
+/* ================== UNDO ================== */
+function undoLast(){
+  const move = undoStack.pop(); if(!move) return;
+  const c = CARDS.find(x=>x.verb===move.verb && x.level===move.level); if(!c) return;
+  c.locked = false; if(c.el?.parentElement) c.el.parentElement.removeChild(c.el);
+  c.el.classList.remove('ok','selected');
+  addBackToHint(move.level, move.verb); updateLevelCounter(move.level);
+  points -= POINT_CORRECT; updateCounters();
+  const idx = QUEUE.findIndex(q=>q.verb===c.verb && q.level===c.level); if(idx!==-1) QUEUE.splice(idx,1);
+  QUEUE.unshift(c); renderCurrentCard();
+  updateDimCounter(currentDim);
+}
+
+/* ================== PREVIEW ================== */
+(function setupPreviewMode(){
+ 
+// Reemplaza COMPLETO dentro de (function setupPreviewMode(){ ... })
+function seedDemoStats(){
+  // util para elegir un nivel incorrecto
+  const wrongLevel = (correct) => {
+    const pool = [1,2,3,4].filter(n => n !== correct);
+    return pool[Math.floor(Math.random()*pool.length)];
+  };
+
+  let placed=0, skips=0, three=0, taps=0;
+
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      const L = +lvl;
+      DATA[dim][lvl].forEach(verb=>{
+        const st = getStats(dim, verb, L);
+
+        // ¿Queda finalmente bien colocado?
+        const willPlace = Math.random() < 0.65;
+
+        // Número de toques (intentos). Si acierta, 1–4; si no, 1–3
+        const tapsN = willPlace
+          ? (1 + Math.floor(Math.random()*4))   // 1..4
+          : (1 + Math.floor(Math.random()*3));  // 1..3
+
+        st.attempts = [];
+
+        if (willPlace) {
+          // 50% empieza mal, 50% empieza bien
+          const startsWrong = Math.random() < 0.5;
+
+          if (startsWrong) {
+            st.attempts.push(wrongLevel(L));
+          } else {
+            st.attempts.push(L);
+          }
+
+          // Rellenar hasta el penúltimo con niveles errados
+          while (st.attempts.length < Math.max(1, tapsN - 1)) {
+            st.attempts.push(wrongLevel(L));
+          }
+
+          // Asegurar que el último sea correcto
+          if (st.attempts[st.attempts.length - 1] !== L) {
+            st.attempts.push(L);
+          }
+        } else {
+          // No lo colocó: todos los intentos son errados
+          for (let i=0; i<tapsN; i++) st.attempts.push(wrongLevel(L));
+        }
+
+        // Normalizar métricas en base a attempts
+        st.taps       = st.attempts.length;
+        st.placed     = willPlace;
+        st.wrong      = st.attempts.filter(n => n !== L).length;
+        st.skips      = Math.random() < 0.15 ? 1 : 0;
+        st.threePen   = Math.floor(st.taps / 3); // 1 penalización cada 3 toques
+        st.firstTry   = st.attempts[0] ?? null;
+        st.firstDelta = (st.firstTry == null) ? 0 : (st.firstTry - L);
+        st.solvedIn   = willPlace ? st.taps : 0;
+
+        if (st.placed) placed++;
+        skips += st.skips;
+        three += st.threePen;
+        taps  += st.taps;
+      });
+    });
+  });
+
+  return { placed, skips, three, taps };
+}
+
+  window.openReviewPreview = function({mode='blank'} = {}){
+    modal.dataset.preview = '1';
+    if(!teacherName){ teacherName = loadTeacherName() || 'Docente Demo'; saveTeacherName(teacherName); updateTeacherChip(teacherName); }
+    nameGate.style.display='none'; appWrap.classList.remove('hidden');
+    if(!levelsEl.children.length) init();
+
+    clearAllStats();
+    if(mode==='demo'){
+      const s = seedDemoStats();
+      points = (s.placed * POINT_CORRECT) + (effectiveSkipPenalty() * s.skips) + (-2 * s.three);
+    } else { points = 0; }
+    ptsEl.textContent = points;
+
+    finished=true; pauseTimer(); reviewStep=0; reviewFilter='all'; renderReview();
+    modal.style.display='grid';
+  };
+
+  if(!window._previewHotkeyBound){
+    document.addEventListener('keydown', (e)=>{
+      if(e.altKey && (e.key==='p'||e.key==='P')){ e.preventDefault(); openReviewPreview({ mode: e.shiftKey ? 'demo' : 'blank' }); }
+    });
+    window._previewHotkeyBound = true;
+  }
+
+  const pv = new URLSearchParams(location.search).get('preview');
+  if(pv){ const mode = (pv.toLowerCase()==='demo') ? 'demo' : 'blank'; setTimeout(()=> openReviewPreview({mode}), 0); }
+})();
+
+/* ================== ESC para cerrar wizard ================== */
+if(!window._bloomEscBound){
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.style.display==='grid') closeReviewModal(); });
+  window._bloomEscBound = true;
+}
+
+
+// ================== DESCARGAR INFORME EXCEL ==================
+function generarInforme(){
+  const wb = XLSX.utils.book_new();
+
+  // === Hoja 1: Resumen General ===
+  const resumen = [
+    { Ítem: "Docente", Detalle: teacherName || "—" },
+    { Ítem: "Puntos", Detalle: points },
+    { Ítem: "Tiempo restante", Detalle: timerEl.textContent },
+    { Ítem: "Fecha", Detalle: new Date().toLocaleString() }
+  ];
+  const wsResumen = XLSX.utils.json_to_sheet(resumen, { header:["Ítem","Detalle"] });
+  XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen");
+
+  // === Hoja 2: Detalle General ===
+  const detalle = [["Dimensión", "Nivel", "Verbo", "Aciertos", "Errores", "Saltos", "Δ", "Intentos", "Tu Respuesta"]];
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      DATA[dim][lvl].forEach(verb=>{
+        const st = (STATS[dim]||{})[verb];
+        if(!st) return;
+
+        let respuestas = "—";
+        if(st.attempts && st.attempts.length > 0){
+          respuestas = "N" + st.attempts.join(", N");
+        }
+
+        detalle.push([
+          TITLE[dim].replace(/^[^ ]+ /,''), // Dimensión sin emoji
+          lvl,
+          verb,
+          st.placed ? "✔" : "—",
+          st.wrong || 0,
+          st.skips || 0,
+          st.firstDelta || 0,
+          st.taps || 0,
+          respuestas
+        ]);
+      });
+    });
+  });
+  const wsDetalle = XLSX.utils.aoa_to_sheet(detalle);
+  XLSX.utils.book_append_sheet(wb, wsDetalle, "Detalle General");
+
+  // === Hoja 3: Informe Pedagógico por Dimensión ===
+  const dataPedagogico = [];
+
+  const resultadosDim = { 
+    saber: {aciertos:0,total:0,detalle:[]}, 
+    hacer: {aciertos:0,total:0,detalle:[]}, 
+    ser:   {aciertos:0,total:0,detalle:[]} 
+  };
+
+  // ⚠️ Verificar si hubo interacción real
+  let huboInteraccion = false;
+
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      DATA[dim][lvl].forEach(verb=>{
+        const st = (STATS[dim]||{})[verb];
+        if(!st) return;
+
+        if(st.placed || (st.attempts && st.attempts.length>0)) {
+          huboInteraccion = true;
+        }
+
+        resultadosDim[dim].total++;
+        if(st.placed){
+          resultadosDim[dim].aciertos++;
+          resultadosDim[dim].detalle.push({ estado:"✅", verbo:verb, correcto:lvl, respuesta:lvl });
+        } else if(st.attempts && st.attempts.length){
+          const last = st.attempts[st.attempts.length-1];
+          resultadosDim[dim].detalle.push({ estado:"❌", verbo:verb, correcto:lvl, respuesta:last });
+        } else {
+          resultadosDim[dim].detalle.push({ estado:"⚠️", verbo:verb, correcto:lvl, respuesta:null });
+        }
+      });
+    });
+  });
+
+  DIM_ORDER.forEach(dim=>{
+    const r = resultadosDim[dim];
+    if(!huboInteraccion){
+      // 👇 Si no hubo interacción, forzar “Sin datos en esta dimensión”
+      dataPedagogico.push({ Ítem: "", Detalle: "" });
+      dataPedagogico.push({ Ítem: `📊 DIMENSIÓN ${dim.toUpperCase()}`, Detalle: "Sin datos en esta dimensión" });
+    } else {
+      const pct = r.total ? ((r.aciertos / r.total) * 100).toFixed(1) : 0;
+      dataPedagogico.push({ Ítem: "", Detalle: "" });
+      dataPedagogico.push({ Ítem: `📊 DIMENSIÓN ${dim.toUpperCase()}`, Detalle: `${r.aciertos}/${r.total} → ${pct}%` });
+
+      r.detalle.forEach(reg=>{
+        if (reg.estado === "✅") {
+          dataPedagogico.push({ 
+            Ítem: `${reg.estado} ${reg.verbo} (Nivel ${reg.correcto})`, 
+            Detalle: "Correcto en el nivel esperado." 
+          });
+        } else if (reg.estado === "❌") {
+          dataPedagogico.push({ 
+            Ítem: `${reg.estado} ${reg.verbo} (marcó Nivel ${reg.respuesta}, correcto Nivel ${reg.correcto})`, 
+            Detalle: "Requiere refuerzo en la discriminación del nivel." 
+          });
+        } else {
+          dataPedagogico.push({ 
+            Ítem: `${reg.estado} ${reg.verbo} (sin respuesta, correcto Nivel ${reg.correcto})`, 
+            Detalle: "Falta interacción: posible omisión." 
+          });
+        }
+      });
+    }
+  });
+
+  const wsPedagogico = XLSX.utils.json_to_sheet(dataPedagogico, { header:["Ítem","Detalle"] });
+  XLSX.utils.book_append_sheet(wb, wsPedagogico, "Informe Pedagógico");
+
+  // Descargar archivo
+  const safeName = String(teacherName || "Docente").replace(/[^\p{L}\p{N}\-_. ]/gu,"").trim().replace(/\s+/g,"_");
+  XLSX.writeFile(wb, `Informe_Bloom_${safeName}.xlsx`);
+}
+
+// Botón de descarga
+const btnInforme = document.createElement('button');
+btnInforme.textContent = "📥 Descargar Informe";
+btnInforme.id = "btnInforme";
+btnInforme.style.marginTop = "10px";
+btnInforme.addEventListener('click', generarInforme);
+finalMsg.parentElement.appendChild(btnInforme);
+
+
+// ================== DESCARGAR INFORME PDF ==================
+async function generarInformePDF() {
+  const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF || null;
+  if (!jsPDFCtor) {
+    alert("No se encontró jsPDF. Asegúrate de incluir jspdf.umd.min.js antes de este script.");
+    return;
+  }
+  const doc = new jsPDFCtor();
+  if (typeof doc.autoTable !== "function") {
+    alert("No se encontró jsPDF-AutoTable. Añade jspdf.plugin.autotable.min.js antes de este script.");
+    return;
+  }
+
+  // === Encabezado ===
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Informe del Juego Bloom", 105, 15, { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Docente: ${teacherName || "—"}`, 14, 25);
+  doc.text(`Puntos: ${points}`, 14, 32);
+  doc.text(`Tiempo restante: ${timerEl.textContent}`, 14, 39);
+  doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 46);
+
+  // === Resumen general ===
+  const { totalVerbs, placed, skips, three } = computeTotals();
+  let conflictsAll = 0;
+  DIM_ORDER.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(l =>
+      DATA[dim][l].forEach(v => {
+        if (isConflict((STATS[dim] || {})[v])) conflictsAll++;
+      })
+    );
+  });
+
+  let y = 55;
+  doc.autoTable({
+    startY: y,
+    head: [["Aciertos", "Saltos (−2)", "3 Toques (−2)", "Conflictos"]],
+    body: [[`${placed}/${totalVerbs}`, skips, three, conflictsAll]],
+    styles: { halign: "center" },
+    headStyles: { fillColor: [40, 60, 130], textColor: 255, fontStyle: "bold" }
+  });
+  y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : (y + 20);
+
+  // === Detalle de errores por dimensión con % ===
+  const detalleDim = [["Dimensión", "Conflictos", "%"]];
+  DIM_ORDER.forEach(dim => {
+    let conflictosDim = 0;
+    let totalDim = 0;
+    Object.keys(DATA[dim]).forEach(l =>
+      DATA[dim][l].forEach(v => {
+        totalDim++;
+        if (isConflict((STATS[dim] || {})[v])) conflictosDim++;
+      })
+    );
+    const porcentaje = totalDim > 0 ? ((conflictosDim / totalDim) * 100).toFixed(1) + "%" : "0%";
+    detalleDim.push([TITLE[dim].replace(/^[^ ]+ /, ""), conflictosDim, porcentaje]);
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Detalle de los Errores", 105, y, { align: "center" });
+  y += 6;
+
+  doc.autoTable({
+    startY: y,
+    head: [["Dimensión", "Conflictos", "%"]],
+    body: detalleDim.slice(1),
+    styles: { halign: "center" },
+    headStyles: { fillColor: [200, 200, 200], textColor: 20, fontStyle: "bold" }
+  });
+  y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : (y + 20);
+
+  // === Colores pastel por dimensión ===
+  const dimColors = {
+    saber: [173, 216, 230],
+    hacer: [240, 228, 189],
+    ser:   [200, 255, 200],
+  };
+
+  // === Construir detalle por verbo con "Tu Respuesta" ===
+  const detalleData = [];
+  DIM_ORDER.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim] || {})[verb] || {};
+        const nivelCorrecto = +lvl;
+        const attempts = Array.isArray(st.attempts) ? st.attempts.slice() : [];
+        const fallback = (attempts.length > 0)
+          ? attempts.map(n => "N" + n).join(", ")
+          : "—";
+
+        detalleData.push({
+          dim,
+          nivelCorrecto,
+          attempts,
+          row: [
+            TITLE[dim].replace(/^[^ ]+ /, ""),
+            "N" + nivelCorrecto,
+            verb,
+            st.placed ? "✔" : "—",
+            st.wrong || 0,
+            st.skips || 0,
+            st.taps || 0,
+            fallback
+          ],
+          conflict: isConflict(st)
+        });
+      });
+    });
+  });
+
+  // === NUEVA TABLA: SOLO VERBOS CON CONFLICTOS ===
+  const soloConflictos = detalleData.filter(d => d.conflict);
+  if (soloConflictos.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Áreas de la Taxonomía de Bloom que requieren fortalecimiento (solo verbos con conflictos)", 105, y, { align: "center" });
+    y += 6;
+
+    doc.autoTable({
+      startY: y,
+      head: [["Dimensión", "Nivel Correcto", "Verbo", "Aciertos", "Errores", "Saltos", "Intentos", "Tu Respuesta"]],
+      body: soloConflictos.map(d => d.row),
+      styles: { fontSize: 9, overflow: 'linebreak' },
+      headStyles: { fillColor: [200, 80, 60], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [255, 240, 240] },
+      columnStyles: { 7: { cellWidth: 'auto', minCellWidth: 30 } },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          const meta = soloConflictos[data.row.index];
+          if (!meta) return;
+          if (data.column.index === 4) {
+            const val = parseInt(data.cell.raw, 10);
+            if (val > 0) {
+              data.cell.styles.textColor = [200, 0, 0];
+              data.cell.styles.fontStyle = "bold";
+              const verboCell = data.row.cells[2];
+              if (verboCell) {
+                verboCell.styles.textColor = [200, 0, 0];
+                verboCell.styles.fontStyle = "bold";
+              }
+            }
+          }
+          if (data.column.index === 7) data.cell.text = [""];
+        }
+      },
+      didDrawCell: function (data) {
+        if (data.section !== "body" || data.column.index !== 7) return;
+        const meta = soloConflictos[data.row.index];
+        if (!meta) return;
+        const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+        const correctLevel = meta.nivelCorrecto;
+        const cellX = data.cell.x, cellY = data.cell.y, cellW = data.cell.width, cellH = data.cell.height;
+        const baselineY = cellY + cellH / 2;
+        if (attempts.length === 0) {
+          doc.setTextColor(0, 0, 0);
+          doc.text("—", cellX + cellW / 2, baselineY, { baseline: "middle", align: "center" });
+        } else {
+          let cursorX = cellX + 2;
+          attempts.forEach((n, idx) => {
+            const isLast = (idx === attempts.length - 1);
+            const isCorrect = (n === correctLevel) && isLast;
+            if (isCorrect) doc.setTextColor(0, 150, 0); else doc.setTextColor(200, 0, 0);
+            const chunk = "N" + n + (idx < attempts.length - 1 ? ", " : "");
+            doc.text(chunk, cursorX, baselineY, { baseline: "middle" });
+            cursorX += doc.getTextWidth(chunk);
+          });
+        }
+        doc.setTextColor(0, 0, 0);
+      }
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  }
+
+  // === TABLA COMPLETA (todos los verbos) ===
+  doc.setFont("helvetica", "bold");
+  doc.text("Detalle completo de desempeño en la Taxonomía de Bloom (todos los verbos)", 105, y, { align: "center" });
+  y += 6;
+
+  doc.autoTable({
+    startY: y,
+    head: [["Dimensión", "Nivel Correcto", "Verbo", "Aciertos", "Errores", "Saltos", "Intentos", "Tu Respuesta"]],
+    body: detalleData.map(d => d.row),
+    styles: { fontSize: 9, overflow: 'linebreak' },
+    headStyles: { fillColor: [40, 60, 130], textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [245, 245, 245] },
+    columnStyles: { 7: { cellWidth: 'auto', minCellWidth: 30 } },
+    didParseCell: function (data) {
+      if (data.section === "body") {
+        const meta = detalleData[data.row.index];
+        if (!meta) return;
+        if (data.column.index === 4) {
+          const val = parseInt(data.cell.raw, 10);
+          if (val > 0) {
+            data.cell.styles.textColor = [200, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+            const verboCell = data.row.cells[2];
+            if (verboCell) {
+              verboCell.styles.textColor = [200, 0, 0];
+              verboCell.styles.fontStyle = "bold";
+            }
+          }
+        }
+        if (data.column.index === 7) data.cell.text = [""];
+      }
+    },
+    didDrawCell: function (data) {
+      if (data.section !== "body" || data.column.index !== 7) return;
+      const meta = detalleData[data.row.index];
+      if (!meta) return;
+      const attempts = Array.isArray(meta.attempts) ? meta.attempts : [];
+      const correctLevel = meta.nivelCorrecto;
+      const cellX = data.cell.x, cellY = data.cell.y, cellW = data.cell.width, cellH = data.cell.height;
+      const baselineY = cellY + cellH / 2;
+      if (attempts.length === 0) {
+        doc.setTextColor(0, 0, 0);
+        doc.text("—", cellX + cellW / 2, baselineY, { baseline: "middle", align: "center" });
+      } else {
+        let cursorX = cellX + 2;
+        attempts.forEach((n, idx) => {
+          const isLast = (idx === attempts.length - 1);
+          const isCorrect = (n === correctLevel) && isLast;
+          if (isCorrect) doc.setTextColor(0, 150, 0); else doc.setTextColor(200, 0, 0);
+          const chunk = "N" + n + (idx < attempts.length - 1 ? ", " : "");
+          doc.text(chunk, cursorX, baselineY, { baseline: "middle" });
+          cursorX += doc.getTextWidth(chunk);
+        });
+      }
+      doc.setTextColor(0, 0, 0);
+    }
+  });
+
+  // === Guardar PDF ===
+  const safeName = String(teacherName || "Docente")
+    .replace(/[^\p{L}\p{N}\-_. ]/gu, "")
+    .trim()
+    .replace(/\s+/g, "_");
+  doc.save(`Informe_Bloom_${safeName || "Docente"}.pdf`);
+}
+
+// ================== Botón de descarga PDF ==================
+const btnInformePDF = document.createElement("button");
+btnInformePDF.textContent = "📄 Descargar Informe PDF";
+btnInformePDF.id = "btnInformePDF";
+btnInformePDF.style.marginTop = "10px";
+btnInformePDF.addEventListener("click", generarInformePDF);
+
+// Insertar botón en el modal de resultados
+finalMsg.parentElement.appendChild(btnInformePDF);
+
+
+// ================== Modal Retroalimentación ==================
+function ensureRetroModal() {
+  if (document.getElementById("retroModal")) return;
+
+  const modal = document.createElement("div");
+  modal.id = "retroModal";
+  modal.style.cssText = `
+    position:fixed; inset:0; display:none; place-items:center;
+    background:rgba(0,0,0,.6); z-index:300;
+  `;
+
+  modal.innerHTML = `
+    <div style="background:#fff; color:#000; padding:20px; border-radius:12px; 
+                width:min(800px,90vw); max-height:90vh; overflow-y:auto;">
+      <h2 id="retroTitulo" style="margin-top:0; text-align:center;">📋 Retroalimentación de Conflictos</h2>
+      <div id="retroResumen" style="margin-bottom:15px;"></div>
+      <div id="retroContenido"></div>
+      <div style="margin-top:15px; display:flex; justify-content:space-between;">
+        <button id="retroPDF">📥 Descargar Retroalimentación</button>
+        <button id="retroCerrar">❌ Cerrar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Botones
+  document.getElementById("retroCerrar").onclick = () => {
+    modal.style.display = "none";
+  };
+
+  document.getElementById("retroPDF").onclick = () => {
+    generarRetroPDF();
+  };
+}
+
+// ================== Mostrar retroalimentación ==================
+function mostrarRetroalimentacion() {
+  ensureRetroModal();
+
+  const retroModal = document.getElementById("retroModal");
+  const retroTitulo = document.getElementById("retroTitulo");
+  const retroResumen = document.getElementById("retroResumen");
+  const retroContenido = document.getElementById("retroContenido");
+
+  // === Contar conflictos globales ===
+  let conflictosTotales = 0;
+  DIM_ORDER.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim]||{})[verb];
+        if (isConflict(st)) conflictosTotales++;
+      });
+    });
+  });
+
+  // Actualizar título con contador
+  retroTitulo.textContent = `📋 Retroalimentación de Conflictos (Total: ${conflictosTotales})`;
+
+  // Resumen de conflictos
+  let resumenHTML = `<h3>Resumen de Conflictos</h3><ul>`;
+  DIM_ORDER.forEach(dim => {
+    let conflictos = 0;
+    let total = 0;
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        total++;
+        const st = (STATS[dim]||{})[verb];
+        if (isConflict(st)) conflictos++;
+      });
+    });
+    const porcentaje = total>0 ? ((conflictos/total)*100).toFixed(1)+"%" : "0%";
+    resumenHTML += `<li><strong>${TITLE[dim]}</strong>: ${conflictos}/${total} (${porcentaje})</li>`;
+  });
+  resumenHTML += `</ul>`;
+  retroResumen.innerHTML = resumenHTML;
+
+  // Retroalimentación específica
+  let contenidoHTML = "";
+  DIM_ORDER.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim]||{})[verb];
+        if (!isConflict(st)) return; // solo verbos conflictivos
+
+        const feedback = VERB_FEEDBACK[dim][verb] || {};
+        contenidoHTML += `
+          <div style="margin-bottom:12px; padding:10px; border:1px solid #ccc; border-radius:8px;">
+            <h4>${TITLE[dim]} · N${lvl} · <span style="color:#b91c1c">${verb}</span></h4>
+            <p><strong>Definición:</strong> ${feedback.def || "—"}</p>
+            <p><strong>Orientación:</strong> ${feedback.orientacion || "—"}</p>
+            <p><strong>Ejemplo:</strong> ${feedback.ejemplo || "—"}</p>
+          </div>
+        `;
+      });
+    });
+  });
+  retroContenido.innerHTML = contenidoHTML || "<p>No hubo conflictos 🎉</p>";
+
+  retroModal.style.display = "grid";
+}
+
+
+// ================== Descargar retroalimentación en PDF con colores y fondos pastel ==================
+function generarRetroPDF() {
+  const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!jsPDFCtor) {
+    alert("No se encontró jsPDF");
+    return;
+  }
+  const doc = new jsPDFCtor();
+
+  // === Colores pastel por dimensión ===
+  const dimColors = {
+    saber: [220, 240, 255],
+    hacer: [255, 240, 210],
+    ser:   [220, 255, 220],
+  };
+
+  // === Títulos sin emojis para PDF ===
+  const TITLE_PDF = {
+    saber:"SABER (Cognitivo)",
+    hacer:"HACER (Psicomotor)",
+    ser:"SER (Afectivo/Actitudinal)"
+  };
+
+  // === Contar conflictos globales ===
+  let conflictosTotales = 0;
+  DIM_ORDER.forEach(dim => {
+    Object.keys(DATA[dim]).forEach(lvl => {
+      DATA[dim][lvl].forEach(verb => {
+        const st = (STATS[dim]||{})[verb];
+        if (isConflict(st)) conflictosTotales++;
+      });
+    });
+  });
+
+  // === Título general ===
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(14);
+  doc.text(`Retroalimentación de Conflictos (Total: ${conflictosTotales})`, 105, 15, {align:"center"});
+
+  let y = 25;
+
+  // === Tabla resumen de conflictos ===
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(12);
+  doc.text("Detalle de los Errores", 105, y, {align:"center"});
+  y += 8;
+
+  doc.autoTable({
+    head:[["Dimensión","Conflictos","%"]],
+    body: DIM_ORDER.map(dim=>{
+      let total=0, conflictos=0;
+      Object.keys(DATA[dim]).forEach(lvl=>{
+        DATA[dim][lvl].forEach(verb=>{
+          total++;
+          if(isConflict((STATS[dim]||{})[verb])) conflictos++;
+        });
+      });
+      const porcentaje = total>0 ? ((conflictos/total)*100).toFixed(1)+"%" : "0%";
+      return [TITLE_PDF[dim], conflictos, porcentaje];
+    }),
+    startY: y,
+    styles:{ fontSize:10, halign:"center" },
+    headStyles:{ fillColor:[30,58,138], textColor:[255,255,255], halign:"center" },
+    alternateRowStyles: { fillColor:[245,245,245] },
+  });
+
+  y = doc.previousAutoTable.finalY + 10;
+
+  // === Retroalimentación por verbos conflictivos ===
+  DIM_ORDER.forEach(dim=>{
+    const conflictosDim = [];
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      DATA[dim][lvl].forEach(verb=>{
+        const st = (STATS[dim]||{})[verb];
+        if(!isConflict(st)) return;
+        const fb = VERB_FEEDBACK[dim][verb] || {};
+        conflictosDim.push({lvl,verb,fb});
+      });
+    });
+
+    if(conflictosDim.length===0) return;
+
+    // === Dibujar encabezado del bloque ===
+    function drawBlockHeader(yPos){
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(12);
+      doc.setTextColor(40,40,80);
+      doc.text(TITLE_PDF[dim], doc.internal.pageSize.getWidth()/2, yPos+5, {align:"center"});
+      return yPos+12;
+    }
+
+    // Inicializar bloque
+    y = drawBlockHeader(y);
+
+    conflictosDim.forEach(c=>{
+      const blockHeight = 15;
+      if (y + blockHeight > 270) {
+        doc.addPage();
+        y = 20;
+        y = drawBlockHeader(y);
+      }
+
+      // Rectángulo pastel con borde azul oscuro
+      const rectMarginX = 12;
+      const rectWidth = doc.internal.pageSize.getWidth() - rectMarginX*2;
+      const rectHeight = blockHeight + 8;
+      doc.setDrawColor(30,58,138); // Azul oscuro
+      doc.setLineWidth(0.1);
+      doc.setFillColor(...dimColors[dim]);
+      doc.rect(rectMarginX, y-2, rectWidth, rectHeight, "FD"); // F = fill, D = draw (borde)
+
+      // Texto dentro
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10);
+      doc.setTextColor(0,0,0);
+      doc.text(`N${c.lvl} · ${c.verb}`, 16, y+3);
+      y += 7;
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(9);
+      doc.text(`Definición: ${c.fb.def||"—"}`, 20, y); y+=4;
+      doc.text(`Orientación: ${c.fb.orientacion||"—"}`, 20, y); y+=4;
+      doc.text(`Ejemplo: ${c.fb.ejemplo||"—"}`, 20, y); y+=6;
+    });
+
+    y += 10;
+  });
+
+  const safeName = String(teacherName||"Docente")
+    .replace(/[^\p{L}\p{N}\-_. ]/gu,"")
+    .trim()
+    .replace(/\s+/g,"_");
+
+  doc.save(`Retroalimentacion_Bloom_${safeName}.pdf`);
+}
+
+// ================== Botón para abrir retroalimentación ==================
+const btnRetro = document.createElement("button");
+btnRetro.textContent = "📋 Ver retroalimentación";
+btnRetro.id = "btnRetro";
+btnRetro.style.marginTop = "10px";
+btnRetro.addEventListener("click", mostrarRetroalimentacion);
+
+// Insertar botón en el modal de resultados
+finalMsg.parentElement.appendChild(btnRetro);
+
+
+
+// ================== Validador de VERB_FEEDBACK ==================
+function validarBancoRetroalimentacion() {
+  let faltantes = [];
+  let resumen = {};
+
+  DIM_ORDER.forEach(dim => {
+    let totalData = 0;
+    let totalBanco = 0;
+
+    Object.keys(DATA[dim]).forEach(nivel => {
+      DATA[dim][nivel].forEach(verb => {
+        totalData++;
+        const banco = VERB_FEEDBACK[dim] || {};
+        if (banco[verb]) {
+          totalBanco++;
+        } else {
+          faltantes.push(`${TITLE[dim].replace(/^[^ ]+ /, "")} · N${nivel} · ${verb}`);
+        }
+      });
+    });
+
+    resumen[dim] = { totalData, totalBanco };
+  });
+
+  // === Reporte ===
+  console.log("====== VALIDACIÓN DEL BANCO DE RETROALIMENTACIÓN ======");
+  DIM_ORDER.forEach(dim => {
+    const { totalData, totalBanco } = resumen[dim];
+    console.log(
+      `${TITLE[dim].replace(/^[^ ]+ /, "")}: ${totalBanco}/${totalData} cubiertos`
+    );
+  });
+
+  if (faltantes.length === 0) {
+    console.log("✅ Banco de retroalimentación completo: todos los verbos están cubiertos.");
+  } else {
+    console.warn("⚠️ Faltan verbos en el banco de retroalimentación:");
+    faltantes.forEach(v => console.warn(" - " + v));
+  }
+}
+
+// Ejecuta validación al cargar
+validarBancoRetroalimentacion();
+
+
+
+// ================== HISTORIAL DE PRUEBAS (solo sesión) ================== 
+let historialPruebas = [];
+
+// === Guardar resultados al finalizar una prueba ===
+function guardarResultadoPrueba() {
+  const { totalVerbs, placed } = computeTotals();
+  let conflictosAll = 0;
+  DIM_ORDER.forEach(dim=>{
+    Object.keys(DATA[dim]).forEach(lvl=>{
+      DATA[dim][lvl].forEach(verb=>{
+        if (isConflict((STATS[dim]||{})[verb])) conflictosAll++;
+      });
+    });
+  });
+
+  const porcentaje = totalVerbs>0 ? ((conflictosAll/totalVerbs)*100).toFixed(1) : "0";
+
+  historialPruebas.push({
+    prueba: historialPruebas.length + 1,
+    fecha: new Date().toLocaleString(),
+    total: totalVerbs,
+    aciertos: placed,
+    conflictos: conflictosAll,
+    porcentaje: parseFloat(porcentaje),
+    puntos: points
+  });
+
+  // 👇 Actualiza gráfico comparativo automáticamente
+  mostrarGraficoComparativo();
+}
+
+// ================== NUEVA PRUEBA ==================
+function iniciarNuevaPrueba() {
+  guardarResultadoPrueba(); // guarda la actual antes de reiniciar
+
+  // Reinicia flujo de la app (similar a reset general)
+  points = 0;
+  ptsEl.textContent = '0';
+  selectedCard = null;
+  undoStack = [];
+  currentDimIndex = 0;
+  currentDim = DIM_ORDER[0];
+  switchDimension(currentDim);
+  setTimeFromInputs(); updateTimer();
+  finished = false;
+  modal.style.display = 'none';
+  toast("Nueva prueba iniciada");
+}
+
+// ================== INFORME COMPARATIVO PDF ==================
+async function generarInformeComparativo() {
+  if(historialPruebas.length < 2){
+    alert("Debes completar al menos 2 pruebas para generar un comparativo.");
+    return;
+  }
+
+  const jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if (!jsPDFCtor) {
+    alert("No se encontró jsPDF");
+    return;
+  }
+  const doc = new jsPDFCtor();
+
+  // === Título ===
+  doc.setFont("helvetica","bold");
+  doc.setFontSize(14);
+  doc.text("Informe Comparativo de Progreso", 105, 15, {align:"center"});
+  doc.setFontSize(11);
+  doc.setFont("helvetica","normal");
+  doc.text(`Docente: ${teacherName || "—"}`, 14, 25);
+  doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 32);
+
+  let y = 42;
+
+  // === Tabla de pruebas ===
+  const head = [["Prueba","Fecha","Aciertos","Conflictos","% Conflictos","Puntos"]];
+  const body = historialPruebas.map(p=>[
+    p.prueba, p.fecha, `${p.aciertos}/${p.total}`, p.conflictos, p.porcentaje+"%", p.puntos
+  ]);
+
+  doc.autoTable({
+    startY: y,
+    head: head,
+    body: body,
+    styles: { halign: "center" },
+    headStyles: { fillColor: [40, 60, 130], textColor: 255, fontStyle:"bold" }
+  });
+  y = doc.lastAutoTable.finalY + 10;
+
+  // === Interpretación automática ===
+  const primera = historialPruebas[0];
+  const ultima = historialPruebas[historialPruebas.length-1];
+  const mejora = (primera.porcentaje - ultima.porcentaje).toFixed(1);
+
+  let interpretacion = `En la Prueba 1, el docente presentó un ${primera.porcentaje}% de conflictos. `;
+  interpretacion += `En la Prueba ${ultima.prueba}, alcanzó un ${ultima.porcentaje}%. `;
+  if(mejora > 0){
+    interpretacion += `Esto representa una mejora de ${mejora} puntos porcentuales en la reducción de conflictos.`;
+  } else if(mejora < 0){
+    interpretacion += `Se observó un aumento de ${Math.abs(mejora)} puntos porcentuales en los conflictos.`;
+  } else {
+    interpretacion += "El desempeño se mantuvo constante en el mismo nivel de conflictos.";
+  }
+
+  doc.setFont("helvetica","normal");
+  doc.setFontSize(11);
+  doc.text("Interpretación automática:", 14, y);
+  doc.setFont("helvetica","italic");
+  doc.text(doc.splitTextToSize(interpretacion, 180), 14, y+7);
+
+  // === Guardar PDF ===
+  const safeName = String(teacherName||"Docente")
+    .replace(/[^\p{L}\p{N}\-_. ]/gu,"")
+    .trim()
+    .replace(/\s+/g,"_");
+  doc.save(`Informe_Comparativo_Bloom_${safeName}.pdf`);
+}
+
+// ================== MOSTRAR GRÁFICO COMPARATIVO ==================
+let chartComparativoProgreso = null;
+
+function mostrarGraficoComparativo(){
+  const container = document.getElementById("comparativoContainer");
+  const canvas = document.getElementById("graficoComparativoProgreso");
+  if(!canvas || !container) return;
+
+  if(historialPruebas.length < 2){
+    container.style.display = "none";
+    return;
+  }
+  container.style.display = "block";
+
+  const labels = historialPruebas.map(p=> "P"+p.prueba);
+  const aciertos = historialPruebas.map(p=> p.aciertos);
+  const conflictos = historialPruebas.map(p=> p.conflictos);
+  const porcentajes = historialPruebas.map(p=> parseFloat(p.porcentaje));
+
+  if(chartComparativoProgreso){
+    chartComparativoProgreso.destroy();
+  }
+
+  chartComparativoProgreso = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Aciertos',
+          data: aciertos,
+          backgroundColor: 'rgba(34,197,94,0.6)', // verde
+          borderColor: 'rgba(34,197,94,1)',
+          borderWidth: 1
+        },
+        {
+          type: 'bar',
+          label: 'Conflictos',
+          data: conflictos,
+          backgroundColor: 'rgba(239,68,68,0.6)', // rojo
+          borderColor: 'rgba(239,68,68,1)',
+          borderWidth: 1
+        },
+        {
+          type: 'line',
+          label: '% Conflictos',
+          data: porcentajes,
+          borderColor: 'rgba(37,99,235,1)', // azul
+          backgroundColor: 'rgba(37,99,235,0.2)',
+          yAxisID: 'y2',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        title: {
+          display: true,
+          text: 'Evolución de Pruebas (Aciertos, Conflictos y % Conflictos)'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Cantidad' }
+        },
+        y2: {
+          beginAtZero: true,
+          position: 'right',
+          title: { display: true, text: '% Conflictos' },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+}
+
+// ================== BOTONES EXTRAS EN MODAL ==================
+function addComparativoButtons() {
+  const btnNueva = document.createElement("button");
+  btnNueva.textContent = "➕ Nueva Prueba";
+  btnNueva.id = "btnNuevaPrueba";
+  btnNueva.style.marginTop = "10px";
+  btnNueva.addEventListener("click", iniciarNuevaPrueba);
+
+  const btnComparativo = document.createElement("button");
+  btnComparativo.textContent = "📄 Informe Comparativo";
+  btnComparativo.id = "btnComparativo";
+  btnComparativo.style.marginTop = "10px";
+  btnComparativo.addEventListener("click", generarInformeComparativo);
+
+  finalMsg.parentElement.appendChild(btnNueva);
+  finalMsg.parentElement.appendChild(btnComparativo);
+}
+addComparativoButtons();
+
+
+
+/* ================== Contador global por dimensión ================== */
+function updateDimCounter(dim){
+  const placed = CARDS.filter(c => c.locked).length;
+  const total  = CARDS.length;
+  const pct = total ? (placed / total) * 100 : 0;
+
+  document.getElementById("progressText").textContent = `${placed}/${total}`;
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+/* Ajustar encabezado de dimensión para que siempre tenga el contador */
+/* Ajustar encabezado de dimensión */
+function applyDimHeader(){ 
+  dimTitle.textContent = TITLE[currentDim]; 
+  dimTag.className = 'tag '+currentDim;
+  updateDimCounter(currentDim); // 👍 mantiene solo la barra global
+}
+
+
+
+
+/* Cuando se actualicen todos los contadores de nivel → también el global */
+function updateAllLevelCounters(){ 
+  for(let lvl=1; lvl<=4; lvl++) updateLevelCounter(lvl);  
+  updateDimCounter(currentDim); 
+}
+
+
+// === ACTIVAR MODO DE PRUEBA DE CONFLICTOS (24 verbos) ===
+const TEST_MODE = true;
+
+if (TEST_MODE) {
+  console.log("🧩 Modo de prueba activado: 24 verbos");
+
+  const TEST_VERBS = {
+    saber: {
+      1: ["Recordar", "Definir"],
+      2: ["Comprender", "Clasificar"],
+      3: ["Analizar", "Revisar"],
+      4: ["Crear", "Evaluar"]
+    },
+    hacer: {
+      1: ["Imitar", "Seguir Instrucciones"],
+      2: ["Ejecutar", "Demostrar"],
+      3: ["Implementar", "Perfeccionar"],
+      4: ["Optimizar", "Transferir"]
+    },
+    ser: {
+      1: ["Escuchar", "Mostrar Disposición"],
+      2: ["Colaborar", "Cumplir"],
+      3: ["Valorar", "Asumir Responsabilidades"],
+      4: ["Liderar", "Transformar"]
+    }
+  };
+
+  const TEST_CRITERIA = {
+    saber: {
+      1: "Recuerda datos tal cual.",
+      2: "Comprende y explica simple.",
+      3: "Aplica/analiza en casos conocidos.",
+      4: "Crea/valida con evidencia."
+    },
+    hacer: {
+      1: "Imita con ayuda.",
+      2: "Ejecución básica guiada.",
+      3: "Autonomía y ajuste fino.",
+      4: "Optimiza/innova y transfiere."
+    },
+    ser: {
+      1: "Disposición y atención inicial.",
+      2: "Participa y colabora.",
+      3: "Valora y asume responsabilidades.",
+      4: "Modela y lidera éticamente."
+    }
+  };
+
+  const TEST_REASONS = {
+    saber: {
+      "Recordar": "Evoca datos sin modificarlos.",
+      "Definir": "Enuncia rasgos esenciales.",
+      "Comprender": "Explica con sus palabras.",
+      "Clasificar": "Agrupa con criterio.",
+      "Analizar": "Descompone partes y relaciones.",
+      "Revisar": "Detecta fallos y propone mejoras.",
+      "Crear": "Propone una idea o producto original.",
+      "Evaluar": "Juzga con criterios y evidencia."
+    },
+    hacer: {
+      "Imitar": "Reproduce acciones observadas.",
+      "Seguir Instrucciones": "Cumple pasos con exactitud.",
+      "Ejecutar": "Aplica un procedimiento dado.",
+      "Demostrar": "Muestra dominio técnico.",
+      "Implementar": "Lleva a la práctica un plan.",
+      "Perfeccionar": "Ajusta detalles para mejorar.",
+      "Optimizar": "Mejora tiempos o resultados.",
+      "Transferir": "Aplica destrezas en nuevos contextos."
+    },
+    ser: {
+      "Escuchar": "Atiende y parafrasea con respeto.",
+      "Mostrar Disposición": "Participa con buena actitud.",
+      "Colaborar": "Trabaja con empatía y orden.",
+      "Cumplir": "Respeta acuerdos y plazos.",
+      "Valorar": "Reconoce méritos y efectos.",
+      "Asumir Responsabilidades": "Responde por tareas.",
+      "Liderar": "Guía con metas claras y equidad.",
+      "Transformar": "Promueve mejoras sostenibles."
+    }
+  };
+
+  const TEST_FEEDBACK = {
+    saber: {
+      "Recordar": { def: "Evoca hechos conocidos.", ejemplo: "Recuerda la definición de energía cinética." },
+      "Definir": { def: "Define breve y preciso.", ejemplo: "Define qué es una célula." },
+      "Comprender": { def: "Explica con sus palabras.", ejemplo: "Explica por qué flota un objeto." },
+      "Clasificar": { def: "Agrupa por criterio.", ejemplo: "Clasifica animales por alimentación." },
+      "Analizar": { def: "Partes y relaciones.", ejemplo: "Analiza causas de un eclipse." },
+      "Revisar": { def: "Evalúa y mejora.", ejemplo: "Revisa tu respuesta e indica un ajuste." },
+      "Crear": { def: "Propone algo nuevo.", ejemplo: "Crea un ejemplo de palanca en casa." },
+      "Evaluar": { def: "Juzga con criterios.", ejemplo: "Evalúa cuál experimento controla mejor variables." }
+    },
+    hacer: {
+      "Imitar": { def: "Reproduce con guía.", ejemplo: "Imita el procedimiento de medición." },
+      "Seguir Instrucciones": { def: "Sigue pasos exactos.", ejemplo: "Sigue la receta de una disolución." },
+      "Ejecutar": { def: "Aplica con precisión.", ejemplo: "Ejecuta la práctica de laboratorio." },
+      "Demostrar": { def: "Muestra dominio.", ejemplo: "Demuestra el uso del microscopio." },
+      "Implementar": { def: "Lleva un plan a la práctica.", ejemplo: "Implementa el experimento propuesto." },
+      "Perfeccionar": { def: "Ajusta detalles.", ejemplo: "Perfecciona el procedimiento para más exactitud." },
+      "Optimizar": { def: "Mejora eficiencia.", ejemplo: "Optimiza el flujo de la práctica." },
+      "Transferir": { def: "Aplica en nuevo contexto.", ejemplo: "Transfiere esta técnica a otro experimento." }
+    },
+    ser: {
+      "Escuchar": { def: "Atiende sin interrumpir.", ejemplo: "Escucha y parafrasea la idea de tu compañero." },
+      "Mostrar Disposición": { def: "Actitud positiva.", ejemplo: "Ofrécete para iniciar la actividad." },
+      "Colaborar": { def: "Trabajo en equipo.", ejemplo: "Comparte materiales y acuerdos." },
+      "Cumplir": { def: "Respeta acuerdos.", ejemplo: "Entrega el trabajo en la fecha pactada." },
+      "Valorar": { def: "Reconoce méritos.", ejemplo: "Valora la participación del equipo." },
+      "Asumir Responsabilidades": { def: "Responde por compromisos.", ejemplo: "Asume la coordinación de la actividad." },
+      "Liderar": { def: "Guía con equidad.", ejemplo: "Distribuye la palabra y define metas." },
+      "Transformar": { def: "Impulsa mejoras.", ejemplo: "Propón una mejora de convivencia escolar." }
+    }
+  };
+
+  // Inyección segura
+  if (typeof DATA !== 'undefined') {
+    for (const dim of Object.keys(TEST_VERBS)) {
+      DATA[dim] = TEST_VERBS[dim];
+    }
+  }
+
+  if (typeof LEVEL_CRITERIA !== 'undefined') {
+    for (const dim of Object.keys(TEST_CRITERIA)) {
+      LEVEL_CRITERIA[dim] = { ...(LEVEL_CRITERIA[dim] || {}), ...TEST_CRITERIA[dim] };
+    }
+  }
+
+  for (const dim of Object.keys(TEST_REASONS)) {
+    REASONS[dim] = { ...(REASONS[dim] || {}), ...TEST_REASONS[dim] };
+    VERB_FEEDBACK[dim] = { ...(VERB_FEEDBACK[dim] || {}), ...TEST_FEEDBACK[dim] };
+  }
+
+  console.log("✅ Verbos de prueba cargados correctamente");
+}
+
+  
+// === Restaurar re-práctica pendiente si existe ===
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('conflictProgress');
+  if (saved) {
+    const { scope } = JSON.parse(saved);
+    const resume = confirm(`🔁 Se detectó una re-práctica pendiente (${scope}).\n¿Deseas retomarla ahora?`);
+    if (resume) {
+      toast('Reanudando re-práctica anterior...');
+      setTimeout(() => startConflictPractice({ scope }), 400);
+    } else {
+      localStorage.removeItem('conflictProgress');
+      toast('Re-práctica descartada');
+    }
+  }
+});
+
+
+
+
+
+
+</script>
+
+
+
+
+</body>
+</html> 
