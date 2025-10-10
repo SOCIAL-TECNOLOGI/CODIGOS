@@ -4,8 +4,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.4.0/fabric.min.js"></script>
-
+  
     <title>Pizarra en Línea con Diapositivas de Imágenes</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
     <!-- Agrega Font Awesome para los íconos -->
@@ -42,6 +41,16 @@ body {
        
         }
 
+
+body {
+        background-image: url('https://cdn.pixabay.com/photo/2018/04/06/00/25/trees-3294681_640.jpg'); /* Ruta de la imagen de fondo */
+        background-size: cover; /* Ajusta el tamaño de la imagen para cubrir todo el fondo */
+        background-repeat: no-repeat; /* Evita la repetición de la imagen */
+        background-attachment: fixed; /* Fija la imagen en su lugar mientras se desplaza la página */
+    }
+    
+
+        
         .contenido {
             padding: 20px;
             text-align: center;
@@ -863,7 +872,7 @@ button {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
 <script src="script.js"></script>
 <!-- Scripts JavaScript y Fabric.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.6.6/fabric.min.js"></script>
+
 
 
 
@@ -1751,71 +1760,59 @@ function startTimer() {
     const timerButton = document.getElementById('startTimer');
     const resetButton = document.getElementById('resetTimer');
     const pauseButton = document.getElementById('pauseTimer');
-    const timerInput = document.getElementById('timerInput');
-    const timerDisplay = document.getElementById('timer');
+    const timerInput = document.getElementById('timerInput'); // campo del panel
+    const timerDisplay = document.getElementById('timer');    // contenedor flotante azul
     const minutesDisplay = document.getElementById('minutes');
     const secondsDisplay = document.getElementById('seconds');
+    const timerSound = document.getElementById('timerSound');
 
     let countdown;
-    let remainingTime = parseInt(timerInput.value) || 0;
+    let remainingTime = 0;
     let isPaused = false;
 
-    let imageDuration = 150; // Duración de cada imagen en segundos
-    let currentImageDuration = imageDuration;
+    // Mostrar siempre el valor del input en el cronómetro flotante
+    function updateDisplay() {
+        const minutes = Math.floor(remainingTime / 60);
+        const seconds = remainingTime % 60;
+        minutesDisplay.textContent = minutes.toString().padStart(2, '0');
+        secondsDisplay.textContent = seconds.toString().padStart(2, '0');
+    }
 
-    let currentImageIndex = 0;
-
-    updateDisplay();
-
+    // Al hacer clic en el botón del reloj ⏱️
     timerButton.addEventListener('click', () => {
-        const totalTime = images.length * imageDuration;
-        remainingTime = totalTime;
-        currentImageDuration = imageDuration;
+        const newTime = parseInt(timerInput.value);
+        if (isNaN(newTime) || newTime <= 0) return;
 
-        clearInterval(countdown);
-
-        countdown = setInterval(function () {
-            if (remainingTime <= 0) {
-                clearInterval(countdown);
-                alert('¡Tiempo agotado!');
-                return;
-            }
-
-            if (!isPaused) {
-                remainingTime--;
-                currentImageDuration--;
-
-                if (currentImageDuration <= 0) {
-                    // Cambiar a la siguiente imagen cuando se alcanza la duración de la imagen
-                    currentImageIndex = (currentImageIndex + 1) % images.length;
-                    loadNewImage(images[currentImageIndex]);
-                    currentImageDuration = imageDuration;
-                }
-
-                updateDisplay();
-            }
-        }, 1000); // Actualiza cada segundo
-    });
-
-    resetButton.addEventListener('click', () => {
-        clearInterval(countdown);
-        remainingTime = 0;
-        currentImageDuration = imageDuration;
-        isPaused = false;
+        remainingTime = newTime;
         updateDisplay();
+        timerDisplay.style.display = 'block'; // mostrar cronómetro flotante
+
+        clearInterval(countdown);
+        countdown = setInterval(() => {
+            if (!isPaused && remainingTime > 0) {
+                remainingTime--;
+                updateDisplay();
+            } else if (remainingTime <= 0) {
+                clearInterval(countdown);
+                updateDisplay();
+                timerSound.play(); // sonido al finalizar
+                alert('¡Tiempo agotado!');
+            }
+        }, 1000);
     });
 
+    // Botón de pausa ⏸️
     pauseButton.addEventListener('click', () => {
         isPaused = !isPaused;
     });
 
-    function updateDisplay() {
-        const minutes = Math.floor(remainingTime / 60);
-        const seconds = remainingTime % 60;
-        minutesDisplay.textContent = minutes < 10 ? '0' + minutes : minutes;
-        secondsDisplay.textContent = seconds < 10 ? '0' + seconds : seconds;
-        timerInput.value = remainingTime;
-    }
+    // Botón de reinicio 🔁
+    resetButton.addEventListener('click', () => {
+        clearInterval(countdown);
+        remainingTime = 0;
+        updateDisplay();
+        timerInput.value = '';
+    });
 }
 
 

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indagación Biológica - Matthias Schleiden</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .container {
+    width: 90%;
+    max-width: 900px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  h1, h2 {
+    color: #a5f3fc;
+  }
+
+  .slide {
+    display: none;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: all 0.6s ease;
+  }
+
+  .slide.active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .controls {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  button {
+    background: #22d3ee;
+    color: #0f172a;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #67e8f9;
+    transform: scale(1.05);
+  }
+
+  ul {
+    text-align: left;
+    line-height: 1.7;
+    margin-left: 10%;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+  img {
+    max-width: 250px;
+    margin: 20px auto;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="slide active">
+    <h1>🧬 Indagación Biológica</h1>
+    <h2>Matthias Jakob Schleiden</h2>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Matthias_Schleiden2.jpg" alt="Matthias Schleiden">
+    <p>(1804 – 1881) – Científico alemán y fundador de la Teoría Celular.</p>
+  </div>
+
+  <div class="slide">
+    <h2>👨‍🔬 ¿Quién fue?</h2>
+    <ul>
+      <li>Botánico y profesor alemán.</li>
+      <li>Abandonó el Derecho para dedicarse al estudio de las plantas.</li>
+      <li>Profesor en la Universidad de Jena.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <h2>🔬 Aportes a la ciencia</h2>
+    <ul>
+      <li>Fundador de la <strong>Teoría Celular</strong> (1838).</li>
+      <li>Descubrió que <strong>todas las plantas están formadas por células</strong>.</li>
+      <li>Reconoció la importancia del <strong>núcleo celular</strong>.</li>
+      <li>Usó el microscopio para estudiar tejidos vegetales.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <h2>📖 Obras destacadas</h2>
+    <ul>
+      <li><em>Beiträge zur Phytogenesis</em> (Contribuciones a la fitogénesis, 1838).</li>
+      <li><em>Principios de botánica científica</em> (1842).</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <h2>🌿 Importancia</h2>
+    <ul>
+      <li>Su trabajo fue base de la <strong>biología moderna</strong>.</li>
+      <li>Inspiró a otros científicos como Theodor Schwann y Rudolf Virchow.</li>
+      <li>Permitió entender la vida desde una <strong>perspectiva celular</strong>.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <h2>📚 Curiosidades</h2>
+    <ul>
+      <li>Antes de ser científico fue abogado.</li>
+      <li>Amigo y colega de <strong>Theodor Schwann</strong>.</li>
+      <li>Su investigación inspiró la frase: “<em>La célula es la unidad fundamental de la vida</em>”.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <h2>🎓 Conclusión</h2>
+    <p>Matthias Schleiden fue un pionero que transformó la biología.  
+    Gracias a sus observaciones, hoy entendemos que toda la vida  
+    —desde una hoja hasta el cuerpo humano— comienza en la célula. 🧫</p>
+  </div>
+
+  <div class="controls">
+    <button id="prev">⬅️ Anterior</button>
+    <button id="next">Siguiente ➡️</button>
+  </div>
+
+  <div class="footer">Tarea de Jacobo Portela · Biología · 2025</div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  function showSlide(index) {
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+  }
+
+  document.getElementById('next').addEventListener('click', () => {
+    current = (current + 1) % slides.length;
+    showSlide(current);
+  });
+
+  document.getElementById('prev').addEventListener('click', () => {
+    current = (current - 1 + slides.length) % slides.length;
+    showSlide(current);
+  });
+
+  // Navegación con teclas
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') {
+      current = (current + 1) % slides.length;
+      showSlide(current);
+    } else if (e.key === 'ArrowLeft') {
+      current = (current - 1 + slides.length) % slides.length;
+      showSlide(current);
+    }
+  });
+</script>
+
+</body>
+</html>

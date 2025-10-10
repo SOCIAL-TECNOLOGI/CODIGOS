@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Croquis Tabla Periódica Vacía</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f9fafb;
+    color: #111827;
+    margin: 20px;
+  }
+  h1 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+  }
+  .tabla {
+    display: grid;
+    grid-template-columns: repeat(18, 40px);
+    grid-auto-rows: 40px;
+    gap: 2px;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+  .celda {
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: white;
+  }
+  .vacio {
+    border: none;
+    background: none;
+  }
+  .bloque-f {
+    display: grid;
+    grid-template-columns: repeat(14, 40px);
+    grid-auto-rows: 40px;
+    gap: 2px;
+    justify-content: center;
+  }
+  .etiqueta {
+    margin: 5px;
+    font-weight: bold;
+    color: #374151;
+  }
+</style>
+</head>
+<body>
+
+<h1>Croquis de la Tabla Periódica (Vacía)</h1>
+
+<!-- === Bloque principal (s, d, p) === -->
+<div class="tabla" id="tabla"></div>
+
+<!-- === Bloque f (lantánidos y actínidos) === -->
+<div class="etiqueta">Lantánidos (La–Lu)</div>
+<div class="bloque-f" id="lantanidos"></div>
+
+<div class="etiqueta">Actínidos (Ac–Lr)</div>
+<div class="bloque-f" id="actinidos"></div>
+
+<script>
+const tabla = document.getElementById("tabla");
+
+// === Construir 7 periodos, 18 grupos ===
+for (let fila = 1; fila <= 7; fila++) {
+  for (let col = 1; col <= 18; col++) {
+    const div = document.createElement("div");
+    div.className = "celda";
+
+    // === Espacios vacíos según estructura real ===
+    if (
+      (fila === 1 && ![1,18].includes(col)) || // H y He
+      (fila === 2 && col > 2 && col < 13) ||   // Li-Be salto a B
+      (fila === 3 && col > 2 && col < 13) ||
+      (fila === 4 && col > 2 && col < 13) ||
+      (fila === 5 && col > 2 && col < 13) ||
+      (fila === 6 && col > 2 && col < 13) ||
+      (fila === 7 && col > 2 && col < 13)
+    ) {
+      div.classList.add("vacio");
+    }
+
+    tabla.appendChild(div);
+  }
+}
+
+// === Lantánidos y actínidos: 14 columnas ===
+function crearBloque(id) {
+  const cont = document.getElementById(id);
+  for (let i = 0; i < 14; i++) {
+    const div = document.createElement("div");
+    div.className = "celda";
+    cont.appendChild(div);
+  }
+}
+crearBloque("lantanidos");
+crearBloque("actinidos");
+</script>
+
+</body>
+</html>
