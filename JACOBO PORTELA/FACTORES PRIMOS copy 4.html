@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nivel 5 — El Cofre del M.C.M.</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #001, #000);
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #00ffcc;
+    text-shadow: 2px 2px #ff00ff;
+  }
+
+  #numeros {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #00ffcc;
+  }
+
+  .tabla {
+    display: grid;
+    gap: 10px;
+    margin: 20px auto;
+    width: 90%;
+  }
+
+  .fila {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 6px;
+    border-bottom: 1px solid #222;
+  }
+
+  .etiqueta {
+    color: #ff00ff;
+    margin-right: 8px;
+  }
+
+  .mult {
+    background: #111;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 15px;
+    user-select: none;
+    transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+    cursor: default;
+  }
+
+  .mult:hover {
+    transform: scale(1.05);
+  }
+
+  /* 🎯 Múltiplos comunes interactivos */
+  .comun {
+    background: #00ffcc;
+    color: #000;
+    cursor: grab;
+    border: 2px solid #00ffcc;
+    font-weight: bold;
+    box-shadow: 0 0 15px #00ffcc, 0 0 25px #00ffcc inset;
+    animation: brillo 1.2s infinite alternate;
+  }
+
+  @keyframes brillo {
+    0% { box-shadow: 0 0 10px #00ffcc; }
+    100% { box-shadow: 0 0 25px #00ffcc; }
+  }
+
+  .seleccionado {
+    background: #fff600 !important;
+    color: #000 !important;
+    transform: scale(1.15);
+    box-shadow: 0 0 25px #fff600;
+  }
+
+  #cofre {
+    margin: 20px auto;
+    width: 280px;
+    height: 80px;
+    background: #150030;
+    border: 2px dashed #ff00ff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #ff00ff;
+    font-size: 14px;
+    transition: all 0.5s;
+  }
+
+  #cofre.ok {
+    background: #003300;
+    border-style: solid;
+    color: #00ff99;
+    box-shadow: 0 0 20px #00ffcc;
+  }
+
+  #astronauta {
+    font-size: 60px;
+    margin: 10px;
+    opacity: 0;
+    transition: opacity 1s;
+    animation: flotar 3s infinite ease-in-out;
+  }
+
+  @keyframes flotar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+
+  #consola {
+    background: rgba(0,0,0,0.7);
+    border: 2px solid #00ffcc;
+    border-radius: 10px;
+    padding: 10px;
+    width: 80%;
+    margin: 0 auto;
+    height: 120px;
+    overflow-y: auto;
+    text-align: left;
+    font-size: 12px;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    background: #00ffcc;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  button {
+    background: #00ffcc;
+    color: black;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-family: "Press Start 2P";
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+  button:hover { background: #00ffaa; }
+</style>
+</head>
+<body>
+
+<h1>🔢 El Cofre del M.C.M.</h1>
+<div id="numeros"></div>
+<div id="tabla" class="tabla"></div>
+
+<div id="cofre" ondragover="event.preventDefault()" ondrop="soltar(event)">💠 Arrastra aquí el menor múltiplo común</div>
+
+<div id="astronauta">👨‍🚀</div>
+<div id="consola"></div>
+<button onclick="nuevoDesafio()">🪐 Nuevo desafío</button>
+
+<audio id="sndOk" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="sndErr" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
+
+<script>
+let nums = [];
+let comunes = [];
+
+function narrar(texto) {
+  const consola = document.getElementById("consola");
+  const linea = document.createElement("div");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES"; voz.pitch = 0.8; voz.rate = 0.9;
+  speechSynthesis.speak(voz);
+
+  let i = 0;
+  function type() {
+    if (i < texto.length) {
+      linea.innerHTML = texto.substring(0, i + 1) + '<span class="cursor"></span>';
+      i++;
+      setTimeout(type, 25);
+    } else linea.textContent = texto;
+  }
+  type();
+}
+
+function generarNumeros() {
+  const n = Math.floor(Math.random() * 3) + 3; // 3–5 números
+  const set = new Set();
+  while (set.size < n) set.add(Math.floor(Math.random() * 9) + 3);
+  return [...set];
+}
+
+function listaMultiples(n, tope=10) {
+  const arr = [];
+  for (let i=1; i<=tope; i++) arr.push(n*i);
+  return arr;
+}
+
+function interseccionListas(listas) {
+  return listas.reduce((a,b)=>a.filter(x=>b.includes(x)));
+}
+
+function nuevoDesafio() {
+  const tabla = document.getElementById("tabla");
+  const cofre = document.getElementById("cofre");
+  const astro = document.getElementById("astronauta");
+  cofre.classList.remove("ok");
+  cofre.textContent = "💠 Arrastra aquí el menor múltiplo común";
+  astro.style.opacity = 0;
+  tabla.innerHTML = "";
+  document.getElementById("consola").innerHTML = "";
+
+  nums = generarNumeros();
+  document.getElementById("numeros").textContent = "Números: " + nums.join(", ");
+
+  const listas = nums.map(n => listaMultiples(n, 10));
+  comunes = interseccionListas(listas).sort((a,b)=>a-b);
+
+  narrar(`Tu misión: encuentra el menor múltiplo común de ${nums.join(", ")}.`);
+
+  nums.forEach((n, i) => {
+    const fila = document.createElement("div");
+    fila.className = "fila";
+    const etiqueta = document.createElement("span");
+    etiqueta.className = "etiqueta";
+    etiqueta.textContent = `×${n}: `;
+    fila.appendChild(etiqueta);
+
+    listas[i].forEach(m => {
+      const span = document.createElement("span");
+      span.textContent = m;
+      span.className = "mult";
+      if (comunes.includes(m)) {
+        span.classList.add("comun");
+        span.setAttribute("draggable", "true");
+        span.addEventListener("dragstart", e => e.dataTransfer.setData("text", m));
+        span.addEventListener("click", () => seleccionar(span, m));
+        span.addEventListener("touchstart", () => seleccionar(span, m));
+      }
+      fila.appendChild(span);
+    });
+    tabla.appendChild(fila);
+  });
+
+  if (comunes.length === 0) narrar("No se hallaron múltiplos comunes visibles. Intenta con otro desafío.");
+}
+
+function seleccionar(el, m) {
+  document.querySelectorAll(".comun").forEach(e => e.classList.remove("seleccionado"));
+  el.classList.add("seleccionado");
+  verificar(m);
+}
+
+function verificar(m) {
+  const menor = comunes[0];
+  const cofre = document.getElementById("cofre");
+  const sndOk = document.getElementById("sndOk");
+  const sndErr = document.getElementById("sndErr");
+  if (m === menor) {
+    cofre.classList.add("ok");
+    cofre.textContent = `✅ M.C.M. = ${m}`;
+    narrar(`Excelente. El menor múltiplo común es ${m}.`);
+    sndOk.play();
+    document.getElementById("astronauta").style.opacity = 1;
+  } else {
+    narrar(`El número ${m} no es el menor múltiplo común. Intenta otro.`);
+    sndErr.play();
+  }
+}
+
+function soltar(e) {
+  e.preventDefault();
+  const val = parseInt(e.dataTransfer.getData("text"));
+  if (val) verificar(val);
+}
+
+window.onload = nuevoDesafio;
+</script>
+</body>
+</html>

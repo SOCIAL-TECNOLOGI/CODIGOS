@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nivel 2 – Identifica el Ángulo 🔺</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #001, #000);
+    color: white;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+  }
+  h1 {
+    color: #00ffcc;
+    text-shadow: 2px 2px #ff00ff;
+  }
+  .contenedor {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-top: 20px;
+  }
+  .columna { display: flex; flex-direction: column; gap: 15px; }
+  .tarjeta {
+    width: 230px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #111;
+    border: 2px solid #00ffcc;
+    color: white;
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.3s;
+  }
+  .tarjeta:hover { transform: scale(1.05); }
+  .zona {
+    width: 260px;
+    height: 160px;
+    border: 2px dashed #ff00ff;
+    border-radius: 10px;
+    background: #111;
+    position: relative;
+    transition: all 0.3s;
+  }
+  .zona.over { background: rgba(255,255,255,0.1); border-color: #00ffcc; }
+  canvas { position: absolute; left: 0; top: 0; }
+  .correcta {
+    border: 3px solid #00ff99 !important;
+    box-shadow: 0 0 15px #00ffcc;
+    animation: brillar 1s ease-in-out;
+  }
+  @keyframes brillar {
+    0% { box-shadow: 0 0 0px #00ffcc; }
+    50% { box-shadow: 0 0 20px #00ffcc; }
+    100% { box-shadow: 0 0 0px #00ffcc; }
+  }
+  #resultado { margin-top: 25px; color: #00ffcc; }
+  #astronauta {
+    font-size: 60px; margin-top: 10px; opacity: 0;
+    transition: opacity 1s; animation: flotar 3s infinite ease-in-out;
+  }
+  @keyframes flotar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+  button {
+    background: #00ffcc; color: #000; border: none; border-radius: 6px;
+    padding: 10px 20px; font-family: "Press Start 2P"; font-size: 12px;
+    cursor: pointer; margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🔺 Nivel 2 – Identifica el Ángulo</h1>
+<p>Arrastra el nombre del ángulo hasta el dibujo correcto.</p>
+
+<div class="contenedor">
+  <div class="columna" id="nombres"></div>
+  <div class="columna" id="definiciones"></div>
+</div>
+
+<p id="resultado"></p>
+<div id="astronauta">👨‍🚀</div>
+<button onclick="reiniciar()">🔁 Reiniciar</button>
+
+<script>
+const datos = [
+  { nombre: "Ángulo nulo", grado: 0 },
+  { nombre: "Ángulo agudo", grado: 45 },
+  { nombre: "Ángulo recto", grado: 90 },
+  { nombre: "Ángulo obtuso", grado: 120 },
+  { nombre: "Ángulo llano", grado: 180 },
+  { nombre: "Ángulo completo", grado: 360 }
+];
+let aciertos = 0;
+
+function narrar(texto){
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 0.9;
+  voz.rate = 0.9;
+  speechSynthesis.speak(voz);
+}
+
+function dibujarAngulo(ctx, grado){
+  const r = 50;
+  ctx.clearRect(0,0,200,160);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#fff";
+  ctx.beginPath();
+  ctx.moveTo(100,100);
+  ctx.lineTo(150,100); // base
+  ctx.stroke();
+
+  const rad = (Math.PI/180)*grado;
+  ctx.beginPath();
+  ctx.moveTo(100,100);
+  ctx.lineTo(100 + r*Math.cos(Math.PI - rad), 100 - r*Math.sin(Math.PI - rad));
+  ctx.stroke();
+
+  // Arco indicador
+  ctx.beginPath();
+  ctx.strokeStyle = "#ff00ff";
+  ctx.arc(100,100,25,Math.PI,Math.PI-rad,true);
+  ctx.stroke();
+}
+
+function iniciarJuego(){
+  const nombres=document.getElementById("nombres");
+  const defs=document.getElementById("definiciones");
+  nombres.innerHTML=""; defs.innerHTML=""; aciertos=0;
+
+  const mezclados=[...datos].sort(()=>Math.random()-0.5);
+  const mezcladasDefs=[...datos].sort(()=>Math.random()-0.5);
+
+  mezclados.forEach(d=>{
+    const div=document.createElement("div");
+    div.textContent=d.nombre;
+    div.classList.add("tarjeta");
+    div.draggable=true;
+    div.dataset.nombre=d.nombre;
+    div.ondragstart=e=>e.dataTransfer.setData("text",d.nombre);
+    nombres.appendChild(div);
+  });
+
+  mezcladasDefs.forEach(d=>{
+    const zona=document.createElement("div");
+    zona.classList.add("zona");
+    zona.dataset.nombre=d.nombre;
+    const canvas=document.createElement("canvas");
+    canvas.width=200; canvas.height=160;
+    zona.appendChild(canvas);
+    const ctx=canvas.getContext("2d");
+    dibujarAngulo(ctx,d.grado);
+    zona.ondragover=e=>e.preventDefault();
+    zona.ondragenter=()=>zona.classList.add("over");
+    zona.ondragleave=()=>zona.classList.remove("over");
+    zona.ondrop=soltar;
+    defs.appendChild(zona);
+  });
+}
+
+function soltar(e){
+  e.preventDefault();
+  const nombreArrastrado=e.dataTransfer.getData("text");
+  const zona=e.currentTarget;
+  zona.classList.remove("over");
+
+  if(zona.dataset.nombre===nombreArrastrado){
+    zona.classList.add("correcta");
+    const label=document.createElement("div");
+    label.textContent=nombreArrastrado;
+    label.style.position="absolute";
+    label.style.bottom="5px";
+    label.style.width="100%";
+    label.style.textAlign="center";
+    label.style.color="#00ff99";
+    zona.appendChild(label);
+
+    document.querySelector(`[data-nombre='${nombreArrastrado}']`).remove();
+    aciertos++;
+    narrar(`Excelente. ${nombreArrastrado} identificado correctamente.`);
+  } else {
+    narrar("Ese no es el ángulo correcto.");
+  }
+
+  if(aciertos===datos.length){
+    document.getElementById("resultado").textContent="🌟 ¡Has identificado todos los ángulos!";
+    document.getElementById("astronauta").style.opacity=1;
+    narrar("¡Misión cumplida! Has aprendido a reconocer los tipos de ángulos.");
+  }
+}
+
+function reiniciar(){
+  document.getElementById("astronauta").style.opacity=0;
+  document.getElementById("resultado").textContent="";
+  iniciarJuego();
+}
+
+window.onload=iniciarJuego;
+</script>
+</body>
+</html>

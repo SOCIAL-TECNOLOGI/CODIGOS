@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>AlaU - Sistema de Informes de Tamizaje</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #e2e8f0;
+            padding: 30px;
+            line-height: 1.5;
+        }
+        .upload-area {
+            background: white;
+            max-width: 1000px;
+            margin: 0 auto 30px auto;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+            border: 2px dashed #3b82f6;
+        }
+        .upload-area h2 { color: #1e3a8a; margin-bottom: 10px; }
+        .upload-area input { margin: 15px 0; padding: 10px; width: 70%; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .upload-area button {
+            background: #1e40af; color: white; border: none; padding: 12px 28px; font-size: 16px;
+            font-weight: bold; border-radius: 40px; cursor: pointer; margin: 10px 5px; transition: 0.3s;
+        }
+        .upload-area button:hover { background: #1e3a8a; transform: scale(1.02); }
+        .upload-area button:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .file-status { margin: 15px 0; padding: 12px; border-radius: 12px; text-align: left; }
+        .file-status.pending { background: #fee2e2; border: 1px solid #ef4444; }
+        .file-status.ok { background: #dcfce7; border: 1px solid #22c55e; }
+        .file-status p { margin: 0; font-weight: 500; }
+        .text-area-container {
+            margin: 15px 0;
+            text-align: left;
+        }
+        .text-area-container label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #1e3a8a;
+        }
+        .text-area-container textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .separator {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        .separator span {
+            background: white;
+            padding: 0 15px;
+            color: #94a3b8;
+            font-weight: bold;
+        }
+        .separator::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #cbd5e1;
+            z-index: 0;
+        }
+        .separator span {
+            position: relative;
+            z-index: 1;
+        }
+        .report-container {
+            max-width: 1200px; margin: 0 auto; background: white; border-radius: 16px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2); overflow: hidden; display: none;
+        }
+        .report-content { padding: 40px; }
+        h1 { font-size: 28px; color: #1e3a8a; border-left: 6px solid #3b82f6; padding-left: 20px; margin-bottom: 20px; }
+        h2 { font-size: 22px; color: #1e40af; margin: 30px 0 15px 0; border-bottom: 2px solid #93c5fd; padding-bottom: 8px; }
+        h3 { font-size: 18px; color: #1e3a8a; margin: 20px 0 10px 0; }
+        .header-info { background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #bae6fd; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        th { background: #1e40af; color: white; padding: 10px 8px; text-align: center; border: 1px solid #3b82f6; }
+        td { padding: 8px; border: 1px solid #cbd5e1; text-align: center; }
+        .stats-card { background: #f8fafc; border-radius: 12px; padding: 15px; margin: 15px 0; border-left: 5px solid #3b82f6; }
+        .highlight { background: #fef3c7; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #f59e0b; }
+        .btn-group { text-align: center; margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px; }
+        .btn-pdf { background: #dc2626; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 40px; cursor: pointer; margin: 5px; transition: 0.3s; }
+        .btn-pdf:hover { background: #b91c1c; transform: scale(1.02); }
+        .btn-pdf-individual { background: #10b981; }
+        .btn-pdf-individual:hover { background: #059669; }
+        footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; }
+        @media print { body { background: white; padding: 0; } .upload-area, .btn-group, .btn-pdf { display: none; } .report-container { box-shadow: none; } }
+        .preview-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+        .preview-table th { background: #1e40af; color: white; padding: 8px; }
+        .preview-table td { padding: 6px; border: 1px solid #cbd5e1; }
+    </style>
+</head>
+<body>
+
+<div class="upload-area" id="uploadArea">
+    <h2>📂 Sistema de Informes de Tamizaje</h2>
+    <p style="color: #475569; margin-bottom: 20px;">Cargue los archivos o pegue los datos para generar informes profesionales</p>
+    
+    <div id="respuestasStatus" class="file-status pending">
+        <p>📋 <strong>Archivo de respuestas correctas (Excel o CSV)</strong></p>
+        <input type="file" id="respuestasFile" accept=".xlsx, .xls, .csv">
+        <p style="font-size:12px; margin-top:5px;">Formato: columna A = "Pregunta", columna B = "Respuesta Correcta"</p>
+    </div>
+    
+    <div class="separator"><span>o</span></div>
+    
+    <div class="text-area-container">
+        <label>📝 Pegue aquí los datos del CSV (respuestas de estudiantes):</label>
+        <textarea id="csvDataTextarea" placeholder='Pegue aquí el contenido del CSV con el siguiente formato:
+Pregunta #,Texto de la pregunta,Estudiante,Opción elegida,Correcta,¿Correcto?,Tiempo (seg),...
+4,"Pregunta 4 - Herencia calvicie","Ana Sofía Méndez","C","C","Sí",45.2,...
+8,"Pregunta 8 - pH frutas","Carlos Andrés López","B","A","No",58.1,...'></textarea>
+    </div>
+    
+    <div style="margin: 15px 0;">
+        <button id="procesarConTextoBtn" style="background: #10b981;">📝 Procesar datos pegados</button>
+    </div>
+    
+    <div class="separator"><span>o</span></div>
+    
+    <div id="csvStatus" class="file-status pending">
+        <p>📊 <strong>Archivo de respuestas de estudiantes (CSV)</strong></p>
+        <input type="file" id="csvFileInput" accept=".csv">
+        <p style="font-size:12px; margin-top:5px;">Formato: exportado desde AlaU o plataforma similar</p>
+    </div>
+    
+    <button id="procesarBtn" disabled>🔍 Procesar archivos cargados</button>
+</div>
+
+<div class="report-container" id="reportContainer">
+    <div class="report-content" id="reportContent">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="border: none; font-size: 32px;">📊 Informe de Tamizaje</h1>
+            <p style="color: #334155; font-size: 16px;">Plataforma AlaU – Diagnóstico inicial 2026</p>
+            <p style="color: #1e40af; font-weight: bold;" id="institucionNombre">I.E. Don Jaca - Santa Marta</p>
+        </div>
+        <div id="dynamicReport">
+            <p style="text-align: center; color: #64748b;">Cargando datos...</p>
+        </div>
+        <footer>
+            <p>Confidencial – Uso exclusivo para planeación académica.</p>
+            <p>AlaU · SITE-RUTA LATAM v2.9 · Protocolo de categorización cognitiva</p>
+        </footer>
+    </div>
+</div>
+
+<script>
+    let respuestasCorrectasMap = {};
+    let estudiantesData = {};
+    let respuestasCargadas = false;
+    
+    const nivelesDefault = { "4": "N4", "8": "N4", "12": "N4", "16": "N4", "17": "N1", "21": "N1", "23": "N3", "24": "N4" };
+    const areasDefault = { "4": "Biología", "8": "Química", "12": "Física", "16": "Sociales", "17": "Matemáticas", "21": "Lectura Crítica", "23": "Lectura Crítica", "24": "Lectura Crítica" };
+    
+    function mapearPregunta(textoPregunta) {
+        if (!textoPregunta) return null;
+        const numeros = textoPregunta.match(/\d+/g);
+        if (numeros) {
+            for (let num of numeros) {
+                const preguntaKey = `Pregunta ${num}`;
+                if (respuestasCorrectasMap[preguntaKey]) return preguntaKey;
+            }
+        }
+        if (textoPregunta.includes("página 1") || textoPregunta.includes("Herencia")) return "Pregunta 4";
+        if (textoPregunta.includes("página 2") || textoPregunta.includes("pH")) return "Pregunta 8";
+        if (textoPregunta.includes("página 3") || textoPregunta.includes("Flujo")) return "Pregunta 12";
+        if (textoPregunta.includes("página 4") || textoPregunta.includes("Recursos")) return "Pregunta 16";
+        if (textoPregunta.includes("página 5") || textoPregunta.includes("Ruta")) return "Pregunta 17";
+        if (textoPregunta.includes("página 6") || textoPregunta.includes("Vendedor")) return "Pregunta 21";
+        if (textoPregunta.includes("página 7") || textoPregunta.includes("Juicio")) return "Pregunta 23";
+        if (textoPregunta.includes("página 8") || textoPregunta.includes("náufrago")) return "Pregunta 24";
+        return null;
+    }
+    
+    function leerRespuestasExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
+                    
+                    respuestasCorrectasMap = {};
+                    for (let i = 1; i < rows.length; i++) {
+                        const pregunta = rows[i][0]?.toString().trim();
+                        const respuesta = rows[i][1]?.toString().trim().toUpperCase();
+                        if (pregunta && pregunta !== "Pregunta" && respuesta && respuesta !== "Sin Respuesta") {
+                            respuestasCorrectasMap[pregunta] = respuesta;
+                        }
+                    }
+                    
+                    if (Object.keys(respuestasCorrectasMap).length > 0) {
+                        respuestasCargadas = true;
+                        const statusDiv = document.getElementById("respuestasStatus");
+                        statusDiv.className = "file-status ok";
+                        statusDiv.innerHTML = `<p>✅ <strong>Respuestas correctas cargadas:</strong> ${Object.keys(respuestasCorrectasMap).length} preguntas</p>`;
+                        resolve(true);
+                    } else {
+                        reject("No se encontraron respuestas válidas.");
+                    }
+                } catch(err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    function parseCSVToJSON(csvText) {
+        const lines = csvText.trim().split(/\r?\n/);
+        const estudiantes = {};
+        let skipHeader = true;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            if (line.includes("SUBTOTAL") || line.includes("RESUMEN")) continue;
+            
+            const row = [];
+            let current = "";
+            let inQuotes = false;
+            for (let ch of line) {
+                if (ch === '"') {
+                    inQuotes = !inQuotes;
+                } else if (ch === ',' && !inQuotes) {
+                    row.push(current.trim());
+                    current = "";
+                } else {
+                    current += ch;
+                }
+            }
+            row.push(current.trim());
+            
+            if (row.length < 7) continue;
+            if (row[0] === "Pregunta #" || row[0] === "Pregunta") {
+                skipHeader = false;
+                continue;
+            }
+            if (skipHeader) continue;
+            
+            const preguntaOriginal = row[1]?.replace(/^"|"$/g, "") || "";
+            let preguntaKey = mapearPregunta(preguntaOriginal);
+            if (!preguntaKey) {
+                const preguntaNumRaw = row[0]?.replace(/^"|"$/g, "") || "";
+                const preguntaNumero = parseInt(preguntaNumRaw);
+                if (preguntaNumero && respuestasCorrectasMap[`Pregunta ${preguntaNumero}`]) {
+                    preguntaKey = `Pregunta ${preguntaNumero}`;
+                }
+            }
+            if (!preguntaKey) continue;
+            
+            const estudiante = row[2]?.replace(/^"|"$/g, "").trim();
+            if (!estudiante || estudiante === "") continue;
+            
+            const opcion = row[3]?.replace(/^"|"$/g, "").trim();
+            const correcta = respuestasCorrectasMap[preguntaKey];
+            if (!correcta) continue;
+            
+            const esCorrectoStr = row[5]?.replace(/^"|"$/g, "").trim();
+            let esCorrecto = false;
+            if (esCorrectoStr === "Sí") esCorrecto = true;
+            else if (opcion && opcion.toUpperCase() === correcta) esCorrecto = true;
+            
+            const tiempo = parseFloat(row[6]) || 0;
+            
+            if (!estudiantes[estudiante]) estudiantes[estudiante] = {};
+            if (!estudiantes[estudiante][preguntaKey]) {
+                estudiantes[estudiante][preguntaKey] = {
+                    elegida: opcion || "",
+                    correcta: correcta,
+                    esCorrecto: esCorrecto,
+                    tiempo: tiempo
+                };
+            }
+        }
+        return estudiantes;
+    }
+    
+    function calcularEstadisticas(estudianteNombre, respuestas) {
+        let total = 0, aciertos = 0;
+        let aciertosPorNivel = { "N1": 0, "N2": 0, "N3": 0, "N4": 0 };
+        let totalPorNivel = { "N1": 0, "N2": 0, "N3": 0, "N4": 0 };
+        let tiempos = [];
+        let detalles = [];
+        
+        for (let [preg, resp] of Object.entries(respuestas)) {
+            const numPreg = preg.match(/\d+/)?.[0] || "0";
+            const nivel = nivelesDefault[numPreg] || "N?";
+            const area = areasDefault[numPreg] || "?";
+            total++;
+            tiempos.push(resp.tiempo);
+            const esCorrecta = resp.esCorrecto;
+            if (esCorrecta) aciertos++;
+            totalPorNivel[nivel] = (totalPorNivel[nivel] || 0) + 1;
+            if (esCorrecta) aciertosPorNivel[nivel] = (aciertosPorNivel[nivel] || 0) + 1;
+            detalles.push({ pregunta: numPreg, area, nivel, correcta: resp.correcta, elegida: resp.elegida, esCorrecta, tiempo: resp.tiempo });
+        }
+        
+        const tiempoMedio = tiempos.length ? (tiempos.reduce((a,b) => a+b, 0) / tiempos.length).toFixed(1) : 0;
+        return { total, aciertos, porcentaje: total ? ((aciertos / total) * 100).toFixed(1) : 0, tiempoMedio, aciertosPorNivel, totalPorNivel, detalles };
+    }
+    
+    function generarInformeIndividual(estudianteNombre, stats) {
+        let filasHTML = "";
+        for (let det of stats.detalles) {
+            filasHTML += `<tr>
+                <td>${det.pregunta}</td>
+                <td>${det.area}</td>
+                <td>${det.nivel}</td>
+                <td>${det.correcta}</td>
+                <td>${det.elegida || "?"}</td>
+                <td style="color: ${det.esCorrecta ? '#15803d' : '#b91c1c'}; font-weight: bold;">${det.esCorrecta ? "✅ Sí" : "❌ No"}</td>
+                <td>${det.tiempo.toFixed(2)} s</td>
+            </tr>`;
+        }
+        
+        let filasNivel = "";
+        for (let nivel of ["N1", "N2", "N3", "N4"]) {
+            const total = stats.totalPorNivel[nivel] || 0;
+            const aciertosN = stats.aciertosPorNivel[nivel] || 0;
+            const porcentaje = total > 0 ? (aciertosN / total * 100).toFixed(0) : "—";
+            const interpretacion = nivel === "N1" ? "Lectura literal" : nivel === "N2" ? "Relaciones directas" : nivel === "N3" ? "Inferencia encadenada" : "Juicio epistémico";
+            filasNivel += `<tr>
+                <td><strong>${nivel}</strong><br><span style="font-size:11px; color:#475569;">${interpretacion}</span></td>
+                <td>${total}</td>
+                <td>${aciertosN}</td>
+                <td>${porcentaje === "—" ? "—" : porcentaje + "%"}</td>
+                <td style="background: ${porcentaje !== "—" && parseInt(porcentaje) < 40 ? '#fee2e2' : (porcentaje !== "—" && parseInt(porcentaje) > 70 ? '#dcfce7' : '#fef9c3')}">
+                    ${porcentaje !== "—" && parseInt(porcentaje) < 40 ? "⚠️ Bajo" : (porcentaje !== "—" && parseInt(porcentaje) > 70 ? "✅ Adecuado" : "⚡ En desarrollo")}
+                </td>
+            </tr>`;
+        }
+        
+        return `
+            <div class="header-info">
+                <p><strong>📌 Estudiante:</strong> ${estudianteNombre}</p>
+                <p><strong>📅 Fecha tamizaje:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>🎯 Propósito:</strong> Familiarización con plataforma AlaU + diagnóstico inicial de habilidades cognitivas</p>
+            </div>
+            <h2>📋 1. Resultados generales</h2>
+            <div class="stats-card">
+                <p><strong>Total preguntas:</strong> ${stats.total}</p>
+                <p><strong>Aciertos:</strong> ${stats.aciertos} / ${stats.total} (${stats.porcentaje}%)</p>
+                <p><strong>Tiempo medio por respuesta:</strong> ${stats.tiempoMedio} segundos ${stats.tiempoMedio < 3 ? '<span style="color:#dc2626;">(⚠️ respuesta muy rápida)</span>' : ''}</p>
+            </div>
+            <h2>📊 2. Detalle de respuestas por pregunta</h2>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#1e40af; color:white;"><th>#</th><th>Área</th><th>Nivel</th><th>Correcta</th><th>Respuesta</th><th>¿Correcto?</th><th>Tiempo</th></tr></thead>
+                    <tbody>${filasHTML}</tbody>
+                </table>
+            </div>
+            <h2>🧠 3. Desempeño por nivel cognitivo</h2>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#1e40af; color:white;"><th>Nivel</th><th># preguntas</th><th>Aciertos</th><th>%</th><th>Dominio</th></tr></thead>
+                    <tbody>${filasNivel}</tbody>
+                </table>
+            </div>
+            <div class="highlight">
+                <h3 style="margin-top: 0; color: #b45309;">🎯 Zona de Desarrollo Próximo</h3>
+                <p><strong>Diagnóstico:</strong> ${stats.porcentaje >= 60 ? 'El estudiante está en transición hacia el nivel 3. Requiere fortalecer inferencias encadenadas.' : 'El estudiante requiere consolidar los niveles básicos (N1 y N2) antes de abordar pensamiento crítico.'}</p>
+                <p><strong>Recomendación:</strong> Trabajar rutas de aprendizaje personalizadas en la plataforma AlaU, con foco en los niveles deficitarios identificados.</p>
+            </div>
+        `;
+    }
+    
+    function generarInformeGrupal(estudiantesData) {
+        const nombres = Object.keys(estudiantesData);
+        let tablaResumen = "";
+        let totalAciertosGlobal = 0, totalPreguntasGlobal = 0, tiemposGlobales = [];
+        
+        for (let nombre of nombres) {
+            const stats = calcularEstadisticas(nombre, estudiantesData[nombre]);
+            totalAciertosGlobal += stats.aciertos;
+            totalPreguntasGlobal += stats.total;
+            tiemposGlobales.push(stats.tiempoMedio);
+            tablaResumen += `<tr><td style="text-align:left; padding:8px;">${nombre}</td><td>${stats.aciertos}/${stats.total}</td><td><strong>${stats.porcentaje}%</strong></td><td>${stats.tiempoMedio}s</td></tr>`;
+        }
+        
+        const porcentajeGrupal = (totalAciertosGlobal / totalPreguntasGlobal * 100).toFixed(1);
+        const tiempoMedioGrupal = tiemposGlobales.length ? (tiemposGlobales.reduce((a,b)=>a+b,0)/tiemposGlobales.length).toFixed(1) : 0;
+        
+        let rendimientoPorNivel = { "N1": { total:0, aciertos:0 }, "N2": { total:0, aciertos:0 }, "N3": { total:0, aciertos:0 }, "N4": { total:0, aciertos:0 } };
+        for (let nombre of nombres) {
+            for (let [preg, resp] of Object.entries(estudiantesData[nombre])) {
+                const numPreg = preg.match(/\d+/)?.[0] || "0";
+                const nivel = nivelesDefault[numPreg] || "N?";
+                rendimientoPorNivel[nivel].total++;
+                if (resp.esCorrecto) rendimientoPorNivel[nivel].aciertos++;
+            }
+        }
+        
+        let filasNivel = "";
+        for (let nivel of ["N1", "N2", "N3", "N4"]) {
+            const total = rendimientoPorNivel[nivel].total;
+            const aciertosN = rendimientoPorNivel[nivel].aciertos;
+            const porcentaje = total > 0 ? (aciertosN / total * 100).toFixed(0) : 0;
+            const diagnostico = porcentaje < 40 ? '🔴 Crítico - Requiere intervención inmediata' : (porcentaje < 60 ? '🟡 En desarrollo - Requiere acompañamiento' : '🟢 Adecuado - Consolidado');
+            filasNivel += `<tr><td><strong>${nivel}</strong><br><span style="font-size:11px;">${nivel === "N1" ? "Lectura literal" : nivel === "N2" ? "Relaciones directas" : nivel === "N3" ? "Inferencias" : "Juicio epistémico"}</span></td><td>${total}</td><td>${aciertosN}</td><td><strong>${porcentaje}%</strong></td><td>${diagnostico}</td></tr>`;
+        }
+        
+        return `
+            <div class="header-info">
+                <p><strong>📌 Institución:</strong> I.E. Don Jaca - Santa Marta</p>
+                <p><strong>📅 Fecha tamizaje:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>👥 Estudiantes evaluados:</strong> ${nombres.length}</p>
+                <p><strong>🎯 Propósito:</strong> Diagnóstico inicial de habilidades cognitivas para plan de mejora institucional</p>
+            </div>
+            <h2>📋 1. Resultados globales</h2>
+            <div class="stats-card">
+                <p><strong>Total respuestas analizadas:</strong> ${totalPreguntasGlobal}</p>
+                <p><strong>Aciertos globales:</strong> ${totalAciertosGlobal} / ${totalPreguntasGlobal} (<strong>${porcentajeGrupal}%</strong>)</p>
+                <p><strong>Tiempo medio por estudiante:</strong> ${tiempoMedioGrupal} segundos</p>
+            </div>
+            <h2>📊 2. Resumen por estudiante</h2>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#1e40af; color:white;"><th>Estudiante</th><th>Aciertos</th><th>%</th><th>Tiempo medio</th></tr></thead>
+                    <tbody>${tablaResumen}</tbody>
+                </table>
+            </div>
+            <h2>🧠 3. Rendimiento por nivel cognitivo (grupo)</h2>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#1e40af; color:white;"><th>Nivel</th><th>Total respuestas</th><th>Aciertos</th><th>%</th><th>Diagnóstico</th></tr></thead>
+                    <tbody>${filasNivel}</tbody>
+                </table>
+            </div>
+            <div class="highlight">
+                <h3 style="margin-top: 0; color: #b45309;">🎯 Brecha de desempeño institucional</h3>
+                <p><strong>Lo que el colegio esperaría:</strong> Una prueba con 8 preguntas debería tener un rendimiento superior al 70%.</p>
+                <p><strong>Lo que realmente ocurre:</strong> El grupo obtuvo <strong>${porcentajeGrupal}%</strong> de aciertos.</p>
+                <p><strong>Conclusión:</strong> La institución requiere un programa de entrenamiento en competencias cognitivas. La plataforma AlaU ofrece rutas personalizadas para cerrar esta brecha.</p>
+                <p style="margin-top: 15px;"><strong>📞 Próximo paso:</strong> Agendar reunión para presentar plan de intervención personalizado.</p>
+            </div>
+        `;
+    }
+    
+    async function descargarPDF(htmlContent, filename, estudianteNombre = null) {
+        const wrapper = document.createElement('div');
+        wrapper.style.background = 'white';
+        wrapper.style.padding = '40px';
+        wrapper.style.fontFamily = "'Segoe UI', Arial, sans-serif";
+        wrapper.style.maxWidth = '1200px';
+        wrapper.style.margin = '0 auto';
+        
+        wrapper.innerHTML = `
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="border: none; font-size: 32px; color: #1e3a8a;">📊 Informe de Tamizaje</h1>
+                <p style="color: #334155; font-size: 16px;">Plataforma AlaU – Diagnóstico inicial 2026</p>
+                <p style="color: #1e40af; font-weight: bold;">I.E. Don Jaca - Santa Marta</p>
+                ${estudianteNombre ? `<p style="color: #475569; margin-top: 10px;">Estudiante: <strong>${estudianteNombre}</strong></p>` : ''}
+            </div>
+            ${htmlContent}
+            <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
+                <p>Confidencial – Uso exclusivo para planeación académica.</p>
+                <p>AlaU · SITE-RUTA LATAM v2.9 · Protocolo de categorización cognitiva</p>
+            </footer>
+        `;
+        
+        document.body.appendChild(wrapper);
+        
+        try {
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true, useCORS: true, logging: false },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            await html2pdf().set(opt).from(wrapper).save();
+        } catch(err) {
+            console.error("Error generando PDF:", err);
+            alert("Error al generar el PDF. Intente nuevamente.");
+        } finally {
+            document.body.removeChild(wrapper);
+        }
+    }
+    
+    function generarInformesDesdeDatos(sourceName) {
+        const nombres = Object.keys(estudiantesData);
+        if (nombres.length === 0) {
+            alert("No hay datos de estudiantes para procesar.");
+            return;
+        }
+        
+        document.getElementById("reportContainer").style.display = "block";
+        document.getElementById("uploadArea").style.display = "none";
+        
+        const btnGroup = document.createElement('div');
+        btnGroup.className = "btn-group";
+        btnGroup.innerHTML = `<button id="btnGrupal" class="btn-pdf">📊 DESCARGAR INFORME GRUPAL</button><button id="btnIndividual" class="btn-pdf btn-pdf-individual">👤 DESCARGAR INFORME INDIVIDUAL</button>`;
+        
+        const previewDiv = document.createElement('div');
+        previewDiv.innerHTML = `<div class="stats-card"><p><strong>📌 Datos procesados correctamente (${sourceName})</strong></p><p><strong>Estudiantes:</strong> ${nombres.join(", ")}</p><p><strong>Total estudiantes:</strong> ${nombres.length}</p></div>`;
+        
+        const reportContent = document.getElementById("dynamicReport");
+        reportContent.innerHTML = "";
+        reportContent.appendChild(previewDiv);
+        reportContent.appendChild(btnGroup);
+        
+        const informesHTML = {};
+        for (let nombre of nombres) {
+            const stats = calcularEstadisticas(nombre, estudiantesData[nombre]);
+            informesHTML[nombre] = generarInformeIndividual(nombre, stats);
+        }
+        const informeGrupalHTML = generarInformeGrupal(estudiantesData);
+        
+        document.getElementById("btnGrupal").onclick = () => descargarPDF(informeGrupalHTML, `Informe_Grupal_Tamizaje.pdf`);
+        document.getElementById("btnIndividual").onclick = () => {
+            let selector = prompt("Ingrese el nombre exacto del estudiante:\n\n" + nombres.join("\n"));
+            if (selector && informesHTML[selector]) {
+                descargarPDF(informesHTML[selector], `Informe_${selector.replace(/\s/g, '_')}.pdf`, selector);
+            } else {
+                alert("Estudiante no encontrado. Verifique el nombre exacto.");
+            }
+        };
+    }
+    
+    function procesarDatos(csvText, sourceName) {
+        if (Object.keys(respuestasCorrectasMap).length === 0) {
+            alert("Primero cargue el archivo de respuestas correctas.");
+            return;
+        }
+        
+        estudiantesData = parseCSVToJSON(csvText);
+        generarInformesDesdeDatos(sourceName);
+    }
+    
+    document.getElementById("respuestasFile").addEventListener("change", async function(e) {
+        if (e.target.files.length) {
+            try {
+                await leerRespuestasExcel(e.target.files[0]);
+            } catch(err) {
+                alert("Error al leer el archivo de respuestas: " + err);
+            }
+        }
+    });
+    
+    document.getElementById("procesarConTextoBtn").addEventListener("click", function() {
+        const csvText = document.getElementById("csvDataTextarea").value;
+        if (!csvText.trim()) {
+            alert("Pegue los datos del CSV en el área de texto.");
+            return;
+        }
+        procesarDatos(csvText, "texto pegado");
+    });
+    
+    document.getElementById("csvFileInput").addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                procesarDatos(ev.target.result, "archivo CSV");
+            };
+            reader.readAsText(file, "UTF-8");
+        }
+    });
+    
+    document.getElementById("procesarBtn").addEventListener("click", function() {
+        if (Object.keys(respuestasCorrectasMap).length === 0) {
+            alert("Primero cargue el archivo de respuestas correctas.");
+            return;
+        }
+        const fileInput = document.getElementById("csvFileInput");
+        if (!fileInput.files.length) {
+            alert("Seleccione un archivo CSV o pegue los datos en el área de texto.");
+            return;
+        }
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            procesarDatos(ev.target.result, "archivo CSV");
+        };
+        reader.readAsText(file, "UTF-8");
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Exposición Jacobo – Problemáticas Sociales</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+
+/* ======== ESTILOS GENERALES ======== */
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #eaf6f6, #ffffff);
+  color: #002b45;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* ======== DIAPOSITIVAS ======== */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 1s ease;
+  box-sizing: border-box;
+  padding: 40px 20px;
+}
+
+.slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+h1 {
+  font-size: 3em;
+  color: #007b83;
+  margin: 0.2em 0;
+}
+
+h2 {
+  font-size: 2em;
+  color: #004d4f;
+  margin: 0.8em 0;
+  max-width: 1000px;
+  line-height: 1.3;
+}
+
+p, ul {
+  font-size: 1.3em;
+  max-width: 900px;
+  line-height: 1.5;
+}
+
+ul {
+  text-align: left;
+  max-width: 850px;
+  list-style: "⭐ ";
+  margin: 0 auto;
+}
+
+/* ======== CONTENEDOR DE GRÁFICOS ======== */
+.chart-container {
+  width: 80%;
+  max-width: 850px;
+  height: 450px;
+  margin: 20px auto;
+  position: relative;
+  background-color: rgba(255,255,255,0.8);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  padding: 10px;
+}
+
+/* ======== LOGO ======== */
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 120px;
+  opacity: 0.85;
+  z-index: 5;
+}
+
+/* ======== FLECHAS ======== */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3em;
+  color: #007b83;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.arrow:hover {
+  background-color: #007b83;
+  color: #fff;
+}
+
+.arrow-left {
+  left: 30px;
+}
+
+.arrow-right {
+  right: 30px;
+}
+
+/* ======== BOTÓN DE NARRACIÓN ======== */
+#muteBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #007b83;
+  color: #fff;
+  font-size: 1.8em;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 20;
+}
+
+#muteBtn:hover {
+  transform: scale(1.1);
+}
+
+#muteBtn.silenciado {
+  background-color: #c0392b;
+}
+
+/* ======== MENSAJE INFORMATIVO ======== */
+.hint {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 21;
+}
+
+.hint.show {
+  opacity: 1;
+}
+
+/* ======== RESPONSIVE ======== */
+@media (max-width: 768px) {
+  h1 { font-size: 2em; }
+  h2 { font-size: 1.4em; }
+  p, ul { font-size: 1.1em; }
+  .chart-container {
+    width: 90%;
+    height: 350px;
+  }
+  .arrow {
+    font-size: 2em;
+    padding: 8px 14px;
+  }
+  #muteBtn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.4em;
+  }
+}
+</style>
+
+</style>
+</head>
+<body>
+
+
+<!-- Flechas -->
+<div class="arrow arrow-left" onclick="prevSlide()">&#10094;</div>
+<div class="arrow arrow-right" onclick="nextSlide()">&#10095;</div>
+
+<!-- Botón narración -->
+<button id="muteBtn" title="Activar/Desactivar narración">🔊</button>
+<div id="hint" class="hint">Narración reiniciada</div>
+
+<!-- ====== DIAPOSITIVAS ====== -->
+
+<!-- 1. Portada -->
+<div class="slide active" id="slide1" data-narracion="Bienvenidos a la exposición sobre problemáticas sociales en nuestra comunidad. Presentan Juan Felipe Rendón y Jacobo Portela Posada, con base en los resultados del veintisiete y treinta de octubre de dos mil veinticinco.">
+  <h1>Problemáticas Sociales</h1>
+  <h2>Encuesta en Nuestra Comunidad</h2>
+  <p><strong>Expositores:</strong> Juan Felipe Rendón y Jacobo Portela Posada<br>Basado en los resultados del 27 y 30 de octubre de 2025</p>
+</div>
+
+<!-- 2. Objetivo -->
+<div class="slide" id="slide2" data-narracion="El objetivo del proyecto es identificar los principales problemas sociales de la comunidad, analizar cómo los estudiantes perciben la educación, el ambiente y la convivencia, y reflexionar sobre el papel de los jóvenes en la transformación social.">
+  <h1>Objetivo del Proyecto</h1>
+  <ul>
+    <li>Identificar los principales problemas sociales de nuestra comunidad.</li>
+    <li>Analizar cómo los estudiantes perciben la educación, el ambiente y la convivencia.</li>
+    <li>Reflexionar sobre el papel de los jóvenes en la transformación social.</li>
+  </ul>
+</div>
+
+<!-- 3. Resultados Generales -->
+<div class="slide" id="slide3" data-narracion="Estos son los resultados generales. Se observa que la pobreza y el cambio climático son las problemáticas más reconocidas por los estudiantes, seguidas por la educación y la discriminación.">
+  <h1>Resultados Generales</h1>
+  <h2>Percepción de los Estudiantes</h2>
+  <div class="chart-container"><canvas id="chartGeneral"></canvas></div>
+</div>
+
+<!-- 4. Compromiso Ambiental -->
+<div class="slide" id="slide4" data-narracion="En cuanto al compromiso ambiental, se evidencia que el treinta y cinco por ciento de los estudiantes participa activamente en el cuidado del entorno, mientras que el cincuenta y cinco por ciento no realiza acciones concretas y un diez por ciento no sabe qué responder.">
+  <h1>Compromiso Ambiental</h1>
+  <h2>¿Cómo percibimos el cuidado del entorno?</h2>
+  <div class="chart-container"><canvas id="chartAmbiente"></canvas></div>
+</div>
+
+<!-- ====== 17 PREGUNTAS ====== -->
+
+<!-- 5 -->
+<div class="slide" id="slide5" data-narracion="El ochenta por ciento de los estudiantes conoce alguna problemática social que afecta a su comunidad, mientras que un veinte por ciento no identifica ninguna.">
+  <h2>1. ¿Conoces alguna problemática social que afecte en tu comunidad?</h2>
+  <div class="chart-container"><canvas id="chartQ1"></canvas></div>
+</div>
+
+<!-- 6 -->
+<div class="slide" id="slide6" data-narracion="El cuarenta por ciento considera que la educación es buena, mientras que un sesenta por ciento la califica como regular.">
+  <h2>2. ¿Consideras que la educación de tu comunidad es de buena calidad?</h2>
+  <div class="chart-container"><canvas id="chartQ2"></canvas></div>
+</div>
+
+<!-- 7 -->
+<div class="slide" id="slide7" data-narracion="El sesenta por ciento de los encuestados percibe discriminación en su colegio o barrio, frente a un cuarenta por ciento que no la nota.">
+  <h2>3. ¿Crees que existe discriminación en tu colegio o barrio?</h2>
+  <div class="chart-container"><canvas id="chartQ3"></canvas></div>
+</div>
+
+<!-- 8 -->
+<div class="slide" id="slide8" data-narracion="Las principales problemáticas identificadas son la pobreza con un cuarenta por ciento, seguida de la drogadicción, violencia y falta de educación con veinte por ciento cada una.">
+  <h2>4. ¿Cuál crees que es la problemática social más grave en tu comunidad?</h2>
+  <div class="chart-container"><canvas id="chartQ4"></canvas></div>
+</div>
+
+<!-- 9 -->
+<div class="slide" id="slide9" data-narracion="Solo un veinte por ciento de los estudiantes afirma verse afectado directamente por alguna problemática social.">
+  <h2>5. ¿Te afecta alguna problemática social directamente?</h2>
+  <div class="chart-container"><canvas id="chartQ5"></canvas></div>
+</div>
+
+<!-- 10 -->
+<div class="slide" id="slide10" data-narracion="El sesenta por ciento de los estudiantes reconoce que hay lugares peligrosos en su comunidad, frente a un cuarenta por ciento que no.">
+  <h2>6. ¿En tu comunidad hay lugares peligrosos?</h2>
+  <div class="chart-container"><canvas id="chartQ6"></canvas></div>
+</div>
+
+<!-- 11 -->
+<div class="slide" id="slide11" data-narracion="Solo el veinte por ciento considera que las personas ayudan a cuidar el medio ambiente, mientras que el ochenta por ciento no lo percibe así.">
+  <h2>7. ¿Crees que las personas ayudan a cuidar el medio ambiente?</h2>
+  <div class="chart-container"><canvas id="chartQ7"></canvas></div>
+</div>
+
+<!-- 12 -->
+<div class="slide" id="slide12" data-narracion="El ochenta por ciento muestra disposición a participar en actividades para mejorar la comunidad.">
+  <h2>8. ¿Te gustaría participar en actividades para mejorar tu comunidad?</h2>
+  <div class="chart-container"><canvas id="chartQ8"></canvas></div>
+</div>
+
+<!-- 13 -->
+<div class="slide" id="slide13" data-narracion="El cien por ciento considera que la pobreza sigue siendo uno de los principales problemas del país.">
+  <h2>9. ¿Crees que la pobreza sigue siendo uno de los principales problemas en tu país?</h2>
+  <div class="chart-container"><canvas id="chartQ9"></canvas></div>
+</div>
+
+<!-- 14 -->
+<div class="slide" id="slide14" data-narracion="El sesenta por ciento cree que la educación actual prepara adecuadamente para el futuro, mientras que un cuarenta por ciento no lo considera así.">
+  <h2>10. ¿Consideras que la educación actual prepara adecuadamente a los jóvenes para el futuro?</h2>
+  <div class="chart-container"><canvas id="chartQ10"></canvas></div>
+</div>
+
+<!-- 15 -->
+<div class="slide" id="slide15" data-narracion="El sesenta por ciento considera que las redes sociales aumentan los conflictos entre las personas.">
+  <h2>11. ¿Piensas que las redes sociales aumentan los conflictos entre las personas?</h2>
+  <div class="chart-container"><canvas id="chartQ11"></canvas></div>
+</div>
+
+<!-- 16 -->
+<div class="slide" id="slide16" data-narracion="El ochenta por ciento cree que el cambio climático es un problema causado principalmente por los seres humanos.">
+  <h2>12. ¿Crees que el cambio climático es un problema causado principalmente por los seres humanos?</h2>
+  <div class="chart-container"><canvas id="chartQ12"></canvas></div>
+</div>
+
+<!-- 17 -->
+<div class="slide" id="slide17" data-narracion="Solo el veinte por ciento de los estudiantes considera que el gobierno hace lo suficiente para reducir la desigualdad económica.">
+  <h2>13. ¿Consideras que el gobierno hace lo suficiente para reducir la desigualdad económica?</h2>
+  <div class="chart-container"><canvas id="chartQ13"></canvas></div>
+</div>
+
+<!-- 18 -->
+<div class="slide" id="slide18" data-narracion="El cien por ciento de los encuestados considera que la discriminación sigue siendo un problema frecuente en la sociedad actual.">
+  <h2>14. ¿Crees que la discriminación sigue siendo un problema frecuente en la sociedad actual?</h2>
+  <div class="chart-container"><canvas id="chartQ14"></canvas></div>
+</div>
+
+<!-- 19 -->
+<div class="slide" id="slide19" data-narracion="El cien por ciento considera que el desempleo influye directamente en el aumento de la delincuencia.">
+  <h2>15. ¿Consideras que el desempleo afecta directamente al aumento de la delincuencia?</h2>
+  <div class="chart-container"><canvas id="chartQ15"></canvas></div>
+</div>
+
+<!-- 20 -->
+<div class="slide" id="slide20" data-narracion="El ochenta por ciento está de acuerdo en que cada persona puede contribuir al cambio social desde su entorno.">
+  <h2>16. ¿Crees que cada persona puede contribuir al cambio social desde su entorno?</h2>
+  <div class="chart-container"><canvas id="chartQ16"></canvas></div>
+</div>
+
+<!-- 21 -->
+<div class="slide" id="slide21" data-narracion="El ochenta por ciento considera que la tecnología puede ayudar a reducir los problemas sociales si se usa correctamente.">
+  <h2>17. ¿Crees que la tecnología puede ayudar a reducir los problemas sociales si se usa correctamente?</h2>
+  <div class="chart-container"><canvas id="chartQ17"></canvas></div>
+</div>
+
+<!-- 22. Conclusiones -->
+<div class="slide" id="slide22" data-narracion="En conclusión, la pobreza, la violencia y la drogadicción son las problemáticas más frecuentes. La educación es percibida como regular, existe discriminación, y se requiere fortalecer la educación ciudadana y ambiental desde la escuela.">
+  <h1>Conclusiones</h1>
+  <ul>
+    <li>La <b>pobreza</b>, la <b>violencia</b> y la <b>drogadicción</b> son las problemáticas más frecuentes.</li>
+    <li>La mayoría califica la educación como <b>regular</b> y reconoce presencia de <b>discriminación</b>.</li>
+    <li>Existe <b>bajo compromiso ambiental</b>, aunque muchos desean participar en el cambio.</li>
+    <li>Es clave fortalecer la <b>educación ciudadana y ambiental</b> desde la escuela.</li>
+  </ul>
+</div>
+
+
+<script>
+/* ================================
+   CONFIGURACIÓN Y VARIABLES GLOBALES
+=================================== */
+let currentSlide = 1;
+const totalSlides = 22;
+let narracionActiva = true;
+
+/* ================================
+   FUNCIÓN PARA MOSTRAR SLIDES
+=================================== */
+function showSlide(n) {
+  const slides = document.querySelectorAll(".slide");
+  slides.forEach((s, i) => s.classList.toggle("active", i === n - 1));
+  if (narracionActiva) narrar(slides[n - 1].dataset.narracion);
+}
+
+/* ================================
+   NAVEGACIÓN ENTRE SLIDES
+=================================== */
+function nextSlide() {
+  currentSlide = currentSlide < totalSlides ? currentSlide + 1 : 1;
+  showSlide(currentSlide);
+}
+
+function prevSlide() {
+  currentSlide = currentSlide > 1 ? currentSlide - 1 : totalSlides;
+  showSlide(currentSlide);
+}
+
+/* ================================
+   NARRACIÓN DE VOZ
+=================================== */
+function narrar(texto) {
+  speechSynthesis.cancel();
+  if (!texto || !narracionActiva) return;
+  const msg = new SpeechSynthesisUtterance(texto);
+  msg.lang = "es-ES";
+  msg.rate = 0.95;
+  msg.pitch = 1;
+  msg.volume = 1;
+  speechSynthesis.speak(msg);
+}
+
+/* ================================
+   BOTÓN DE NARRACIÓN
+=================================== */
+const muteBtn = document.getElementById("muteBtn");
+const hint = document.getElementById("hint");
+let pressTimer = null;
+
+function showHint(text) {
+  hint.textContent = text;
+  hint.classList.add("show");
+  setTimeout(() => hint.classList.remove("show"), 900);
+}
+
+// Clic corto → alternar silencio
+muteBtn.addEventListener("click", () => {
+  if (muteBtn.dataset.longpress === "1") {
+    muteBtn.dataset.longpress = "0";
+    return;
+  }
+  narracionActiva = !narracionActiva;
+  speechSynthesis.cancel();
+  if (narracionActiva) {
+    muteBtn.textContent = "🔊";
+    muteBtn.classList.remove("silenciado");
+    const slide = document.querySelector(`#slide${currentSlide}`);
+    narrar(slide.dataset.narracion);
+    showHint("Narración activada");
+  } else {
+    muteBtn.textContent = "🔇";
+    muteBtn.classList.add("silenciado");
+    showHint("Narración silenciada");
+  }
+});
+
+// Mantener presionado → reinicia narración
+muteBtn.addEventListener("mousedown", () => {
+  pressTimer = setTimeout(() => {
+    if (narracionActiva) {
+      speechSynthesis.cancel();
+      const slide = document.querySelector(`#slide${currentSlide}`);
+      narrar(slide.dataset.narracion);
+      muteBtn.dataset.longpress = "1";
+      showHint("Narración reiniciada");
+    }
+  }, 600);
+});
+["mouseup", "mouseleave", "touchend", "touchcancel"].forEach(ev => {
+  muteBtn.addEventListener(ev, () => clearTimeout(pressTimer));
+});
+
+/* ================================
+   NAVEGACIÓN CON TECLADO
+=================================== */
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") nextSlide();
+  if (e.key === "ArrowLeft") prevSlide();
+});
+
+/* ================================
+   FUNCIÓN PARA CREAR GRÁFICOS
+=================================== */
+function crearDona(idCanvas, etiquetas, datos, colores, titulo) {
+  const ctx = document.getElementById(idCanvas).getContext("2d");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: etiquetas,
+      datasets: [{ data: datos, backgroundColor: colores }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" },
+        title: { display: true, text: titulo }
+      }
+    }
+  });
+}
+
+/* ================================
+   CARGA DE GRÁFICOS AL INICIAR
+=================================== */
+window.onload = function () {
+  // === GRÁFICOS GENERALES ===
+  const ctx1 = document.getElementById("chartGeneral").getContext("2d");
+  new Chart(ctx1, {
+    type: "bar",
+    data: {
+      labels: ["Educación de calidad", "Discriminación", "Pobreza", "Violencia", "Cambio climático"],
+      datasets: [{
+        label: "% de estudiantes que respondieron 'Sí'",
+        data: [60, 50, 80, 40, 90],
+        backgroundColor: ["#4CAF50", "#F44336", "#FF9800", "#2196F3", "#9C27B0"]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: "Percepción general de problemáticas sociales" }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100, title: { display: true, text: "Porcentaje (%)" } }
+      }
+    }
+  });
+
+  const ctx2 = document.getElementById("chartAmbiente").getContext("2d");
+  new Chart(ctx2, {
+    type: "doughnut",
+    data: {
+      labels: ["35% Participa activamente", "55% No participa", "10% No sabe"],
+      datasets: [{
+        data: [35, 55, 10],
+        backgroundColor: ["#66BB6A", "#EF5350", "#FFEB3B"]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display: true, text: "Participación en actividades ambientales" }
+      }
+    }
+  });
+
+  // === GRÁFICOS DE LAS 17 PREGUNTAS ===
+  crearDona("chartQ1", ["Sí (80%)", "No (20%)"], [80, 20], ["#4CAF50", "#F44336"], "Conocimiento de problemáticas sociales");
+  crearDona("chartQ2", ["Buena (40%)", "Regular (60%)"], [40, 60], ["#2196F3", "#FFB300"], "Calidad de la educación");
+  crearDona("chartQ3", ["Sí (60%)", "No (40%)"], [60, 40], ["#4CAF50", "#F44336"], "Existencia de discriminación");
+  crearDona("chartQ4", ["Pobreza (40%)", "Drogadicción (20%)", "Violencia (20%)", "Falta de educación (20%)"], [40, 20, 20, 20], ["#FF9800", "#8E24AA", "#E53935", "#1E88E5"], "Problemática más grave");
+  crearDona("chartQ5", ["Sí (20%)", "No (80%)"], [20, 80], ["#4CAF50", "#F44336"], "Afectación directa por problemáticas");
+  crearDona("chartQ6", ["Sí (60%)", "No (40%)"], [60, 40], ["#4CAF50", "#F44336"], "Lugares peligrosos en la comunidad");
+  crearDona("chartQ7", ["Sí (20%)", "No (80%)"], [20, 80], ["#4CAF50", "#F44336"], "Cuidado del medio ambiente");
+  crearDona("chartQ8", ["Sí (80%)", "No (20%)"], [80, 20], ["#4CAF50", "#F44336"], "Participación para mejorar la comunidad");
+  crearDona("chartQ9", ["Sí (100%)"], [100], ["#4CAF50"], "Pobreza como problema principal");
+  crearDona("chartQ10", ["Sí (60%)", "No (40%)"], [60, 40], ["#4CAF50", "#F44336"], "Educación y preparación para el futuro");
+  crearDona("chartQ11", ["Sí (60%)", "No (40%)"], [60, 40], ["#4CAF50", "#F44336"], "Influencia de redes sociales");
+  crearDona("chartQ12", ["Sí (80%)", "No (20%)"], [80, 20], ["#4CAF50", "#F44336"], "Cambio climático causado por humanos");
+  crearDona("chartQ13", ["Sí (20%)", "No (80%)"], [20, 80], ["#4CAF50", "#F44336"], "Gestión gubernamental y desigualdad");
+  crearDona("chartQ14", ["Sí (100%)"], [100], ["#4CAF50"], "Discriminación en la sociedad actual");
+  crearDona("chartQ15", ["Sí (100%)"], [100], ["#4CAF50"], "Desempleo y delincuencia");
+  crearDona("chartQ16", ["Sí (80%)", "No (20%)"], [80, 20], ["#4CAF50", "#F44336"], "Contribución individual al cambio social");
+  crearDona("chartQ17", ["Sí (80%)", "No (20%)"], [80, 20], ["#4CAF50", "#F44336"], "Tecnología y reducción de problemas sociales");
+
+  // === NARRACIÓN INICIAL ===
+  narrar(document.querySelector(`#slide${currentSlide}`).dataset.narracion);
+};
+</script>
+</body>
+</html>

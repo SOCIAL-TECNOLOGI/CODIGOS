@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🪐 Nivel 3: Descomposición simultánea triple (M.C.D. 3 números)</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #000010 0%, #000 100%);
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+  }
+  h1 { color: #00ffcc; text-shadow: 2px 2px #ff00ff; }
+
+  .contenedor {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 30px;
+  }
+  .zonaNumeros {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  .capsulas {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .capsula {
+    background: #111;
+    border: 4px solid #00ffcc;
+    width: 100px; height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    font-size: 26px;
+    box-shadow: 0 0 20px #00ffcc;
+    transition: all 0.3s ease;
+  }
+  .capsula.reducida { background: #222; transform: scale(0.9); }
+
+  #panel {
+    width: 120px; height: 120px;
+    background: #222;
+    border: 3px dashed #00ffcc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center; justify-content: center;
+    color: #00ffcc;
+    font-size: 30px;
+  }
+  .divisor {
+    display: inline-block;
+    width: 60px; height: 60px;
+    margin: 10px;
+    line-height: 60px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: grab;
+    font-size: 24px;
+    color: black;
+  }
+  .p2 { background: #00ffcc; }
+  .p3 { background: #ff00ff; }
+  .p5 { background: #ffff00; }
+  .p7 { background: #ff6600; }
+  .p11 { background: #ff99ff; }
+
+  /* Panel lateral */
+  #panelFactores {
+    width: 320px;
+    min-height: 260px;
+    background: rgba(0, 255, 204, 0.1);
+    border: 2px solid #00ffcc;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 20px;
+    text-align: left;
+    line-height: 1.6;
+    box-shadow: 0 0 20px #00ffcc inset;
+  }
+  #panelFactores h3 {
+    font-size: 14px;
+    color: #00ffcc;
+    text-shadow: 1px 1px 2px #ff00ff;
+    margin-top: 0;
+    border-bottom: 1px dashed #00ffcc;
+  }
+
+  #astronauta {
+    margin-top: 25px;
+    font-size: 60px;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    animation: flotar 3s infinite ease-in-out;
+  }
+  @keyframes flotar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+
+  #consola {
+    margin: 25px auto;
+    width: 80%;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffcc;
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+    height: 130px;
+    overflow-y: auto;
+    border-radius: 10px;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    background: #00ffcc;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  #btnSiguiente {
+    background: #00ffcc;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-family: "Press Start 2P";
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    display: none;
+  }
+  #btnSiguiente:hover {
+    background: #00ffaa;
+  }
+</style>
+</head>
+<body>
+
+<h1>🪐 Nivel 3: Descomposición simultánea triple (M.C.D. 3 números)</h1>
+<p>Arrastra un divisor hacia el panel para dividir los tres números simultáneamente.</p>
+
+<div class="contenedor">
+  <div class="zonaNumeros">
+    <div class="capsulas">
+      <div id="num1" class="capsula">36</div>
+      <div id="panel" ondragover="permitirDrop(event)" ondrop="soltar(event)">⇅</div>
+      <div id="num2" class="capsula">60</div>
+      <div id="num3" class="capsula">72</div>
+    </div>
+
+    <div id="divisores">
+      <div class="divisor p2" draggable="true" ondragstart="arrastrar(event)" id="f2">2</div>
+      <div class="divisor p3" draggable="true" ondragstart="arrastrar(event)" id="f3">3</div>
+      <div class="divisor p5" draggable="true" ondragstart="arrastrar(event)" id="f5">5</div>
+      <div class="divisor p7" draggable="true" ondragstart="arrastrar(event)" id="f7">7</div>
+      <div class="divisor p11" draggable="true" ondragstart="arrastrar(event)" id="f11">11</div>
+    </div>
+  </div>
+
+  <div id="panelFactores">
+    <h3>🧮 Cálculo visual del M.C.D.</h3>
+    <div id="divisiones"></div>
+    <div id="listaFactores"></div>
+    <div id="productoMCD"></div>
+  </div>
+  <button id="btnSiguiente" onclick="nuevaMision()">🔁 Siguiente misión</button>
+</div>
+
+<div id="astronauta">👨‍🚀</div>
+<div id="consola"></div>
+
+
+<!-- 🎵 Sonidos -->
+<audio id="sndOk" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="sndError" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
+<audio id="sndSuccess" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+
+<script>
+// Lista completa de 54 misiones. Cada conjunto de 3 números mantiene una propiedad de MCD.
+
+        let misiones = [
+            // ===================================
+            // Misiones Originales (MCDs: 12, 24, 15, 42)
+            // ===================================
+            [36, 60, 72],    // MCD 12
+            [48, 72, 96],    // MCD 24
+            [45, 75, 105],   // MCD 15
+            [84, 126, 210],  // MCD 42
+
+            // ===================================
+            // Nuevas Misiones con MCD = 12 (15 ejemplos)
+            // ===================================
+            [12, 24, 36],
+            [12, 36, 60],
+            [24, 36, 48],
+            [12, 48, 60],
+            [12, 24, 60],
+            [36, 48, 60],
+            [24, 48, 60],
+            [12, 60, 84],
+            [24, 60, 84],
+            [36, 60, 84],
+            [48, 60, 84],
+            [12, 72, 84],
+            [60, 72, 84],
+            [12, 24, 84],
+            [12, 84, 96],
+
+            // ===================================
+            // Nuevas Misiones con MCD = 24 (15 ejemplos)
+            // ===================================
+            [24, 48, 72],
+            [24, 72, 96],
+            [24, 48, 120],
+            [48, 72, 120],
+            [72, 96, 120],
+            [24, 120, 168],
+            [48, 120, 168],
+            [72, 120, 168],
+            [96, 120, 168],
+            [24, 144, 168],
+            [120, 144, 168],
+            [24, 48, 168],
+            [24, 168, 192],
+            [48, 168, 216],
+            [96, 168, 216],
+
+            // ===================================
+            // Nuevas Misiones con MCD = 15 (10 ejemplos)
+            // ===================================
+            [15, 30, 60],
+            [15, 60, 120],
+            [30, 45, 75],
+            [45, 60, 120],
+            [15, 75, 90],
+            [30, 75, 105],
+            [60, 75, 105],
+            [90, 105, 120],
+            [15, 120, 135],
+            [75, 120, 135],
+
+            // ===================================
+            // Nuevas Misiones con MCD = 42 (10 ejemplos)
+            // ===================================
+            [42, 84, 126],
+            [42, 126, 210],
+            [84, 126, 210],
+            [42, 84, 168],
+            [42, 168, 210],
+            [126, 168, 210],
+            [42, 210, 252],
+            [84, 210, 294],
+            [126, 210, 336],
+            [168, 210, 378]
+        ];
+let actual = 0;
+let n1, n2, n3, mcd = 1;
+let factoresUsados = [];
+
+function iniciarMision(){
+  if(actual >= misiones.length) actual = 0;
+  [n1, n2, n3] = misiones[actual];
+  mcd = 1; factoresUsados = [];
+  actualizarCapsulas(true);
+  limpiarPanel();
+  document.getElementById("btnSiguiente").style.display = "none";
+  document.getElementById("astronauta").style.opacity = 0;
+  narrar(`Nueva misión ${actual+1}. Encuentra los divisores comunes de ${n1}, ${n2} y ${n3}.`);
+}
+
+function arrastrar(ev){ ev.dataTransfer.setData("text", ev.target.id); }
+function permitirDrop(ev){ ev.preventDefault(); }
+
+function soltar(ev){
+  ev.preventDefault();
+  const id = ev.dataTransfer.getData("text");
+  const factor = parseInt(document.getElementById(id).textContent);
+  const sndOk = document.getElementById("sndOk");
+  const sndErr = document.getElementById("sndError");
+
+  let divide1 = n1 % factor === 0;
+  let divide2 = n2 % factor === 0;
+  let divide3 = n3 % factor === 0;
+
+  if(divide1 && divide2 && divide3){
+    const old1 = n1, old2 = n2, old3 = n3;
+    n1 /= factor; n2 /= factor; n3 /= factor; mcd *= factor;
+    factoresUsados.push(factor);
+    actualizarCapsulas();
+    actualizarPanel(old1, old2, old3, factor);
+    narrar(`Correcto. ${factor} divide a los tres números.`);
+    sndOk.play();
+    if(!tieneComunes()) completarMision();
+  } else {
+    narrar(`El ${factor} no divide a los tres. Intenta otro.`);
+    sndErr.play();
+  }
+}
+
+function actualizarCapsulas(reset=false){
+  document.getElementById("num1").textContent = n1;
+  document.getElementById("num2").textContent = n2;
+  document.getElementById("num3").textContent = n3;
+  if(!reset){
+    ["num1","num2","num3"].forEach(id=>{
+      let c = document.getElementById(id);
+      c.classList.add("reducida");
+      setTimeout(()=>c.classList.remove("reducida"),400);
+    });
+  }
+}
+
+function actualizarPanel(p1,p2,p3,f){
+  const divs = document.getElementById("divisiones");
+  const lista = document.getElementById("listaFactores");
+  const prod = document.getElementById("productoMCD");
+  divs.innerHTML += `🧩 ${p1} ÷ ${f} = ${n1}<br>🧩 ${p2} ÷ ${f} = ${n2}<br>🧩 ${p3} ÷ ${f} = ${n3}<br>`;
+  lista.innerHTML = `Factores comunes: ${factoresUsados.join(" × ")}`;
+  prod.innerHTML = `Producto parcial: ${mcd}`;
+}
+
+function limpiarPanel(){
+  document.getElementById("divisiones").innerHTML="";
+  document.getElementById("listaFactores").innerHTML="";
+  document.getElementById("productoMCD").innerHTML="";
+}
+
+function tieneComunes(){
+  const primos = [2,3,5,7,11];
+  return primos.some(p => n1%p===0 && n2%p===0 && n3%p===0);
+}
+
+function completarMision(){
+  narrar(`¡Misión completada! El M.C.D. de los tres números es ${mcd}, formado por los factores ${factoresUsados.join(", ")}.`);
+  document.getElementById("astronauta").style.opacity = 1;
+  document.getElementById("sndSuccess").play();
+  document.getElementById("btnSiguiente").style.display = "inline-block";
+  document.getElementById("productoMCD").innerHTML += `<br>✅ <b>M.C.D. final = ${mcd}</b>`;
+}
+
+function nuevaMision(){
+  actual++;
+  iniciarMision();
+}
+
+function narrar(texto){
+  const consola = document.getElementById("consola");
+  const linea = document.createElement("div");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 0.6;
+  voz.rate = 0.85;
+  speechSynthesis.speak(voz);
+
+  let i = 0;
+  function typeWriter(){
+    if(i < texto.length){
+      linea.innerHTML = texto.substring(0,i+1) + '<span class="cursor"></span>';
+      i++;
+      setTimeout(typeWriter, 35);
+    } else linea.innerHTML = texto;
+  }
+  typeWriter();
+}
+
+window.onload = iniciarMision;
+</script>
+</body>
+</html>

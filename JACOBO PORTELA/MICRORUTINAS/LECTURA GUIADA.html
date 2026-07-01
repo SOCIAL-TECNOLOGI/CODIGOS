@@ -1,0 +1,648 @@
+<div id="crucigramaApp">
+<style>
+#crucigramaApp .lectura {
+  background: rgba(17,24,39,.7);
+  border: 1px solid #1f2937;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 20px 0;
+  color: #e5e7eb;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: justify;
+  box-shadow: 0 10px 25px rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+}
+#crucigramaApp h2 {
+  margin-top: 0;
+  font-size: 22px;
+  color: #93c5fd;
+  text-align: center;
+}
+#crucigramaApp p { margin-bottom: 1em; }
+
+/* Estilos para los modos */
+.modos-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.modo-card {
+  flex: 1;
+  min-width: 250px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.modo-titulo {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.modo-auditivo .modo-titulo { color: #22c55e; }
+.modo-visual .modo-titulo { color: #f97316; }
+.btn-modo {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px;
+  font-weight: 700;
+  color: #fff;
+  margin: 5px 0;
+  transition: transform .2s;
+}
+.btn-auditivo { background: #22c55e; }
+.btn-auditivo:hover { background: #16a34a; transform: scale(1.02); }
+.btn-visual { background: #f97316; }
+.btn-visual:hover { background: #ea580c; transform: scale(1.02); }
+.btn-stop {
+  background: #6b7280;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 8px;
+  color: white;
+  margin-top: 5px;
+}
+.btn-stop:hover { background: #dc2626; }
+
+.velocidad-control {
+  margin-top: 12px;
+  text-align: center;
+}
+.velocidad-control input {
+  width: 100%;
+  cursor: pointer;
+  margin: 8px 0;
+}
+.velocidad-valor {
+  font-size: 14px;
+  font-weight: bold;
+  color: #f97316;
+}
+
+/* Botones principales */
+#crucigramaApp button {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 8px auto;
+  display: block;
+  transition: transform .2s, background .3s;
+}
+#crucigramaApp #btnLeer { background:#3b82f6; display: none; }
+#crucigramaApp #btnLeer:hover { background:#2563eb; transform:scale(1.05); }
+#crucigramaApp #btnReto { background:#22c55e; display: none; }
+#crucigramaApp #btnReto:hover { background:#16a34a; transform:scale(1.05); }
+#crucigramaApp #btnReiniciar { background:#f97316; display: none; }
+#crucigramaApp #btnReiniciar:hover { background:#ea580c; transform:scale(1.05); }
+
+/* Resaltados */
+.texto-con-spans span {
+  display: inline-block;
+  transition: all 0.1s ease;
+  border-radius: 4px;
+  padding: 2px 2px;
+  margin: 0 1px;
+  cursor: pointer;
+}
+.texto-con-spans span.auditivo-activo {
+  background: #22c55e;
+  color: white;
+  transform: scale(1.03);
+  box-shadow: 0 0 10px #22c55e;
+}
+.texto-con-spans span.visual-activo {
+  background: #f97316;
+  color: white;
+  transform: scale(1.03);
+  box-shadow: 0 0 10px #f97316;
+}
+.texto-con-spans span.correcta {
+  background: linear-gradient(90deg,#ffe600,#ffae00);
+  color:#000;
+  border-radius:4px;
+  padding:2px 4px;
+  animation: sparkle 0.8s ease;
+}
+.texto-con-spans span.leida {
+  opacity: 0.6;
+  background: rgba(100,100,100,0.2);
+}
+@keyframes sparkle {
+  0% { box-shadow:0 0 0px #ffea80; }
+  50% { box-shadow:0 0 15px #ffd700; }
+  100% { box-shadow:0 0 0px #ffea80; }
+}
+
+/* HUD */
+#crucigramaApp .hud-lectura {
+  position: fixed;
+  bottom: 15px;
+  right: 20px;
+  background: rgba(17,24,39,0.85);
+  border: 1px solid #1f2937;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 0 15px rgba(34,211,238,0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .4s ease, transform .4s ease;
+  backdrop-filter: blur(6px);
+  z-index: 50;
+}
+#crucigramaApp .hud-lectura.visible { opacity:1; transform:translateY(0); }
+#crucigramaApp .hud-lectura span { color:#22d3ee; font-weight:700; }
+
+.indicador-modo {
+  position: fixed;
+  bottom: 15px;
+  left: 20px;
+  background: rgba(0,0,0,0.7);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+/* Confeti */
+#crucigramaApp canvas.confeti {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+</style>
+
+<div class="lectura">
+  <h2>🧠💪 Lectura Dual: Auditiva + Visual</h2>
+  
+  <!-- MODOS DE LECTURA -->
+  <div class="modos-container">
+    <!-- MODO AUDITIVO -->
+    <div class="modo-card modo-auditivo">
+      <div class="modo-titulo">🎧 Modo Auditivo</div>
+      <button class="btn-modo btn-auditivo" id="btnModoAuditivo">🔊 Escuchar lectura</button>
+      <button class="btn-stop" id="btnStopAuditivo">⏹️ Detener</button>
+      <div style="font-size: 12px; margin-top: 8px;">Sigue el resaltado en VERDE</div>
+    </div>
+    
+    <!-- MODO VISUAL (LECTURA RÁPIDA) -->
+    <div class="modo-card modo-visual">
+      <div class="modo-titulo">👁️ Modo Visual</div>
+      <button class="btn-modo btn-visual" id="btnModoVisual">⚡ Iniciar visor</button>
+      <button class="btn-stop" id="btnStopVisual">⏹️ Detener</button>
+      <div class="velocidad-control">
+        <label>📊 Velocidad (ppm)</label>
+        <input type="range" id="velocidadWPM" min="100" max="800" value="250" step="10">
+        <div class="velocidad-valor" id="wpmValor">250 palabras/min</div>
+      </div>
+      <div style="font-size: 12px; margin-top: 8px;">Sigue el resaltado en NARANJA</div>
+    </div>
+  </div>
+  
+  <button id="btnReto">✨ Buscar los músculos ✨</button>
+  <button id="btnReiniciar">🔁 Reiniciar todo</button>
+
+  <div id="textoInteractivo" class="texto-con-spans">
+    El cuerpo humano es una maquinaria perfecta que se mantiene en movimiento gracias a la acción coordinada de numerosos músculos. 
+    En el brazo, el bíceps permite flexionar el antebrazo mientras el tríceps lo extiende, trabajando en equilibrio para controlar cada gesto. 
+    En la parte superior del cuerpo, el pectoral impulsa los brazos hacia adelante y los deltas ubicados en los hombros permiten elevarlos y rotarlos, 
+    haciendo posible movimientos tan simples como alzar un objeto o saludar. 
+    En el abdomen, los abdominales sostienen los órganos internos y facilitan la flexión del tronco, mientras el sartorio, considerado el músculo más largo del cuerpo, 
+    atraviesa el muslo diagonalmente ayudando a cruzar las piernas. 
+    En el muslo también actúa el cuádriceps, un grupo muscular muy fuerte que extiende la pierna y nos permite correr y saltar. 
+    Más abajo, los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie, 
+    y el glúteo contribuye a mantener la postura y el equilibrio de la cadera. 
+    Incluso en la cabeza encontramos el masetero, que trabaja cada vez que masticamos o hablamos, demostrando que hasta los movimientos más pequeños 
+    dependen de la coordinación del sistema muscular. 
+    Cada una de estas estructuras colabora con el sistema óseo y nervioso, recordándonos que el movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo.
+  </div>
+
+  <div id="hudLectura" class="hud-lectura">
+    🏆 Músculos encontrados: <span id="contadorLectura">0</span> de 10 ✅
+  </div>
+  
+  <div class="indicador-modo" id="indicadorModo">⚡ Modo: Esperando</div>
+  <canvas id="confetiCanvas" class="confeti"></canvas>
+</div>
+
+<script>
+// === CONFIGURACIÓN INICIAL ===
+const textoEl = document.getElementById("textoInteractivo");
+const btnReto = document.getElementById("btnReto");
+const btnReiniciar = document.getElementById("btnReiniciar");
+const btnModoAuditivo = document.getElementById("btnModoAuditivo");
+const btnStopAuditivo = document.getElementById("btnStopAuditivo");
+const btnModoVisual = document.getElementById("btnModoVisual");
+const btnStopVisual = document.getElementById("btnStopVisual");
+const velocidadSlider = document.getElementById("velocidadWPM");
+const wpmValor = document.getElementById("wpmValor");
+const hud = document.getElementById("hudLectura");
+const contadorSpan = document.getElementById("contadorLectura");
+const indicadorModo = document.getElementById("indicadorModo");
+
+// Lista de músculos correctos
+const correctas = ["biceps", "triceps", "cuadriceps", "deltas", "pectoral", "abdominales", "sartorio", "gemelos", "gluteo", "masetero"];
+const TOTAL = correctas.length;
+
+let aciertos = 0;
+let retoActivo = false;
+
+// Variables para modo auditivo
+let auditivoActivo = false;
+let utteranceActual = null;
+let palabrasSpans = [];
+let posicionesMap = [];
+
+// Variables para modo visual
+let visualActivo = false;
+let visualInterval = null;
+let visualIndex = 0;
+let palabrasReales = [];
+
+// === CONSTRUIR TEXTO CON SPANS ===
+function construirTextoConSpans() {
+  const textoOriginal = textoEl.innerText.trim();
+  // Dividir en palabras conservando espacios
+  const palabras = textoOriginal.split(/(\s+)/);
+  let html = '';
+  let posAcum = 0;
+  
+  palabras.forEach(palabra => {
+    if (/^\s+$/.test(palabra)) {
+      html += palabra;
+      posAcum += palabra.length;
+    } else {
+      const inicio = posAcum;
+      const fin = inicio + palabra.length;
+      html += `<span data-inicio="${inicio}" data-fin="${fin}">${palabra}</span>`;
+      posAcum += palabra.length;
+    }
+  });
+  
+  textoEl.innerHTML = html;
+  textoEl.classList.add("texto-con-spans");
+  
+  palabrasSpans = Array.from(document.querySelectorAll("#textoInteractivo span"));
+  palabrasReales = palabrasSpans.filter(span => !/^\s+$/.test(span.textContent));
+  
+  // Construir mapa de posiciones para sincronización auditiva
+  posicionesMap = [];
+  palabrasSpans.forEach(span => {
+    const inicio = parseInt(span.dataset.inicio);
+    if (!isNaN(inicio)) {
+      posicionesMap.push({
+        span: span,
+        inicio: inicio,
+        fin: parseInt(span.dataset.fin)
+      });
+    }
+  });
+  
+  // Eventos de clic para el reto
+  palabrasSpans.forEach(span => {
+    span.addEventListener("click", () => {
+      if (!retoActivo) return;
+      let palabraLimpia = span.textContent
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, "")
+        .toLowerCase();
+      if (correctas.includes(palabraLimpia) && !span.classList.contains("correcta")) {
+        marcarCorrecta(span);
+      }
+    });
+  });
+}
+
+// === MARCAR PALABRA CORRECTA ===
+function marcarCorrecta(span) {
+  span.classList.add("correcta");
+  span.classList.remove("auditivo-activo", "visual-activo", "leida");
+  aciertos++;
+  contadorSpan.textContent = aciertos;
+  playMagicChime();
+  
+  if (aciertos === TOTAL) {
+    startConfetti();
+    setTimeout(() => {
+      alert("🎉 ¡Excelente! Has identificado los 10 músculos del sistema muscular. 🎉");
+      btnReiniciar.style.display = "block";
+      btnReto.style.display = "none";
+      retoActivo = false;
+      hud.classList.remove("visible");
+    }, 500);
+  }
+}
+
+// === SONIDOS (IGUAL QUE EN EL ORIGINAL) ===
+function playMagicChime() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc1.frequency.value = 880;
+  osc2.frequency.value = 1320;
+  osc1.type = "sine";
+  osc2.type = "triangle";
+  g.gain.setValueAtTime(0.1, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+  osc1.connect(g);
+  osc2.connect(g);
+  g.connect(ctx.destination);
+  osc1.start();
+  osc2.start();
+  osc1.stop(ctx.currentTime + 0.5);
+  osc2.stop(ctx.currentTime + 0.5);
+}
+
+function playStartSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = "triangle";
+  o.frequency.value = 440;
+  g.gain.value = 0.05;
+  o.connect(g);
+  g.connect(ctx.destination);
+  o.start();
+  o.stop(ctx.currentTime + 0.25);
+}
+
+// === CONFETI (IGUAL QUE EL ORIGINAL) ===
+const confetiCanvas = document.getElementById("confetiCanvas");
+const ctxConfeti = confetiCanvas.getContext("2d");
+let confetiInterval = null;
+
+function resizeCanvas() {
+  confetiCanvas.width = innerWidth;
+  confetiCanvas.height = innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function startConfetti(duration = 2000) {
+  if (confetiInterval) clearInterval(confetiInterval);
+  const confetti = [];
+  for (let i = 0; i < 120; i++) {
+    confetti.push({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight - innerHeight,
+      r: Math.random() * 6 + 2,
+      d: Math.random() * 0.5 + 0.5,
+      color: `hsl(${Math.random() * 360}, 100%, 60%)`
+    });
+  }
+  confetiInterval = setInterval(() => {
+    ctxConfeti.clearRect(0, 0, innerWidth, innerHeight);
+    confetti.forEach(p => {
+      ctxConfeti.beginPath();
+      ctxConfeti.fillStyle = p.color;
+      ctxConfeti.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctxConfeti.fill();
+      p.y += p.d * 6;
+      if (p.y > innerHeight) p.y = -10;
+    });
+  }, 20);
+  setTimeout(() => {
+    clearInterval(confetiInterval);
+    ctxConfeti.clearRect(0, 0, innerWidth, innerHeight);
+    confetiInterval = null;
+  }, duration);
+}
+
+// === MODO AUDITIVO (CON LA VOZ ORIGINAL QUE FUNCIONA BIEN) ===
+function iniciarModoAuditivo() {
+  if (auditivoActivo) detenerAuditivo();
+  if (visualActivo) detenerVisual();
+  
+  // Limpiar resaltados
+  palabrasSpans.forEach(span => {
+    span.classList.remove("auditivo-activo", "visual-activo", "leida");
+  });
+  
+  const textoCompleto = palabrasSpans.map(s => s.textContent).join('');
+  if (!textoCompleto) return;
+  
+  // === ESTA ES LA VOZ ORIGINAL QUE FUNCIONA BIEN ===
+  window.speechSynthesis.cancel();
+  utteranceActual = new SpeechSynthesisUtterance(textoCompleto);
+  utteranceActual.lang = "es-ES";
+  utteranceActual.rate = 1.0;  // Velocidad natural
+  // Sin forzar voz específica, dejamos que el sistema elija la mejor
+  
+  // Sincronización con onboundary
+  utteranceActual.onboundary = (event) => {
+    if (event.name === 'word' && auditivoActivo) {
+      const charIndex = event.charIndex;
+      // Buscar el span que contiene esta posición
+      for (let item of posicionesMap) {
+        if (charIndex >= item.inicio && charIndex < item.fin) {
+          // Limpiar activos anteriores
+          palabrasSpans.forEach(s => s.classList.remove("auditivo-activo"));
+          item.span.classList.add("auditivo-activo");
+          item.span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          break;
+        }
+      }
+    }
+  };
+  
+  utteranceActual.onend = () => {
+    if (auditivoActivo) {
+      palabrasSpans.forEach(s => s.classList.remove("auditivo-activo"));
+      auditivoActivo = false;
+      indicadorModo.textContent = "✅ Modo auditivo finalizado";
+      indicadorModo.style.background = "rgba(34,197,94,0.7)";
+      setTimeout(() => {
+        if (!auditivoActivo && !visualActivo) {
+          indicadorModo.textContent = "⚡ Modo: Esperando";
+          indicadorModo.style.background = "rgba(0,0,0,0.7)";
+        }
+      }, 2000);
+    }
+  };
+  
+  window.speechSynthesis.speak(utteranceActual);
+  auditivoActivo = true;
+  indicadorModo.textContent = "🎧 Modo Auditivo - Sigue el VERDE";
+  indicadorModo.style.background = "rgba(34,197,94,0.7)";
+}
+
+function detenerAuditivo() {
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+  }
+  auditivoActivo = false;
+  palabrasSpans.forEach(s => s.classList.remove("auditivo-activo"));
+  if (!visualActivo) {
+    indicadorModo.textContent = "⚡ Modo: Esperando";
+    indicadorModo.style.background = "rgba(0,0,0,0.7)";
+  }
+}
+
+// === MODO VISUAL (LECTURA RÁPIDA) ===
+function calcularIntervalo() {
+  let wpm = parseInt(velocidadSlider.value);
+  let msPorPalabra = 60000 / wpm;
+  return Math.max(80, Math.min(600, msPorPalabra));
+}
+
+function iniciarModoVisual() {
+  if (visualActivo) detenerVisual();
+  if (auditivoActivo) detenerAuditivo();
+  
+  // Limpiar resaltados
+  palabrasSpans.forEach(span => {
+    span.classList.remove("auditivo-activo", "visual-activo", "leida");
+  });
+  
+  visualIndex = 0;
+  visualActivo = true;
+  indicadorModo.textContent = "👁️ Modo Visual - Sigue el NARANJA";
+  indicadorModo.style.background = "rgba(249,115,22,0.7)";
+  
+  function avanzarPalabra() {
+    if (!visualActivo) return;
+    
+    if (visualIndex >= palabrasReales.length) {
+      detenerVisual();
+      indicadorModo.textContent = "✅ ¡Lectura visual completada!";
+      indicadorModo.style.background = "rgba(249,115,22,0.7)";
+      setTimeout(() => {
+        if (!visualActivo && !auditivoActivo) {
+          indicadorModo.textContent = "⚡ Modo: Esperando";
+          indicadorModo.style.background = "rgba(0,0,0,0.7)";
+        }
+      }, 2000);
+      return;
+    }
+    
+    // Marcar anterior como leída
+    if (visualIndex > 0) {
+      const anterior = palabrasReales[visualIndex - 1];
+      if (anterior && !anterior.classList.contains("correcta")) {
+        anterior.classList.add("leida");
+      }
+    }
+    
+    // Resaltar palabra actual
+    const actual = palabrasReales[visualIndex];
+    if (actual) {
+      palabrasReales.forEach(s => s.classList.remove("visual-activo"));
+      actual.classList.add("visual-activo");
+      actual.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    visualIndex++;
+    const intervalo = calcularIntervalo();
+    visualInterval = setTimeout(avanzarPalabra, intervalo);
+  }
+  
+  avanzarPalabra();
+}
+
+function detenerVisual() {
+  if (visualInterval) {
+    clearTimeout(visualInterval);
+    visualInterval = null;
+  }
+  visualActivo = false;
+  palabrasSpans.forEach(s => s.classList.remove("visual-activo"));
+  if (!auditivoActivo) {
+    indicadorModo.textContent = "⚡ Modo: Esperando";
+    indicadorModo.style.background = "rgba(0,0,0,0.7)";
+  }
+}
+
+function actualizarVelocidad() {
+  const wpm = velocidadSlider.value;
+  wpmValor.textContent = `${wpm} palabras/min`;
+  if (visualActivo) {
+    // Reiniciar el ritmo con nueva velocidad
+    if (visualInterval) {
+      clearTimeout(visualInterval);
+      function continuar() {
+        if (!visualActivo) return;
+        if (visualIndex < palabrasReales.length) {
+          const actual = palabrasReales[visualIndex];
+          if (actual) {
+            palabrasReales.forEach(s => s.classList.remove("visual-activo"));
+            actual.classList.add("visual-activo");
+            actual.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          visualIndex++;
+          visualInterval = setTimeout(continuar, calcularIntervalo());
+        } else {
+          detenerVisual();
+        }
+      }
+      continuar();
+    }
+  }
+}
+
+// === RETO ===
+btnReto.onclick = () => {
+  if (retoActivo) return;
+  detenerAuditivo();
+  detenerVisual();
+  retoActivo = true;
+  hud.classList.add("visible");
+  btnReto.style.display = "none";
+  playStartSound();
+  indicadorModo.textContent = "✨ Modo Reto activo - Haz clic en los músculos ✨";
+  indicadorModo.style.background = "rgba(251,191,36,0.7)";
+  setTimeout(() => {
+    if (retoActivo && !auditivoActivo && !visualActivo) {
+      indicadorModo.textContent = "⚡ Modo: Esperando";
+      indicadorModo.style.background = "rgba(0,0,0,0.7)";
+    }
+  }, 3000);
+};
+
+// === REINICIAR TODO ===
+btnReiniciar.onclick = () => {
+  detenerAuditivo();
+  detenerVisual();
+  aciertos = 0;
+  contadorSpan.textContent = "0";
+  retoActivo = false;
+  hud.classList.remove("visible");
+  btnReiniciar.style.display = "none";
+  btnReto.style.display = "block";
+  palabrasSpans.forEach(span => {
+    span.classList.remove("correcta", "auditivo-activo", "visual-activo", "leida");
+  });
+  indicadorModo.textContent = "⚡ Modo: Esperando";
+  indicadorModo.style.background = "rgba(0,0,0,0.7)";
+};
+
+// === EVENT LISTENERS ===
+btnModoAuditivo.addEventListener("click", iniciarModoAuditivo);
+btnStopAuditivo.addEventListener("click", detenerAuditivo);
+btnModoVisual.addEventListener("click", iniciarModoVisual);
+btnStopVisual.addEventListener("click", detenerVisual);
+velocidadSlider.addEventListener("input", actualizarVelocidad);
+
+// === INICIALIZACIÓN ===
+construirTextoConSpans();
+btnReiniciar.style.display = "none";
+wpmValor.textContent = "250 palabras/min";
+</script>
+</div>
+</body>
+</html>

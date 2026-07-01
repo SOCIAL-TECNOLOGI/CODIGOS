@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Presentación ICFES - Lectura Crítica | Versión Oscura (12 micro-textos)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0c12;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: #0a0c12;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            overflow-y: auto;
+            padding: 20px 35px;
+            display: flex;
+            flex-direction: column;
+            background: #0a0c12;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+        .slide::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        .slide::-webkit-scrollbar-thumb {
+            background: #fbbf24;
+            border-radius: 10px;
+        }
+
+        .contador-slide {
+            position: fixed;
+            top: 20px;
+            right: 28px;
+            background: #fbbf24;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #0a0c12;
+            font-weight: bold;
+            font-size: 0.85rem;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-family: monospace;
+        }
+
+        .texto-card {
+            background: #111827;
+            border: 1px solid #fbbf24;
+            border-radius: 28px;
+            padding: 24px 32px;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .texto-card h2 {
+            font-size: 1.4rem;
+            color: #fbbf24;
+            margin-bottom: 18px;
+            font-weight: 700;
+            border-left: 4px solid #fbbf24;
+            padding-left: 15px;
+        }
+
+        .texto-card p {
+            font-size: 1.08rem;
+            line-height: 1.7;
+            text-align: justify;
+            margin-bottom: 0.9em;
+            font-weight: 450;
+            color: #e2e8f0;
+        }
+
+        .pregunta-card {
+            background: #111827;
+            border: 1px solid #fbbf24;
+            border-radius: 32px;
+            padding: 20px 28px;
+            margin-top: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .header-pregunta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #fbbf24;
+            padding-bottom: 12px;
+        }
+
+        .badge-competencia {
+            background: #fbbf24;
+            color: #0a0c12;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .btn-revelar {
+            background: linear-gradient(135deg, #fbbf24, #eab308);
+            border: none;
+            border-radius: 40px;
+            padding: 6px 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #0a0c12;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-revelar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(251,191,36,0.4);
+        }
+
+        .pregunta-texto {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin: 18px 0 20px 0;
+            line-height: 1.4;
+        }
+
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        .opcion {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            border-left: 4px solid #fbbf24;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .opcion:hover {
+            background: #334155;
+            transform: translateX(5px);
+        }
+
+        .respuesta-info {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #1e293b;
+            border-radius: 24px;
+            border-left: 5px solid #fbbf24;
+            display: none;
+        }
+
+        .respuesta-info.visible {
+            display: block;
+        }
+
+        .respuesta-correcta {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #fbbf24;
+        }
+
+        .explicacion {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-top: 6px;
+            border-top: 1px solid #334155;
+            padding-top: 6px;
+        }
+
+        .tabla-final-card {
+            background: #111827;
+            border-radius: 36px;
+            padding: 24px;
+            border: 1px solid #fbbf24;
+        }
+        .tabla-final-card h2 {
+            color: #fbbf24;
+            text-align: center;
+            margin-bottom: 18px;
+            font-size: 1.5rem;
+        }
+        .tabla-resumen {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0f172a;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #334155;
+            font-size: 0.85rem;
+        }
+        .tabla-resumen th, .tabla-resumen td {
+            border: 1px solid #334155;
+            padding: 8px 6px;
+            text-align: center;
+            color: #e2e8f0;
+        }
+        .tabla-resumen th {
+            background: #fbbf24;
+            color: #0a0c12;
+            font-weight: bold;
+        }
+        .resultado-total {
+            background: #1e293b;
+            border-radius: 28px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 18px;
+        }
+        .porcentaje-big {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fbbf24;
+        }
+        .btn-calcular {
+            background: #fbbf24;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 20px;
+            color: #0a0c12;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-calcular:hover {
+            background: #eab308;
+            transform: scale(1.02);
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 22px;
+            right: 28px;
+            display: flex;
+            gap: 14px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: #fbbf24;
+            border: none;
+            color: #0a0c12;
+            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            background: #eab308;
+            transform: scale(1.02);
+        }
+        input.respuesta-input {
+            background: #1e293b;
+            border: 2px solid #fbbf24;
+            padding: 4px;
+            width: 55px;
+            text-align: center;
+            color: white;
+            border-radius: 20px;
+        }
+        @media (max-width: 800px) {
+            .slide { padding: 15px 20px; }
+            .texto-card p { font-size: 0.95rem; }
+            .pregunta-texto { font-size: 1rem; }
+            .opcion { font-size: 0.85rem; }
+            .contador-slide { top: 12px; right: 15px; font-size: 0.7rem; padding: 4px 12px; }
+            .tabla-resumen { font-size: 0.7rem; }
+            .tabla-resumen th, .tabla-resumen td { padding: 4px 2px; }
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-container" id="presentation"></div>
+<div class="contador-slide" id="slideCounter">Diapositiva 1 / 14</div>
+<div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">◀ Anterior</button>
+    <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+</div>
+
+<script>
+    // ==================== DATOS DE LAS 12 PREGUNTAS ====================
+    const preguntas = [
+        { id:1, competencia:"A", texto:"Según el texto, ¿qué función cumple el músculo temporal?",
+          microTexto:`<h2>📖 Músculo temporal</h2><p>El sistema muscular de la región facial es uno de los más complejos del cuerpo humano, ya que debe permitir tanto funciones vitales como la expresión emocional. Entre sus componentes destaca el músculo temporal, ubicado en la región lateral del cráneo, cubriendo gran parte del hueso temporal. Este músculo, de forma abanico, es considerado uno de los músculos masticadores más potentes del organismo humano.</p><p>Su función principal consiste en elevar la mandíbula inferior, permitiendo cerrar la boca con fuerza durante el proceso de masticación. Además, contribuye a la retrusión mandibular, es decir, el movimiento hacia atrás de la mandíbula. Esta doble función lo convierte en un elemento esencial para la alimentación adecuada.</p><p>La potencia del músculo temporal es tal que puede generar fuerzas de hasta 200 kilogramos en individuos adultos entrenados. Sin embargo, su sobreexigencia puede llevar a trastornos como la bruxismo o el rechinar nocturno de dientes, que afectan significativamente la calidad de vida de quienes lo padecen.</p>`,
+          opciones:["A) Abrir la boca para permitir la respiración y la fonación","B) Elevar la mandíbula para cerrar la boca con fuerza durante la masticación","C) Mover la mandíbula hacia los lados para moler alimentos","D) Sostener la mandíbula inferior en reposo sin generar tensión"],
+          correcta:"B", explicacion:"El texto dice explícitamente: 'elevar la mandíbula inferior, permitiendo cerrar la boca con fuerza durante la masticación'." },
+        { id:2, competencia:"A", texto:"En el texto, la palabra 'deltoides' hace referencia a:",
+          microTexto:`<h2>📖 Músculo deltoides</h2><p>La articulación del hombro es una de las más móviles del cuerpo, permitiendo una amplia gama de movimientos que van desde la elevación hasta la rotación del brazo. Esta movilidad es posible gracias a la acción coordinada de varios músculos, entre los cuales destaca el deltoides, un músculo superficial que cubre completamente la articulación glenohumeral.</p><p>El nombre del deltoides proviene de su característica forma triangular, similar a la letra griega delta (Δ), con su vértice dirigido hacia abajo. Este músculo se origina en tres puntos diferentes: la clavícula, el acromion y la espina de la escápula, convergiendo en una inserción común en el húmero.</p><p>La importancia del deltoides radica en que es el principal responsable de la abducción del brazo, es decir, la separación del brazo respecto al tronco. Además, colabora en la flexión, extensión y rotación del hombro. Una lesión en este músculo puede limitar severamente la capacidad de elevar el brazo por encima de la cabeza.</p>`,
+          opciones:["A) Un hueso que protege la articulación del hombro de impactos","B) Un músculo con forma triangular ubicado en el hombro","C) Un ligamento que conecta el brazo con la clavícula","D) Un tendón que permite la rotación completa del hombro"],
+          correcta:"B", explicacion:"El texto indica: 'deltoides, un músculo superficial' con 'forma triangular, similar a la letra griega delta'." },
+        { id:3, competencia:"A", texto:"Con base en la información, se puede inferir que el esternocleidomastoideo es fundamental para:",
+          microTexto:`<h2>📖 Músculo esternocleidomastoideo</h2><p>La región cervical alberga una compleja red de músculos que permiten los movimientos precisos de la cabeza y el cuello. Entre ellos, el músculo esternocleidomastoideo se destaca por su tamaño y ubicación superficial. Este músculo se extiende desde dos puntos de origen en el esternón y la clavícula hasta la apófisis mastoides del cráneo, detrás del oído.</p><p>Su disposición anatómica le confiere funciones específicas según el tipo de contracción. Cuando se contrae de forma unilateral, es decir, solo de un lado, produce la rotación de la cabeza hacia el lado opuesto al músculo contraído, mientras que cuando se contrae de forma bilateral, flexionando ambos lados simultáneamente, genera la flexión de la cabeza hacia adelante.</p><p>Además de estas funciones motoras, el esternocleidomastoideo actúa como un importante punto de referencia anatómica para procedimientos médicos. Su palpación permite localizar estructuras vasculares profundas. La tensión crónica en este músculo, frecuente en situaciones de estrés, puede generar cefaleas tensionales que afectan la calidad de vida de quienes las padecen.</p>`,
+          opciones:["A) Mantener la estabilidad pasiva de la columna cervical en reposo","B) Realizar movimientos precisos de rotación y flexión de la cabeza","C) Proteger las arterias carótidas durante el movimiento del cuello","D) Generar fuerza para levantar objetos pesados utilizando el cuello"],
+          correcta:"B", explicacion:"Inferencia: el texto describe rotación unilateral y flexión bilateral, que son movimientos precisos de la cabeza." },
+        { id:4, competencia:"A", texto:"Un estudiante concluye: 'El diafragma es un músculo exclusivamente involuntario, ya que su función principal es mantener la respiración sin intervención de la conciencia'. ¿Qué tan válida es esta conclusión a la luz del texto?",
+          microTexto:`<h2>📖 Diafragma</h2><p>El diafragma es un músculo en forma de cúpula que separa la cavidad torácica de la abdominal, constituyendo el principal músculo inspiratorio del cuerpo humano. Su estructura combina fibras musculares con una porción central tendinosa, lo que le confiere propiedades mecánicas únicas para la función respiratoria.</p><p>Durante la inspiración, las fibras musculares del diafragma se contraen, provocando su descenso y el aplanamiento de su cúpula. Este movimiento aumenta el volumen de la cavidad torácica en sentido vertical, lo que disminuye la presión intratorácica y permite la entrada de aire a los pulmones. Durante la espiración pasiva, el diafragma se relaja y asciende nuevamente.</p><p>Una característica notable del diafragma es que su contracción es principalmente involuntaria, controlada por centros nerviosos del tronco encefálico que mantienen la respiración constante. Sin embargo, existe un control voluntario parcial que permite modificar el patrón respiratorio de manera consciente, como ocurre al hablar, cantar o contener la respiración voluntariamente.</p>`,
+          opciones:["A) Es completamente válida, porque la respiración es un proceso automático","B) Es parcialmente válida, porque el texto indica que existe control voluntario parcial","C) Es inválida, porque el texto afirma explícitamente que puede controlarse de forma consciente","D) No se puede determinar, porque el texto no especifica el tipo de control muscular"],
+          correcta:"C", explicacion:"El texto afirma: 'existe un control voluntario parcial que permite modificar el patrón respiratorio de manera consciente'." },
+        { id:5, competencia:"B", texto:"¿Cuál es la función principal del primer párrafo del texto?",
+          microTexto:`<h2>📖 Tipos de músculo</h2><p>El sistema muscular humano está compuesto por más de seiscientos músculos que trabajan de manera coordinada para generar movimiento, mantener la postura y producir calor. Esta compleja red de tejidos se organiza en tres tipos fundamentales, cada uno con características estructurales y funcionales que los hacen únicos en el organismo.</p><p>El músculo esquelético, también llamado voluntario, se adhiere a los huesos mediante tendones y permite el movimiento corporal consciente. Sus fibras son estriadas y multinucleadas, y su contracción es rápida pero susceptible a la fatiga. El músculo liso, por su parte, recubre las paredes de órganos internos como el estómago, los intestinos y los vasos sanguíneos, siendo involuntario y de contracción lenta pero sostenida.</p><p>Finalmente, el músculo cardíaco es exclusivo del corazón, combinando características de los dos anteriores: es estriado como el esquelético pero involuntario como el liso. Su capacidad de generar contracciones rítmicas y autónomas lo mantiene activo durante toda la vida. Cada tipo muscular está adaptado a las demandas específicas de la función que desempeña en el cuerpo.</p>`,
+          opciones:["A) Describir la ubicación anatómica exacta de cada tipo de músculo","B) Presentar una clasificación general del sistema muscular en sus tipos","C) Narrar el descubrimiento histórico de los diferentes tipos musculares","D) Concluir con la importancia del ejercicio para cada tipo muscular"],
+          correcta:"B", explicacion:"El primer párrafo introduce la organización en 'tres tipos fundamentales', presentando una clasificación general." },
+        { id:6, competencia:"B", texto:"¿Qué relación existe entre la descripción de la miosina y la descripción de la actina en el texto?",
+          microTexto:`<h2>📖 Miosina y actina</h2><p>La contracción muscular a nivel molecular es un fenómeno fascinante que implica la interacción de dos proteínas fundamentales: la miosina y la actina. Estas proteínas se organizan en estructuras repetitivas llamadas sarcómeros, que constituyen la unidad funcional básica del tejido muscular estriado.</p><p>La miosina forma filamentos gruesos caracterizados por tener cabezas globulares que sobresalen lateralmente. Estas cabezas contienen sitios de unión para el ATP y para la actina, lo que les permite generar fuerza. Por otro lado, la actina constituye los filamentos delgados que se disponen alrededor de los filamentos gruesos, formando una estructura hexagonal perfectamente organizada.</p><p>Durante el ciclo de contracción, las cabezas de miosina se enganchan a los filamentos de actina, realizan un movimiento de giro que desplaza la actina hacia el centro del sarcómero, y luego se desenganchan para repetir el proceso. Este mecanismo, que se repite miles de veces por segundo durante la contracción sostenida, acorta progresivamente el sarcómero y genera la tensión muscular necesaria para el movimiento.</p>`,
+          opciones:["A) Contraste entre sus funciones opuestas en el proceso de contracción","B) Ejemplificación de proteínas que trabajan en conjunto para la contracción","C) Comparación entre su tamaño molecular y su composición química","D) Relación causa-efecto donde la actina causa el movimiento de la miosina"],
+          correcta:"B", explicacion:"Ambas proteínas trabajan 'en conjunto' durante el ciclo de contracción, como se describe en el tercer párrafo." },
+        { id:7, competencia:"B", texto:"El texto utiliza una estructura organizativa que va desde:",
+          microTexto:`<h2>📖 Fatiga muscular</h2><p>La fatiga muscular se define como la incapacidad temporal de un músculo para mantener la fuerza requerida durante una contracción sostenida. Este fenómeno fisiológico ocurre cuando las demandas energéticas superan la capacidad de producción de ATP por parte de la célula muscular. Existen múltiples causas que pueden desencadenar este estado de agotamiento funcional.</p><p>Entre las causas principales se encuentra la acumulación de ácido láctico, un subproducto del metabolismo anaeróbico que reduce el pH intracelular y afecta la función enzimática. También contribuyen el agotamiento de las reservas de glucógeno muscular, la disminución de la transmisión nerviosa en la placa motora y la alteración en la liberación de calcio desde el retículo sarcoplásmico. Cada uno de estos factores actúa en diferentes niveles del proceso contráctil.</p><p>Sin embargo, la fatiga no debe entenderse exclusivamente como una limitación. El entrenamiento físico sistemático mejora la capacidad del músculo para resistir la fatiga mediante adaptaciones metabólicas como el aumento de mitocondrias y la mayor eficiencia en la utilización de sustratos energéticos. En este sentido, la fatiga actúa también como un mecanismo de protección que impone límites al esfuerzo, evitando daños estructurales irreversibles en el tejido muscular.</p>`,
+          opciones:["A) La definición del fenómeno hacia el análisis de sus causas, seguido de una reflexión sobre su significado","B) La presentación de una solución práctica, seguida del análisis de las causas del problema","C) Una narración cronológica de experimentos históricos sobre fatiga muscular","D) Una secuencia de preguntas y respuestas sobre el rendimiento deportivo"],
+          correcta:"A", explicacion:"El texto presenta definición → causas múltiples → reflexión final sobre el significado de la fatiga." },
+        { id:8, competencia:"B", texto:"Si se añadiera al texto un fragmento que describiera el papel de la glándula tiroides en la regulación de la temperatura corporal mediante hormonas metabólicas, ¿qué tipo de relación establecería con el contenido existente?",
+          microTexto:`<h2>📖 Termorregulación muscular</h2><p>Las contracciones musculares, además de generar movimiento, producen calor como subproducto metabólico. Este fenómeno, conocido como termogénesis muscular, es fundamental para la regulación de la temperatura corporal en condiciones ambientales adversas. Durante la exposición al frío, el organismo activa mecanismos para aumentar la producción de calor mediante la contracción muscular involuntaria.</p><p>El temblor muscular es la respuesta más evidente a la disminución de la temperatura corporal. Consiste en contracciones rítmicas e involuntarias de los músculos esqueléticos que aumentan significativamente la producción de calor metabólico. Este mecanismo puede elevar la producción calórica hasta cinco veces por encima de los niveles basales, ayudando a mantener la temperatura corporal dentro de rangos seguros.</p><p>Además del temblor, existe la termogénesis sin temblor, mediada por tejido adiposo pardo, que también contribuye a la regulación térmica. La integración entre ambos mecanismos permite al organismo adaptarse a cambios ambientales. La incapacidad de generar suficiente calor puede llevar a condiciones peligrosas como la hipotermia, que afecta gravemente la función muscular y la supervivencia.</p>`,
+          opciones:["A) Contradicción, porque el texto actual atribuye la regulación térmica exclusivamente a los músculos","B) Complementariedad, porque explicaría un mecanismo adicional de regulación térmica independiente del temblor","C) Causa-efecto, donde la tiroides sería consecuencia del temblor muscular prolongado","D) Comparación, para mostrar diferencias entre regulación muscular y regulación hormonal"],
+          correcta:"B", explicacion:"El texto menciona temblor y termogénesis sin temblor; la tiroides sería un mecanismo adicional complementario." },
+        { id:9, competencia:"C", texto:"El texto afirma que el tendón de Aquiles 'puede soportar fuerzas de hasta ocho veces el peso corporal'. ¿Qué implicación tiene esta afirmación?",
+          microTexto:`<h2>📖 Tendón de Aquiles</h2><p>El tendón de Aquiles, también conocido como tendón calcáneo, es la estructura tendinosa más resistente del cuerpo humano. Este tendón conecta los músculos gastrocnemio y sóleo, principales músculos de la pantorrilla, con el hueso calcáneo del talón. Su nombre proviene del héroe mitológico griego Aquiles, cuya única vulnerabilidad era precisamente esta región.</p><p>La resistencia del tendón de Aquiles es extraordinaria. Estudios biomecánicos han demostrado que puede soportar fuerzas de hasta ocho veces el peso corporal durante actividades de alta intensidad como la carrera o el salto. Esta capacidad de soportar cargas extremas es posible gracias a la disposición altamente organizada de sus fibras de colágeno, que le confieren tanto resistencia a la tracción como cierta elasticidad.</p><p>Una ruptura del tendón de Aquiles constituye una lesión grave que compromete severamente la funcionalidad de la extremidad inferior. Los pacientes con esta lesión presentan incapacidad para realizar la flexión plantar del pie, lo que impide actividades fundamentales como caminar, correr o mantenerse en puntas de pie. La recuperación requiere intervención quirúrgica y rehabilitación prolongada.</p>`,
+          opciones:["A) El tendón de Aquiles es el tendón más largo y delgado del cuerpo humano","B) El tendón de Aquiles debe ser extremadamente resistente a la tensión mecánica","C) Los músculos de la pantorrilla no necesitan tendones para funcionar correctamente","D) La carrera y el salto no generan fuerzas significativas sobre los tendones"],
+          correcta:"B", explicacion:"Implicación literal: soportar ocho veces el peso corporal requiere resistencia extrema a la tensión." },
+        { id:10, competencia:"C", texto:"Considerando el contexto educativo en el que se presenta este texto (preparación para pruebas Saber 11°), ¿cuál es la intención comunicativa más probable del autor?",
+          microTexto:`<h2>📖 Distrofia muscular</h2><p>La distrofia muscular comprende un grupo de enfermedades genéticas caracterizadas por debilidad progresiva y pérdida de masa muscular. Estas condiciones son causadas por mutaciones en genes responsables de la producción de proteínas esenciales para la integridad estructural de las fibras musculares, siendo la distrofina la más conocida de estas proteínas.</p><p>El curso de la enfermedad varía según el tipo específico de distrofia, pero generalmente implica una progresión gradual que afecta primero a los músculos proximales de las extremidades y eventualmente compromete la función respiratoria y cardíaca. La debilidad muscular avanzada puede limitar significativamente la movilidad y la independencia funcional de quienes la padecen.</p><p>Actualmente no existe cura para las distrofias musculares, aunque la investigación científica avanza en diversas líneas terapéuticas. La terapia física y ocupacional constituye el pilar del manejo sintomático, ayudando a mantener la función muscular residual y prevenir contracturas. Los tratamientos farmacológicos, principalmente corticoides, pueden retrasar la progresión de la debilidad. La terapia génica y la edición genética representan las esperanzas más prometedoras para futuras intervenciones curativas.</p>`,
+          opciones:["A) Narrar la historia personal de un paciente diagnosticado con distrofia muscular","B) Explicar de manera informativa las características, causas y tratamientos de una condición médica","C) Argumentar a favor de aumentar los fondos gubernamentales para investigación genética","D) Describir detalladamente los procedimientos quirúrgicos para tratar la distrofia muscular"],
+          correcta:"B", explicacion:"El texto tiene estructura expositiva informativa con datos objetivos sobre causas, curso y tratamientos." },
+        { id:11, competencia:"C", texto:"El texto utiliza la estrategia discursiva de ejemplificar con actividades como escribir en un teclado, tocar un instrumento musical o practicar deportes para:",
+          microTexto:`<h2>📖 Propiocepción</h2><p>La propiocepción es una capacidad sensorial fundamental que permite al organismo percibir la posición, orientación y movimiento de las diferentes partes del cuerpo sin necesidad de utilizar la visión. Este sentido, a menudo llamado el "sexto sentido", opera continuamente y de manera inconsciente, constituyendo la base de la coordinación motora fina y gruesa.</p><p>El sistema propioceptivo se basa en receptores especializados ubicados en músculos, tendones y articulaciones. Los husos musculares, por ejemplo, detectan cambios en la longitud muscular y la velocidad de estiramiento, mientras que los órganos tendinosos de Golgi monitorizan la tensión generada durante la contracción. Esta información es procesada por el sistema nervioso central para ajustar la actividad motora.</p><p>La importancia de la propiocepción se evidencia en actividades cotidianas que requieren precisión y coordinación. Al escribir en un teclado sin mirar las manos, al tocar un instrumento musical manteniendo la digitación exacta, o al practicar deportes que exigen ajustes posturales rápidos, estamos utilizando continuamente esta capacidad sensorial. Su alteración puede generar descoordinación, inestabilidad articular y dificultades para realizar movimientos precisos.</p>`,
+          opciones:["A) Demostrar que estas actividades requieren mayor esfuerzo físico que otras","B) Validar la afirmación sobre la importancia de la propiocepción en tareas cotidianas","C) Confundir al lector con una lista extensa de actividades especializadas","D) Establecer una jerarquía de dificultad entre diferentes tipos de deportes"],
+          correcta:"B", explicacion:"Los ejemplos concretos validan la afirmación central sobre la importancia de la propiocepción." },
+        { id:12, competencia:"C", texto:"La afirmación del texto —'la evidencia científica acumulada ha revelado efectos positivos que trascienden el ámbito puramente físico'— revela una visión de mundo que:",
+          microTexto:`<h2>📖 Ejercicio y bienestar integral</h2><p>La práctica regular de ejercicio físico ha sido tradicionalmente asociada con beneficios sobre el sistema musculoesquelético, como el aumento de la fuerza y la masa muscular, la mejora de la densidad ósea y la mayor flexibilidad articular. Sin embargo, la evidencia científica acumulada en las últimas décadas ha ampliado considerablemente esta visión, revelando efectos positivos que trascienden el ámbito puramente físico.</p><p>Investigaciones en neurociencia han demostrado que el ejercicio aeróbico promueve la neuroplasticidad, es decir, la capacidad del sistema nervioso para modificar su estructura y función en respuesta a la experiencia. Este proceso se asocia con mejoras en funciones cognitivas como la memoria, la atención y las funciones ejecutivas. Además, la actividad física regular reduce significativamente los niveles de estrés percibido, disminuye los síntomas de ansiedad y depresión, y promueve estados emocionales positivos.</p><p>Estudios epidemiológicos han establecido asociaciones consistentes entre la práctica habitual de ejercicio y mejor rendimiento académico en poblaciones escolares y universitarias. Esta relación se mantiene incluso después de controlar por variables socioeconómicas y educativas, sugiriendo un efecto directo de la actividad física sobre los procesos de aprendizaje y la función cognitiva.</p>`,
+          opciones:["A) Reduce los beneficios del ejercicio exclusivamente al fortalecimiento del sistema musculoesquelético","B) Considera el ejercicio como una actividad exclusivamente recreativa sin impacto significativo en la salud","C) Integra dimensiones físicas, cognitivas, emocionales y educativas del bienestar humano","D) Desconoce la relación documentada entre actividad física y salud mental"],
+          correcta:"C", explicacion:"La afirmación revela una visión integral que abarca lo físico, cognitivo (neuroplasticidad), emocional (estrés, ansiedad) y educativo (rendimiento académico)." }
+    ];
+
+    // Diapositiva introductoria
+    const introSlide = `
+        <div class="slide" data-index="0">
+            <div class="texto-card" style="border: 2px solid #fbbf24; background:#111827;">
+                <h2 style="color:#fbbf24; text-align:center;">📖 ¿Por qué evaluamos Lectura Crítica?</h2>
+                <p style="font-size:1.08rem;"><strong>Leer no es solo decodificar palabras.</strong> <strong style="color:#fbbf24;">Leer críticamente</strong> significa comprender, analizar, inferir y evaluar lo que otros escriben. Es la competencia que te permite acceder al conocimiento en <strong>TODAS las áreas</strong>.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin:20px 0;">
+                    <div style="background:#1e293b; border-radius:20px; padding:10px 15px; text-align:center; border:1px solid #fbbf24;"><strong style="color:#fbbf24;">🧪 Ciencias Naturales</strong><br><span style="color:#cbd5e1;">Interpretar experimentos</span></div>
+                    <div style="background:#1e293b; border-radius:20px; padding:10px 15px; text-align:center; border:1px solid #fbbf24;"><strong style="color:#fbbf24;">📐 Matemáticas</strong><br><span style="color:#cbd5e1;">Comprender enunciados</span></div>
+                    <div style="background:#1e293b; border-radius:20px; padding:10px 15px; text-align:center; border:1px solid #fbbf24;"><strong style="color:#fbbf24;">🌎 Sociales</strong><br><span style="color:#cbd5e1;">Analizar fuentes históricas</span></div>
+                    <div style="background:#1e293b; border-radius:20px; padding:10px 15px; text-align:center; border:1px solid #fbbf24;"><strong style="color:#fbbf24;">🇬🇧 Inglés</strong><br><span style="color:#cbd5e1;">Comprender textos</span></div>
+                </div>
+                <div style="background:#1e293b; border-radius:20px; padding:15px; margin-top:10px;">
+                    <p>📊 <strong>Dato ICFES:</strong> Lectura Crítica correlaciona <strong style="color:#fbbf24;">0.78 con Ciencias Naturales</strong> y <strong style="color:#fbbf24;">0.82 con Sociales</strong>.</p>
+                    <p>✅ <strong>Leer bien = mejorar todas tus competencias.</strong> Hoy ejercitamos con 12 textos sobre el sistema muscular y preguntas estilo Saber 11°.</p>
+                </div>
+                <div style="text-align:center; margin-top:20px;"><div style="background:#fbbf24; display:inline-block; padding:8px 24px; border-radius:60px; color:#0a0c12; font-weight:bold;">👉 Usa las flechas ◀ ▶ para avanzar</div></div>
+            </div>
+        </div>
+    `;
+
+    let slides = [introSlide];
+    
+    // Agregar preguntas
+    preguntas.forEach((p, idx) => {
+        const num = idx + 1;
+        const opsHtml = p.opciones.map(op => `<div class="opcion">${op}</div>`).join('');
+        slides.push(`
+            <div class="slide" data-index="${idx+1}">
+                <div class="texto-card">${p.microTexto}</div>
+                <div class="pregunta-card">
+                    <div class="header-pregunta">
+                        <div class="badge-competencia">📌 Competencia ${p.competencia}</div>
+                        <button class="btn-revelar" data-idx="${idx}">🔍 Mostrar respuesta</button>
+                    </div>
+                    <div class="pregunta-texto">${num}. ${p.texto}</div>
+                    <div class="opciones">${opsHtml}</div>
+                    <div class="respuesta-info" id="resp-${idx}">
+                        <div class="respuesta-correcta">✅ Respuesta correcta: ${p.correcta}</div>
+                        <div class="explicacion">📖 ${p.explicacion}</div>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+    
+    // Tabla final - CORREGIDA
+    let tablaFilas = '';
+    for (let i = 0; i < preguntas.length; i++) {
+        const p = preguntas[i];
+        tablaFilas += '<tr>' +
+            '<td style="border:1px solid #334155; padding:8px 4px;">' + (i+1) + '</td>' +
+            '<td style="border:1px solid #334155; padding:8px 4px;"><strong style="color:#fbbf24;">' + p.correcta + '</strong></td>' +
+            '<td style="border:1px solid #334155; padding:8px 4px;">' + p.competencia + '</td>' +
+            '<td style="border:1px solid #334155; padding:8px 4px;"><input type="text" id="inp-' + i + '" placeholder="A/B/C/D" maxlength="1" style="background:#1e293b; border:2px solid #fbbf24; padding:4px; width:55px; text-align:center; color:white; border-radius:20px; text-transform:uppercase;"></td>' +
+            '<td style="border:1px solid #334155; padding:8px 4px;" id="est-' + i + '">—</td>' +
+            '</tr>';
+    }
+    
+    const finalSlide = `
+        <div class="slide" data-index="13">
+            <div class="tabla-final-card">
+                <h2>📊 AUTOEVALUACIÓN - LECTURA CRÍTICA</h2>
+                <p style="text-align:center; margin-bottom:12px; color:#cbd5e1;">✏️ Escribe tu respuesta (A, B, C o D) y presiona "Calificar"</p>
+                <table class="tabla-resumen">
+                    <thead>
+                        <tr><th>#</th><th>Correcta</th><th>Comp.</th><th>Mi respuesta</th><th>Resultado</th></tr>
+                    </thead>
+                    <tbody>${tablaFilas}</tbody>
+                </table>
+                <div style="display:flex; justify-content:center; gap:15px; margin:15px 0;">
+                    <button id="btnCalificar" class="btn-calcular">✅ Calificar</button>
+                    <button id="btnLimpiarTodo" class="btn-calcular" style="background:#475569; color:white;">🗑️ Limpiar</button>
+                </div>
+                <div class="resultado-total">
+                    <p><strong>Tu porcentaje:</strong> <span id="porcentajeFinal" class="porcentaje-big">0%</span></p>
+                    <p id="msgMeta" style="color:#cbd5e1;">🔹 Completa tus respuestas y califica</p>
+                </div>
+                <div style="background:#1e293b; border-radius:20px; padding:12px; text-align:center; margin-top:15px;">
+                    <p style="color:#e2e8f0;">🧠 <strong>Metacognición:</strong> Reflexiona sobre tus dificultades: literalidad (N1), contexto (N2), inferencia (N3) o evaluación (N4)</p>
+                </div>
+            </div>
+        </div>
+    `;
+    slides.push(finalSlide);
+    
+    const container = document.getElementById("presentation");
+    container.innerHTML = slides.join('');
+    
+    let current = 0;
+    const allSlides = document.querySelectorAll('.slide');
+    const total = allSlides.length;
+    
+    function update() {
+        allSlides.forEach((s, i) => { if(i === current) s.classList.add('active'); else s.classList.remove('active'); });
+        document.getElementById('slideCounter').innerText = `Diapositiva ${current+1} / ${total}`;
+        if(current === total-1) activarAutoevaluacion();
+    }
+    
+    document.getElementById('nextBtn').onclick = () => { if(current < total-1) { current++; update(); } };
+    document.getElementById('prevBtn').onclick = () => { if(current > 0) { current--; update(); } };
+    window.addEventListener('keydown', e => { if(e.key === 'ArrowRight' && current<total-1) current++; else if(e.key === 'ArrowLeft' && current>0) current--; update(); });
+    update();
+    
+    function attachReveal() {
+        document.querySelectorAll('.btn-revelar').forEach(btn => {
+            btn.onclick = () => {
+                const idx = btn.getAttribute('data-idx');
+                const div = document.getElementById(`resp-${idx}`);
+                if(div) {
+                    div.classList.toggle('visible');
+                    btn.textContent = div.classList.contains('visible') ? '🙈 Ocultar' : '🔍 Mostrar respuesta';
+                }
+            };
+        });
+    }
+    attachReveal();
+    new MutationObserver(() => attachReveal()).observe(container, { childList: true, subtree: true });
+    
+    function activarAutoevaluacion() {
+        const btnCal = document.getElementById('btnCalificar');
+        const btnLim = document.getElementById('btnLimpiarTodo');
+        if(!btnCal) return;
+        
+        btnCal.onclick = () => {
+            let aciertos = 0;
+            for(let i=0; i<preguntas.length; i++) {
+                const inp = document.getElementById(`inp-${i}`);
+                const est = document.getElementById(`est-${i}`);
+                const user = inp?.value.trim().toUpperCase();
+                const correcta = preguntas[i].correcta;
+                if(user === correcta) { 
+                    est.innerHTML = '✅ Correcta'; 
+                    est.style.color = '#86efac'; 
+                    aciertos++; 
+                } else { 
+                    est.innerHTML = `❌ (era ${correcta})`; 
+                    est.style.color = '#fca5a5'; 
+                }
+            }
+            const pct = Math.round((aciertos/12)*100);
+            document.getElementById('porcentajeFinal').innerText = `${pct}%`;
+            const msg = document.getElementById('msgMeta');
+            if(pct>=70) msg.innerHTML = '🎉 ¡Excelente! Sigue fortaleciendo inferencia y evaluación.';
+            else if(pct>=50) msg.innerHTML = '📘 Buen trabajo. Revisa las preguntas donde fallaste.';
+            else msg.innerHTML = '📌 Sigue practicando. Usa "Mostrar respuesta" para aprender.';
+            
+            let extra = document.getElementById('adicionalAciertos');
+            if(!extra) { 
+                const np = document.createElement('p'); 
+                np.id='adicionalAciertos'; 
+                np.style.marginTop='10px'; 
+                np.style.fontWeight='bold'; 
+                np.style.color='#fbbf24'; 
+                np.innerHTML = `✅ Aciertos: ${aciertos}/12`; 
+                document.querySelector('.resultado-total').appendChild(np); 
+            } else { 
+                extra.innerHTML = `✅ Aciertos: ${aciertos}/12`; 
+            }
+        };
+        
+        btnLim.onclick = () => {
+            for(let i=0; i<preguntas.length; i++) {
+                const inp = document.getElementById(`inp-${i}`);
+                const est = document.getElementById(`est-${i}`);
+                if(inp) inp.value = '';
+                if(est) { est.innerHTML = '—'; est.style.color = '#e2e8f0'; }
+            }
+            document.getElementById('porcentajeFinal').innerText = '0%';
+            document.getElementById('msgMeta').innerHTML = '🔹 Completa tus respuestas y califica';
+            const extra = document.getElementById('adicionalAciertos');
+            if(extra) extra.remove();
+        };
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Exposición Jacobo – Problemáticas Sociales</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body{font-family:"Poppins",sans-serif;background:linear-gradient(135deg,#eaf6f6,#fff);color:#002b45;margin:0;overflow:hidden}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;opacity:0;transition:opacity 1s ease;box-sizing:border-box;padding:40px 20px}
+  .slide.active{opacity:1;z-index:1}
+  h1{font-size:3em;color:#007b83;margin:.2em 0}
+  h2{font-size:2em;color:#004d4f;margin:.8em 0}
+  p,ul{font-size:1.3em;max-width:900px;line-height:1.5}
+  ul{text-align:left;max-width:850px;list-style:"⭐ ";margin:0 auto}
+  .chart-container{width:80%;max-width:850px;height:450px;margin:20px auto}
+  .logo{position:absolute;top:20px;left:20px;width:120px;opacity:.85;z-index:5}
+  .arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:3em;color:#007b83;background:rgba(255,255,255,.6);border-radius:50%;padding:10px 20px;cursor:pointer;transition:.3s;user-select:none;z-index:10}
+  .arrow:hover{background:#007b83;color:#fff}
+  .arrow-left{left:30px}.arrow-right{right:30px}
+  #muteBtn{position:fixed;bottom:30px;right:30px;background:#007b83;color:#fff;font-size:1.8em;border:none;border-radius:50%;width:60px;height:60px;cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,.3);transition:.3s;z-index:20}
+  #muteBtn:hover{transform:scale(1.1)}
+  #muteBtn.silenciado{background:#c0392b}
+  .hint{position:fixed;bottom:100px;right:30px;background:rgba(0,0,0,.7);color:#fff;padding:8px 12px;border-radius:8px;font-size:.9em;opacity:0;pointer-events:none;transition:opacity .3s;z-index:21}
+  .hint.show{opacity:1}
+</style>
+</head>
+<body>
+
+
+
+<!-- Flechas -->
+<div class="arrow arrow-left" onclick="prevSlide()">&#10094;</div>
+<div class="arrow arrow-right" onclick="nextSlide()">&#10095;</div>
+
+<!-- Botón narración -->
+<button id="muteBtn" title="Activar/Desactivar narración">🔊</button>
+<div id="hint" class="hint">Narración reiniciada</div>
+
+<!-- Diapositivas -->
+<div class="slide active" id="slide1" data-narracion="Bienvenidos a la exposición sobre problemáticas sociales en nuestra comunidad. Presentan Juan Felipe Rendón y Jacobo Portela Posada, con base en los resultados del veintisiete y treinta de octubre de dos mil veinticinco.">
+  <h1>Problemáticas Sociales</h1>
+  <h2>Encuesta en Nuestra Comunidad</h2>
+  <p><strong>Expositores:</strong> Juan Felipe Rendón y Jacobo Portela Posada<br/>Basado en los resultados del 27 y 30 de octubre de 2025</p>
+</div>
+
+<div class="slide" id="slide2" data-narracion="El objetivo del proyecto es identificar los principales problemas sociales de la comunidad, analizar cómo los estudiantes perciben la educación, el ambiente y la convivencia, y reflexionar sobre el papel de los jóvenes en la transformación social.">
+  <h1>Objetivo del Proyecto</h1>
+  <ul>
+    <li>Identificar los principales problemas sociales de nuestra comunidad.</li>
+    <li>Analizar cómo los estudiantes perciben la educación, el ambiente y la convivencia.</li>
+    <li>Reflexionar sobre el papel de los jóvenes en la transformación social.</li>
+  </ul>
+</div>
+
+<div class="slide" id="slide3" data-narracion="Estos son los resultados generales. Se observa que la pobreza y el cambio climático son las problemáticas más reconocidas por los estudiantes, seguidas por la educación y la discriminación.">
+  <h1>Resultados Generales</h1>
+  <h2>Percepción de los Estudiantes</h2>
+  <div class="chart-container"><canvas id="chartGeneral"></canvas></div>
+</div>
+
+<div class="slide" id="slide4" data-narracion="En cuanto al compromiso ambiental, se evidencia que el treinta y cinco por ciento de los estudiantes participa activamente en el cuidado del entorno, mientras que el cincuenta y cinco por ciento no realiza acciones concretas y un diez por ciento no sabe qué responder.">
+  <h1>Compromiso Ambiental</h1>
+  <h2>¿Cómo percibimos el cuidado del entorno?</h2>
+  <div class="chart-container"><canvas id="chartAmbiente"></canvas></div>
+</div>
+
+<div class="slide" id="slide5" data-narracion="En conclusión, la pobreza, la violencia y la drogadicción son las problemáticas más frecuentes. La educación es percibida como regular, existe discriminación, y se requiere fortalecer la educación ciudadana y ambiental desde la escuela.">
+  <h1>Conclusiones</h1>
+  <ul>
+    <li>La <b>pobreza</b>, la <b>violencia</b> y la <b>drogadicción</b> son las problemáticas más frecuentes.</li>
+    <li>La mayoría califica la educación como <b>regular</b> y reconoce presencia de <b>discriminación</b>.</li>
+    <li>Existe <b>bajo compromiso ambiental</b>, aunque muchos desean participar en el cambio.</li>
+    <li>Es clave fortalecer la <b>educación ciudadana y ambiental</b> desde la escuela.</li>
+  </ul>
+</div>
+
+<script>
+let currentSlide = 1;
+const totalSlides = 5;
+let narracionActiva = true;
+
+// Mostrar slide y narrar si procede
+function showSlide(n){
+  const slides = document.querySelectorAll(".slide");
+  slides.forEach((s,i)=>s.classList.toggle("active", i===n-1));
+  if(narracionActiva){ narrar(slides[n-1].dataset.narracion); }
+}
+
+// Navegación
+function nextSlide(){ currentSlide = currentSlide < totalSlides ? currentSlide+1 : 1; showSlide(currentSlide); }
+function prevSlide(){ currentSlide = currentSlide > 1 ? currentSlide-1 : totalSlides; showSlide(currentSlide); }
+
+// Narración
+function narrar(texto){
+  speechSynthesis.cancel();
+  if(!texto || !narracionActiva) return;
+  const msg = new SpeechSynthesisUtterance(texto);
+  msg.lang = "es-ES";
+  msg.rate = 0.95;
+  msg.pitch = 1;
+  msg.volume = 1;
+  speechSynthesis.speak(msg);
+}
+
+// Botón narración: clic = toggle mute/unmute, long-press = reiniciar
+const muteBtn = document.getElementById("muteBtn");
+const hint = document.getElementById("hint");
+let pressTimer = null;
+
+function showHint(text){
+  hint.textContent = text;
+  hint.classList.add("show");
+  setTimeout(()=>hint.classList.remove("show"), 900);
+}
+
+// Clic corto → alternar silencio
+muteBtn.addEventListener("click", () => {
+  // si venimos de un long-press, evitamos doble acción
+  if (muteBtn.dataset.longpress === "1"){ 
+    muteBtn.dataset.longpress = "0";
+    return;
+  }
+  narracionActiva = !narracionActiva;
+  speechSynthesis.cancel();
+  if(narracionActiva){
+    muteBtn.textContent = "🔊";
+    muteBtn.classList.remove("silenciado");
+    const slide = document.querySelector(`#slide${currentSlide}`);
+    narrar(slide.dataset.narracion);
+    showHint("Narración activada");
+  }else{
+    muteBtn.textContent = "🔇";
+    muteBtn.classList.add("silenciado");
+    showHint("Narración silenciada");
+  }
+});
+
+// Mantener presionado ~600 ms → reinicia narración (si está activa)
+muteBtn.addEventListener("mousedown", () => {
+  pressTimer = setTimeout(() => {
+    if(narracionActiva){
+      speechSynthesis.cancel();
+      const slide = document.querySelector(`#slide${currentSlide}`);
+      narrar(slide.dataset.narracion);
+      muteBtn.dataset.longpress = "1";
+      showHint("Narración reiniciada");
+    }
+  }, 600);
+});
+["mouseup","mouseleave","touchend","touchcancel"].forEach(ev=>{
+  muteBtn.addEventListener(ev, ()=> clearTimeout(pressTimer));
+});
+
+// Teclado
+document.addEventListener("keydown",(e)=>{ if(e.key==="ArrowRight") nextSlide(); if(e.key==="ArrowLeft") prevSlide(); });
+
+// Gráficos
+window.onload = function(){
+  const ctx1 = document.getElementById("chartGeneral").getContext("2d");
+  new Chart(ctx1,{
+    type:"bar",
+    data:{labels:["Educación de calidad","Discriminación","Pobreza","Violencia","Cambio climático"],
+      datasets:[{label:"% de estudiantes que respondieron 'Sí'",
+        data:[60,50,80,40,90],
+        backgroundColor:["#4CAF50","#F44336","#FF9800","#2196F3","#9C27B0"]}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},title:{display:true,text:"Percepción general de problemáticas sociales"}},
+      scales:{y:{beginAtZero:true,max:100,title:{display:true,text:"Porcentaje (%)"}}}
+  }});
+
+  const ctx2 = document.getElementById("chartAmbiente").getContext("2d");
+  new Chart(ctx2,{
+    type:"doughnut",
+    data:{labels:["35% Participa activamente","55% No participa","10% No sabe"],
+      datasets:[{data:[35,55,10],backgroundColor:["#66BB6A","#EF5350","#FFEB3B"]}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{title:{display:true,text:"Participación en actividades ambientales"}}}
+  });
+
+  // narración inicial
+  narrar(document.querySelector(`#slide${currentSlide}`).dataset.narracion);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conecta los Ángulos 🎯</title>
+
+
+<style>
+
+/* ===== Distribución tipo "imagen 2" ===== */
+body{
+  background: radial-gradient(circle at center, #001, #000);
+  color:#fff;
+  font-family:"Press Start 2P", monospace;
+  text-align:center;
+  padding:20px;
+}
+h1{
+  color:#00ffcc;
+  text-shadow:2px 2px #ff00ff;
+  margin-bottom:10px;
+}
+
+/* 3 columnas: Nombres (fija) + 2 columnas de definiciones */
+.contenedor{
+  display:grid;
+  grid-template-columns: 300px 1fr 1fr;   /* ← 3 columnas */
+  gap: 28px 48px;                         /* filas / columnas */
+  align-items:start;
+  justify-content:center;
+  max-width: 1200px;
+  margin: 30px auto 0;
+}
+
+/* Columna izquierda (nombres) en vertical */
+#nombres{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+/* Bloque de definiciones en 2 columnas */
+#definiciones{
+  grid-column: 2 / span 2;                         /* ocupa las 2 columnas derechas */
+  display:grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 22px 40px;
+}
+
+/* Tarjetas (nombres) */
+.tarjeta{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  background:#111;
+  border:2px solid #00ffcc;
+  color:#fff;
+  cursor:grab;
+  transition:transform .2s, box-shadow .3s;
+}
+.tarjeta:hover{ transform:scale(1.05); }
+.tarjeta.correcta{
+  background:#00ff99; color:#000; border-color:#00ff99; box-shadow:0 0 15px #00ffcc; cursor:default;
+}
+.tarjeta.incorrecta{ background:#ff0033; border-color:#ff0066; }
+
+/* Zonas (definiciones) */
+.zona{
+  width:100%;
+  min-height:80px;
+  padding:14px;
+  border:2px dashed #ff00ff;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  color:#ff00ff;
+  text-align:center;
+  transition:all .3s;
+}
+.zona.over{ background:rgba(255,255,255,.1); border-color:#00ffcc; }
+.zona.correcta{ border:2px solid #00ff99; background:rgba(0,255,153,.15); color:#00ffaa; box-shadow:0 0 10px #00ffaa; }
+
+/* Botón y extras (opcionales) */
+button{
+  background:#00ffcc; color:#000; border:none; border-radius:6px; padding:10px 20px;
+  font-family:"Press Start 2P"; font-size:12px; cursor:pointer; margin-top:20px;
+}
+button:hover{ background:#00ffaa; }
+#resultado{ margin-top:25px; color:#00ffcc; }
+#astronauta{ font-size:60px; margin-top:15px; opacity:0; transition:opacity 1s; animation:flotar 3s infinite ease-in-out; }
+@keyframes flotar{ 0%{transform:translateY(0)} 50%{transform:translateY(-15px)} 100%{transform:translateY(0)} }
+
+/* —— Responsivo —— */
+@media (max-width: 1100px){
+  .contenedor{ grid-template-columns: 260px 1fr 1fr; gap:24px 32px; }
+  #definiciones{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+}
+@media (max-width: 900px){
+  .contenedor{ grid-template-columns: 1fr; gap:24px; }
+  #definiciones{ grid-column:auto; grid-template-columns: 1fr; }
+}
+
+
+/* Asegura cálculo con padding y evita desbordes */
+.tarjeta,
+.zona { box-sizing: border-box; }
+
+/* La tarjeta ocupa el 100% del ancho disponible de la zona sin salirse */
+.zona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  overflow: hidden;              /* recorta cualquier píxel rebelde */
+}
+
+/* Cuando la tarjeta está dentro de la zona, que no escale ni tenga márgenes */
+.zona .tarjeta {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  border-radius: 14px;
+  transform: none !important;   /* desactiva el hover-scale */
+}
+
+/* Mantén el hover-scale solo en la columna de nombres */
+#nombres .tarjeta:hover { transform: scale(1.05); }
+
+/* Opcional: estiliza la correcta sin cambiar su tamaño */
+.tarjeta.correcta {
+  cursor: default;
+  box-shadow: 0 0 15px #00ffcc;
+}
+
+
+</style>
+
+</head>
+<body>
+
+<h1>🎯 Conecta los Ángulos</h1>
+<p>Arrastra cada nombre hacia su definición y dibujo correcto.</p>
+
+<div class="contenedor">
+  <div class="columna" id="nombres"></div>
+  <div class="columna" id="definiciones"></div>
+</div>
+
+<p id="resultado"></p>
+<div id="astronauta">👨‍🚀</div>
+<button onclick="reiniciar()">🔁 Reiniciar</button>
+
+<script>
+const datos = [
+  { nombre: "Ángulo nulo", definicion: "Sus lados coinciden, mide 0° ⚫" },
+  { nombre: "Ángulo agudo", definicion: "Tiene una apertura menor que 90° 🔺" },
+  { nombre: "Ángulo recto", definicion: "Su apertura es exactamente de 90° ⊾" },
+  { nombre: "Ángulo obtuso", definicion: "Su apertura está entre 90° y 180° 🔹" },
+  { nombre: "Ángulo llano", definicion: "Su apertura es exactamente de 180° ➖" },
+  { nombre: "Ángulo cóncavo", definicion: "Su apertura está entre 180° y 360° 🟣" },
+  { nombre: "Ángulo completo", definicion: "Mide 360°, una vuelta completa ⭕" }
+];
+
+
+let aciertos = 0;
+
+function narrar(texto) {
+  // Reemplaza el símbolo ° por la palabra "grados" para que se pronuncie correctamente
+  let textoLimpio = texto
+    .replace(/°/g, " grados")
+    // Elimina emojis o símbolos gráficos
+    .replace(/[^\p{L}\p{N}\s,.!?áéíóúÁÉÍÓÚüÜñÑ]/gu, '')
+    // Limpia espacios dobles
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  const voz = new SpeechSynthesisUtterance(textoLimpio);
+  voz.lang = "es-ES";
+  voz.pitch = 0.9;
+  voz.rate = 0.9;
+  speechSynthesis.speak(voz);
+}
+
+function soltar(e) {
+  e.preventDefault();
+  const nombreArrastrado = e.dataTransfer.getData("text");
+  const zona = e.target;
+  zona.classList.remove("over");
+
+  const angulo = datos.find(d => d.nombre === nombreArrastrado);
+  const correcto = zona.dataset.nombre === nombreArrastrado;
+
+  // 🧠 Narraciones pedagógicas personalizadas
+  const narraciones = {
+    "Ángulo nulo": "Es un ángulo nulo. Sus lados coinciden y mide cero grados.",
+    "Ángulo agudo": "Es un ángulo agudo. Tiene una apertura menor que noventa grados.",
+    "Ángulo recto": "Correcto. Es un ángulo recto. Su apertura es exactamente de noventa grados.",
+    "Ángulo obtuso": "Muy bien. Es un ángulo obtuso, mayor que noventa y menor que ciento ochenta grados.",
+    "Ángulo llano": "Exacto. Es un ángulo llano, mide ciento ochenta grados y forma una línea recta.",
+    "Ángulo cóncavo": "Excelente. Es un ángulo cóncavo, su medida es mayor a ciento ochenta grados pero menor a trescientos sesenta.",
+    "Ángulo completo": "Perfecto. Es un ángulo completo, mide trescientos sesenta grados, una vuelta entera."
+  };
+
+  if (correcto) {
+    zona.innerHTML = `
+      <div class='tarjeta correcta'>${nombreArrastrado}</div>
+      <p style="margin-top:5px;font-size:10px;color:#000">
+        ${angulo.definicion}
+      </p>`;
+    zona.style.border = "2px solid #00ff99";
+    zona.style.background = "#00ff99";
+    zona.style.color = "#000";
+
+    const tarjeta = document.querySelector(`[data-nombre='${nombreArrastrado}']`);
+    if (tarjeta) tarjeta.remove();
+
+    aciertos++;
+    narrar(narraciones[nombreArrastrado]);
+  } else {
+    zona.classList.add("incorrecta");
+    const nombreCorrecto = zona.dataset.nombre;
+    const textoError = `Ese no es el ángulo correcto. Aquí debía ir ${nombreCorrecto}.`;
+    narrar(textoError);
+    setTimeout(() => zona.classList.remove("incorrecta"), 800);
+  }
+
+  if (aciertos === datos.length) {
+    document.getElementById("resultado").textContent = "🌟 ¡Has conectado todos los ángulos!";
+    document.getElementById("astronauta").style.opacity = 1;
+    narrar("¡Excelente trabajo! Has aprendido los tipos de ángulos. Misión completada.");
+  }
+}
+
+function iniciarJuego(){
+  const nombres = document.getElementById("nombres");
+  const defs = document.getElementById("definiciones");
+  nombres.innerHTML = "";
+  defs.innerHTML = "";
+  aciertos = 0;
+
+  const mezclados = [...datos].sort(()=>Math.random()-0.5);
+  const mezcladasDefs = [...datos].sort(()=>Math.random()-0.5);
+
+  mezclados.forEach(d=>{
+    const div = document.createElement("div");
+    div.textContent = d.nombre;
+    div.classList.add("tarjeta");
+    div.draggable = true;
+    div.dataset.nombre = d.nombre;
+    div.ondragstart = e => e.dataTransfer.setData("text", d.nombre);
+    nombres.appendChild(div);
+  });
+
+  mezcladasDefs.forEach(d=>{
+    const zona = document.createElement("div");
+    zona.classList.add("zona");
+    zona.dataset.nombre = d.nombre;
+    zona.textContent = d.definicion;
+    zona.ondragover = e => e.preventDefault();
+    zona.ondragenter = e => zona.classList.add("over");
+    zona.ondragleave = e => zona.classList.remove("over");
+    zona.ondrop = soltar;
+    defs.appendChild(zona);
+  });
+}
+
+
+function reiniciar(){
+  document.getElementById("astronauta").style.opacity = 0;
+  document.getElementById("resultado").textContent = "";
+  iniciarJuego();
+}
+
+window.onload = iniciarJuego;
+</script>
+
+
+</body>
+</html>

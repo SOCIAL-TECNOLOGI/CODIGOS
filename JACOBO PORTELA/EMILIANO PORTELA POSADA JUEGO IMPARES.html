@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Juego Espacial – Emiliano captura impares</title>
+<style>
+  body{
+    background:#000;
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+  }
+  .wrap{
+    position:relative;
+    display:inline-block;
+  }
+  canvas{
+    border:3px solid #22d3ee;
+    background:radial-gradient(circle at center, #0f172a 0%, #000 100%);
+    display:block;
+  }
+  #btnReiniciar{
+    position:absolute;
+    top:14px;
+    right:14px;
+    z-index:10;
+    border:none;
+    border-radius:12px;
+    padding:10px 16px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    background:#22d3ee;
+    color:#082f49;
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button id="btnReiniciar">↺ Reiniciar</button>
+  <canvas id="game" width="980" height="620"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const btnReiniciar = document.getElementById("btnReiniciar");
+
+// =========================
+// VOZ
+// =========================
+let vozActiva = true;
+
+function hablar(texto){
+  if(!vozActiva || !("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(texto);
+  u.lang = "es-CO";
+  u.rate = 0.92;
+  u.pitch = 1;
+  speechSynthesis.speak(u);
+}
+
+// =========================
+// JUGADOR
+// =========================
+const nave = {
+  x: canvas.width/2 - 35,
+  y: canvas.height - 90,
+  w: 70,
+  h: 70,
+  speed: 9
+};
+
+// =========================
+// ESTADO
+// =========================
+let score = 0;
+let vidas = 10;
+let mensajeTemporal = "";
+let mensajeColor = "#fff";
+let mensajeFrames = 0;
+
+const META_IMPARES = 300;
+let imparesGenerados = 0;
+let juegoTerminado = false;
+
+// =========================
+// CONTROLES
+// =========================
+let keys = { left:false, right:false, space:false };
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "ArrowLeft") keys.left = true;
+  if(e.key === "ArrowRight") keys.right = true;
+
+  if(e.key === " " && !keys.space){
+    keys.space = true;
+    disparar();
+  }
+
+  if(e.key.toLowerCase() === "v"){
+    vozActiva = !vozActiva;
+    mostrarMensaje(vozActiva ? "VOZ ACTIVADA" : "VOZ DESACTIVADA", "#22d3ee");
+  }
+});
+
+document.addEventListener("keyup", e=>{
+  if(e.key === "ArrowLeft") keys.left = false;
+  if(e.key === "ArrowRight") keys.right = false;
+  if(e.key === " ") keys.space = false;
+});
+
+// =========================
+// SONIDOS
+// =========================
+let audioCtx;
+function beep(freq, type, dur){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = 0.001;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    g.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start();
+    o.stop(t + dur);
+  }catch(err){}
+}
+function sonidoBien(){ beep(760, "triangle", 0.25); }
+function sonidoMal(){ beep(180, "sawtooth", 0.35); }
+function sonidoDisparo(){ beep(420, "square", 0.10); }
+
+// =========================
+// BALAS
+// =========================
+let balas = [];
+
+function disparar(){
+  if(juegoTerminado) return;
+  balas.push({
+    x: nave.x + nave.w/2 - 4,
+    y: nave.y - 10,
+    w: 8,
+    h: 18,
+    v: -10
+  });
+  sonidoDisparo();
+}
+
+// =========================
+// NÚMEROS
+// =========================
+let numeros = [];
+let frameSpawn = 0;
+
+function esImpar(n){
+  const ultimo = Math.abs(n) % 10;
+  return [1,3,5,7,9].includes(ultimo);
+}
+
+function generarNumeroAleatorio(){
+  const tipo = Math.random();
+
+  if(tipo < 0.34){
+    return Math.floor(Math.random() * 10); // 1 dígito: 0 a 9
+  } else if(tipo < 0.67){
+    return Math.floor(Math.random() * 90) + 10; // 2 dígitos
+  } else {
+    return Math.floor(Math.random() * 900) + 100; // 3 dígitos
+  }
+}
+
+function crearNumero(){
+  const valor = generarNumeroAleatorio();
+  const impar = esImpar(valor);
+
+  if(impar){
+    imparesGenerados++;
+  }
+
+  return {
+    valor,
+    x: Math.random() * (canvas.width - 120) + 60,
+    y: -60,
+    r: valor < 10 ? 34 : (valor < 100 ? 38 : 44),
+    v: 0.7 + Math.random()*0.8, // más despacio
+    color: impar ? "#22c55e" : "#ef4444",
+    impar
+  };
+}
+
+// =========================
+// MENSAJES
+// =========================
+function mostrarMensaje(texto, color="#fff", frames=95){
+  mensajeTemporal = texto;
+  mensajeColor = color;
+  mensajeFrames = frames;
+}
+
+// =========================
+// REINICIAR
+// =========================
+function reiniciarJuego(){
+  score = 0;
+  vidas = 10;
+  numeros = [];
+  balas = [];
+  frameSpawn = 0;
+  imparesGenerados = 0;
+  juegoTerminado = false;
+  nave.x = canvas.width/2 - 35;
+  nave.y = canvas.height - 90;
+  mostrarMensaje("JUEGO REINICIADO", "#22d3ee", 110);
+  hablar("Juego reiniciado");
+}
+btnReiniciar.addEventListener("click", reiniciarJuego);
+
+// =========================
+// DIBUJAR NAVE
+// =========================
+function drawNave(x, y, w, h){
+  ctx.save();
+  ctx.translate(x + w/2, y + h/2);
+  ctx.scale(w/70, h/70);
+
+  ctx.fillStyle = "#3b82f6";
+  ctx.beginPath();
+  ctx.moveTo(0, -32);
+  ctx.lineTo(24, 24);
+  ctx.lineTo(-24, 24);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.beginPath();
+  ctx.arc(0, -10, 10, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = "#60a5fa";
+  ctx.fillRect(-34, 0, 16, 10);
+  ctx.fillRect(18, 0, 16, 10);
+
+  ctx.restore();
+}
+
+// =========================
+// DIBUJAR NÚMERO
+// =========================
+function drawNumero(obj){
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.fillStyle = obj.color;
+  ctx.arc(obj.x, obj.y, obj.r, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,.5)";
+  ctx.stroke();
+
+  ctx.fillStyle = "#fff";
+  ctx.font = obj.valor < 10 ? "bold 28px Arial" : (obj.valor < 100 ? "bold 24px Arial" : "bold 20px Arial");
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(obj.valor, obj.x, obj.y + 1);
+
+  ctx.restore();
+}
+
+function drawBala(b){
+  ctx.fillStyle = "#facc15";
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+}
+
+// =========================
+// HUD
+// =========================
+function drawHUD(){
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 24px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("Puntos: " + score, 20, 35);
+  ctx.fillText("Vidas: " + "❤️".repeat(Math.max(0, vidas)), 20, 68);
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.font = "bold 24px Arial";
+  ctx.fillText(`Impares que han caído: ${imparesGenerados} / ${META_IMPARES}`, 20, 102);
+
+  ctx.fillStyle = "#facc15";
+  ctx.font = "bold 22px Arial";
+  ctx.fillText("Captura solo números impares", 20, 136);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "18px Arial";
+  ctx.fillText("Un número es impar si termina en 1, 3, 5, 7 o 9", 20, 164);
+  ctx.fillText("También pueden ser de 1, 2 o 3 dígitos", 20, 190);
+  ctx.fillText("Tecla V: activar/desactivar voz", 20, 216);
+
+  if(mensajeFrames > 0){
+    ctx.fillStyle = mensajeColor;
+    ctx.font = "bold 34px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(mensajeTemporal, canvas.width/2, 78);
+    mensajeFrames--;
+  }
+
+  if(juegoTerminado){
+    ctx.fillStyle = "rgba(0,0,0,.65)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 52px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("¡META CUMPLIDA!", canvas.width/2, canvas.height/2 - 34);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 28px Arial";
+    ctx.fillText(`Cayeron ${META_IMPARES} números impares`, canvas.width/2, canvas.height/2 + 12);
+    ctx.fillText(`Puntaje final: ${score}`, canvas.width/2, canvas.height/2 + 52);
+
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = "24px Arial";
+    ctx.fillText("Pulsa Reiniciar para volver a jugar", canvas.width/2, canvas.height/2 + 96);
+  }
+}
+
+// =========================
+// COLISIONES
+// =========================
+function choqueRectCirculo(rect, cir){
+  const distX = Math.abs(cir.x - rect.x - rect.w/2);
+  const distY = Math.abs(cir.y - rect.y - rect.h/2);
+
+  if(distX > (rect.w/2 + cir.r)) return false;
+  if(distY > (rect.h/2 + cir.r)) return false;
+
+  if(distX <= (rect.w/2)) return true;
+  if(distY <= (rect.h/2)) return true;
+
+  const dx = distX - rect.w/2;
+  const dy = distY - rect.h/2;
+  return (dx*dx + dy*dy <= (cir.r * cir.r));
+}
+
+// =========================
+// LÓGICA
+// =========================
+function actualizar(){
+  if(juegoTerminado) return;
+
+  if(keys.left) nave.x -= nave.speed;
+  if(keys.right) nave.x += nave.speed;
+  nave.x = Math.max(0, Math.min(canvas.width - nave.w, nave.x));
+
+  // generación más pausada
+  frameSpawn++;
+  if(frameSpawn >= 65 && imparesGenerados < META_IMPARES){
+    frameSpawn = 0;
+    numeros.push(crearNumero());
+  }
+
+  balas.forEach(b => b.y += b.v);
+  balas = balas.filter(b => b.y > -30);
+
+  numeros.forEach(n => {
+    n.y += n.v;
+
+    // si toca nave
+    if(choqueRectCirculo(nave, n)){
+      if(n.impar){
+        score += 10;
+        sonidoBien();
+        mostrarMensaje("¡BIEN! " + n.valor + " TERMINA EN " + (n.valor % 10), "#22c55e");
+        hablar(`${n.valor} es impar porque termina en ${n.valor % 10}`);
+      } else {
+        vidas--;
+        sonidoMal();
+        mostrarMensaje("NO. " + n.valor + " TERMINA EN " + (n.valor % 10), "#ef4444");
+        hablar(`${n.valor} es par porque termina en ${n.valor % 10}`);
+      }
+      n.y = canvas.height + 100;
+    }
+
+    // si se escapa
+    if(n.y > canvas.height + 50){
+      if(n.impar){
+        vidas--;
+        sonidoMal();
+        mostrarMensaje("SE ESCAPÓ UN IMPAR: " + n.valor, "#ef4444");
+        hablar(`Se escapó el número impar ${n.valor}`);
+      }
+      n.y = canvas.height + 100;
+    }
+  });
+
+  balas.forEach(b => {
+    numeros.forEach(n => {
+      if(
+        b.x < n.x + n.r &&
+        b.x + b.w > n.x - n.r &&
+        b.y < n.y + n.r &&
+        b.y + b.h > n.y - n.r
+      ){
+        b.y = -100;
+
+        if(n.impar){
+          score += 15;
+          sonidoBien();
+          mostrarMensaje("¡SÍ! " + n.valor + " ES IMPAR", "#22c55e");
+          hablar(`${n.valor} es impar porque termina en ${n.valor % 10}`);
+        } else {
+          if(score > 0) score -= 5;
+          sonidoMal();
+          mostrarMensaje(n.valor + " ES PAR", "#f97316");
+          hablar(`${n.valor} es par porque termina en ${n.valor % 10}`);
+        }
+
+        n.y = canvas.height + 100;
+      }
+    });
+  });
+
+  numeros = numeros.filter(n => n.y < canvas.height + 80);
+
+  // el juego termina solo cuando ya cayeron 300 impares
+  // y además ya no quedan números en pantalla
+  if(imparesGenerados >= META_IMPARES && numeros.length === 0){
+    juegoTerminado = true;
+    hablar("Muy bien Emiliano. Cayeron trescientos números impares");
+  }
+}
+
+// =========================
+// DIBUJO
+// =========================
+function draw(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for(let i=0; i<40; i++){
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.fillRect((i*97)%canvas.width, (i*53)%canvas.height, 2, 2);
+  }
+
+  drawNave(nave.x, nave.y, nave.w, nave.h);
+  numeros.forEach(drawNumero);
+  balas.forEach(drawBala);
+  drawHUD();
+}
+
+// =========================
+// LOOP
+// =========================
+function loop(){
+  actualizar();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// inicio
+setTimeout(() => {
+  hablar("Emiliano, captura solo números impares. Recuerda: son los que terminan en 1, 3, 5, 7 o 9");
+  mostrarMensaje("META: DEJAR CAER 300 IMPARES", "#22d3ee", 140);
+}, 500);
+
+loop();
+</script>
+</body>
+</html>

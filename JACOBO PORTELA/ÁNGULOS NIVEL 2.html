@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explorador de Ángulos 🎯</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #001, #000);
+    color: white;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #00ffcc;
+    text-shadow: 2px 2px #ff00ff;
+  }
+
+  #canvas {
+    background: #111;
+    border: 3px solid #00ffcc;
+    border-radius: 10px;
+    margin: 20px auto;
+    display: block;
+  }
+
+  .opciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  button {
+    background: #00ffcc;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: "Press Start 2P";
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #00ffaa;
+  }
+
+  #resultado {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #ff00ff;
+  }
+
+  #astronauta {
+    font-size: 60px;
+    margin-top: 15px;
+    opacity: 0;
+    transition: opacity 1s;
+    animation: flotar 3s infinite ease-in-out;
+  }
+
+  @keyframes flotar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<h1>🧭 Explorador de Ángulos</h1>
+<p>Observa el ángulo y selecciona su tipo correcto.</p>
+
+<canvas id="canvas" width="350" height="350"></canvas>
+
+<div class="opciones">
+  <button onclick="verificar('nulo')">Nulo</button>
+  <button onclick="verificar('agudo')">Agudo</button>
+  <button onclick="verificar('recto')">Recto</button>
+  <button onclick="verificar('obtuso')">Obtuso</button>
+  <button onclick="verificar('llano')">Llano</button>
+  <button onclick="verificar('concavo')">Cóncavo</button>
+  <button onclick="verificar('completo')">Completo</button>
+</div>
+
+<p id="resultado"></p>
+
+<div id="astronauta">👨‍🚀</div>
+<button onclick="nuevoAngulo()">🔁 Siguiente Ángulo</button>
+
+<script>
+let angulo = 0;
+
+function narrar(texto){
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 0.9;
+  voz.rate = 0.9;
+  speechSynthesis.speak(voz);
+}
+
+function dibujarAngulo(ctx, angulo){
+  ctx.clearRect(0,0,350,350);
+  ctx.save();
+  ctx.translate(175, 175);
+
+  // Línea base
+  ctx.strokeStyle = "#888";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(140, 0);
+  ctx.stroke();
+
+  // Lado base
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(120, 0);
+  ctx.stroke();
+
+  // Lado móvil
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(120 * Math.cos(-angulo * Math.PI/180), 120 * Math.sin(-angulo * Math.PI/180));
+  ctx.strokeStyle = "#00ffcc";
+  ctx.stroke();
+
+  // Arco del ángulo
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#ff00ff";
+  ctx.arc(0, 0, 50, 0, -angulo * Math.PI/180, true);
+  ctx.stroke();
+
+  // Punto vértice
+  ctx.beginPath();
+  ctx.arc(0, 0, 4, 0, 2*Math.PI);
+  ctx.fillStyle = "#ffff00";
+  ctx.fill();
+
+  // Texto
+  ctx.font = "14px monospace";
+  ctx.fillStyle = "#00ffcc";
+  ctx.fillText(`${angulo}°`, 60, -20);
+
+  ctx.restore();
+}
+
+function tipoDeAngulo(a){
+  if (a === 0) return "nulo";
+  if (a === 90) return "recto";
+  if (a === 180) return "llano";
+  if (a === 360) return "completo";
+  if (a > 0 && a < 90) return "agudo";
+  if (a > 90 && a < 180) return "obtuso";
+  if (a > 180 && a < 360) return "concavo";
+}
+
+function nuevoAngulo(){
+  const ctx = document.getElementById("canvas").getContext("2d");
+  angulo = Math.floor(Math.random() * 361);
+  dibujarAngulo(ctx, angulo);
+  document.getElementById("resultado").textContent = "";
+  document.getElementById("astronauta").style.opacity = 0;
+  narrar(`Observa el ángulo de ${angulo} grados. ¿Qué tipo crees que es?`);
+}
+
+function verificar(respuesta){
+  const correcto = tipoDeAngulo(angulo);
+  const resultado = document.getElementById("resultado");
+  const astro = document.getElementById("astronauta");
+
+  if(respuesta === correcto){
+    resultado.textContent = `✅ Correcto, es un ángulo ${correcto} de ${angulo}°`;
+    resultado.style.color = "#00ff99";
+    astro.style.opacity = 1;
+    narrar(`Excelente, es un ángulo ${correcto} de ${angulo} grados.`);
+  } else {
+    resultado.textContent = `❌ Incorrecto, era un ángulo ${correcto} (${angulo}°)`;
+    resultado.style.color = "#ff0066";
+    astro.style.opacity = 0;
+
+    if(correcto === "concavo")
+      narrar(`Casi, pero no. Era un ángulo cóncavo, mayor de ciento ochenta y menor de trescientos sesenta grados.`);
+    else
+      narrar(`Casi, pero no. Era un ángulo ${correcto}.`);
+  }
+}
+
+window.onload = nuevoAngulo;
+</script>
+
+</body>
+</html>

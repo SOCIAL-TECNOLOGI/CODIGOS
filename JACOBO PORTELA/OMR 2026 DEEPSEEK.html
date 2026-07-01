@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Lector OMR · Detección de óvalos · SITE–RUTA LATAM</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: #f0f2f5;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 24px;
+      transition: all 0.2s;
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 4px 0;
+      color: #0f3b5c;
+    }
+    .sub {
+      color: #4b6b8f;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .panel {
+      flex: 1;
+      min-width: 260px;
+    }
+    .full-width {
+      width: 100%;
+    }
+    button, .btn {
+      background: #1e4a76;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button:hover {
+      background: #0f3b5c;
+      transform: scale(0.98);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #1e4a76;
+      color: #1e4a76;
+    }
+    .btn-outline:hover {
+      background: #e6f0f9;
+      transform: none;
+    }
+    input, textarea, select {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      width: 100%;
+      font-size: 0.85rem;
+      background: white;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .image-preview {
+      background: #eef2f5;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 280px;
+    }
+    canvas, img {
+      max-width: 100%;
+      border-radius: 12px;
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    th, td {
+      padding: 10px 6px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f8fafc;
+      color: #2c3e66;
+    }
+    .badge {
+      display: inline-block;
+      background: #e6f0ff;
+      border-radius: 40px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .correcto {
+      background: #d1fae5;
+      color: #166534;
+    }
+    .incorrecto {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .highlight {
+      background: #fff3cd;
+      font-weight: bold;
+    }
+    @media (max-width: 800px) {
+      body { padding: 12px; }
+      .grid { flex-direction: column; }
+    }
+    .log-area {
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      max-height: 200px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+  <!-- OpenCV.js (necesario para detección robusta de marcadores) -->
+  <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>🔍 Lector OMR · Detección de óvalos</h1>
+    <div class="sub">SITE–RUTA LATAM — motor de lectura de respuestas con corrección de perspectiva y análisis por oscuridad</div>
+    <div class="flex-row">
+      <div style="flex:2">
+        <label>📸 Imagen de la hoja de respuestas (foto o escaneo)</label>
+        <input type="file" id="inputImage" accept="image/jpeg,image/png,image/jpg">
+      </div>
+      <div style="flex:1">
+        <label>📊 Clave de respuestas (Excel o CSV)</label>
+        <input type="file" id="keyFile" accept=".xlsx, .xls, .csv">
+      </div>
+      <div style="flex:1">
+        <button id="btnProcesar">⚙️ Procesar hoja</button>
+      </div>
+    </div>
+    <div class="flex-row" style="margin-top: 12px;">
+      <div style="flex:1">
+        <label>🎯 Modo de detección</label>
+        <select id="detectMode">
+          <option value="markers">Automático (marcadores + homografía)</option>
+          <option value="fixed">Coordenadas fijas (sin homografía, centrado perfecto)</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label>✏️ Clave manual (separada por comas, ej: A,B,C,D,...)</label>
+        <input type="text" id="manualKey" placeholder="Ej: A,C,B,D,E,A,B,C,D,E,A,B,C,D,E,A,B,C,D,E">
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel card">
+      <h3>🖼️ Imagen original + marcadores detectados</h3>
+      <div class="image-preview" style="justify-content: center;">
+        <canvas id="canvasOriginal" width="600" height="400" style="max-width:100%; height:auto; background:#eef2f5;"></canvas>
+      </div>
+    </div>
+    <div class="panel card">
+      <h3>🔄 Imagen rectificada (óvalos ubicados)</h3>
+      <div class="image-preview">
+        <canvas id="canvasRect" width="600" height="400" style="max-width:100%; height:auto; background:#eef2f5;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📋 Resultados de la lectura</h3>
+    <div id="resultadosLectura">
+      <div class="log-area">⏳ Esperando imagen y procesamiento...</div>
+    </div>
+    <div class="flex-row" style="justify-content: space-between; margin-top: 16px;">
+      <div><strong id="resumenScore">-</strong></div>
+      <button id="btnExportar" class="btn-outline">📎 Exportar resultados (CSV)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========  CONFIGURACIÓN DE LA HOJA OMR ==========
+  // Parámetros canónicos (según SVG 210x297 mm)
+  const PAGE_MM = { width: 210, height: 297 };
+  const PAGE_SIZE = { width: 210, height: 297 };
+
+  // Posiciones canónicas de marcadores (en mm, sistema de referencia)
+  const MARKERS_MM = [
+    { id: 'L1', x: 48, y: 79  },  // izquierda superior
+    { id: 'L2', x: 48, y: 137 },  // izquierda medio
+    { id: 'L3', x: 48, y: 196 },  // izquierda inferior
+    { id: 'R1', x: 158, y: 79 },  // derecha superior
+    { id: 'R2', x: 158, y: 137 }, // derecha medio
+    { id: 'R3', x: 158, y: 196 }  // derecha inferior
+  ];
+
+  // Burbujas: 20 preguntas, 2 columnas, 5 opciones (A,B,C,D,E)
+  // Coordenadas en mm relativas a la hoja (origen esquina superior izquierda)
+  const BUBBLES_MM = [];
+  const LEFT_X = 70;
+  const RIGHT_X = 129;
+  const START_Y = 113;
+  const STEP_Y = 8.5;
+  const OPTION_SPACING = 5.5; // entre A,B,C,D,E
+  const BUBBLE_RADIUS_MM = 2.1;
+
+  for (let row = 0; row < 10; row++) {
+    const y = START_Y + row * STEP_Y;
+    // columna izquierda (preguntas 1..10)
+    for (let opt = 0; opt < 5; opt++) {
+      const x = LEFT_X + (opt - 2) * OPTION_SPACING;
+      BUBBLES_MM.push({ pregunta: row + 1, columna: 'L', opcion: String.fromCharCode(65+opt), x, y, radio: BUBBLE_RADIUS_MM });
+    }
+    // columna derecha (preguntas 11..20)
+    for (let opt = 0; opt < 5; opt++) {
+      const x = RIGHT_X + (opt - 2) * OPTION_SPACING;
+      BUBBLES_MM.push({ pregunta: row + 11, columna: 'R', opcion: String.fromCharCode(65+opt), x, y, radio: BUBBLE_RADIUS_MM });
+    }
+  }
+
+  // Helper: pasar coordenadas mm a píxeles para un ancho/alto dado
+  function mmToPx(mmX, mmY, imgW, imgH) {
+    return {
+      x: (mmX / PAGE_MM.width) * imgW,
+      y: (mmY / PAGE_MM.height) * imgH
+    };
+  }
+
+  // Variables globales
+  let cvReady = false;
+  let imagenOriginalCanvas = document.getElementById('canvasOriginal');
+  let ctxOriginal = imagenOriginalCanvas.getContext('2d');
+  let canvasRect = document.getElementById('canvasRect');
+  let ctxRect = canvasRect.getContext('2d');
+  let currentImageData = null;    // imagen cargada (HTMLImageElement)
+  let resultados = [];             // respuestas detectadas {pregunta, opcionDetectada, gris}
+  let claveRespuestas = [];        // array de letras (opciones correctas)
+  let opcionesLetras = ['A','B','C','D','E'];
+
+  // Carga de imagen
+  document.getElementById('inputImage').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        currentImageData = img;
+        // Mostrar en canvas original dimensiones ajustadas
+        const maxW = 600;
+        const scale = maxW / img.width;
+        imagenOriginalCanvas.width = maxW;
+        imagenOriginalCanvas.height = img.height * scale;
+        ctxOriginal.drawImage(img, 0, 0, imagenOriginalCanvas.width, imagenOriginalCanvas.height);
+        // Limpiar resultados previos
+        resultados = [];
+        document.getElementById('resultadosLectura').innerHTML = '<div class="log-area">✅ Imagen cargada. Presiona "Procesar hoja".</div>';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Carga de clave de respuestas (archivo Excel o CSV)
+  document.getElementById('keyFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      // Detectar extensión y usar SheetJS si es necesario
+      if (file.name.endsWith('.csv')) {
+        const text = await file.text();
+        const lines = text.split(/\r?\n/);
+        for (let line of lines) {
+          const parts = line.split(',').map(s => s.trim().toUpperCase());
+          if (parts.length >= 20) {
+            claveRespuestas = parts.slice(0,20);
+            break;
+          }
+        }
+      } else {
+        // usar XLSX
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        for (let row of rows) {
+          const candidatos = row.filter(cell => typeof cell === 'string' && /^[A-E]$/i.test(cell));
+          if (candidatos.length >= 20) {
+            claveRespuestas = candidatos.slice(0,20).map(s => s.toUpperCase());
+            break;
+          }
+        }
+      }
+      if (claveRespuestas.length === 20) {
+        document.getElementById('manualKey').value = claveRespuestas.join(',');
+        actualizarResumen();
+      } else {
+        alert('El archivo no contiene 20 respuestas válidas (A-E).');
+      }
+    } catch(err) { console.error(err); alert('Error al leer la clave'); }
+  });
+
+  document.getElementById('manualKey').addEventListener('input', (e) => {
+    const txt = e.target.value;
+    const partes = txt.split(/[ ,]+/).filter(p => /^[A-Ea-e]$/.test(p));
+    if (partes.length >= 20) {
+      claveRespuestas = partes.slice(0,20).map(p => p.toUpperCase());
+      actualizarResumen();
+    } else {
+      claveRespuestas = [];
+      actualizarResumen();
+    }
+  });
+
+  function actualizarResumen() {
+    if (!resultados.length) return;
+    const totalPreguntas = resultados.length;
+    let aciertos = 0;
+    if (claveRespuestas.length === totalPreguntas) {
+      aciertos = resultados.filter(r => r.opcionDetectada && r.opcionDetectada === claveRespuestas[r.pregunta-1]).length;
+    }
+    document.getElementById('resumenScore').innerHTML = `✅ Total preguntas: ${totalPreguntas} | 🎯 Aciertos: ${aciertos} / ${totalPreguntas} (${Math.round(aciertos/totalPreguntas*100)}%)`;
+  }
+
+  function mostrarResultadosTabla(respuestas, clave) {
+    let html = `<table><thead><tr><th>Pregunta</th><th>Detectada</th><th>Gris (osc)</th><th>Clave</th><th>Estado</th></tr></thead><tbody>`;
+    for (let i=0; i<respuestas.length; i++) {
+      const r = respuestas[i];
+      const correcta = (clave.length === respuestas.length && r.opcionDetectada === clave[i]);
+      const estadoClass = correcta ? 'correcto' : (r.opcionDetectada ? 'incorrecto' : '');
+      const estadoText = correcta ? '✓ Acierto' : (r.opcionDetectada ? '✗ Error' : '∅ No detectada');
+      html += `<tr>
+        <td>${r.pregunta}</td>
+        <td><span class="badge">${r.opcionDetectada || '?'}</span></td>
+        <td>${r.gris !== undefined ? r.gris.toFixed(0) : '-'}</td>
+        <td>${clave[i] || '-'}</td>
+        <td class="${estadoClass}">${estadoText}</td>
+      </tr>`;
+    }
+    html += `</tbody></table>`;
+    document.getElementById('resultadosLectura').innerHTML = html;
+    actualizarResumen();
+  }
+
+  // ---------------  DETECCIÓN DE MARCADORES Y HOMOGRAFÍA (OpenCV) ---------------
+  async function procesarConOpenCV(imgElement, warpWidth=800, warpHeight=1130) {
+    if (!cvReady) throw new Error('OpenCV.js no terminó de cargar');
+    let src = cv.imread(imgElement);
+    let gray = new cv.Mat();
+    let binary = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.threshold(gray, binary, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+    let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3,3));
+    cv.morphologyEx(binary, binary, cv.MORPH_CLOSE, kernel);
+    cv.morphologyEx(binary, binary, cv.MORPH_OPEN, kernel);
+    kernel.delete();
+
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(binary, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    let markerCenters = [];
+    for (let i=0; i<contours.size(); i++) {
+      let cnt = contours.get(i);
+      let area = cv.contourArea(cnt);
+      if (area < 70 || area > 4000) continue;
+      let peri = cv.arcLength(cnt, true);
+      let approx = new cv.Mat();
+      cv.approxPolyDP(cnt, approx, 0.04 * peri, true);
+      if (approx.rows >= 4 && approx.rows <= 8 && cv.isContourConvex(approx)) {
+        let rect = cv.boundingRect(cnt);
+        let aspect = rect.width / rect.height;
+        if (aspect > 0.7 && aspect < 1.35) {
+          let M = cv.moments(cnt);
+          if (M.m00 !== 0) {
+            let cx = M.m10 / M.m00;
+            let cy = M.m01 / M.m00;
+            markerCenters.push({ x: cx, y: cy, area: area });
+          }
+        }
+      }
+      approx.delete();
+      cnt.delete();
+    }
+    contours.delete(); hierarchy.delete();
+    gray.delete(); binary.delete();
+
+    if (markerCenters.length < 6) {
+      src.delete();
+      throw new Error(`Solo se detectaron ${markerCenters.length} marcadores (se requieren 6). Ajusta iluminación o usa modo coordenadas fijas.`);
+    }
+    // ordenar por y luego clasificar izquierda/derecha
+    let left = markerCenters.filter(m => m.x < src.cols/2).sort((a,b)=>a.y-b.y);
+    let right = markerCenters.filter(m => m.x >= src.cols/2).sort((a,b)=>a.y-b.y);
+    if (left.length < 3 || right.length < 3) {
+      src.delete();
+      throw new Error('No se pudo agrupar marcadores correctamente (izq/der)');
+    }
+    let selected = [
+      { id:'L1', x:left[0].x, y:left[0].y },
+      { id:'L2', x:left[1].x, y:left[1].y },
+      { id:'L3', x:left[2].x, y:left[2].y },
+      { id:'R1', x:right[0].x, y:right[0].y },
+      { id:'R2', x:right[1].x, y:right[1].y },
+      { id:'R3', x:right[2].x, y:right[2].y }
+    ];
+    // puntos destino normalizados
+    let dstPts = MARKERS_MM.map(m => ({ x: (m.x / PAGE_MM.width) * warpWidth, y: (m.y / PAGE_MM.height) * warpHeight }));
+    let srcPoints = selected.map(m => [m.x, m.y]).flat();
+    let dstPoints = dstPts.map(m => [m.x, m.y]).flat();
+    let srcMat = cv.matFromArray(6, 1, cv.CV_32FC2, srcPoints);
+    let dstMat = cv.matFromArray(6, 1, cv.CV_32FC2, dstPoints);
+    let homography = cv.findHomography(srcMat, dstMat, cv.RANSAC, 3.0);
+    let warped = new cv.Mat();
+    cv.warpPerspective(src, warped, homography, new cv.Size(warpWidth, warpHeight), cv.INTER_LINEAR);
+    srcMat.delete(); dstMat.delete(); homography.delete(); src.delete();
+    return warped;
+  }
+
+  // Leer burbujas de imagen rectificada (warped, canvas de OpenCV)
+  function leerBurbujasDesdeWarped(warpedMat) {
+    let gray = new cv.Mat();
+    cv.cvtColor(warpedMat, gray, cv.COLOR_RGBA2GRAY);
+    const width = warpedMat.cols;
+    const height = warpedMat.rows;
+
+    let respuestas = [];
+    // Precalcular coordenadas de cada burbuja en píxeles (mm -> px)
+    for (let b of BUBBLES_MM) {
+      const centro = mmToPx(b.x, b.y, width, height);
+      const radioPX = (b.radio / PAGE_MM.width) * width;
+      let intensidad = 0;
+      let cnt = 0;
+      for (let dy = -radioPX; dy <= radioPX; dy++) {
+        for (let dx = -radioPX; dx <= radioPX; dx++) {
+          if (dx*dx + dy*dy <= radioPX*radioPX) {
+            let xp = Math.round(centro.x + dx);
+            let yp = Math.round(centro.y + dy);
+            if (xp>=0 && xp<width && yp>=0 && yp<height) {
+              let pixel = gray.ucharAt(yp, xp);
+              intensidad += pixel;
+              cnt++;
+            }
+          }
+        }
+      }
+      let grisPromedio = cnt > 0 ? intensidad / cnt : 255;
+      respuestas.push({ pregunta: b.pregunta, opcion: b.opcion, intensidad: grisPromedio, x: centro.x, y: centro.y });
+    }
+    gray.delete();
+    // Por pregunta: seleccionar la opción con menor intensidad (más oscura)
+    const porPregunta = new Map();
+    for (let item of respuestas) {
+      if (!porPregunta.has(item.pregunta)) porPregunta.set(item.pregunta, []);
+      porPregunta.get(item.pregunta).push(item);
+    }
+    const resultadosLectura = [];
+    for (let [preg, opciones] of porPregunta) {
+      let mejor = opciones.reduce((a,b) => (a.intensidad < b.intensidad ? a : b));
+      let umbral = 180; // si el más oscuro está muy claro (>180), se considera no marcado
+      let opcionFinal = (mejor.intensidad < 180) ? mejor.opcion : null;
+      resultadosLectura.push({
+        pregunta: preg,
+        opcionDetectada: opcionFinal,
+        gris: mejor.intensidad,
+        oscuridad: mejor.intensidad
+      });
+    }
+    resultadosLectura.sort((a,b)=>a.pregunta-b.pregunta);
+    return resultadosLectura;
+  }
+
+  // Mostrar warped en canvas
+  function mostrarWarpedCanvas(warpedMat, canvas) {
+    cv.imshow(canvas, warpedMat);
+  }
+
+  // Modo coordenadas fijas: se asume imagen bien alineada, no requiere OpenCV
+  function procesarCoordenadasFijas(imgElement) {
+    const canvasTemp = document.createElement('canvas');
+    const ctx = canvasTemp.getContext('2d');
+    canvasTemp.width = imgElement.width;
+    canvasTemp.height = imgElement.height;
+    ctx.drawImage(imgElement, 0, 0);
+    const imgData = ctx.getImageData(0, 0, canvasTemp.width, canvasTemp.height);
+    const width = canvasTemp.width, height = canvasTemp.height;
+    // Obtener intensidad en cada burbuja
+    let respuestasRaw = [];
+    for (let b of BUBBLES_MM) {
+      const centro = mmToPx(b.x, b.y, width, height);
+      const radioPX = (b.radio / PAGE_MM.width) * width;
+      let sum = 0, cnt = 0;
+      for (let dy = -radioPX; dy <= radioPX; dy++) {
+        for (let dx = -radioPX; dx <= radioPX; dx++) {
+          if (dx*dx+dy*dy <= radioPX*radioPX) {
+            let xp = Math.round(centro.x + dx);
+            let yp = Math.round(centro.y + dy);
+            if (xp>=0 && xp<width && yp>=0 && yp<height) {
+              let idx = (yp * width + xp) * 4;
+              let gris = 0.299*imgData.data[idx] + 0.587*imgData.data[idx+1] + 0.114*imgData.data[idx+2];
+              sum += gris;
+              cnt++;
+            }
+          }
+        }
+      }
+      let promedio = cnt>0 ? sum/cnt : 255;
+      respuestasRaw.push({ pregunta: b.pregunta, opcion: b.opcion, intensidad: promedio });
+    }
+    const porPregunta = new Map();
+    for (let r of respuestasRaw) {
+      if (!porPregunta.has(r.pregunta)) porPregunta.set(r.pregunta, []);
+      porPregunta.get(r.pregunta).push(r);
+    }
+    const resultadosFijos = [];
+    for (let [preg, opts] of porPregunta) {
+      let mejor = opts.reduce((a,b)=>a.intensidad<b.intensidad?a:b);
+      let detectada = (mejor.intensidad < 180) ? mejor.opcion : null;
+      resultadosFijos.push({
+        pregunta: preg,
+        opcionDetectada: detectada,
+        gris: mejor.intensidad
+      });
+    }
+    resultadosFijos.sort((a,b)=>a.pregunta-b.pregunta);
+    // Dibujar la imagen original en el canvas de previsualización (opcional)
+    ctxOriginal.drawImage(imgElement, 0, 0, imagenOriginalCanvas.width, imagenOriginalCanvas.height);
+    return resultadosFijos;
+  }
+
+  // Evento principal
+  document.getElementById('btnProcesar').addEventListener('click', async () => {
+    if (!currentImageData) { alert('Carga una imagen primero.'); return; }
+    const modo = document.getElementById('detectMode').value;
+    try {
+      if (modo === 'markers' && cvReady) {
+        document.getElementById('resultadosLectura').innerHTML = '<div class="log-area">🔍 Detectando marcadores y corrigiendo perspectiva ...</div>';
+        const warp = await procesarConOpenCV(currentImageData, 800, 1130);
+        const lecturas = leerBurbujasDesdeWarped(warp);
+        resultados = lecturas;
+        mostrarWarpedCanvas(warp, canvasRect);
+        warp.delete();
+        // Dibujar original con marcadores detectados (opcional)
+        let srcDraw = cv.imread(currentImageData);
+        let grayTemp = new cv.Mat();
+        cv.cvtColor(srcDraw, grayTemp, cv.COLOR_RGBA2GRAY);
+        let binTemp = new cv.Mat();
+        cv.threshold(grayTemp, binTemp, 0, 255, cv.THRESH_BINARY_INV+cv.THRESH_OTSU);
+        let contoursTemp = new cv.MatVector();
+        let hierTemp = new cv.Mat();
+        cv.findContours(binTemp, contoursTemp, hierTemp, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+        for (let i=0; i<contoursTemp.size(); i++) {
+          let cnt = contoursTemp.get(i);
+          let area = cv.contourArea(cnt);
+          if (area>80 && area<4000) {
+            let rect = cv.boundingRect(cnt);
+            if (rect.width/rect.height>0.7 && rect.width/rect.height<1.35) {
+              let M = cv.moments(cnt);
+              if (M.m00 !==0) {
+                let cx = M.m10/M.m00;
+                let cy = M.m01/M.m00;
+                cv.circle(srcDraw, new cv.Point(cx,cy), 8, new cv.Scalar(0,255,0,255), 2);
+              }
+            }
+          }
+          cnt.delete();
+        }
+        cv.imshow(imagenOriginalCanvas, srcDraw);
+        srcDraw.delete(); grayTemp.delete(); binTemp.delete(); contoursTemp.delete(); hierTemp.delete();
+      } else {
+        document.getElementById('resultadosLectura').innerHTML = '<div class="log-area">📐 Usando coordenadas fijas (imagen bien alineada).</div>';
+        resultados = procesarCoordenadasFijas(currentImageData);
+        canvasRect.getContext('2d').clearRect(0,0, canvasRect.width, canvasRect.height);
+        canvasRect.width = 1;
+      }
+      // Mostrar resultados en tabla
+      if (resultados.length) {
+        let clave = claveRespuestas.length === 20 ? claveRespuestas : [];
+        mostrarResultadosTabla(resultados, clave);
+      } else {
+        document.getElementById('resultadosLectura').innerHTML = '<div class="log-area">⚠️ No se pudo leer ninguna respuesta. Revisa la imagen o usa el modo automático.</div>';
+      }
+    } catch(err) {
+      console.error(err);
+      document.getElementById('resultadosLectura').innerHTML = `<div class="log-area" style="color:#b91c1c;">❌ Error: ${err.message}</div>`;
+    }
+  });
+
+  function onOpenCvReady() {
+    cvReady = true;
+    console.log('OpenCV.js listo');
+    document.getElementById('btnProcesar').disabled = false;
+  }
+  if (!cvReady && typeof cv !== 'undefined') cv.onRuntimeInitialized = () => { cvReady=true; };
+  // habilitar botón si cv ya cargó
+  setTimeout(() => { if (window.cv && cv.Mat) { cvReady=true; } }, 1000);
+
+  // Exportar CSV
+  document.getElementById('btnExportar').addEventListener('click', () => {
+    if (!resultados.length) { alert('No hay resultados para exportar'); return; }
+    let csv = "Pregunta,Respuesta detectada,Nivel gris,Clave correcta,Acierto\n";
+    for (let i=0; i<resultados.length; i++) {
+      const r = resultados[i];
+      const clave = (claveRespuestas.length === resultados.length) ? claveRespuestas[i] : '';
+      const acierto = (clave && r.opcionDetectada === clave) ? 'Sí' : 'No';
+      csv += `${r.pregunta},${r.opcionDetectada || ''},${r.gris?.toFixed(1) || ''},${clave},${acierto}\n`;
+    }
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `omr_lectura_${new Date().toISOString().slice(0,19)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+</script>
+</body>
+</html>

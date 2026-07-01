@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exposición: Prótesis médicas (22 diapositivas)</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0b1220;color:#e8eefc}
+    .deck{max-width:1000px;margin:0 auto;padding:16px}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:700}
+    #prevBtn,#nextBtn{background:#1f2a44;color:#e8eefc}
+    #muteBtn{background:#ffd54a;color:#1a1a1a}
+    #muteBtn.silenciado{background:#ff7676;color:#1a1a1a}
+    .hint{opacity:0;transform:translateY(-6px);transition:.2s;background:#15203b;border:1px solid #2b3a63;
+      padding:8px 10px;border-radius:10px;font-size:13px}
+    .hint.show{opacity:1;transform:translateY(0)}
+
+    .slide{
+      display:none;
+      background:linear-gradient(180deg,#0f1a33,#0b1220);
+      border:1px solid #23345c;
+      border-radius:18px;
+      padding:22px;
+      min-height:520px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .slide.active{display:block}
+    .kicker{color:#9fb3ff;font-weight:700;letter-spacing:.3px;margin-bottom:6px}
+    h1,h2{margin:6px 0 10px}
+    p,li{line-height:1.5}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:stretch}
+    .card{
+      background:#0f1a33;
+      border:1px solid #23345c;
+      border-radius:16px;
+      padding:14px;
+    }
+    .tag{display:inline-block;background:#1f2a44;border:1px solid #2b3a63;color:#cfe0ff;
+      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;margin:6px 6px 0 0}
+    .chartBox{position:relative;height:260px}
+    .footer{margin-top:14px;color:#a9b7da;font-size:12px}
+    .small{font-size:14px;color:#cfe0ff}
+    .twoCols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .center{display:flex;align-items:center;justify-content:center;text-align:center}
+  </style>
+</head>
+
+<body>
+  <div class="deck">
+    <div class="topbar">
+      <div>
+        <div class="kicker">Exposición escolar</div>
+        <div class="small">Tema: Prótesis médicas · 22 diapositivas · Flechas ← → para navegar</div>
+      </div>
+      <div class="controls">
+        <button id="prevBtn">⬅️ Anterior</button>
+        <button id="nextBtn">Siguiente ➡️</button>
+        <button id="muteBtn" data-longpress="0">🔊</button>
+      </div>
+    </div>
+    <div id="hint" class="hint"></div>
+
+    <!-- =========================
+         SLIDES (22)
+    ========================== -->
+
+    <section class="slide active" id="slide1" data-narracion="Hola. Hoy voy a explicar qué son las prótesis médicas, para qué sirven, qué tipos existen y cómo la tecnología las hace cada vez más útiles.">
+      <div class="center">
+        <div>
+          <h1>🦾 Prótesis médicas</h1>
+          <p class="small">Qué son · Tipos · Materiales · Tecnología · Impacto en la vida</p>
+          <div class="footer">Jacobo · Exposición</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide2" data-narracion="Una prótesis médica es un dispositivo artificial que reemplaza una parte del cuerpo que falta o que no funciona bien. Su objetivo es ayudar a recuperar funciones y mejorar la calidad de vida.">
+      <div class="grid">
+        <div class="card">
+          <h2>1) ¿Qué es una prótesis?</h2>
+          <ul>
+            <li><b>Dispositivo artificial</b> que reemplaza una parte del cuerpo.</li>
+            <li>Puede ayudar a <b>moverse</b>, <b>realizar actividades</b> y a veces mejorar la <b>apariencia</b>.</li>
+            <li>Se adapta a cada persona (tamaño, forma, uso y comodidad).</li>
+          </ul>
+          <span class="tag">Salud</span><span class="tag">Ingeniería</span><span class="tag">Rehabilitación</span>
+        </div>
+        <div class="card">
+          <h2>Ejemplos</h2>
+          <ul>
+            <li>Prótesis de pierna o brazo</li>
+            <li>Prótesis dental</li>
+            <li>Prótesis de cadera o rodilla</li>
+            <li>Válvulas cardíacas artificiales</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide3" data-narracion="Las prótesis se usan por accidentes, enfermedades o cuando una persona nace con una diferencia corporal. También pueden ser necesarias por amputaciones médicas para proteger la salud.">
+      <div class="grid">
+        <div class="card">
+          <h2>2) ¿Por qué se usan?</h2>
+          <ul>
+            <li>Accidentes</li>
+            <li>Enfermedades</li>
+            <li>Malformaciones congénitas</li>
+            <li>Amputaciones médicas</li>
+          </ul>
+          <p class="footer">Idea clave: no es “solo estética”; es funcionalidad e independencia.</p>
+        </div>
+        <div class="card">
+          <h2>Gráfico (ejemplo)</h2>
+          <div class="chartBox"><canvas id="chartCausas"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide4" data-narracion="Existen prótesis externas, que se pueden quitar y poner, y prótesis internas, que se colocan mediante cirugía dentro del cuerpo.">
+      <div class="twoCols">
+        <div class="card">
+          <h2>3) Tipos principales</h2>
+          <p><b>Prótesis externas:</b> se quitan y se ponen.</p>
+          <ul>
+            <li>Prótesis de pierna</li>
+            <li>Prótesis de brazo / mano</li>
+            <li>Prótesis dental removible</li>
+          </ul>
+          <p><b>Prótesis internas:</b> se implantan con cirugía.</p>
+          <ul>
+            <li>Cadera, rodilla</li>
+            <li>Implante dental</li>
+            <li>Válvula cardíaca</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Distribución (ejemplo)</h2>
+          <div class="chartBox"><canvas id="chartTipos"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide5" data-narracion="Las prótesis de miembro superior reemplazan mano, muñeca, antebrazo o brazo. Algunas son mecánicas y otras usan sensores para moverse.">
+      <div class="card">
+        <h2>4) Prótesis de brazo y mano</h2>
+        <ul>
+          <li><b>Mecánicas:</b> funcionan con movimientos del cuerpo (correas, palancas).</li>
+          <li><b>Mioeléctricas:</b> usan señales musculares para abrir y cerrar la mano.</li>
+          <li>Objetivo: agarrar, sostener, manipular objetos, escribir, etc.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide6" data-narracion="Las prótesis de pierna ayudan a caminar, correr y mantener equilibrio. Incluyen pie protésico, rodilla protésica y un encaje que se ajusta al cuerpo.">
+      <div class="card">
+        <h2>5) Prótesis de pierna</h2>
+        <ul>
+          <li>Partes: <b>encaje</b> (contacto con el cuerpo), <b>pilar</b>, <b>rodilla</b> (si aplica), <b>pie</b>.</li>
+          <li>Algunas rodillas tienen <b>microprocesadores</b> para mejorar estabilidad.</li>
+          <li>Se ajustan según actividad: caminar, deporte, uso escolar.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide7" data-narracion="Las prótesis dentales reemplazan dientes perdidos. Pueden ser removibles o fijas, como los implantes. Ayudan a masticar, hablar y sonreír.">
+      <div class="card">
+        <h2>6) Prótesis dentales</h2>
+        <ul>
+          <li><b>Removibles:</b> se retiran para limpieza.</li>
+          <li><b>Fijas:</b> coronas, puentes.</li>
+          <li><b>Implantes:</b> un soporte que se integra al hueso y sostiene el diente artificial.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide8" data-narracion="Los implantes ortopédicos reemplazan articulaciones como cadera o rodilla. Reducen dolor y mejoran movimiento. Se diseñan para resistir fuerzas del cuerpo.">
+      <div class="card">
+        <h2>7) Prótesis internas ortopédicas</h2>
+        <ul>
+          <li>Cadera, rodilla, hombro.</li>
+          <li>Materiales resistentes y compatibles con el cuerpo.</li>
+          <li>Requieren rehabilitación para recuperar movilidad.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide9" data-narracion="Una prótesis debe ser resistente, liviana y segura para el cuerpo. Por eso se usan materiales como titanio, fibra de carbono y siliconas médicas.">
+      <div class="card">
+        <h2>8) Materiales más usados</h2>
+        <ul>
+          <li><b>Titanio:</b> fuerte y liviano (muy usado en implantes).</li>
+          <li><b>Fibra de carbono:</b> liviana y resistente (prótesis deportivas).</li>
+          <li><b>Plásticos técnicos:</b> para piezas externas.</li>
+          <li><b>Silicona médica:</b> para comodidad y apariencia.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide10" data-narracion="El encaje es la parte que conecta la prótesis con el cuerpo. Debe quedar bien ajustado: si queda suelto o muy apretado, causa dolor o heridas.">
+      <div class="card">
+        <h2>9) La parte clave: el encaje</h2>
+        <ul>
+          <li>Debe distribuir la presión.</li>
+          <li>Se fabrica a medida (molde o escaneo).</li>
+          <li>Se ajusta con pruebas y cambios.</li>
+        </ul>
+        <p class="footer">Idea clave para Jacobo: “una prótesis no es ‘un objeto’, es un sistema personalizado”.</p>
+      </div>
+    </section>
+
+    <section class="slide" id="slide11" data-narracion="Algunas prótesis usan sensores y microprocesadores. Esto permite movimientos más naturales, mejor equilibrio y menos esfuerzo al caminar o agarrar.">
+      <div class="card">
+        <h2>10) Prótesis inteligentes</h2>
+        <ul>
+          <li>Sensores + microprocesador para ajustar movimiento.</li>
+          <li>Mejoran estabilidad y seguridad.</li>
+          <li>Se adaptan a diferentes terrenos.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide12" data-narracion="La impresión 3D permite crear piezas personalizadas más rápido y a menor costo en algunos casos. También ayuda a prototipar diseños y hacer ajustes.">
+      <div class="card">
+        <h2>11) Impresión 3D</h2>
+        <ul>
+          <li>Personalización rápida (tamaño y forma).</li>
+          <li>Prototipos para probar comodidad.</li>
+          <li>Puede ayudar en accesibilidad, según el contexto.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide13" data-narracion="El proceso general incluye valoración, diseño a medida, fabricación, pruebas y rehabilitación. La terapia es parte esencial para aprender a usar la prótesis.">
+      <div class="card">
+        <h2>12) Proceso para obtener una prótesis</h2>
+        <ol>
+          <li>Valoración médica y funcional.</li>
+          <li>Diseño y medida (molde o escaneo).</li>
+          <li>Fabricación.</li>
+          <li>Pruebas y ajustes.</li>
+          <li>Rehabilitación y entrenamiento.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="slide" id="slide14" data-narracion="Rehabilitación significa entrenar el cuerpo: equilibrio, fuerza, coordinación y confianza. Sin rehabilitación, incluso una gran prótesis puede usarse mal.">
+      <div class="card">
+        <h2>13) Rehabilitación</h2>
+        <ul>
+          <li>Aprender a caminar o agarrar objetos.</li>
+          <li>Fortalecer músculos y mejorar equilibrio.</li>
+          <li>Entrenar actividades cotidianas: subir escaleras, cargar objetos, etc.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide15" data-narracion="Las prótesis pueden cambiar la vida: más independencia, más participación en escuela y deportes, y mejor bienestar. También pueden mejorar autoestima.">
+      <div class="grid">
+        <div class="card">
+          <h2>14) Impacto en la vida</h2>
+          <ul>
+            <li>Independencia</li>
+            <li>Participación escolar y social</li>
+            <li>Actividad física y deporte</li>
+            <li>Bienestar y autoestima</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Gráfico (ejemplo)</h2>
+          <div class="chartBox"><canvas id="chartImpacto"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide16" data-narracion="Hay retos importantes: costo, mantenimiento, acceso a rehabilitación y ajustes periódicos. Además, el crecimiento en niños requiere cambios frecuentes.">
+      <div class="card">
+        <h2>15) Retos y dificultades</h2>
+        <ul>
+          <li>Costo y acceso</li>
+          <li>Mantenimiento y repuestos</li>
+          <li>Rehabilitación disponible</li>
+          <li>En niños: crecimiento → cambios más frecuentes</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide17" data-narracion="También hay preguntas éticas: equidad, diseño inclusivo y respeto por la diversidad corporal. La tecnología debe servir para incluir, no para excluir.">
+      <div class="card">
+        <h2>16) Ética e inclusión</h2>
+        <ul>
+          <li>Equidad: que más personas puedan acceder.</li>
+          <li>Diseño inclusivo: comodidad y seguridad.</li>
+          <li>Respeto por la diversidad corporal.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide18" data-narracion="Las prótesis requieren muchos profesionales: médicos, fisioterapeutas, terapeutas ocupacionales, ingenieros biomédicos y técnicos en ortopedia.">
+      <div class="card">
+        <h2>17) ¿Quiénes las hacen y las ajustan?</h2>
+        <ul>
+          <li>Medicina (cirugía / rehabilitación)</li>
+          <li>Fisioterapia y terapia ocupacional</li>
+          <li>Ingeniería biomédica</li>
+          <li>Técnicos ortopédicos-protesistas</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide19" data-narracion="Ejemplo: una prótesis de pierna para caminar debe ser cómoda, segura y ajustarse al cuerpo. Después, la persona entrena con terapia para recuperar equilibrio y confianza.">
+      <div class="card">
+        <h2>18) Mini caso (para contar en clase)</h2>
+        <p>
+          “Una persona recibe una prótesis de pierna. Al principio camina con apoyo.
+          Luego, con rehabilitación, aprende a distribuir el peso, subir escalones y caminar en diferentes suelos.”
+        </p>
+        <p class="footer">Puedes cambiarlo por un ejemplo que Jacobo conozca (deporte, escuela, etc.).</p>
+      </div>
+    </section>
+
+    <section class="slide" id="slide20" data-narracion="Ahora hagamos un mini quiz. Pregunta uno: cuál es la diferencia entre una prótesis externa y una interna. Pregunta dos: por qué el encaje es tan importante.">
+      <div class="card">
+        <h2>19) Mini Quiz</h2>
+        <ol>
+          <li>¿Qué diferencia hay entre prótesis externa e interna?</li>
+          <li>¿Por qué el encaje es clave en una prótesis de pierna?</li>
+          <li>Menciona dos materiales comunes en prótesis.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="slide" id="slide21" data-narracion="En resumen, una prótesis es tecnología al servicio de la vida. Combina salud, diseño e ingeniería para mejorar la independencia y la participación de las personas.">
+      <div class="card">
+        <h2>20) Conclusión</h2>
+        <ul>
+          <li>Reemplazan partes del cuerpo y mejoran funciones.</li>
+          <li>Hay prótesis externas e internas.</li>
+          <li>La tecnología moderna las hace más seguras y funcionales.</li>
+          <li>La rehabilitación es parte esencial del éxito.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="slide22" data-narracion="Gracias por escuchar. Si tienen preguntas, con gusto respondo.">
+      <div class="card">
+        <h2>21) Gracias 🙌</h2>
+        <p class="small">¿Preguntas?</p>
+        <div class="footer">
+          22) Referencias (al final del documento escrito o en el cuaderno)
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+  /* ================================
+     CONFIGURACIÓN Y VARIABLES GLOBALES
+  =================================== */
+  let currentSlide = 1;
+  const totalSlides = 22;
+  let narracionActiva = true;
+
+  /* ================================
+     FUNCIÓN PARA MOSTRAR SLIDES
+  =================================== */
+  function showSlide(n) {
+    const slides = document.querySelectorAll(".slide");
+    slides.forEach((s, i) => s.classList.toggle("active", i === n - 1));
+    if (narracionActiva) narrar(slides[n - 1].dataset.narracion);
+  }
+
+  /* ================================
+     NAVEGACIÓN ENTRE SLIDES
+  =================================== */
+  function nextSlide() {
+    currentSlide = currentSlide < totalSlides ? currentSlide + 1 : 1;
+    showSlide(currentSlide);
+  }
+
+  function prevSlide() {
+    currentSlide = currentSlide > 1 ? currentSlide - 1 : totalSlides;
+    showSlide(currentSlide);
+  }
+
+  /* ================================
+     NARRACIÓN DE VOZ
+  =================================== */
+  function narrar(texto) {
+    speechSynthesis.cancel();
+    if (!texto || !narracionActiva) return;
+    const msg = new SpeechSynthesisUtterance(texto);
+    msg.lang = "es-ES";
+    msg.rate = 0.95;
+    msg.pitch = 1;
+    msg.volume = 1;
+    speechSynthesis.speak(msg);
+  }
+
+  /* ================================
+     BOTÓN DE NARRACIÓN
+  =================================== */
+  const muteBtn = document.getElementById("muteBtn");
+  const hint = document.getElementById("hint");
+  let pressTimer = null;
+
+  function showHint(text) {
+    hint.textContent = text;
+    hint.classList.add("show");
+    setTimeout(() => hint.classList.remove("show"), 900);
+  }
+
+  // Clic corto → alternar silencio
+  muteBtn.addEventListener("click", () => {
+    if (muteBtn.dataset.longpress === "1") {
+      muteBtn.dataset.longpress = "0";
+      return;
+    }
+    narracionActiva = !narracionActiva;
+    speechSynthesis.cancel();
+    if (narracionActiva) {
+      muteBtn.textContent = "🔊";
+      muteBtn.classList.remove("silenciado");
+      const slide = document.querySelector(`#slide${currentSlide}`);
+      narrar(slide.dataset.narracion);
+      showHint("Narración activada");
+    } else {
+      muteBtn.textContent = "🔇";
+      muteBtn.classList.add("silenciado");
+      showHint("Narración silenciada");
+    }
+  });
+
+  // Mantener presionado → reinicia narración
+  muteBtn.addEventListener("mousedown", () => {
+    pressTimer = setTimeout(() => {
+      if (narracionActiva) {
+        speechSynthesis.cancel();
+        const slide = document.querySelector(`#slide${currentSlide}`);
+        narrar(slide.dataset.narracion);
+        muteBtn.dataset.longpress = "1";
+        showHint("Narración reiniciada");
+      }
+    }, 600);
+  });
+  ["mouseup", "mouseleave", "touchend", "touchcancel"].forEach(ev => {
+    muteBtn.addEventListener(ev, () => clearTimeout(pressTimer));
+  });
+
+  /* ================================
+     NAVEGACIÓN CON TECLADO
+  =================================== */
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") nextSlide();
+    if (e.key === "ArrowLeft") prevSlide();
+  });
+
+  /* ================================
+     BOTONES ANTERIOR / SIGUIENTE
+  =================================== */
+  document.getElementById("nextBtn").addEventListener("click", nextSlide);
+  document.getElementById("prevBtn").addEventListener("click", prevSlide);
+
+  /* ================================
+     FUNCIÓN PARA CREAR GRÁFICOS
+  =================================== */
+  function crearDona(idCanvas, etiquetas, datos, colores, titulo) {
+    const ctx = document.getElementById(idCanvas).getContext("2d");
+    new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: etiquetas,
+        datasets: [{ data: datos, backgroundColor: colores }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" },
+          title: { display: true, text: titulo }
+        }
+      }
+    });
+  }
+
+  /* ================================
+     CARGA DE GRÁFICOS AL INICIAR
+  =================================== */
+  window.onload = function () {
+    // 1) Causas (barras) - datos ejemplo
+    const ctxCausas = document.getElementById("chartCausas").getContext("2d");
+    new Chart(ctxCausas, {
+      type: "bar",
+      data: {
+        labels: ["Accidentes", "Enfermedades", "Congénitas", "Amputación médica"],
+        datasets: [{
+          label: "Ejemplo (no es dato oficial)",
+          data: [45, 30, 15, 10],
+          backgroundColor: ["#4CAF50", "#FF9800", "#2196F3", "#9C27B0"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, title: { display: true, text: "Causas de uso de prótesis (ejemplo)" } },
+        scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: "Porcentaje (%)" } } }
+      }
+    });
+
+    // 2) Tipos (dona) - datos ejemplo
+    crearDona(
+      "chartTipos",
+      ["Externas", "Internas"],
+      [70, 30],
+      ["#66BB6A", "#EF5350"],
+      "Tipos de prótesis (ejemplo)"
+    );
+
+    // 3) Impacto (barras) - datos ejemplo
+    const ctxImpacto = document.getElementById("chartImpacto").getContext("2d");
+    new Chart(ctxImpacto, {
+      type: "bar",
+      data: {
+        labels: ["Independencia", "Movilidad", "Participación", "Autoestima"],
+        datasets: [{
+          label: "Nivel (ejemplo)",
+          data: [85, 90, 75, 70],
+          backgroundColor: ["#4CAF50", "#2196F3", "#FF9800", "#9C27B0"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, title: { display: true, text: "Beneficios reportados (ejemplo)" } },
+        scales: { y: { beginAtZero: true, max: 100 } }
+      }
+    });
+
+    // Narración inicial
+    narrar(document.querySelector(`#slide${currentSlide}`).dataset.narracion);
+  };
+  </script>
+</body>
+</html>

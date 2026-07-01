@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Lectura Crítica ICFES - Sistema Muscular | Aula Interactiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            padding: 20px;
+        }
+
+        #app {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* Estilos generales */
+        .card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 28px;
+            padding: 24px;
+            margin: 20px 0;
+            color: #f1f5f9;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            color: #60a5fa;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: #fbbf24;
+            margin: 15px 0 10px;
+        }
+
+        /* Modos duales */
+        .modos-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        .modo-card {
+            flex: 1;
+            min-width: 260px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modo-titulo { font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; }
+        .modo-auditivo .modo-titulo { color: #22c55e; }
+        .modo-visual .modo-titulo { color: #f97316; }
+        .btn-modo {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px 0;
+            transition: transform 0.2s;
+            color: white;
+        }
+        .btn-auditivo { background: #22c55e; }
+        .btn-auditivo:hover { background: #16a34a; transform: scale(1.02); }
+        .btn-visual { background: #f97316; }
+        .btn-visual:hover { background: #ea580c; transform: scale(1.02); }
+        .btn-stop { background: #6b7280; width: 100%; padding: 8px; border: none; border-radius: 40px; cursor: pointer; margin-top: 8px; color: white; }
+        .btn-stop:hover { background: #dc2626; }
+        .velocidad-control { margin-top: 12px; }
+        .velocidad-control input { width: 100%; cursor: pointer; }
+        .velocidad-valor { font-size: 0.9rem; font-weight: bold; color: #f97316; margin-top: 5px; }
+
+        /* Texto interactivo */
+        .texto-magico {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            font-size: 1rem;
+            line-height: 1.7;
+            text-align: justify;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .texto-magico span {
+            display: inline-block;
+            transition: all 0.08s linear;
+            border-radius: 6px;
+            padding: 2px 3px;
+            margin: 0 1px;
+            cursor: pointer;
+        }
+        .texto-magico span.auditivo-activo { background: #22c55e; color: white; transform: scale(1.03); box-shadow: 0 0 12px #22c55e; }
+        .texto-magico span.visual-activo { background: #f97316; color: white; transform: scale(1.03); box-shadow: 0 0 12px #f97316; }
+        .texto-magico span.correcta-musculo { background: linear-gradient(120deg, #fbbf24, #f59e0b); color: #0f172a; font-weight: bold; animation: pulse 0.4s ease; }
+        .texto-magico span.leida { opacity: 0.6; background: rgba(100,100,100,0.2); }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* Modal de palabras (músculos a buscar) */
+        .modal-palabras {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 28px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid #fbbf24;
+        }
+        .titulo-modal {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fbbf24;
+            text-align: center;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .palabras-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .palabra-boton {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid #3b82f6;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: bold;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .palabra-boton:hover:not(.tachada) { background: #3b82f6; transform: scale(1.05); }
+        .palabra-boton.tachada {
+            background: #2d3748;
+            border-color: #4a5568;
+            text-decoration: line-through;
+            color: #9ca3af;
+            cursor: default;
+            opacity: 0.7;
+        }
+        .contador-musculos {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        /* Evaluación */
+        .evaluacion-area {
+            margin-top: 25px;
+        }
+        .pregunta-container {
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .pregunta-texto {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .opcion {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid #3b82f6;
+        }
+        .opcion:hover { background: rgba(59, 130, 246, 0.3); transform: translateX(5px); }
+        .opcion.seleccionada { background: #3b82f6; border-left-color: #fbbf24; }
+        .feedback { margin-top: 10px; font-size: 0.85rem; padding: 8px; border-radius: 10px; }
+        .feedback.correcto { background: rgba(34,197,94,0.2); color: #86efac; }
+        .feedback.incorrecto { background: rgba(239,68,68,0.2); color: #fca5a5; }
+        .btn-enviar, .btn-siguiente {
+            background: #f97316;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .reporte-final {
+            background: #0f172a;
+            border-radius: 24px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #fbbf24;
+        }
+        .matriz {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .matriz-header { font-weight: bold; background: #334155; padding: 8px; border-radius: 8px; }
+        .matriz-celda { background: #1e293b; padding: 8px; border-radius: 8px; }
+        .nivel-logro { background: #22c55e; color: #0f172a; font-weight: bold; }
+        .indicador-modo {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        canvas.confeti {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        @media (max-width: 700px) {
+            .modos-container { flex-direction: column; }
+            .matriz { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- Módulo de lectura dual -->
+    <div class="card">
+        <h2>🧠💪 Lectura Dual: Modo Auditivo + Visual</h2>
+        <div class="modos-container">
+            <div class="modo-card modo-auditivo">
+                <div class="modo-titulo">🎧 Modo Auditivo</div>
+                <button class="btn-modo btn-auditivo" id="btnModoAuditivo">🔊 Escuchar lectura</button>
+                <button class="btn-stop" id="btnStopAuditivo">⏹️ Detener voz</button>
+                <div style="font-size:12px; margin-top:8px;">Resaltado en VERDE sincronizado</div>
+            </div>
+            <div class="modo-card modo-visual">
+                <div class="modo-titulo">👁️ Modo Visual (Lectura Rápida)</div>
+                <button class="btn-modo btn-visual" id="btnModoVisual">⚡ Iniciar visor</button>
+                <button class="btn-stop" id="btnStopVisual">⏹️ Detener visor</button>
+                <div class="velocidad-control">
+                    <label>📊 Velocidad (ppm)</label>
+                    <input type="range" id="velocidadWPM" min="120" max="700" value="250" step="10">
+                    <div class="velocidad-valor" id="wpmValor">250 palabras/min</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de palabras flotantes (músculos a buscar) -->
+        <div class="modal-palabras" id="modalPalabras">
+            <div class="titulo-modal">
+                🎯 <span>ENCUENTRA ESTOS 10 MÚSCULOS EN EL TEXTO</span> 🎯
+            </div>
+            <div id="palabrasLista" class="palabras-grid"></div>
+            <div class="contador-musculos" id="contadorMusculosModal">✅ Encontrados: 0 / 10</div>
+        </div>
+
+        <!-- Texto interactivo -->
+        <div id="textoInteractivo" class="texto-magico">
+            El cuerpo humano se mantiene en movimiento gracias a la acción coordinada de numerosos músculos que, al contraerse y relajarse, permiten desde los movimientos más simples hasta las acciones más complejas. Este sistema no opera de manera aislada, sino en estrecha colaboración con el sistema óseo y nervioso, lo que demuestra que el movimiento es el resultado de una integración sistémica.
+
+            En el brazo, el bíceps permite flexionar el antebrazo mientras el tríceps lo extiende. Estos dos músculos trabajan de forma coordinada: cuando uno se contrae, el otro se relaja. Este principio de acción antagónica se repite en todo el cuerpo, como ocurre con los cuádriceps y los isquiotibiales en la pierna. El músculo más largo del cuerpo es el sartorio, que atraviesa el muslo diagonalmente y permite cruzar las piernas.
+
+            Los músculos abdominales sostienen los órganos internos y protegen la columna vertebral. Los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie, mientras que el pectoral mayor y el dorsal ancho permiten empujar y jalar objetos respectivamente.
+
+            El movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo. Cada acción que realizamos, desde sostener un lápiz hasta ejecutar un salto, requiere que el sistema muscular, el sistema óseo y el sistema nervioso trabajen en perfecta sincronía.
+        </div>
+    </div>
+
+    <!-- Batería de preguntas ICFES -->
+    <div class="card evaluacion-area" id="evaluacionArea">
+        <h2>📋 Evaluación por Competencias (ICFES)</h2>
+        <div id="preguntaContainer"></div>
+        <div id="reporteFinal" style="display:none;"></div>
+    </div>
+    <div class="indicador-modo" id="indicadorModo">⚡ Listo</div>
+    <canvas id="confetiCanvas" class="confeti"></canvas>
+</div>
+
+<script>
+    // ==================== DATOS DE LA BATERÍA (12 PREGUNTAS) ====================
+    const PREGUNTAS = [
+        { id:1, competencia:"A", nivel:"N1", texto:"Según el texto, ¿qué función cumple el bíceps en el brazo?", opciones:["Extiende el antebrazo para estirar el brazo","Flexiona el antebrazo permitiendo doblar el brazo","Conecta el hombro con la mano","Protege los huesos del antebrazo"], correcta:1 },
+        { id:2, competencia:"A", nivel:"N2", texto:"En el texto, la palabra 'sartorio' se refiere a:", opciones:["Un tipo de tejido conectivo del muslo","El músculo más largo del cuerpo humano","Un hueso que cruza la pierna diagonalmente","Un grupo muscular que permite saltar"], correcta:1 },
+        { id:3, competencia:"A", nivel:"N3", texto:"Cuando el texto afirma que 'los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie', se puede inferir que estos músculos son fundamentales para:", opciones:["La flexión de la rodilla","El equilibrio estático y dinámico del cuerpo","La extensión de la cadera","La rotación del tobillo"], correcta:1 },
+        { id:4, competencia:"A", nivel:"N4", texto:"Un estudiante concluye: 'El movimiento humano puede explicarse completamente por la biomecánica muscular, sin necesidad de considerar aspectos cognitivos, emocionales o de aprendizaje'. ¿Qué tan válida es esta conclusión a la luz del texto?", opciones:["Es completamente válida, porque el texto se centra en describir la función de los músculos","Es parcialmente válida, porque el texto menciona otros sistemas pero no los desarrolla en profundidad","Es inválida, porque el texto afirma explícitamente que el movimiento requiere control, armonía y aprendizaje continuo","No se puede determinar, porque el texto no establece una relación directa entre movimiento y procesos cognitivos"], correcta:2 },
+        { id:5, competencia:"B", nivel:"N1", texto:"¿Cuál es la función principal del primer párrafo del texto?", opciones:["Describir un problema médico del sistema muscular","Presentar la idea central sobre la coordinación muscular","Narrar una historia sobre el cuerpo humano","Concluir con los beneficios del ejercicio"], correcta:1 },
+        { id:6, competencia:"B", nivel:"N2", texto:"¿Qué relación existe entre la descripción de los músculos del brazo (bíceps y tríceps) y la descripción de los músculos de la pierna (cuádriceps y gemelos)?", opciones:["Contraste entre función de flexión y extensión en diferentes partes del cuerpo","Ejemplificación de músculos que trabajan en pares antagónicos","Comparación entre tamaño de músculos superiores e inferiores","Relación causa-efecto entre movimiento de brazos y piernas"], correcta:1 },
+        { id:7, competencia:"B", nivel:"N3", texto:"El texto utiliza una estructura organizativa que va desde:", opciones:["Lo general a lo particular, culminando en una reflexión integradora","Lo particular a lo general, comenzando con ejemplos y finalizando con una teoría","Una narración cronológica de descubrimientos anatómicos","Una secuencia de problemas y soluciones musculares"], correcta:0 },
+        { id:8, competencia:"B", nivel:"N4", texto:"Si se añadiera al texto un fragmento que describiera el papel del sistema nervioso en la contracción muscular, ¿qué tipo de relación establecería con el contenido existente?", opciones:["Contradicción, porque el texto actual no menciona el sistema nervioso","Complementariedad, porque explicaría el mecanismo detrás del movimiento coordinado","Causa-efecto, donde el sistema nervioso sería efecto del movimiento muscular","Comparación, para mostrar diferencias entre tejidos nerviosos y musculares"], correcta:1 },
+        { id:9, competencia:"C", nivel:"N1", texto:"El texto afirma que 'los abdominales sostienen los órganos internos'. ¿Qué implicación tiene esta afirmación?", opciones:["Los abdominales son el grupo muscular más grande del cuerpo","Sin los abdominales, los órganos internos no tendrían soporte adecuado","Los abdominales solo se usan en ejercicios de flexión","Los órganos internos no necesitan soporte muscular"], correcta:1 },
+        { id:10, competencia:"C", nivel:"N2", texto:"Considerando el contexto educativo en el que se presenta este texto (preparación para pruebas Saber 11°), ¿cuál es la intención comunicativa más probable del autor?", opciones:["Narrar una historia entretenida sobre el cuerpo humano","Explicar de manera didáctica la función y coordinación del sistema muscular","Argumentar a favor del ejercicio físico diario","Describir procedimientos médicos para tratar lesiones musculares"], correcta:1 },
+        { id:11, competencia:"C", nivel:"N3", texto:"El texto utiliza la estrategia discursiva de ejemplificar con músculos específicos (bíceps, tríceps, sartorio, gemelos, pectoral, dorsal) para:", opciones:["Demostrar la superioridad de unos músculos sobre otros","Validar la afirmación general sobre la coordinación muscular","Confundir al lector con información técnica especializada","Establecer una narrativa cronológica de evolución muscular"], correcta:1 },
+        { id:12, competencia:"C", nivel:"N4", texto:"La afirmación final del texto —'el movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo'— revela una visión de mundo que:", opciones:["Reduce el movimiento humano a procesos mecánicos y biológicos","Valora la dimensión física como única relevante para el movimiento","Integra dimensiones biológicas, cognitivas y educativas del ser humano","Desconoce el papel del aprendizaje en el desarrollo motor"], correcta:2 }
+    ];
+
+    // ==================== ESTADO GLOBAL ====================
+    let aciertosMusculos = 0;
+    let musculosEncontrados = new Set();
+    const MUSCULOS_BASE = ["biceps","triceps","pectoral","deltas","abdominales","sartorio","cuadriceps","gemelos","gluteo","masetero"];
+    let palabrasSpans = [];
+    let auditivoActivo = false, visualActivo = false, visualInterval = null, visualIndex = 0, palabrasReales = [];
+    let respuestasUsuario = new Array(12).fill(null);
+    let quizActivo = true;
+
+    // Elementos DOM
+    const contenedorTexto = document.getElementById("textoInteractivo");
+    const btnAuditivo = document.getElementById("btnModoAuditivo");
+    const btnStopAuditivo = document.getElementById("btnStopAuditivo");
+    const btnVisual = document.getElementById("btnModoVisual");
+    const btnStopVisual = document.getElementById("btnStopVisual");
+    const velocidadSlider = document.getElementById("velocidadWPM");
+    const wpmValor = document.getElementById("wpmValor");
+    const indicadorModo = document.getElementById("indicadorModo");
+    const modalLista = document.getElementById("palabrasLista");
+    const contadorModal = document.getElementById("contadorMusculosModal");
+
+    // Construir texto con spans
+    function construirTextoConSpans() {
+        const raw = contenedorTexto.innerText;
+        const palabras = raw.split(/(\s+)/);
+        let html = '';
+        palabras.forEach(p => {
+            if (/^\s+$/.test(p)) html += p;
+            else html += `<span>${p}</span>`;
+        });
+        contenedorTexto.innerHTML = html;
+        palabrasSpans = Array.from(document.querySelectorAll("#textoInteractivo span"));
+        palabrasReales = palabrasSpans.filter(s => !/^\s+$/.test(s.textContent));
+        palabrasSpans.forEach(span => {
+            span.addEventListener("click", () => {
+                if (!quizActivo) return;
+                let palabraRaw = span.textContent.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Záéíóúñ]/g, "").toLowerCase();
+                if (MUSCULOS_BASE.includes(palabraRaw) && !musculosEncontrados.has(palabraRaw)) {
+                    musculosEncontrados.add(palabraRaw);
+                    span.classList.add("correcta-musculo");
+                    aciertosMusculos++;
+                    actualizarModalMusculos();
+                    if (aciertosMusculos === 10) lanzarConfeti();
+                }
+            });
+        });
+    }
+
+    // Modal de palabras flotantes (orden aleatorio)
+    function actualizarModalMusculos() {
+        let pendientes = MUSCULOS_BASE.filter(m => !musculosEncontrados.has(m));
+        let listaHtml = '';
+        MUSCULOS_BASE.forEach(m => {
+            let tachada = musculosEncontrados.has(m);
+            listaHtml += `<div class="palabra-boton ${tachada ? 'tachada' : ''}" data-musculo="${m}">${m.toUpperCase()}</div>`;
+        });
+        modalLista.innerHTML = listaHtml;
+        contadorModal.innerText = `✅ Encontrados: ${aciertosMusculos} / 10`;
+        document.querySelectorAll(".palabra-boton:not(.tachada)").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                let mus = btn.dataset.musculo;
+                if (!musculosEncontrados.has(mus)) {
+                    // resaltar visualmente en el texto
+                    palabrasSpans.forEach(span => {
+                        let txt = span.textContent.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Záéíóúñ]/g, "").toLowerCase();
+                        if (txt === mus && !span.classList.contains("correcta-musculo")) {
+                            span.classList.add("correcta-musculo");
+                            musculosEncontrados.add(mus);
+                            aciertosMusculos++;
+                            actualizarModalMusculos();
+                            if (aciertosMusculos === 10) lanzarConfeti();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function lanzarConfeti() {
+        const canvas = document.getElementById("confetiCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = [];
+        for (let i=0;i<120;i++) particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height, r:Math.random()*6+2, d:Math.random()*5+3, color:`hsl(${Math.random()*360},80%,60%)`});
+        let interval = setInterval(()=>{
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach(p=>{ ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); p.y+=p.d; if(p.y>canvas.height)p.y=-20; });
+        },25);
+        setTimeout(()=>{ clearInterval(interval); ctx.clearRect(0,0,canvas.width,canvas.height); },2500);
+    }
+
+    // ========== MODO AUDITIVO CON VOZ NATURAL ==========
+    let utterance = null;
+    function iniciarAuditivo() {
+        if (auditivoActivo) detenerAuditivo();
+        if (visualActivo) detenerVisual();
+        const textoCompleto = palabrasSpans.map(s=>s.textContent).join('');
+        if (!textoCompleto) return;
+        window.speechSynthesis.cancel();
+        utterance = new SpeechSynthesisUtterance(textoCompleto);
+        utterance.lang = "es-ES";
+        utterance.rate = 0.95;
+        let posiciones = [];
+        let acum = 0;
+        palabrasSpans.forEach(span => { let ini=acum; let fin=acum+span.textContent.length; posiciones.push({span,ini,fin}); acum+=span.textContent.length; });
+        utterance.onboundary = (e) => {
+            if(e.name==='word' && auditivoActivo){
+                for(let item of posiciones){
+                    if(e.charIndex >= item.ini && e.charIndex < item.fin){
+                        palabrasSpans.forEach(s=>s.classList.remove("auditivo-activo"));
+                        item.span.classList.add("auditivo-activo");
+                        item.span.scrollIntoView({behavior:'smooth',block:'center'});
+                        break;
+                    }
+                }
+            }
+        };
+        utterance.onend = () => { if(auditivoActivo){ palabrasSpans.forEach(s=>s.classList.remove("auditivo-activo")); auditivoActivo=false; indicadorModo.innerText="🎧 Finalizado"; setTimeout(()=>{ if(!auditivoActivo && !visualActivo) indicadorModo.innerText="⚡ Listo";},2000); } };
+        window.speechSynthesis.speak(utterance);
+        auditivoActivo = true;
+        indicadorModo.innerText = "🎧 Modo Auditivo activo";
+    }
+    function detenerAuditivo() { if(window.speechSynthesis.speaking) window.speechSynthesis.cancel(); auditivoActivo=false; palabrasSpans.forEach(s=>s.classList.remove("auditivo-activo")); indicadorModo.innerText="⚡ Listo"; }
+
+    // MODO VISUAL
+    function calcularIntervalo() { return 60000 / parseInt(velocidadSlider.value); }
+    function iniciarVisual() {
+        if(visualActivo) detenerVisual();
+        if(auditivoActivo) detenerAuditivo();
+        palabrasSpans.forEach(s=>s.classList.remove("visual-activo","leida"));
+        visualIndex = 0; visualActivo=true;
+        indicadorModo.innerText = "👁️ Modo Visual activo";
+        function step(){
+            if(!visualActivo) return;
+            if(visualIndex >= palabrasReales.length){
+                detenerVisual(); indicadorModo.innerText="✅ Lectura visual completada"; setTimeout(()=>{ if(!visualActivo && !auditivoActivo) indicadorModo.innerText="⚡ Listo";},2000);
+                return;
+            }
+            if(visualIndex>0 && !palabrasReales[visualIndex-1].classList.contains("correcta-musculo")) palabrasReales[visualIndex-1].classList.add("leida");
+            palabrasReales.forEach(s=>s.classList.remove("visual-activo"));
+            palabrasReales[visualIndex].classList.add("visual-activo");
+            palabrasReales[visualIndex].scrollIntoView({behavior:'smooth',block:'center'});
+            visualIndex++;
+            visualInterval = setTimeout(step, calcularIntervalo());
+        }
+        step();
+    }
+    function detenerVisual(){ if(visualInterval) clearTimeout(visualInterval); visualActivo=false; palabrasSpans.forEach(s=>s.classList.remove("visual-activo")); indicadorModo.innerText="⚡ Listo"; }
+
+    velocidadSlider.addEventListener("input",()=>{ wpmValor.innerText=`${velocidadSlider.value} palabras/min`; if(visualActivo){ detenerVisual(); iniciarVisual(); } });
+
+    // ==================== RENDER PREGUNTAS ====================
+    let preguntaActual = 0;
+    function renderPregunta(){
+        const container = document.getElementById("preguntaContainer");
+        if(preguntaActual >= PREGUNTAS.length){
+            mostrarReporteFinal();
+            return;
+        }
+        const p = PREGUNTAS[preguntaActual];
+        let selectedIdx = respuestasUsuario[preguntaActual];
+        let html = `<div class="pregunta-container"><div class="pregunta-texto">${preguntaActual+1}. ${p.texto}</div><div class="opciones">`;
+        p.opciones.forEach((opt,idx)=>{
+            let letra = String.fromCharCode(65+idx);
+            let claseExtra = (selectedIdx === idx) ? "seleccionada" : "";
+            html += `<div class="opcion ${claseExtra}" data-idx="${idx}"><strong>${letra}.</strong> ${opt}</div>`;
+        });
+        html += `</div><div id="feedback-${preguntaActual}" class="feedback"></div>`;
+        if(selectedIdx !== null) html += `<button class="btn-siguiente" id="btnSiguiente">Siguiente pregunta</button>`;
+        else html += `<button class="btn-enviar" id="btnEnviar">Responder</button>`;
+        html += `</div>`;
+        container.innerHTML = html;
+        document.querySelectorAll(".opcion").forEach(el=>{
+            el.addEventListener("click",()=>{
+                if(respuestasUsuario[preguntaActual] !== null) return;
+                let idx = parseInt(el.dataset.idx);
+                document.querySelectorAll(".opcion").forEach(opt=>opt.classList.remove("seleccionada"));
+                el.classList.add("seleccionada");
+                document.getElementById("btnEnviar")?.removeEventListener("click", enviarHandler);
+                let btn = document.getElementById("btnEnviar");
+                if(btn) btn.addEventListener("click", ()=>enviarRespuesta(idx));
+                else {
+                    let sig = document.getElementById("btnSiguiente");
+                    if(sig) sig.removeEventListener("click", siguienteHandler);
+                }
+            });
+        });
+        function enviarRespuesta(idxSeleccionada){
+            if(respuestasUsuario[preguntaActual] !== null) return;
+            let esCorrecta = (idxSeleccionada === p.correcta);
+            respuestasUsuario[preguntaActual] = idxSeleccionada;
+            let fbDiv = document.getElementById(`feedback-${preguntaActual}`);
+            fbDiv.className = `feedback ${esCorrecta ? 'correcto' : 'incorrecto'}`;
+            fbDiv.innerHTML = esCorrecta ? "✅ Correcto. Avanzando..." : `❌ Incorrecto. La respuesta correcta era ${String.fromCharCode(65+p.correcta)}.`;
+            let btn = document.getElementById("btnEnviar");
+            if(btn) btn.remove();
+            let newBtn = document.createElement("button");
+            newBtn.id = "btnSiguiente";
+            newBtn.className = "btn-siguiente";
+            newBtn.innerText = "Siguiente pregunta";
+            newBtn.addEventListener("click", siguienteHandler);
+            document.querySelector(".pregunta-container").appendChild(newBtn);
+        }
+        function siguienteHandler(){
+            preguntaActual++;
+            renderPregunta();
+        }
+        if(respuestasUsuario[preguntaActual] !== null){
+            let btnSig = document.getElementById("btnSiguiente");
+            if(btnSig) btnSig.addEventListener("click", siguienteHandler);
+        }
+    }
+
+    function mostrarReporteFinal(){
+        const container = document.getElementById("preguntaContainer");
+        const reportDiv = document.getElementById("reporteFinal");
+        let aciertosPorComp = {A:{N1:0,N2:0,N3:0,N4:0,total:0}, B:{N1:0,N2:0,N3:0,N4:0,total:0}, C:{N1:0,N2:0,N3:0,N4:0,total:0}};
+        PREGUNTAS.forEach((p,idx)=>{
+            let resp = respuestasUsuario[idx];
+            if(resp !== null && resp === p.correcta){
+                aciertosPorComp[p.competencia][p.nivel]++;
+                aciertosPorComp[p.competencia].total++;
+            }
+        });
+        let htmlMatriz = `<div class="reporte-final"><h3>📊 Reporte por Competencias (ICFES)</h3><div class="matriz"><div class="matriz-header"></div><div class="matriz-header">N1</div><div class="matriz-header">N2</div><div class="matriz-header">N3</div><div class="matriz-header">N4</div>`;
+        for(let comp of ['A','B','C']){
+            let compName = comp==='A'?'Contenidos locales':comp==='B'?'Articulación global':'Reflexión/evaluación';
+            htmlMatriz += `<div class="matriz-header">${compName}</div>`;
+            for(let niv of ['N1','N2','N3','N4']){
+                let val = aciertosPorComp[comp][niv];
+                htmlMatriz += `<div class="matriz-celda ${val===1?'nivel-logro':''}">${val===1?'✅':'❌'}</div>`;
+            }
+        }
+        htmlMatriz += `</div><p><strong>Total aciertos: ${PREGUNTAS.filter((_,i)=>respuestasUsuario[i]!==null && respuestasUsuario[i]===PREGUNTAS[i].correcta).length}/12</strong></p>`;
+        htmlMatriz += `<p>🏆 Músculos encontrados: ${aciertosMusculos}/10</p><button id="reiniciarTodoBtn" style="background:#f97316; border:none; padding:8px 20px; border-radius:40px; cursor:pointer;">🔄 Reiniciar experiencia completa</button></div>`;
+        reportDiv.innerHTML = htmlMatriz;
+        reportDiv.style.display = "block";
+        container.innerHTML = "";
+        document.getElementById("reiniciarTodoBtn")?.addEventListener("click",()=>location.reload());
+    }
+
+    // Inicialización
+    construirTextoConSpans();
+    actualizarModalMusculos();
+    btnAuditivo.addEventListener("click", iniciarAuditivo);
+    btnStopAuditivo.addEventListener("click", detenerAuditivo);
+    btnVisual.addEventListener("click", iniciarVisual);
+    btnStopVisual.addEventListener("click", detenerVisual);
+    wpmValor.innerText = "250 palabras/min";
+    renderPregunta();
+</script>
+</body>
+</html>

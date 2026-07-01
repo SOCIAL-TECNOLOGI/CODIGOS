@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SITE–RUTA LATAM v2.9 | Evaluación Lectura Crítica | Textos Disciplinares Biología</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .header {
+            background: #2c3e66;
+            color: white;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .title h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .title p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .font-controls {
+            display: flex;
+            gap: 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 8px 16px;
+            border-radius: 60px;
+            align-items: center;
+        }
+
+        .font-controls button {
+            background: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #2c3e66;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .font-controls button:hover {
+            transform: scale(1.05);
+            background: #e0e4f0;
+        }
+
+        .font-controls span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            background: #eef2f7;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .question-counter {
+            font-weight: 600;
+            color: #1e466e;
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+
+        .timer {
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: #1e466e;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 40px;
+        }
+
+        .content {
+            padding: 2rem 2rem 1.5rem 2rem;
+        }
+
+        /* MICRO-TEXTO - interlineado reducido para más contenido */
+        .micro-text {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 20px;
+            border-left: 5px solid #2c3e66;
+            margin-bottom: 1.8rem;
+            line-height: 1.45;
+            text-align: justify;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .question {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            color: #1e2a3e;
+            border-left: 3px solid #f39c12;
+            padding-left: 1rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
+
+        .option {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 18px;
+            padding: 0.9rem 1.2rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1.4;
+        }
+
+        .option:hover {
+            background: #f1f5f9;
+            border-color: #2c3e66;
+            transform: translateX(4px);
+        }
+
+        .option.selected {
+            background: #e9f0fe;
+            border-color: #2c3e66;
+            border-left: 5px solid #2c3e66;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 12px;
+        }
+
+        button.nav {
+            background: #2c3e66;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.nav:disabled {
+            background: #b0bed0;
+            cursor: not-allowed;
+        }
+
+        button.nav:hover:not(:disabled) {
+            background: #1a2a4a;
+            transform: scale(0.98);
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 1rem 2rem;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 640px) {
+            .content {
+                padding: 1.2rem;
+            }
+            .micro-text {
+                padding: 1rem;
+            }
+            .option {
+                padding: 0.7rem 1rem;
+            }
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .fade-in {
+            animation: fadeIn 0.25s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <div class="header">
+        <div class="title">
+            <h1>📖 LECTURA CRÍTICA | SITE–RUTA LATAM v2.9</h1>
+            <p>Textos disciplinares • Biología (Sistema Muscular) • Micro-textos densidad equivalente</p>
+        </div>
+        <div class="font-controls">
+            <button id="fontMinus" aria-label="Disminuir texto">A−</button>
+            <span>🔤 Tamaño</span>
+            <button id="fontPlus" aria-label="Aumentar texto">A+</button>
+        </div>
+    </div>
+
+    <div class="progress-bar">
+        <span class="question-counter" id="questionCounter">Pregunta 1 / 12</span>
+        <span class="timer" id="timerDisplay">0.0 s</span>
+    </div>
+
+    <div class="content" id="contentArea">
+        <div class="micro-text" id="microText"></div>
+        <div class="question" id="questionText"></div>
+        <div class="options" id="optionsContainer"></div>
+        <div class="nav-buttons">
+            <button class="nav" id="prevBtn" disabled>◀ Anterior</button>
+            <button class="nav" id="nextBtn">Siguiente ▶</button>
+        </div>
+    </div>
+    <div class="footer">
+        ⏱️ El tiempo empieza al mostrar la pregunta. Selecciona una opción para registrar tu respuesta.
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // BATERÍA COMPLETA: 12 PREGUNTAS
+    // Micro-textos con densidad equivalente (180-220 palabras)
+    // Alineados con Protocolo SITE–RUTA LATAM v2.9
+    // --------------------------------------------------------------
+    const preguntas = [
+        { // P1 - Competencia A, N1
+            id: 1, competencia: "A", nivel: "N1", correcta: 1,
+            microTexto: "El sistema muscular de la región facial es uno de los más complejos del cuerpo humano, ya que debe permitir tanto funciones vitales como la expresión emocional. Entre sus componentes destaca el músculo temporal, ubicado en la región lateral del cráneo, cubriendo gran parte del hueso temporal. Este músculo, de forma abanico, es considerado uno de los músculos masticadores más potentes del organismo humano. Su función principal consiste en elevar la mandíbula inferior, permitiendo cerrar la boca con fuerza durante el proceso de masticación. Además, contribuye a la retrusión mandibular, es decir, el movimiento hacia atrás de la mandíbula. Esta doble función lo convierte en un elemento esencial para la alimentación adecuada. La potencia del músculo temporal es tal que puede generar fuerzas de hasta 200 kilogramos en individuos adultos entrenados. Sin embargo, su sobreexigencia puede llevar a trastornos como el bruxismo o el rechinar nocturno de dientes, que afectan significativamente la calidad de vida de quienes lo padecen.",
+            pregunta: "Según el texto, ¿qué función cumple el músculo temporal?",
+            opciones: [
+                "A) Abrir la boca para permitir la respiración y la fonación",
+                "B) Elevar la mandíbula para cerrar la boca con fuerza durante la masticación",
+                "C) Mover la mandíbula hacia los lados para moler alimentos",
+                "D) Sostener la mandíbula inferior en reposo sin generar tensión"
+            ]
+        },
+        { // P2 - Competencia A, N2
+            id: 2, competencia: "A", nivel: "N2", correcta: 1,
+            microTexto: "La articulación del hombro es una de las más móviles del cuerpo, permitiendo una amplia gama de movimientos que van desde la elevación hasta la rotación del brazo. Esta movilidad es posible gracias a la acción coordinada de varios músculos, entre los cuales destaca el deltoides, un músculo superficial que cubre completamente la articulación glenohumeral. El nombre del deltoides proviene de su característica forma triangular, similar a la letra griega delta (Δ), con su vértice dirigido hacia abajo. Este músculo se origina en tres puntos diferentes: la clavícula, el acromion y la espina de la escápula, convergiendo en una inserción común en el húmero. La importancia del deltoides radica en que es el principal responsable de la abducción del brazo, es decir, la separación del brazo respecto al tronco. Además, colabora en la flexión, extensión y rotación del hombro. Una lesión en este músculo puede limitar severamente la capacidad de elevar el brazo por encima de la cabeza.",
+            pregunta: "En el texto, la palabra 'deltoides' hace referencia a:",
+            opciones: [
+                "A) Un hueso que protege la articulación del hombro de impactos",
+                "B) Un músculo con forma triangular ubicado en el hombro",
+                "C) Un ligamento que conecta el brazo con la clavícula",
+                "D) Un tendón que permite la rotación completa del hombro"
+            ]
+        },
+        { // P3 - Competencia A, N3
+            id: 3, competencia: "A", nivel: "N3", correcta: 1,
+            microTexto: "La región cervical alberga una compleja red de músculos que permiten los movimientos precisos de la cabeza y el cuello. Entre ellos, el músculo esternocleidomastoideo se destaca por su tamaño y ubicación superficial. Este músculo se extiende desde dos puntos de origen en el esternón y la clavícula hasta la apófisis mastoides del cráneo, detrás del oído. Su disposición anatómica le confiere funciones específicas según el tipo de contracción. Cuando se contrae de forma unilateral, es decir, solo de un lado, produce la rotación de la cabeza hacia el lado opuesto al músculo contraído, mientras que cuando se contrae de forma bilateral, flexionando ambos lados simultáneamente, genera la flexión de la cabeza hacia adelante. Además de estas funciones motoras, el esternocleidomastoideo actúa como un importante punto de referencia anatómica para procedimientos médicos. Su palpación permite localizar estructuras vasculares profundas. La tensión crónica en este músculo, frecuente en situaciones de estrés, puede generar cefaleas tensionales que afectan la calidad de vida de quienes las padecen.",
+            pregunta: "Con base en la información, se puede inferir que el esternocleidomastoideo es fundamental para:",
+            opciones: [
+                "A) Mantener la estabilidad pasiva de la columna cervical en reposo",
+                "B) Realizar movimientos precisos de rotación y flexión de la cabeza",
+                "C) Proteger las arterias carótidas durante el movimiento del cuello",
+                "D) Generar fuerza para levantar objetos pesados utilizando el cuello"
+            ]
+        },
+        { // P4 - Competencia A, N4
+            id: 4, competencia: "A", nivel: "N4", correcta: 2,
+            microTexto: "El diafragma es un músculo en forma de cúpula que separa la cavidad torácica de la abdominal, constituyendo el principal músculo inspiratorio del cuerpo humano. Su estructura combina fibras musculares con una porción central tendinosa, lo que le confiere propiedades mecánicas únicas para la función respiratoria. Durante la inspiración, las fibras musculares del diafragma se contraen, provocando su descenso y el aplanamiento de su cúpula. Este movimiento aumenta el volumen de la cavidad torácica en sentido vertical, lo que disminuye la presión intratorácica y permite la entrada de aire a los pulmones. Durante la espiración pasiva, el diafragma se relaja y asciende nuevamente. Una característica notable del diafragma es que su contracción es principalmente involuntaria, controlada por centros nerviosos del tronco encefálico que mantienen la respiración constante. Sin embargo, existe un control voluntario parcial que permite modificar el patrón respiratorio de manera consciente, como ocurre al hablar, cantar o contener la respiración voluntariamente.",
+            pregunta: "Un estudiante concluye: 'El diafragma es un músculo exclusivamente involuntario, ya que su función principal es mantener la respiración sin intervención de la conciencia'. ¿Qué tan válida es esta conclusión a la luz del texto?",
+            opciones: [
+                "A) Es completamente válida, porque la respiración es un proceso automático que ocurre sin control consciente",
+                "B) Es parcialmente válida, porque el texto indica que existe control voluntario parcial",
+                "C) Es inválida, porque el texto afirma explícitamente que puede controlarse de forma consciente",
+                "D) No se puede determinar, porque el texto no especifica el tipo de control muscular"
+            ]
+        },
+        { // P5 - Competencia B, N1
+            id: 5, competencia: "B", nivel: "N1", correcta: 1,
+            microTexto: "El sistema muscular humano está compuesto por más de seiscientos músculos que trabajan de manera coordinada para generar movimiento, mantener la postura y producir calor. Esta compleja red de tejidos se organiza en tres tipos fundamentales, cada uno con características estructurales y funcionales que los hacen únicos en el organismo. El músculo esquelético, también llamado voluntario, se adhiere a los huesos mediante tendones y permite el movimiento corporal consciente. Sus fibras son estriadas y multinucleadas, y su contracción es rápida pero susceptible a la fatiga. El músculo liso, por su parte, recubre las paredes de órganos internos como el estómago, los intestinos y los vasos sanguíneos, siendo involuntario y de contracción lenta pero sostenida. Finalmente, el músculo cardíaco es exclusivo del corazón, combinando características de los dos anteriores: es estriado como el esquelético pero involuntario como el liso. Su capacidad de generar contracciones rítmicas y autónomas lo mantiene activo durante toda la vida. Cada tipo muscular está adaptado a las demandas específicas de la función que desempeña en el cuerpo.",
+            pregunta: "¿Cuál es la función principal del primer párrafo del texto?",
+            opciones: [
+                "A) Describir la ubicación anatómica exacta de cada tipo de músculo",
+                "B) Presentar una clasificación general del sistema muscular en sus tipos",
+                "C) Narrar el descubrimiento histórico de los diferentes tipos musculares",
+                "D) Concluir con la importancia del ejercicio para cada tipo muscular"
+            ]
+        },
+        { // P6 - Competencia B, N2
+            id: 6, competencia: "B", nivel: "N2", correcta: 1,
+            microTexto: "La contracción muscular a nivel molecular es un fenómeno fascinante que implica la interacción de dos proteínas fundamentales: la miosina y la actina. Estas proteínas se organizan en estructuras repetitivas llamadas sarcómeros, que constituyen la unidad funcional básica del tejido muscular estriado. La miosina forma filamentos gruesos caracterizados por tener cabezas globulares que sobresalen lateralmente. Estas cabezas contienen sitios de unión para el ATP y para la actina, lo que les permite generar fuerza. Por otro lado, la actina constituye los filamentos delgados que se disponen alrededor de los filamentos gruesos, formando una estructura hexagonal perfectamente organizada. Durante el ciclo de contracción, las cabezas de miosina se enganchan a los filamentos de actina, realizan un movimiento de giro que desplaza la actina hacia el centro del sarcómero, y luego se desenganchan para repetir el proceso. Este mecanismo, que se repite miles de veces por segundo durante la contracción sostenida, acorta progresivamente el sarcómero y genera la tensión muscular necesaria para el movimiento.",
+            pregunta: "¿Qué relación existe entre la descripción de la miosina y la descripción de la actina en el texto?",
+            opciones: [
+                "A) Contraste entre sus funciones opuestas en el proceso de contracción",
+                "B) Ejemplificación de proteínas que trabajan en conjunto para la contracción",
+                "C) Comparación entre su tamaño molecular y su composición química",
+                "D) Relación causa-efecto donde la actina causa el movimiento de la miosina"
+            ]
+        },
+        { // P7 - Competencia B, N3
+            id: 7, competencia: "B", nivel: "N3", correcta: 0,
+            microTexto: "La fatiga muscular se define como la incapacidad temporal de un músculo para mantener la fuerza requerida durante una contracción sostenida. Este fenómeno fisiológico ocurre cuando las demandas energéticas superan la capacidad de producción de ATP por parte de la célula muscular. Existen múltiples causas que pueden desencadenar este estado de agotamiento funcional. Entre las causas principales se encuentra la acumulación de ácido láctico, un subproducto del metabolismo anaeróbico que reduce el pH intracelular y afecta la función enzimática. También contribuyen el agotamiento de las reservas de glucógeno muscular, la disminución de la transmisión nerviosa en la placa motora y la alteración en la liberación de calcio desde el retículo sarcoplásmico. Cada uno de estos factores actúa en diferentes niveles del proceso contráctil. Sin embargo, la fatiga no debe entenderse exclusivamente como una limitación. El entrenamiento físico sistemático mejora la capacidad del músculo para resistir la fatiga mediante adaptaciones metabólicas como el aumento de mitocondrias y la mayor eficiencia en la utilización de sustratos energéticos. En este sentido, la fatiga actúa también como un mecanismo de protección que impone límites al esfuerzo, evitando daños estructurales irreversibles en el tejido muscular.",
+            pregunta: "El texto utiliza una estructura organizativa que va desde:",
+            opciones: [
+                "A) La definición del fenómeno hacia el análisis de sus causas, seguido de una reflexión sobre su significado",
+                "B) La presentación de una solución práctica, seguida del análisis de las causas del problema",
+                "C) Una narración cronológica de experimentos históricos sobre fatiga muscular",
+                "D) Una secuencia de preguntas y respuestas sobre el rendimiento deportivo"
+            ]
+        },
+        { // P8 - Competencia B, N4
+            id: 8, competencia: "B", nivel: "N4", correcta: 1,
+            microTexto: "Las contracciones musculares, además de generar movimiento, producen calor como subproducto metabólico. Este fenómeno, conocido como termogénesis muscular, es fundamental para la regulación de la temperatura corporal en condiciones ambientales adversas. Durante la exposición al frío, el organismo activa mecanismos para aumentar la producción de calor mediante la contracción muscular involuntaria. El temblor muscular es la respuesta más evidente a la disminución de la temperatura corporal. Consiste en contracciones rítmicas e involuntarias de los músculos esqueléticos que aumentan significativamente la producción de calor metabólico. Este mecanismo puede elevar la producción calórica hasta cinco veces por encima de los niveles basales, ayudando a mantener la temperatura corporal dentro de rangos seguros. Además del temblor, existe la termogénesis sin temblor, mediada por tejido adiposo pardo, que también contribuye a la regulación térmica. La integración entre ambos mecanismos permite al organismo adaptarse a cambios ambientales. La incapacidad de generar suficiente calor puede llevar a condiciones peligrosas como la hipotermia, que afecta gravemente la función muscular y la supervivencia.",
+            pregunta: "Si se añadiera al texto un fragmento que describiera el papel de la glándula tiroides en la regulación de la temperatura corporal mediante hormonas metabólicas, ¿qué tipo de relación establecería con el contenido existente?",
+            opciones: [
+                "A) Contradicción, porque el texto actual atribuye la regulación térmica exclusivamente a los músculos",
+                "B) Complementariedad, porque explicaría un mecanismo adicional de regulación térmica independiente del temblor",
+                "C) Causa-efecto, donde la tiroides sería consecuencia del temblor muscular prolongado",
+                "D) Comparación, para mostrar diferencias entre regulación muscular y regulación hormonal"
+            ]
+        },
+        { // P9 - Competencia C, N1
+            id: 9, competencia: "C", nivel: "N1", correcta: 1,
+            microTexto: "El tendón de Aquiles, también conocido como tendón calcáneo, es la estructura tendinosa más resistente del cuerpo humano. Este tendón conecta los músculos gastrocnemio y sóleo, principales músculos de la pantorrilla, con el hueso calcáneo del talón. Su nombre proviene del héroe mitológico griego Aquiles, cuya única vulnerabilidad era precisamente esta región. La resistencia del tendón de Aquiles es extraordinaria. Estudios biomecánicos han demostrado que puede soportar fuerzas de hasta ocho veces el peso corporal durante actividades de alta intensidad como la carrera o el salto. Esta capacidad de soportar cargas extremas es posible gracias a la disposición altamente organizada de sus fibras de colágeno, que le confieren tanto resistencia a la tracción como cierta elasticidad. Una ruptura del tendón de Aquiles constituye una lesión grave que compromete severamente la funcionalidad de la extremidad inferior. Los pacientes con esta lesión presentan incapacidad para realizar la flexión plantar del pie, lo que impide actividades fundamentales como caminar, correr o mantenerse en puntas de pie. La recuperación requiere intervención quirúrgica y rehabilitación prolongada.",
+            pregunta: "El texto afirma que el tendón de Aquiles 'puede soportar fuerzas de hasta ocho veces el peso corporal'. ¿Qué implicación tiene esta afirmación?",
+            opciones: [
+                "A) El tendón de Aquiles es el tendón más largo y delgado del cuerpo humano",
+                "B) El tendón de Aquiles debe ser extremadamente resistente a la tensión mecánica",
+                "C) Los músculos de la pantorrilla no necesitan tendones para funcionar correctamente",
+                "D) La carrera y el salto no generan fuerzas significativas sobre los tendones"
+            ]
+        },
+        { // P10 - Competencia C, N2
+            id: 10, competencia: "C", nivel: "N2", correcta: 1,
+            microTexto: "La distrofia muscular comprende un grupo de enfermedades genéticas caracterizadas por debilidad progresiva y pérdida de masa muscular. Estas condiciones son causadas por mutaciones en genes responsables de la producción de proteínas esenciales para la integridad estructural de las fibras musculares, siendo la distrofina la más conocida de estas proteínas. El curso de la enfermedad varía según el tipo específico de distrofia, pero generalmente implica una progresión gradual que afecta primero a los músculos proximales de las extremidades y eventualmente compromete la función respiratoria y cardíaca. La debilidad muscular avanzada puede limitar significativamente la movilidad y la independencia funcional de quienes la padecen. Actualmente no existe cura para las distrofias musculares, aunque la investigación científica avanza en diversas líneas terapéuticas. La terapia física y ocupacional constituye el pilar del manejo sintomático, ayudando a mantener la función muscular residual y prevenir contracturas. Los tratamientos farmacológicos, principalmente corticoides, pueden retrasar la progresión de la debilidad. La terapia génica y la edición genética representan las esperanzas más prometedoras para futuras intervenciones curativas.",
+            pregunta: "Considerando el contexto educativo en el que se presenta este texto (preparación para pruebas Saber 11°), ¿cuál es la intención comunicativa más probable del autor?",
+            opciones: [
+                "A) Narrar la historia personal de un paciente diagnosticado con distrofia muscular",
+                "B) Explicar de manera informativa las características, causas y tratamientos de una condición médica",
+                "C) Argumentar a favor de aumentar los fondos gubernamentales para investigación genética",
+                "D) Describir detalladamente los procedimientos quirúrgicos para tratar la distrofia muscular"
+            ]
+        },
+        { // P11 - Competencia C, N3
+            id: 11, competencia: "C", nivel: "N3", correcta: 1,
+            microTexto: "La propiocepción es una capacidad sensorial fundamental que permite al organismo percibir la posición, orientación y movimiento de las diferentes partes del cuerpo sin necesidad de utilizar la visión. Este sentido, a menudo llamado el 'sexto sentido', opera continuamente y de manera inconsciente, constituyendo la base de la coordinación motora fina y gruesa. El sistema propioceptivo se basa en receptores especializados ubicados en músculos, tendones y articulaciones. Los husos musculares, por ejemplo, detectan cambios en la longitud muscular y la velocidad de estiramiento, mientras que los órganos tendinosos de Golgi monitorizan la tensión generada durante la contracción. Esta información es procesada por el sistema nervioso central para ajustar la actividad motora. La importancia de la propiocepción se evidencia en actividades cotidianas que requieren precisión y coordinación. Al escribir en un teclado sin mirar las manos, al tocar un instrumento musical manteniendo la digitación exacta, o al practicar deportes que exigen ajustes posturales rápidos, estamos utilizando continuamente esta capacidad sensorial. Su alteración puede generar descoordinación, inestabilidad articular y dificultades para realizar movimientos precisos.",
+            pregunta: "El texto utiliza la estrategia discursiva de ejemplificar con actividades como escribir en un teclado, tocar un instrumento musical o practicar deportes para:",
+            opciones: [
+                "A) Demostrar que estas actividades requieren mayor esfuerzo físico que otras",
+                "B) Validar la afirmación sobre la importancia de la propiocepción en tareas cotidianas",
+                "C) Confundir al lector con una lista extensa de actividades especializadas",
+                "D) Establecer una jerarquía de dificultad entre diferentes tipos de deportes"
+            ]
+        },
+        { // P12 - Competencia C, N4
+            id: 12, competencia: "C", nivel: "N4", correcta: 2,
+            microTexto: "La práctica regular de ejercicio físico ha sido tradicionalmente asociada con beneficios sobre el sistema musculoesquelético, como el aumento de la fuerza y la masa muscular, la mejora de la densidad ósea y la mayor flexibilidad articular. Sin embargo, la evidencia científica acumulada en las últimas décadas ha ampliado considerablemente esta visión, revelando efectos positivos que trascienden el ámbito puramente físico. Investigaciones en neurociencia han demostrado que el ejercicio aeróbico promueve la neuroplasticidad, es decir, la capacidad del sistema nervioso para modificar su estructura y función en respuesta a la experiencia. Este proceso se asocia con mejoras en funciones cognitivas como la memoria, la atención y las funciones ejecutivas. Además, la actividad física regular reduce significativamente los niveles de estrés percibido, disminuye los síntomas de ansiedad y depresión, y promueve estados emocionales positivos. Estudios epidemiológicos han establecido asociaciones consistentes entre la práctica habitual de ejercicio y mejor rendimiento académico en poblaciones escolares y universitarias. Esta relación se mantiene incluso después de controlar por variables socioeconómicas y educativas, sugiriendo un efecto directo de la actividad física sobre los procesos de aprendizaje y la función cognitiva.",
+            pregunta: "La afirmación del texto —'la evidencia científica acumulada ha revelado efectos positivos que trascienden el ámbito puramente físico'— revela una visión de mundo que:",
+            opciones: [
+                "A) Reduce los beneficios del ejercicio exclusivamente al fortalecimiento del sistema musculoesquelético",
+                "B) Considera el ejercicio como una actividad exclusivamente recreativa sin impacto significativo en la salud",
+                "C) Integra dimensiones físicas, cognitivas, emocionales y educativas del bienestar humano",
+                "D) Desconoce la relación documentada entre actividad física y salud mental"
+            ]
+        }
+    ];
+
+    // ---------- ESTADO ----------
+    let currentIndex = 0;
+    let respuestas = new Array(preguntas.length).fill(null);
+    let tiempos = new Array(preguntas.length).fill(null);
+    let startTime = null;
+    let timerInterval = null;
+    let fontSizeMultiplier = 1.0;
+    const baseFontSize = 16;
+
+    const microTextEl = document.getElementById('microText');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const questionCounter = document.getElementById('questionCounter');
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    function applyFontSize() {
+        const root = document.getElementById('app');
+        root.style.fontSize = (baseFontSize * fontSizeMultiplier) + 'px';
+        const microText = document.querySelector('.micro-text');
+        const options = document.querySelectorAll('.option');
+        if (microText) microText.style.fontSize = `${0.95 * fontSizeMultiplier}rem`;
+        options.forEach(opt => opt.style.fontSize = `${1.05 * fontSizeMultiplier}rem`);
+    }
+
+    document.getElementById('fontPlus').addEventListener('click', () => {
+        if (fontSizeMultiplier < 1.5) {
+            fontSizeMultiplier += 0.1;
+            applyFontSize();
+        }
+    });
+    document.getElementById('fontMinus').addEventListener('click', () => {
+        if (fontSizeMultiplier > 0.7) {
+            fontSizeMultiplier -= 0.1;
+            applyFontSize();
+        }
+    });
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        startTime = performance.now();
+        timerInterval = setInterval(() => {
+            if (startTime) {
+                const elapsed = (performance.now() - startTime) / 1000;
+                timerDisplay.textContent = elapsed.toFixed(1) + ' s';
+            }
+        }, 100);
+    }
+
+    function stopTimer() {
+        if (timerInterval && startTime) {
+            const elapsed = (performance.now() - startTime) / 1000;
+            tiempos[currentIndex] = elapsed;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            startTime = null;
+        }
+    }
+
+    function saveAnswer(selectedIdx) {
+        respuestas[currentIndex] = selectedIdx;
+        if (startTime !== null) stopTimer();
+        renderCurrentQuestion();
+    }
+
+    function renderCurrentQuestion() {
+        const q = preguntas[currentIndex];
+        microTextEl.textContent = q.microTexto;
+        questionTextEl.textContent = q.pregunta;
+
+        optionsContainer.innerHTML = '';
+        q.opciones.forEach((opt, idx) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            if (respuestas[currentIndex] === idx) div.classList.add('selected');
+            div.textContent = opt;
+            div.addEventListener('click', () => {
+                saveAnswer(idx);
+            });
+            optionsContainer.appendChild(div);
+        });
+
+        questionCounter.textContent = `Pregunta ${currentIndex+1} / ${preguntas.length} | ${q.competencia} - ${q.nivel}`;
+        prevBtn.disabled = (currentIndex === 0);
+        nextBtn.textContent = (currentIndex === preguntas.length-1) ? 'Finalizar' : 'Siguiente ▶';
+
+        if (respuestas[currentIndex] === null && startTime === null) {
+            startTimer();
+        } else if (respuestas[currentIndex] !== null) {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            startTime = null;
+            if (tiempos[currentIndex] !== null) {
+                timerDisplay.textContent = tiempos[currentIndex].toFixed(1) + ' s ✓';
+            }
+        }
+    }
+
+    function goToNext() {
+        if (currentIndex < preguntas.length - 1) {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = null;
+            timerInterval = null;
+            currentIndex++;
+            renderCurrentQuestion();
+        } else {
+            if (timerInterval) clearInterval(timerInterval);
+            alert('✅ Evaluación completada. Revisa la consola para ver tiempos y respuestas.');
+            console.table(preguntas.map((p, i) => ({
+                id: p.id,
+                competencia: p.competencia,
+                nivel: p.nivel,
+                respuestaCorrecta: p.correcta,
+                respuestaUsuario: respuestas[i],
+                acierto: respuestas[i] === p.correcta ? '✓' : '✗',
+                tiempo_segundos: tiempos[i]?.toFixed(2) || 'N/A'
+            })));
+        }
+    }
+
+    function goToPrev() {
+        if (currentIndex > 0) {
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = null;
+            timerInterval = null;
+            currentIndex--;
+            renderCurrentQuestion();
+        }
+    }
+
+    prevBtn.addEventListener('click', goToPrev);
+    nextBtn.addEventListener('click', goToNext);
+
+    renderCurrentQuestion();
+    applyFontSize();
+</script>
+</body>
+</html>

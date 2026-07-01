@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Presentación ICFES - Lectura Crítica | Sistema Muscular + Tabla Final</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1f2e;  /* gris oscuro neutro para mejor contraste y menos fatiga visual */
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Contenedor principal de la presentación */
+        .presentation-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: #1a1f2e;  /* fondo neutro oscuro (reduce fatiga visual) */
+            overflow: hidden;
+        }
+
+        /* Cada slide ocupa toda la pantalla */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            overflow-y: auto;
+            padding: 25px 35px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        /* Scroll suave */
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+        .slide::-webkit-scrollbar-track {
+            background: #2d3748;
+            border-radius: 10px;
+        }
+        .slide::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 10px;
+        }
+
+        /* Tarjeta de texto - mejor contraste */
+        .texto-card {
+            background: rgba(25, 30, 45, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #f97316;
+            border-radius: 32px;
+            padding: 22px 28px;
+            margin-bottom: 22px;
+            color: #f0f3fa;
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .texto-card h1 {
+            font-size: 1.7rem;
+            color: #facc15;
+            text-align: center;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        .texto-card p {
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: justify;
+            margin-bottom: 0.9em;
+            font-weight: 450;
+        }
+
+        /* Tarjeta de pregunta */
+        .pregunta-card {
+            background: rgba(20, 25, 40, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #fbbf24;
+            border-radius: 32px;
+            padding: 24px;
+            margin-top: 5px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .badge-competencia {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-nivel {
+            background: #f97316;
+            color: white;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .pregunta-texto {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #facc15;
+            margin-bottom: 22px;
+            line-height: 1.4;
+        }
+
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .opcion {
+            background: rgba(35, 40, 55, 0.8);
+            border-radius: 20px;
+            padding: 12px 18px;
+            font-size: 0.98rem;
+            color: #eef2ff;
+            border-left: 5px solid #3b82f6;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        /* Botón de respuesta */
+        .btn-revelar {
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            border: none;
+            border-radius: 60px;
+            padding: 10px 26px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn-revelar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(34,197,94,0.4);
+        }
+
+        .respuesta-info {
+            margin-top: 18px;
+            padding: 14px 18px;
+            background: #0f172a;
+            border-radius: 24px;
+            border-left: 6px solid #fbbf24;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .respuesta-info.visible {
+            display: block;
+        }
+
+        .respuesta-correcta {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #facc15;
+            margin-bottom: 6px;
+        }
+
+        .explicacion {
+            font-size: 0.88rem;
+            color: #cbd5e6;
+            margin-top: 8px;
+            border-top: 1px solid #334155;
+            padding-top: 8px;
+        }
+
+        /* Tabla final de resultados */
+        .tabla-final-card {
+            background: rgba(20, 25, 45, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 36px;
+            padding: 28px;
+            margin-top: 15px;
+            border: 2px solid #facc15;
+        }
+        .tabla-final-card h2 {
+            color: #facc15;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.7rem;
+        }
+        .tabla-resumen {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0f172a;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .tabla-resumen th, .tabla-resumen td {
+            border: 1px solid #334155;
+            padding: 12px 8px;
+            text-align: center;
+            color: #eef2ff;
+            font-weight: 500;
+        }
+        .tabla-resumen th {
+            background: #f97316;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .resultado-total {
+            background: #1e293b;
+            border-radius: 28px;
+            padding: 18px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .porcentaje-big {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #facc15;
+        }
+        .input-nota {
+            background: #334155;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 40px;
+            width: 70px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-calcular {
+            background: #3b82f6;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: 0.2s;
+        }
+        .btn-calcular:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+        /* Navegación */
+        .nav-controls {
+            position: fixed;
+            bottom: 22px;
+            right: 28px;
+            display: flex;
+            gap: 14px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid #fbbf24;
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px 22px;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            background: #f97316;
+            transform: scale(1.02);
+        }
+        .contador-slide {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            background: rgba(0,0,0,0.65);
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #facc15;
+            font-weight: bold;
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+            z-index: 100;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 750px) {
+            .slide { padding: 18px; }
+            .pregunta-texto { font-size: 1rem; }
+            .opcion { font-size: 0.8rem; padding: 8px 12px; }
+            .nav-btn { padding: 6px 16px; font-size: 0.9rem; }
+            .tabla-resumen th, .tabla-resumen td { font-size: 0.7rem; padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-container" id="presentation"></div>
+<div class="contador-slide" id="slideCounter">Diapositiva 1 / 14</div>
+<div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">◀ Anterior</button>
+    <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+</div>
+
+<script>
+    // ==================== TEXTO BASE COMPLETO (mejor legibilidad) ====================
+    const textoBaseHTML = `
+        <div class="texto-card">
+            <h1>🧠💪 El cuerpo en movimiento</h1>
+            <p>El cuerpo humano se mantiene en movimiento gracias a la acción coordinada de numerosos músculos que, al contraerse y relajarse, permiten desde los movimientos más simples hasta las acciones más complejas. Este sistema no opera de manera aislada, sino en estrecha colaboración con el sistema óseo y nervioso, lo que demuestra que el movimiento es el resultado de una integración sistémica.</p>
+            <p>En el brazo, el bíceps permite flexionar el antebrazo mientras el tríceps lo extiende. Estos dos músculos trabajan de forma coordinada: cuando uno se contrae, el otro se relaja. Este principio de acción antagónica se repite en todo el cuerpo, como ocurre con los cuádriceps y los isquiotibiales en la pierna. El músculo más largo del cuerpo es el sartorio, que atraviesa el muslo diagonalmente y permite cruzar las piernas.</p>
+            <p>Los músculos abdominales sostienen los órganos internos y protegen la columna vertebral. Los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie, mientras que el pectoral mayor y el dorsal ancho permiten empujar y jalar objetos respectivamente.</p>
+            <p>El movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo. Cada acción que realizamos, desde sostener un lápiz hasta ejecutar un salto, requiere que el sistema muscular, el sistema óseo y el sistema nervioso trabajen en perfecta sincronía.</p>
+        </div>
+    `;
+
+    // ==================== DATOS DE LAS 12 PREGUNTAS ====================
+    const preguntas = [
+        { id:1, competencia:"A", nivel:"N1", texto:"Según el texto, ¿qué función cumple el bíceps en el brazo?",
+          opciones:["A) Extiende el antebrazo para estirar el brazo","B) Flexiona el antebrazo permitiendo doblar el brazo","C) Conecta el hombro con la mano","D) Protege los huesos del antebrazo"],
+          correcta:"B", explicacion:"El texto dice explícitamente: 'el bíceps permite flexionar el antebrazo'. Información literal." },
+        { id:2, competencia:"A", nivel:"N2", texto:"En el texto, la palabra 'sartorio' se refiere a:",
+          opciones:["A) Un tipo de tejido conectivo del muslo","B) El músculo más largo del cuerpo humano","C) Un hueso que cruza la pierna diagonalmente","D) Un grupo muscular que permite saltar"],
+          correcta:"B", explicacion:"El texto indica: 'El músculo más largo del cuerpo es el sartorio'. Comprensión contextual." },
+        { id:3, competencia:"A", nivel:"N3", texto:"Cuando el texto afirma que 'los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie', se puede inferir que estos músculos son fundamentales para:",
+          opciones:["A) La flexión de la rodilla","B) El equilibrio estático y dinámico del cuerpo","C) La extensión de la cadera","D) La rotación del tobillo"],
+          correcta:"B", explicacion:"Inferencia: caminar y puntas de pie requieren equilibrio. Cadena inferencial de 3 eslabones." },
+        { id:4, competencia:"A", nivel:"N4", texto:"Un estudiante concluye: 'El movimiento humano puede explicarse completamente por la biomecánica muscular, sin necesidad de considerar aspectos cognitivos, emocionales o de aprendizaje'. ¿Qué tan válida es esta conclusión a la luz del texto?",
+          opciones:["A) Es completamente válida, porque el texto se centra en describir la función de los músculos","B) Es parcialmente válida, porque el texto menciona otros sistemas pero no los desarrolla en profundidad","C) Es inválida, porque el texto afirma explícitamente que el movimiento requiere control, armonía y aprendizaje continuo","D) No se puede determinar, porque el texto no establece una relación directa entre movimiento y procesos cognitivos"],
+          correcta:"C", explicacion:"El texto final: 'movimiento no es solo fuerza, sino control, armonía y aprendizaje'. Evaluación crítica." },
+        { id:5, competencia:"B", nivel:"N1", texto:"¿Cuál es la función principal del primer párrafo del texto?",
+          opciones:["A) Describir un problema médico del sistema muscular","B) Presentar la idea central sobre la coordinación muscular","C) Narrar una historia sobre el cuerpo humano","D) Concluir con los beneficios del ejercicio"],
+          correcta:"B", explicacion:"El primer párrafo introduce la coordinación muscular como tema central. Estructura formal." },
+        { id:6, competencia:"B", nivel:"N2", texto:"¿Qué relación existe entre la descripción de los músculos del brazo (bíceps y tríceps) y la descripción de los músculos de la pierna (cuádriceps y gemelos)?",
+          opciones:["A) Contraste entre función de flexión y extensión en diferentes partes del cuerpo","B) Ejemplificación de músculos que trabajan en pares antagónicos","C) Comparación entre tamaño de músculos superiores e inferiores","D) Relación causa-efecto entre movimiento de brazos y piernas"],
+          correcta:"B", explicacion:"Ambos ejemplos ilustran el mismo principio: pares antagónicos." },
+        { id:7, competencia:"B", nivel:"N3", texto:"El texto utiliza una estructura organizativa que va desde:",
+          opciones:["A) Lo general a lo particular, culminando en una reflexión integradora","B) Lo particular a lo general, comenzando con ejemplos y finalizando con una teoría","C) Una narración cronológica de descubrimientos anatómicos","D) Una secuencia de problemas y soluciones musculares"],
+          correcta:"A", explicacion:"Idea general → ejemplos → reflexión integradora. Análisis de estructura global." },
+        { id:8, competencia:"B", nivel:"N4", texto:"Si se añadiera al texto un fragmento que describiera el papel del sistema nervioso en la contracción muscular, ¿qué tipo de relación establecería con el contenido existente?",
+          opciones:["A) Contradicción, porque el texto actual no menciona el sistema nervioso","B) Complementariedad, porque explicaría el mecanismo detrás del movimiento coordinado","C) Causa-efecto, donde el sistema nervioso sería efecto del movimiento muscular","D) Comparación, para mostrar diferencias entre tejidos nerviosos y musculares"],
+          correcta:"B", explicacion:"El texto ya menciona colaboración con sistema nervioso; complementaría la explicación. Evaluación intertextual." },
+        { id:9, competencia:"C", nivel:"N1", texto:"El texto afirma que 'los abdominales sostienen los órganos internos'. ¿Qué implicación tiene esta afirmación?",
+          opciones:["A) Los abdominales son el grupo muscular más grande del cuerpo","B) Sin los abdominales, los órganos internos no tendrían soporte adecuado","C) Los abdominales solo se usan en ejercicios de flexión","D) Los órganos internos no necesitan soporte muscular"],
+          correcta:"B", explicacion:"Implicación literal directa: si sostienen, sin ellos el soporte sería inadecuado." },
+        { id:10, competencia:"C", nivel:"N2", texto:"Considerando el contexto educativo en el que se presenta este texto (preparación para pruebas Saber 11°), ¿cuál es la intención comunicativa más probable del autor?",
+          opciones:["A) Narrar una historia entretenida sobre el cuerpo humano","B) Explicar de manera didáctica la función y coordinación del sistema muscular","C) Argumentar a favor del ejercicio físico diario","D) Describir procedimientos médicos para tratar lesiones musculares"],
+          correcta:"B", explicacion:"Texto expositivo didáctico, acorde al contexto de preparación académica." },
+        { id:11, competencia:"C", nivel:"N3", texto:"El texto utiliza la estrategia discursiva de ejemplificar con músculos específicos (bíceps, tríceps, sartorio, gemelos, pectoral, dorsal) para:",
+          opciones:["A) Demostrar la superioridad de unos músculos sobre otros","B) Validar la afirmación general sobre la coordinación muscular","C) Confundir al lector con información técnica especializada","D) Establecer una narrativa cronológica de evolución muscular"],
+          correcta:"B", explicacion:"Los ejemplos concretos validan la idea central sobre coordinación muscular." },
+        { id:12, competencia:"C", nivel:"N4", texto:"La afirmación final del texto —'el movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo'— revela una visión de mundo que:",
+          opciones:["A) Reduce el movimiento humano a procesos mecánicos y biológicos","B) Valora la dimensión física como única relevante para el movimiento","C) Integra dimensiones biológicas, cognitivas y educativas del ser humano","D) Desconoce el papel del aprendizaje en el desarrollo motor"],
+          correcta:"C", explicacion:"Integra fuerza (biológico), control, armonía y aprendizaje (educativo). Visión holística." }
+    ];
+
+    // Construcción de diapositivas (0 = texto intro, 1-12 preguntas, 13 = tabla final con autocalificación)
+    let slides = [];
+    // Diapositiva 0: solo texto base
+    slides.push(`
+        <div class="slide" data-index="0">
+            ${textoBaseHTML}
+            <div style="margin-top: 20px; text-align: center;">
+                <div style="background: #f97316; display: inline-block; padding: 10px 26px; border-radius: 60px; font-weight: bold; color: white;">
+                    📖 Lee con atención. Luego avanza a las preguntas.
+                </div>
+            </div>
+        </div>
+    `);
+    // Diapositivas 1-12: texto + cada pregunta
+    preguntas.forEach((p, idx) => {
+        const numeroPregunta = idx + 1;
+        const opcionesHTML = p.opciones.map(op => `<div class="opcion">${op}</div>`).join('');
+        slides.push(`
+            <div class="slide" data-index="${idx+1}">
+                ${textoBaseHTML}
+                <div class="pregunta-card">
+                    <div class="badges">
+                        <span class="badge-competencia">Competencia ${p.competencia}</span>
+                        <span class="badge-nivel">Nivel ${p.nivel}</span>
+                    </div>
+                    <div class="pregunta-texto">${numeroPregunta}. ${p.texto}</div>
+                    <div class="opciones">${opcionesHTML}</div>
+                    <button class="btn-revelar" data-pregunta-idx="${idx}">🔍 Mostrar respuesta y nivel</button>
+                    <div class="respuesta-info" id="respuesta-${idx}">
+                        <div class="respuesta-correcta">✅ Respuesta correcta: ${p.correcta} (Competencia ${p.competencia} - ${p.nivel})</div>
+                        <div class="explicacion">📖 ${p.explicacion}</div>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+
+    // ==================== DIAPOSITIVA FINAL: TABLA DE RESULTADOS Y AUTOEVALUACIÓN ====================
+    function generarTablaFinal() {
+        let filas = '';
+        preguntas.forEach((p, i) => {
+            const letraCorrecta = p.correcta;
+            filas += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${letraCorrecta}</td>
+                    <td>${p.competencia} - ${p.nivel}</td>
+                    <td><input type="text" id="check-${i}" placeholder="A/B/C/D" maxlength="1" style="width:65px; text-align:center; background:#2d3748; color:white; border-radius:20px; border:1px solid #facc15; padding:5px; text-transform:uppercase;"></td>
+                    <td id="estado-${i}" style="font-weight:bold;">—</td>
+                </tr>
+            `;
+        });
+        return `
+            <div class="tabla-final-card">
+                <h2>📊 TABLA DE AUTOEVALUACIÓN - LECTURA CRÍTICA</h2>
+                <table class="tabla-resumen">
+                    <thead>
+                        <tr><th>Pregunta</th><th>Respuesta correcta</th><th>Nivel / Competencia</th><th>Mi respuesta</th><th>¿Correcta?</th></tr>
+                    </thead>
+                    <tbody>
+                        ${filas}
+                    </tbody>
+                </table>
+                <div style="display: flex; justify-content: center; gap: 15px; margin: 15px 0;">
+                    <button id="btnAutoEvaluar" class="btn-calcular" style="background:#f97316;">✅ Calificar mis respuestas</button>
+                    <button id="btnLimpiar" class="btn-calcular" style="background:#475569;">🗑️ Limpiar</button>
+                </div>
+                <div class="resultado-total" id="resultadoFinal">
+                    <p style="font-size:1rem;">📌 <strong>Tu porcentaje:</strong> <span id="porcentajeFinal" class="porcentaje-big">0%</span></p>
+                    <p id="mensajeMeta" style="color:#cbd5e6; margin-top:8px;">🔹 Escribe tus respuestas y presiona "Calificar"</p>
+                </div>
+                <div style="background:#0f172a; border-radius: 20px; padding: 12px; margin-top: 15px; text-align:center;">
+                    <p>✍️ <strong>Metacognición:</strong> Reflexiona: ¿En qué niveles fallaste más? (N1=literal, N2=contexto, N3=inferencia, N4=evaluación)</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Agregar slide final (índice 13)
+    slides.push(`
+        <div class="slide" data-index="13">
+            ${textoBaseHTML}
+            ${generarTablaFinal()}
+        </div>
+    `);
+
+    // Renderizar todas las slides
+    const container = document.getElementById("presentation");
+    container.innerHTML = slides.join('');
+    
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+    const slideElements = document.querySelectorAll('.slide');
+    
+    function updateSlideVisibility() {
+        slideElements.forEach((slide, idx) => {
+            if (idx === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+        document.getElementById('slideCounter').innerText = `Diapositiva ${currentSlide+1} / ${totalSlides}`;
+        // Si es la última slide, reinicializar eventos de autoevaluación
+        if (currentSlide === totalSlides-1) {
+            inicializarAutoevaluacion();
+        }
+    }
+    
+    function nextSlide() { if (currentSlide < totalSlides - 1) { currentSlide++; updateSlideVisibility(); } }
+    function prevSlide() { if (currentSlide > 0) { currentSlide--; updateSlideVisibility(); } }
+    
+    document.getElementById('nextBtn').addEventListener('click', nextSlide);
+    document.getElementById('prevBtn').addEventListener('click', prevSlide);
+    window.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') nextSlide(); if (e.key === 'ArrowLeft') prevSlide(); });
+    updateSlideVisibility();
+    
+    // Funcionalidad botones de revelar respuesta
+    function attachRevealButtons() {
+        const btns = document.querySelectorAll('.btn-revelar');
+        btns.forEach(btn => {
+            btn.removeEventListener('click', handleReveal);
+            btn.addEventListener('click', handleReveal);
+        });
+    }
+    function handleReveal(e) {
+        const btn = e.currentTarget;
+        const preguntaIdx = btn.getAttribute('data-pregunta-idx');
+        if (preguntaIdx !== null) {
+            const respDiv = document.getElementById(`respuesta-${preguntaIdx}`);
+            if (respDiv) {
+                respDiv.classList.toggle('visible');
+                btn.textContent = respDiv.classList.contains('visible') ? '🙈 Ocultar respuesta' : '🔍 Mostrar respuesta y nivel';
+            }
+        }
+    }
+    attachRevealButtons();
+    new MutationObserver(() => attachRevealButtons()).observe(container, { childList: true, subtree: true });
+    
+    // ==================== AUTOEVALUACIÓN EN SLIDE FINAL ====================
+    function inicializarAutoevaluacion() {
+        const btnEval = document.getElementById('btnAutoEvaluar');
+        const btnLimpiar = document.getElementById('btnLimpiar');
+        if (!btnEval) return;
+        
+        function calcular() {
+            let aciertos = 0;
+            for (let i = 0; i < preguntas.length; i++) {
+                const inputElem = document.getElementById(`check-${i}`);
+                const estadoElem = document.getElementById(`estado-${i}`);
+                if (inputElem && estadoElem) {
+                    let userResp = inputElem.value.trim().toUpperCase();
+                    const correctaLetra = preguntas[i].correcta;
+                    if (userResp === correctaLetra) {
+                        estadoElem.innerHTML = '✅ Correcta';
+                        estadoElem.style.color = '#86efac';
+                        aciertos++;
+                    } else {
+                        estadoElem.innerHTML = `❌ Incorrecta (era ${correctaLetra})`;
+                        estadoElem.style.color = '#fca5a5';
+                    }
+                }
+            }
+            const porcentaje = Math.round((aciertos / preguntas.length) * 100);
+            const spanPorc = document.getElementById('porcentajeFinal');
+            const mensajeMeta = document.getElementById('mensajeMeta');
+            if (spanPorc) spanPorc.innerText = `${porcentaje}%`;
+            if (mensajeMeta) {
+                if (porcentaje >= 70) mensajeMeta.innerHTML = '🎉 ¡Excelente! Fortalece tus niveles más bajos.';
+                else if (porcentaje >= 50) mensajeMeta.innerHTML = '📘 Buen esfuerzo. Revisa las preguntas N3 y N4 para subir nivel.';
+                else mensajeMeta.innerHTML = '📌 Sigue practicando. Usa los botones "Mostrar respuesta" para aprender de cada error.';
+            }
+            // Mostrar también total sobre 12
+            const resultadoDiv = document.querySelector('.resultado-total');
+            if (resultadoDiv && !document.getElementById('adicional-aciertos')) {
+                const pExtra = document.createElement('p');
+                pExtra.id = 'adicional-aciertos';
+                pExtra.style.marginTop = '10px';
+                pExtra.style.fontWeight = 'bold';
+                pExtra.style.color = '#facc15';
+                pExtra.innerHTML = `✅ Aciertos: ${aciertos} / 12`;
+                resultadoDiv.appendChild(pExtra);
+            } else {
+                const extra = document.getElementById('adicional-aciertos');
+                if (extra) extra.innerHTML = `✅ Aciertos: ${aciertos} / 12`;
+            }
+        }
+        
+        function limpiarTodo() {
+            for (let i = 0; i < preguntas.length; i++) {
+                const inputElem = document.getElementById(`check-${i}`);
+                const estadoElem = document.getElementById(`estado-${i}`);
+                if (inputElem) inputElem.value = '';
+                if (estadoElem) { estadoElem.innerHTML = '—'; estadoElem.style.color = '#eef2ff'; }
+            }
+            const spanPorc = document.getElementById('porcentajeFinal');
+            if (spanPorc) spanPorc.innerText = '0%';
+            const extra = document.getElementById('adicional-aciertos');
+            if (extra) extra.remove();
+            const mensaje = document.getElementById('mensajeMeta');
+            if (mensaje) mensaje.innerHTML = '🔹 Escribe tus respuestas y presiona "Calificar"';
+        }
+        
+        btnEval.onclick = calcular;
+        if (btnLimpiar) btnLimpiar.onclick = limpiarTodo;
+    }
+    
+    // Si la última slide se carga dinámicamente, asegurar eventos
+    const observerFinal = new MutationObserver(() => {
+        if (currentSlide === totalSlides-1) inicializarAutoevaluacion();
+    });
+    observerFinal.observe(container, { childList: true, subtree: true });
+</script>
+</body>
+</html>

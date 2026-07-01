@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Nivel 1: Laboratorio de Factores</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #000015 0%, #000 100%);
+    color: #fff;
+    font-family: "Press Start 2P", monospace;
+    text-align: center;
+    overflow: hidden;
+    padding-top: 30px;
+  }
+  h1 {
+    color: #00ffcc;
+    text-shadow: 2px 2px #ff00ff;
+  }
+  #numero {
+    font-size: 60px;
+    margin: 30px auto;
+    background: #111;
+    border: 4px solid #00ffcc;
+    width: 160px; height: 160px;
+    display: flex; justify-content: center; align-items: center;
+    border-radius: 10px;
+    box-shadow: 0 0 25px #00ffcc;
+  }
+  .factor {
+    display: inline-block;
+    width: 60px; height: 60px;
+    margin: 10px; line-height: 60px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: grab;
+    font-size: 24px;
+    color: black;
+  }
+  .p2 { background: #00ffcc; }
+  .p3 { background: #ff00ff; }
+  .p5 { background: #ffff00; }
+  .p7 { background: #ff6600; }
+  .p11 { background: #ff99ff; }
+  #astronauta {
+    margin-top: 20px;
+    font-size: 60px;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    animation: flotar 3s infinite ease-in-out;
+  }
+  @keyframes flotar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+  #consola {
+    margin: 20px auto;
+    width: 80%;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffcc;
+    padding: 15px;
+    text-align: left;
+    font-size: 14px;
+    height: 120px;
+    overflow-y: auto;
+    border-radius: 10px;
+  }
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    background: #00ffcc;
+    animation: blink 1.2s infinite;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  #btnSiguiente {
+    background: #00ffcc;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-family: "Press Start 2P";
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 15px;
+    display: none;
+  }
+  #btnSiguiente:hover {
+    background: #00ffaa;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧪 Laboratorio de Factores</h1>
+<p>Arrastra los factores primos correctos hacia el número para descomponerlo.</p>
+
+<div id="numero" ondragover="permitirDrop(event)" ondrop="soltar(event)">36</div>
+
+<div id="factores">
+  <div class="factor p2" draggable="true" ondragstart="arrastrar(event)" id="f2">2</div>
+  <div class="factor p3" draggable="true" ondragstart="arrastrar(event)" id="f3">3</div>
+  <div class="factor p5" draggable="true" ondragstart="arrastrar(event)" id="f5">5</div>
+  <div class="factor p7" draggable="true" ondragstart="arrastrar(event)" id="f7">7</div>
+  <div class="factor p11" draggable="true" ondragstart="arrastrar(event)" id="f11">11</div>
+</div>
+
+<div id="astronauta">👨‍🚀</div>
+<div id="consola"></div>
+
+<button id="btnSiguiente" onclick="nuevoNumero()">🔁 Siguiente número</button>
+
+<audio id="sndPlace" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="sndSuccess" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+
+<script>
+let numero = 0;
+let resultado = 0;
+let factoresUsados = [];
+
+function generarNumero() {
+  const compuestos = [12, 18, 20, 24, 30, 36, 40, 45, 48, 54, 60, 72, 84, 90, 100, 120];
+  return compuestos[Math.floor(Math.random() * compuestos.length)];
+}
+
+function iniciarJuego() {
+  numero = generarNumero();
+  resultado = numero;
+  factoresUsados = [];
+  document.getElementById("numero").textContent = numero;
+  document.getElementById("astronauta").style.opacity = 0;
+  document.getElementById("btnSiguiente").style.display = "none";
+  narrar(`Misión iniciada. Descompón el número ${numero} en sus factores primos.`);
+}
+
+function arrastrar(ev){ ev.dataTransfer.setData("text", ev.target.id); }
+function permitirDrop(ev){ ev.preventDefault(); }
+
+function soltar(ev){
+  ev.preventDefault();
+  const id = ev.dataTransfer.getData("text");
+  const factor = parseInt(document.getElementById(id).textContent);
+  const sonido = document.getElementById("sndPlace");
+
+  if(resultado % factor === 0){
+    resultado /= factor;
+    factoresUsados.push(factor);
+    narrar(`Perfecto, ${factor} es un factor de ${numero}.`);
+    sonido.play();
+    ev.target.textContent = resultado;
+    if(resultado === 1){
+      mostrarResultadoFinal();
+    }
+  } else {
+    narrar(`No, ${factor} no divide exactamente a ${resultado}. Intenta con otro.`);
+  }
+}
+
+function mostrarResultadoFinal(){
+  const producto = factoresUsados.join(" × ");
+  const astronauta = document.getElementById("astronauta");
+  astronauta.style.opacity = 1;
+  narrar(`¡Misión completada! ${numero} = ${producto}`);
+  document.getElementById("sndSuccess").play();
+  document.getElementById("btnSiguiente").style.display = "inline-block";
+}
+
+function nuevoNumero() {
+  iniciarJuego();
+}
+
+function narrar(texto){
+  const consola = document.getElementById("consola");
+  const linea = document.createElement("div");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 1;
+  voz.rate = 0.9;
+  speechSynthesis.speak(voz);
+
+  let i = 0;
+  function typeWriter(){
+    if(i < texto.length){
+      linea.innerHTML = texto.substring(0,i+1) + '<span class="cursor"></span>';
+      i++;
+      setTimeout(typeWriter, 40);
+    } else {
+      linea.innerHTML = texto;
+    }
+  }
+  typeWriter();
+}
+
+// 🧠 Iniciar automáticamente al cargar
+window.onload = iniciarJuego;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Presentación ICFES - Lectura Crítica | Versión Claro (Azul)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            overflow-y: auto;
+            padding: 20px 35px;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+        .slide::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .slide::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+
+        /* Tarjeta de texto base */
+        .texto-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 28px;
+            padding: 24px 32px;
+            margin-bottom: 20px;
+            color: #1e293b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .texto-card h1 {
+            font-size: 2rem;
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .texto-card p {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            text-align: justify;
+            margin-bottom: 1em;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        /* Tarjeta de motivación */
+        .motivacion-card {
+            background: #ffffff;
+            border-radius: 48px;
+            padding: 30px 35px;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .motivacion-card h2 {
+            color: #3b82f6;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 800;
+        }
+        .motivacion-card .highlight {
+            background: #3b82f6;
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 1.2rem;
+            color: white;
+        }
+        .motivacion-card p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #334155;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .impacto-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .impacto-item {
+            background: #eff6ff;
+            border-radius: 28px;
+            padding: 16px 22px;
+            min-width: 170px;
+            border: 1px solid #3b82f6;
+            text-align: center;
+        }
+        .impacto-item strong {
+            color: #3b82f6;
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .impacto-item span {
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .dato-icfes {
+            background: #eff6ff;
+            border-radius: 28px;
+            padding: 18px 24px;
+            margin: 20px 0;
+            border-left: 6px solid #3b82f6;
+        }
+        .nav-hint {
+            margin-top: 20px;
+            text-align: center;
+            color: #3b82f6;
+            font-weight: bold;
+            background: #eff6ff;
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 60px;
+            align-self: center;
+        }
+
+        /* Tarjeta de pregunta */
+        .pregunta-card {
+            background: #ffffff;
+            border: 1px solid #3b82f6;
+            border-radius: 32px;
+            padding: 20px 28px;
+            margin-top: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .header-pregunta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #dbeafe;
+            padding-bottom: 12px;
+        }
+
+        .badge-competencia {
+            background: #3b82f6;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .btn-revelar {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 40px;
+            padding: 6px 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn-revelar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(59,130,246,0.4);
+        }
+
+        .pregunta-texto {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin: 18px 0 22px 0;
+            line-height: 1.45;
+        }
+
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .opcion {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            color: #1e293b;
+            border-left: 5px solid #3b82f6;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .opcion:hover {
+            background: #eff6ff;
+            transform: translateX(5px);
+        }
+
+        .respuesta-info {
+            margin-top: 18px;
+            padding: 14px 18px;
+            background: #eff6ff;
+            border-radius: 24px;
+            border-left: 6px solid #3b82f6;
+            display: none;
+        }
+
+        .respuesta-info.visible {
+            display: block;
+        }
+
+        .respuesta-correcta {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #3b82f6;
+        }
+
+        .explicacion {
+            font-size: 0.92rem;
+            color: #475569;
+            margin-top: 8px;
+            border-top: 1px solid #dbeafe;
+            padding-top: 8px;
+        }
+
+        /* Tabla final */
+        .tabla-final-card {
+            background: #ffffff;
+            border-radius: 36px;
+            padding: 24px;
+            border: 1px solid #3b82f6;
+        }
+        .tabla-final-card h2 {
+            color: #3b82f6;
+            text-align: center;
+            margin-bottom: 18px;
+            font-size: 1.6rem;
+        }
+        .tabla-resumen {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .tabla-resumen th, .tabla-resumen td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 6px;
+            text-align: center;
+            color: #1e293b;
+            font-size: 0.9rem;
+        }
+        .tabla-resumen th {
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+        }
+        .resultado-total {
+            background: #eff6ff;
+            border-radius: 28px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 18px;
+        }
+        .porcentaje-big {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #3b82f6;
+        }
+        .btn-calcular {
+            background: #3b82f6;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-calcular:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        /* Navegación */
+        .nav-controls {
+            position: fixed;
+            bottom: 22px;
+            right: 28px;
+            display: flex;
+            gap: 14px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 22px;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+        .contador-slide {
+            position: fixed;
+            bottom: 28px;
+            left: 28px;
+            background: #f1f5f9;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #3b82f6;
+            font-weight: bold;
+            font-size: 0.85rem;
+            z-index: 100;
+            border: 1px solid #3b82f6;
+        }
+        input.respuesta-input {
+            background: #ffffff;
+            border: 2px solid #3b82f6;
+            padding: 5px;
+            width: 60px;
+            text-align: center;
+            color: #1e293b;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        @media (max-width: 800px) {
+            .slide { padding: 15px 20px; }
+            .texto-card p { font-size: 1rem; }
+            .pregunta-texto { font-size: 1.05rem; }
+            .header-pregunta { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<div class="presentation-container" id="presentation"></div>
+<div class="contador-slide" id="slideCounter">Diapositiva 1 / 15</div>
+<div class="nav-controls">
+    <button class="nav-btn" id="prevBtn">◀ Anterior</button>
+    <button class="nav-btn" id="nextBtn">Siguiente ▶</button>
+</div>
+
+<script>
+    // TEXTO BASE
+    const textoBaseHTML = `
+        <div class="texto-card">
+            <h1>🧠💪 El cuerpo en movimiento</h1>
+            <p>El cuerpo humano se mantiene en movimiento gracias a la acción coordinada de numerosos músculos que, al contraerse y relajarse, permiten desde los movimientos más simples hasta las acciones más complejas. Este sistema no opera de manera aislada, sino en estrecha colaboración con el sistema óseo y nervioso, lo que demuestra que el movimiento es el resultado de una integración sistémica.</p>
+            <p>En el brazo, el bíceps permite flexionar el antebrazo mientras el tríceps lo extiende. Estos dos músculos trabajan de forma coordinada: cuando uno se contrae, el otro se relaja. Este principio de acción antagónica se repite en todo el cuerpo, como ocurre con los cuádriceps y los isquiotibiales en la pierna. El músculo más largo del cuerpo es el sartorio, que atraviesa el muslo diagonalmente y permite cruzar las piernas.</p>
+            <p>Los músculos abdominales sostienen los órganos internos y protegen la columna vertebral. Los gemelos o músculos de la pantorrilla nos impulsan al caminar o mantenernos en puntas de pie, mientras que el pectoral mayor y el dorsal ancho permiten empujar y jalar objetos respectivamente.</p>
+            <p>El movimiento no es solo fuerza, sino también control, armonía y aprendizaje continuo. Cada acción que realizamos requiere que el sistema muscular, óseo y nervioso trabajen en perfecta sincronía.</p>
+        </div>
+    `;
+
+    // PREGUNTAS (12)
+    const preguntas = [
+        { id:1, competencia:"A", texto:"Según el texto, ¿qué función cumple el bíceps en el brazo?", opciones:["A) Extiende el antebrazo para estirar el brazo","B) Flexiona el antebrazo permitiendo doblar el brazo","C) Conecta el hombro con la mano","D) Protege los huesos del antebrazo"], correcta:"B", explicacion:"El texto dice explícitamente: 'el bíceps permite flexionar el antebrazo'." },
+        { id:2, competencia:"A", texto:"En el texto, la palabra 'sartorio' se refiere a:", opciones:["A) Un tipo de tejido conectivo del muslo","B) El músculo más largo del cuerpo humano","C) Un hueso que cruza la pierna diagonalmente","D) Un grupo muscular que permite saltar"], correcta:"B", explicacion:"El texto indica: 'El músculo más largo del cuerpo es el sartorio'." },
+        { id:3, competencia:"A", texto:"Cuando el texto afirma que 'los gemelos nos impulsan al caminar o mantenernos en puntas de pie', se puede inferir que estos músculos son fundamentales para:", opciones:["A) La flexión de la rodilla","B) El equilibrio estático y dinámico del cuerpo","C) La extensión de la cadera","D) La rotación del tobillo"], correcta:"B", explicacion:"Caminar y mantenerse en puntas de pie requieren equilibrio. Cadena inferencial." },
+        { id:4, competencia:"A", texto:"Un estudiante concluye: 'El movimiento humano puede explicarse completamente por la biomecánica muscular, sin necesidad de considerar aspectos cognitivos'. ¿Qué tan válida es esta conclusión?", opciones:["A) Completamente válida","B) Parcialmente válida","C) Inválida","D) No se puede determinar"], correcta:"C", explicacion:"Texto afirma: movimiento requiere control, armonía y aprendizaje continuo." },
+        { id:5, competencia:"B", texto:"¿Cuál es la función principal del primer párrafo del texto?", opciones:["A) Describir un problema médico","B) Presentar la idea central sobre coordinación muscular","C) Narrar una historia","D) Concluir beneficios"], correcta:"B", explicacion:"Introduce la coordinación muscular como tema central." },
+        { id:6, competencia:"B", texto:"¿Qué relación existe entre los músculos del brazo y los de la pierna?", opciones:["A) Contraste","B) Ejemplificación de pares antagónicos","C) Comparación de tamaño","D) Causa-efecto"], correcta:"B", explicacion:"Ambos ejemplos ilustran el principio de acción antagónica." },
+        { id:7, competencia:"B", texto:"El texto utiliza una estructura organizativa que va desde:", opciones:["A) Lo general a lo particular","B) Lo particular a lo general","C) Narración cronológica","D) Problema-solución"], correcta:"A", explicacion:"Idea general → ejemplos específicos → reflexión integradora." },
+        { id:8, competencia:"B", texto:"Si se añadiera un fragmento sobre el sistema nervioso, ¿qué relación establecería?", opciones:["A) Contradicción","B) Complementariedad","C) Causa-efecto invertido","D) Comparación"], correcta:"B", explicacion:"Complementaría la explicación del movimiento coordinado." },
+        { id:9, competencia:"C", texto:"El texto afirma que 'los abdominales sostienen los órganos internos'. ¿Qué implicación tiene?", opciones:["A) Son el grupo más grande","B) Sin ellos no habría soporte adecuado","C) Solo se usan en flexión","D) Los órganos no necesitan soporte"], correcta:"B", explicacion:"Implicación literal directa." },
+        { id:10, competencia:"C", texto:"Considerando el contexto educativo (preparación Saber 11°), ¿cuál es la intención comunicativa del autor?", opciones:["A) Narrar historia","B) Explicar didácticamente","C) Argumentar ejercicio","D) Describir procedimientos"], correcta:"B", explicacion:"Texto expositivo didáctico." },
+        { id:11, competencia:"C", texto:"La estrategia de ejemplificar con músculos específicos sirve para:", opciones:["A) Demostrar superioridad","B) Validar la idea central","C) Confundir","D) Narrar evolución"], correcta:"B", explicacion:"Los ejemplos validan la afirmación sobre coordinación muscular." },
+        { id:12, competencia:"C", texto:"La afirmación final revela una visión de mundo que:", opciones:["A) Reduce a procesos mecánicos","B) Solo dimensión física","C) Integra dimensiones biológicas, cognitivas y educativas","D) Desconoce el aprendizaje"], correcta:"C", explicacion:"Integra fuerza, control, armonía y aprendizaje." }
+    ];
+
+    // Diapositiva motivacional
+    const motivacional = `
+        <div class="slide" data-index="0">
+            <div class="motivacion-card">
+                <h2>📖 ¿Por qué evaluamos Lectura Crítica?</h2>
+                <div style="text-align:center;"><span class="highlight">🎯 La clave para transformar tu desempeño en la prueba Saber 11°</span></div>
+                <p style="font-size:1.1rem; margin-top:20px;"><strong>Leer no es solo decodificar palabras.</strong> <strong style="color:#3b82f6;">Leer críticamente</strong> significa comprender, analizar, inferir y evaluar lo que otros escriben. Es la competencia que te permite acceder al conocimiento en <strong style="color:#3b82f6;">TODAS las áreas</strong>.</p>
+                <div class="impacto-grid">
+                    <div class="impacto-item"><strong>🧪 Ciencias Naturales</strong><span>Interpretar experimentos, gráficas y conclusiones científicas</span></div>
+                    <div class="impacto-item"><strong>📐 Matemáticas</strong><span>Comprender enunciados, extraer datos de tablas y problemas</span></div>
+                    <div class="impacto-item"><strong>🌎 Sociales</strong><span>Analizar fuentes históricas, identificar prejuicios y argumentos</span></div>
+                    <div class="impacto-item"><strong>🇬🇧 Inglés</strong><span>Comprender textos, inferir significado en contexto</span></div>
+                </div>
+                <div class="dato-icfes">
+                    <p>📊 <strong>Dato ICFES oficial:</strong> La Lectura Crítica tiene una correlación del <strong style="color:#3b82f6;">0.78 con Ciencias Naturales</strong> y del <strong style="color:#3b82f6;">0.82 con Sociales y Ciudadanas</strong>.</p>
+                    <p>✅ <strong>Leer bien = mejorar todas tus competencias.</strong> Hoy ejercitamos con un texto sobre el sistema muscular y 12 preguntas estilo Saber 11°.</p>
+                </div>
+                <div style="text-align:center;"><div class="nav-hint">👉 Usa las flechas ◀ ▶ para avanzar. Cada diapositiva tiene el texto completo y una pregunta.</div></div>
+            </div>
+        </div>
+    `;
+
+    let slides = [motivacional];
+    // Slide de solo texto
+    slides.push(`<div class="slide" data-index="1">${textoBaseHTML}<div style="margin-top:20px; text-align:center;"><div style="background:#3b82f6; display:inline-block; padding:10px 26px; border-radius:60px; font-weight:bold; color:white;">📖 Lee con atención. Luego avanza a las preguntas.</div></div></div>`);
+    
+    // Preguntas con botón integrado
+    preguntas.forEach((p, idx) => {
+        const num = idx+1;
+        const opsHtml = p.opciones.map(op => `<div class="opcion">${op}</div>`).join('');
+        slides.push(`
+            <div class="slide" data-index="${idx+2}">
+                ${textoBaseHTML}
+                <div class="pregunta-card">
+                    <div class="header-pregunta">
+                        <div class="badge-competencia">📌 Competencia ${p.competencia}</div>
+                        <button class="btn-revelar" data-idx="${idx}">🔍 Mostrar respuesta</button>
+                    </div>
+                    <div class="pregunta-texto">${num}. ${p.texto}</div>
+                    <div class="opciones">${opsHtml}</div>
+                    <div class="respuesta-info" id="resp-${idx}">
+                        <div class="respuesta-correcta">✅ Respuesta correcta: ${p.correcta}</div>
+                        <div class="explicacion">📖 ${p.explicacion}</div>
+                    </div>
+                </div>
+            </div>
+        `);
+    });
+    
+    // Tabla final
+    function tablaFinalHTML() {
+        let filas = '';
+        preguntas.forEach((p, i) => {
+            filas += `|<td>${i+1}</td><td><strong style="color:#3b82f6;">${p.correcta}</strong></td><td>${p.competencia}</td><td><input type="text" id="inp-${i}" placeholder="A/B/C/D" maxlength="1" style="background:#ffffff; border:2px solid #3b82f6; padding:5px; width:60px; text-align:center; color:#1e293b; border-radius:20px;"></td><td id="est-${i}">—</td>|`;
+        });
+        return `
+            <div class="slide" data-index="14">
+                ${textoBaseHTML}
+                <div class="tabla-final-card">
+                    <h2>📊 AUTOEVALUACIÓN - LECTURA CRÍTICA</h2>
+                    <p style="text-align:center; margin-bottom:12px; color:#475569;">✏️ Escribe tu respuesta (A, B, C o D) y presiona "Calificar".</p>
+                    <table class="tabla-resumen"><thead><tr><th>#</th><th>Correcta</th><th>Comp.</th><th>Mi respuesta</th><th>Resultado</th></tr></thead><tbody>${filas}</tbody></table>
+                    <div style="display:flex; justify-content:center; gap:15px; margin:15px 0;"><button id="btnCalificar" class="btn-calcular">✅ Calificar</button><button id="btnLimpiarTodo" class="btn-calcular" style="background:#94a3b8;">🗑️ Limpiar</button></div>
+                    <div class="resultado-total"><p><strong>Tu porcentaje:</strong> <span id="porcentajeFinal" class="porcentaje-big">0%</span></p><p id="msgMeta" style="color:#475569;">🔹 Completa tus respuestas y califica</p></div>
+                    <div style="background:#eff6ff; border-radius:20px; padding:12px; text-align:center;"><p style="color:#334155;">🧠 <strong>Metacognición:</strong> Reflexiona sobre tus dificultades: literalidad, contexto, inferencia o evaluación.</p></div>
+                </div>
+            </div>
+        `;
+    }
+    slides.push(tablaFinalHTML());
+    
+    const container = document.getElementById("presentation");
+    container.innerHTML = slides.join('');
+    
+    let current = 0;
+    const allSlides = document.querySelectorAll('.slide');
+    const total = allSlides.length;
+    
+    function update() {
+        allSlides.forEach((s, i) => { if(i === current) s.classList.add('active'); else s.classList.remove('active'); });
+        document.getElementById('slideCounter').innerText = `Diapositiva ${current+1} / ${total}`;
+        if(current === total-1) activarAutoevaluacion();
+    }
+    
+    document.getElementById('nextBtn').onclick = () => { if(current < total-1) { current++; update(); } };
+    document.getElementById('prevBtn').onclick = () => { if(current > 0) { current--; update(); } };
+    window.addEventListener('keydown', e => { if(e.key === 'ArrowRight' && current<total-1) current++; else if(e.key === 'ArrowLeft' && current>0) current--; update(); });
+    update();
+    
+    // Botones revelar respuesta
+    function attachReveal() {
+        document.querySelectorAll('.btn-revelar').forEach(btn => {
+            btn.onclick = () => {
+                const idx = btn.getAttribute('data-idx');
+                const div = document.getElementById(`resp-${idx}`);
+                if(div) {
+                    div.classList.toggle('visible');
+                    btn.textContent = div.classList.contains('visible') ? '🙈 Ocultar' : '🔍 Mostrar respuesta';
+                }
+            };
+        });
+    }
+    attachReveal();
+    new MutationObserver(() => attachReveal()).observe(container, { childList: true, subtree: true });
+    
+    // Autoevaluación
+    function activarAutoevaluacion() {
+        const btnCal = document.getElementById('btnCalificar');
+        const btnLim = document.getElementById('btnLimpiarTodo');
+        if(!btnCal) return;
+        btnCal.onclick = () => {
+            let aciertos = 0;
+            for(let i=0; i<preguntas.length; i++) {
+                const inp = document.getElementById(`inp-${i}`);
+                const est = document.getElementById(`est-${i}`);
+                const user = inp?.value.trim().toUpperCase();
+                const correcta = preguntas[i].correcta;
+                if(user === correcta) { est.innerHTML = '✅ Correcta'; est.style.color = '#16a34a'; aciertos++; }
+                else { est.innerHTML = `❌ (era ${correcta})`; est.style.color = '#dc2626'; }
+            }
+            const pct = Math.round((aciertos/12)*100);
+            document.getElementById('porcentajeFinal').innerText = `${pct}%`;
+            const msg = document.getElementById('msgMeta');
+            if(pct>=70) msg.innerHTML = '🎉 ¡Excelente! Sigue fortaleciendo inferencia y evaluación.';
+            else if(pct>=50) msg.innerHTML = '📘 Buen trabajo. Revisa las preguntas donde fallaste.';
+            else msg.innerHTML = '📌 Sigue practicando. Usa "Mostrar respuesta" para aprender.';
+            let extra = document.getElementById('adicionalAciertos');
+            if(!extra) { const np = document.createElement('p'); np.id='adicionalAciertos'; np.style.marginTop='10px'; np.style.fontWeight='bold'; np.style.color='#3b82f6'; np.innerHTML = `✅ Aciertos: ${aciertos}/12`; document.querySelector('.resultado-total').appendChild(np); }
+            else extra.innerHTML = `✅ Aciertos: ${aciertos}/12`;
+        };
+        btnLim.onclick = () => {
+            for(let i=0; i<preguntas.length; i++) {
+                const inp = document.getElementById(`inp-${i}`);
+                const est = document.getElementById(`est-${i}`);
+                if(inp) inp.value = '';
+                if(est) { est.innerHTML = '—'; est.style.color = '#1e293b'; }
+            }
+            document.getElementById('porcentajeFinal').innerText = '0%';
+            document.getElementById('msgMeta').innerHTML = '🔹 Completa tus respuestas y califica';
+            const extra = document.getElementById('adicionalAciertos');
+            if(extra) extra.remove();
+        };
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes"/>
+<title>AlaU · Clase en Línea</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+/* ========== RESET Y ANTI-SCROLL ========== */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html, body {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+:root{
+  --blue:#2c7da0;--dark:#0f2b3d;--green:#27ae60;--red:#c0392b;
+  --orange:#e67e22;--bg:#e8f0f7;--card:#fff;
+  --radius:20px;--shadow:0 8px 24px rgba(0,0,0,0.10);
+}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;color:var(--dark);}
+button{font-family:inherit;cursor:pointer;border:none;transition:all .18s;}
+input,textarea,select{font-family:inherit;}
+
+/* Pantalla de inicio */
+#screenHome {
+  display: none;
+}
+#screenHome.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  gap: 1.5rem;
+}
+.home-logo{font-size:3.5rem;margin-bottom:0.2rem;}
+.home-title{font-size:2rem;font-weight:800;color:var(--dark);text-align:center;line-height:1.2;}
+.home-sub{color:#5a7a8a;font-size:1rem;text-align:center;max-width:340px;}
+.role-cards{display:flex;gap:1.2rem;flex-wrap:wrap;justify-content:center;width:100%;max-width:480px;}
+.role-card{flex:1;min-width:180px;background:var(--card);border-radius:var(--radius);padding:1.6rem 1.2rem;text-align:center;box-shadow:var(--shadow);cursor:pointer;border:2px solid transparent;transition:all .2s;}
+.role-card:hover{border-color:var(--blue);transform:translateY(-3px);}
+.role-card .rc-icon{font-size:2.5rem;margin-bottom:0.6rem;}
+.role-card .rc-title{font-weight:700;font-size:1.05rem;color:var(--dark);}
+.role-card .rc-desc{font-size:0.78rem;color:#6a8a9a;margin-top:4px;}
+
+/* Modal contraseña */
+#passModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#passModal.open{display:flex;}
+#passBox{background:white;border-radius:var(--radius);padding:2rem;width:90%;max-width:340px;text-align:center;}
+#passBox h3{margin-bottom:1rem;color:var(--dark);}
+#passInput{width:100%;padding:.8rem 1rem;border:2px solid #d5dde6;border-radius:40px;font-size:1rem;text-align:center;margin-bottom:1rem;}
+#passInput:focus{outline:none;border-color:var(--blue);}
+#passError{color:var(--red);font-size:.82rem;margin-bottom:.6rem;display:none;}
+.pass-btns{display:flex;gap:.8rem;}
+.pass-btns button{flex:1;padding:.7rem;border-radius:40px;font-weight:700;}
+#passOkBtn{background:var(--blue);color:white;}
+#passCancelBtn{background:#eee;color:#555;}
+
+/* Layout común */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+.topbar{background:var(--dark);color:white;padding:.75rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.topbar-title{font-weight:700;font-size:1rem;}
+.topbar-status{font-size:.75rem;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:40px;white-space:nowrap;}
+.topbar-btn{background:rgba(255,255,255,.15);color:white;border-radius:40px;padding:5px 12px;font-size:.75rem;font-weight:600;}
+.topbar-btn:hover{background:rgba(255,255,255,.28);}
+
+/* Vista docente */
+#screenTeacher .content{flex:1;padding:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:900px;width:100%;margin:0 auto;overflow-x:hidden;}
+@media(max-width:650px){#screenTeacher .content{grid-template-columns:1fr;}}
+
+.card{background:var(--card);border-radius:var(--radius);padding:1.2rem;box-shadow:var(--shadow);overflow-x:hidden;}
+.card-title{font-size:.7rem;font-weight:800;letter-spacing:.8px;color:var(--blue);margin-bottom:.9rem;text-transform:uppercase;}
+
+/* Generador de preguntas */
+.preguntas-generador {
+  background: #f5f7fc;
+  border-radius: 16px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+.preguntas-generador label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dark);
+  display: block;
+  margin-bottom: 4px;
+}
+.preguntas-generador input {
+  width: 80px;
+  padding: 8px 6px;
+  border: 2px solid #dde3ea;
+  border-radius: 40px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.preguntas-generador button {
+  background: var(--blue);
+  color: white;
+  border-radius: 40px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.preguntas-generador button:hover {
+  background: #1f5e7e;
+}
+#selectorPreguntasContainer {
+  margin: 0.5rem 0 0.8rem 0;
+}
+#listaPreguntasSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 40px;
+  border: 2px solid #dde3ea;
+  background: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.q-input{width:100%;padding:.75rem 1rem;border:2px solid #dde3ea;border-radius:40px;font-size:1rem;margin-bottom:.8rem;}
+.q-row{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;}
+.q-select{padding:.65rem .9rem;border:2px solid #dde3ea;border-radius:40px;font-size:.88rem;background:white;flex:1;min-width:160px;}
+.btn-launch{background:linear-gradient(95deg,var(--green),#2ecc71);color:white;border-radius:40px;padding:.7rem 1.4rem;font-weight:700;font-size:.9rem;flex:1;}
+.btn-launch:disabled{opacity:.5;}
+.btn-close-q{background:linear-gradient(95deg,var(--red),#e74c3c);color:white;border-radius:40px;padding:.7rem 1.2rem;font-weight:700;}
+.q-status-badge{display:inline-flex;gap:6px;border-radius:40px;padding:5px 14px;font-size:.8rem;font-weight:700;}
+.qbadge-open{background:#d4edda;color:#155724;}
+.qbadge-closed{background:#f8d7da;color:#721c24;}
+
+/* Barras y tabla */
+.bar-wrap{margin-bottom:.55rem;}
+.bar-label-row{display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;margin-bottom:3px;}
+.bar-track{background:#e2edf2;border-radius:40px;height:22px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:40px;transition:width .5s ease;display:flex;align-items:center;padding-right:8px;justify-content:flex-end;}
+.bar-fill span{font-size:.65rem;font-weight:700;color:white;}
+.bf-a{background:linear-gradient(90deg,#c0392b,#e74c3c);}
+.bf-b{background:linear-gradient(90deg,#2980b9,#3498db);}
+.bf-c{background:linear-gradient(90deg,#d4a017,#f1c40f);}
+.bf-d{background:linear-gradient(90deg,#27ae60,#2ecc71);}
+.total-label{font-size:.78rem;color:#6a8a9a;text-align:right;margin-top:.4rem;}
+.resp-table{display:block;width:100%;overflow-x:auto;white-space:nowrap;}
+.resp-table thead,.resp-table tbody{display:table;width:100%;min-width:300px;}
+.resp-table th{text-align:left;padding:6px 8px;background:#f1f5f9;}
+.resp-table td{padding:6px 8px;border-bottom:1px solid #f0f4f8;}
+.opt-pill{display:inline-block;width:24px;height:24px;border-radius:50%;color:white;font-weight:800;font-size:.75rem;text-align:center;line-height:24px;}
+.pill-a{background:#e74c3c;}.pill-b{background:#3498db;}.pill-c{background:#f39c12;color:#333;}.pill-d{background:#27ae60;}
+
+/* Lista de participantes */
+.participantes-lista {
+  max-height: 180px;
+  overflow-y: auto;
+  background: #f9fafc;
+  border-radius: 14px;
+  padding: 0.6rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid #e2edf2;
+}
+.participante-item {
+  padding: 5px 8px;
+  border-bottom: 1px solid #e2edf2;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.participante-item:last-child {
+  border-bottom: none;
+}
+.participante-nombre {
+  font-weight: 600;
+  color: var(--dark);
+}
+.participante-cantidad {
+  font-size: 0.7rem;
+  background: #e2edf2;
+  padding: 2px 8px;
+  border-radius: 20px;
+  color: #2c5a74;
+}
+.btn-participantes {
+  background: #eef2ff;
+  color: var(--blue);
+  border-radius: 40px;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: 5px;
+}
+.btn-participantes:hover {
+  background: #dce4fc;
+}
+/* Sorteo */
+.sorteo-area{display:flex;flex-direction:column;gap:.7rem;}
+.sorteo-textarea{width:100%;min-height:80px;padding:.65rem .9rem;border:2px solid #dde3ea;border-radius:14px;resize:vertical;}
+.btn-sorteo{background:linear-gradient(95deg,var(--orange),#f39c12);color:white;border-radius:40px;padding:.7rem;font-weight:700;width:100%;}
+#sorteoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9998;flex-direction:column;align-items:center;justify-content:center;}
+#sorteoModal.open{display:flex;}
+#sorteoNombre{font-size:clamp(2.8rem,9vw,5.5rem);font-weight:900;color:white;text-shadow:0 0 30px rgba(230,126,34,.9);text-align:center;word-break:break-word;}
+#sorteoNombre.spinning{animation:spin .08s linear infinite;}
+@keyframes spin{50%{opacity:.5;transform:scale(.97);}}
+#sorteoNombre.winner{animation:pop .5s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes pop{0%{transform:scale(.5);opacity:0;}60%{transform:scale(1.12);}100%{transform:scale(1);opacity:1;}}
+.sorteo-stars{font-size:2rem;letter-spacing:8px;opacity:0;transition:opacity .4s;}
+.sorteo-stars.show{opacity:1;}
+.sorteo-winner-label{font-size:.85rem;font-weight:700;color:#f39c12;letter-spacing:2px;opacity:0;transition:opacity .4s .2s;}
+.sorteo-winner-label.show{opacity:1;}
+#closeSorteoModalBtn{margin-top:1.5rem;background:rgba(255,255,255,.15);color:white;border:2px solid rgba(255,255,255,.3);border-radius:40px;padding:10px 30px;}
+
+/* Estudiante */
+#screenStudent{background:linear-gradient(145deg,#dcedf7,#c8ddf0);}
+#screenStudent .content{flex:1;display:flex;flex-direction:column;align-items:center;padding:1.2rem;gap:1rem;max-width:540px;width:100%;margin:0 auto;}
+.name-box{background:var(--card);border-radius:var(--radius);padding:1rem;width:100%;}
+.name-row{display:flex;gap:.7rem;flex-wrap:wrap;}
+.name-row input{flex:1;padding:.65rem 1rem;border:2px solid #dde3ea;border-radius:40px;}
+.name-row button{background:var(--blue);color:white;border-radius:40px;padding:.65rem 1.1rem;font-weight:700;}
+.name-saved-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+.name-saved-text{font-weight:700;}
+.name-edit-btn{background:#eef2ff;color:var(--blue);border-radius:40px;padding:5px 12px;}
+.state-pill{width:100%;text-align:center;border-radius:40px;padding:.65rem;font-weight:700;}
+.sp-waiting{background:#e2edf2;color:#5a7a8a;}
+.sp-open{background:#d4edda;color:#155724;animation:pulse-green 1.5s ease infinite;}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(39,174,96,.3);}50%{box-shadow:0 0 0 8px rgba(39,174,96,0);}}
+.sp-closed{background:#f8d7da;color:#721c24;}
+.sp-answered{background:#d1ecf1;color:#0c5460;}
+.question-display{background:var(--card);border-radius:var(--radius);padding:1.2rem;width:100%;text-align:center;}
+.q-text{font-size:1.4rem;font-weight:700;word-break:break-word;}
+.q-timer{font-family:monospace;font-size:1.6rem;font-weight:800;color:var(--blue);margin-top:.6rem;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;width:100%;}
+@media(max-width:480px){.options-grid{grid-template-columns:1fr;}}
+.opt-btn{height:90px;border-radius:24px;font-size:2rem;font-weight:900;color:white;box-shadow:0 6px 14px rgba(0,0,0,.12);}
+.opt-btn:active{transform:scale(.95);}
+.opt-btn:disabled{opacity:.45;}
+.ob-a{background:linear-gradient(145deg,#e74c3c,#c0392b);}
+.ob-b{background:linear-gradient(145deg,#3498db,#2980b9);}
+.ob-c{background:linear-gradient(145deg,#f1c40f,#f39c12);color:#2c3e50;}
+.ob-d{background:linear-gradient(145deg,#2ecc71,#27ae60);}
+.vote-results{background:var(--card);border-radius:var(--radius);padding:1rem;width:100%;}
+.msg-toast{width:100%;border-radius:var(--radius);padding:.8rem;text-align:center;font-weight:600;}
+.msg-ok{background:#d4edda;color:#155724;}
+.msg-err{background:#f8d7da;color:#721c24;}
+#offlineBanner{display:none;position:fixed;top:0;left:0;right:0;background:#e74c3c;color:white;text-align:center;padding:6px;z-index:99999;}
+
+/* Modal sorteo para estudiante */
+#sorteoModalStudent {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.92);
+  z-index: 10000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+#sorteoModalStudent.open {
+  display: flex;
+}
+#sorteoNombreStudent {
+  font-size: clamp(2rem, 8vw, 4rem);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 30px rgba(230,126,34,.9);
+  text-align: center;
+  word-break: break-word;
+}
+.sorteo-stars-student {
+  font-size: 1.8rem;
+  letter-spacing: 6px;
+  opacity: 0;
+  transition: opacity .4s;
+}
+.sorteo-stars-student.show {
+  opacity: 1;
+}
+.sorteo-winner-label-student {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f39c12;
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity .4s .2s;
+}
+.sorteo-winner-label-student.show {
+  opacity: 1;
+}
+#closeSorteoModalStudentBtn {
+  margin-top: 1.5rem;
+  background: rgba(255,255,255,.15);
+  color: white;
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 40px;
+  padding: 8px 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div id="offlineBanner">⚠️ Sin conexión a Internet</div>
+
+<!-- Pantalla inicio -->
+<div id="screenHome" class="active">
+  <div class="home-logo">🎓</div>
+  <div class="home-title">AlaU Academy<br><span style="font-size:1.1rem;color:#5a7a8a;">Clase en Línea</span></div>
+  <p class="home-sub">Selecciona tu rol</p>
+  <div class="role-cards">
+    <div class="role-card" id="btnRoleTeacher"><div class="rc-icon">👨‍🏫</div><div class="rc-title">Docente</div><div class="rc-desc">Lanzar preguntas</div></div>
+    <div class="role-card" id="btnRoleStudent"><div class="rc-icon">🎓</div><div class="rc-title">Estudiante</div><div class="rc-desc">Responder en tiempo real</div></div>
+  </div>
+</div>
+
+<!-- Modal contraseña -->
+<div id="passModal"><div id="passBox"><h3>🔒 Acceso Docente</h3><input type="password" id="passInput" placeholder="Contraseña"><div id="passError">❌ Incorrecta</div><div class="pass-btns"><button id="passCancelBtn">Cancelar</button><button id="passOkBtn">Entrar</button></div></div></div>
+
+<!-- Pantalla Docente -->
+<div id="screenTeacher" class="screen">
+  <div class="topbar"><span class="topbar-title">👨‍🏫 Panel Docente</span><span class="topbar-status" id="teacherStatus">🟢 En línea</span><button class="topbar-btn" id="teacherLogoutBtn">Salir</button></div>
+  <div class="content">
+    <div class="card" id="questionCard">
+      <div class="card-title">❓ Pregunta activa</div>
+      
+      <div class="preguntas-generador">
+        <div><label>📋 Cantidad</label><input type="number" id="numPreguntas" min="1" max="50" value="5"></div>
+        <button id="generarPreguntasBtn">🎲 Generar lista</button>
+      </div>
+      <div id="selectorPreguntasContainer" style="display: none;">
+        <select id="listaPreguntasSelect">
+          <option value="">-- Selecciona una pregunta --</option>
+        </select>
+      </div>
+      
+      <input class="q-input" type="text" id="qTextInput" placeholder="Escribe la pregunta..." maxlength="200">
+      <div class="q-row">
+        <select class="q-select" id="qCorrectSelect">
+          <option value="">Sin respuesta correcta</option>
+          <option value="A">✅ A es correcta</option><option value="B">✅ B es correcta</option>
+          <option value="C">✅ C es correcta</option><option value="D">✅ D es correcta</option>
+        </select>
+        <button class="btn-launch" id="launchBtn">▶️ Lanzar</button>
+        <button class="btn-close-q" id="closeQBtn">🔒 Cerrar</button>
+      </div>
+      <div style="margin-top:.8rem;"><span class="q-status-badge qbadge-closed" id="qStatusBadge">🔒 Sin pregunta activa</span></div>
+    </div>
+
+    <!-- Resultados en vivo -->
+    <div class="card"><div class="card-title">📊 Resultados en vivo</div>
+      <div class="bar-wrap"><div class="bar-label-row"><span style="color:#e74c3c;">A</span><span id="cntA">0</span></div><div class="bar-track"><div class="bar-fill bf-a" id="barA" style="width:0%"><span id="barAP"></span></div></div></div>
+      <div class="bar-wrap"><div class="bar-label-row"><span style="color:#3498db;">B</span><span id="cntB">0</span></div><div class="bar-track"><div class="bar-fill bf-b" id="barB" style="width:0%"><span id="barBP"></span></div></div></div>
+      <div class="bar-wrap"><div class="bar-label-row"><span style="color:#f39c12;">C</span><span id="cntC">0</span></div><div class="bar-track"><div class="bar-fill bf-c" id="barC" style="width:0%"><span id="barCP"></span></div></div></div>
+      <div class="bar-wrap"><div class="bar-label-row"><span style="color:#27ae60;">D</span><span id="cntD">0</span></div><div class="bar-track"><div class="bar-fill bf-d" id="barD" style="width:0%"><span id="barDP"></span></div></div></div>
+      <div class="total-label">👥 Total: <strong id="totalVotes">0</strong></div>
+    </div>
+
+    <!-- Tabla respuestas -->
+    <div class="card"><div class="card-title">📋 Respuestas</div><div style="overflow-y:auto;max-height:220px;"><table class="resp-table"><thead><tr><th>Estudiante</th><th>Opción</th><th>Tiempo</th></tr></thead><tbody id="respTableBody"><tr><td colspan="3">Sin respuestas</td></tr></tbody></table></div></div>
+
+    <!-- Lista de participantes -->
+    <div class="card">
+      <div class="card-title">👥 Participantes (asistencia)</div>
+      <div id="listaParticipantesContainer" class="participantes-lista">
+        <div style="color:#9aabb8; text-align:center; padding:8px;">Cargando...</div>
+      </div>
+      <div style="display: flex; gap: 6px; justify-content: flex-end;">
+        <button id="copiarListaBtn" class="btn-participantes">📋 Copiar lista</button>
+        <button id="usarEnSorteoBtn" class="btn-participantes">🎲 Usar en sorteo</button>
+      </div>
+    </div>
+
+    <!-- Sorteo (docente) -->
+    <div class="card"><div class="card-title">🎲 Sorteo</div><div class="sorteo-area"><p style="font-size:.75rem;">Un nombre por línea</p><textarea class="sorteo-textarea" id="sorteoInput" placeholder="Juan García&#10;María López"></textarea>
+    <button class="btn-sorteo" id="sorteoGirarBtn">🎯 ¡Girar!</button>
+    </div></div>
+  </div>
+</div>
+
+<!-- Modal sorteo (docente) -->
+<div id="sorteoModal"><div style="display:flex;flex-direction:column;align-items:center;gap:14px;"><div class="sorteo-winner-label" id="sorteoWinnerLabel">🏆 ¡EL ELEGIDO ES!</div><div class="sorteo-stars" id="sorteoStarsTop">✨ ⭐ ✨</div><div id="sorteoNombre">...</div><div class="sorteo-stars" id="sorteoStarsBot">✨ ⭐ ✨</div><button id="closeSorteoModalBtn">Cerrar · Esc</button></div></div>
+
+<!-- Pantalla Estudiante -->
+<div id="screenStudent" class="screen">
+  <div class="topbar"><span class="topbar-title">🎓 AlaU · Grado 11</span><span class="topbar-status" id="studentOnlineStatus">🟢 Conectado</span><button class="topbar-btn" id="studentLogoutBtn">Salir</button></div>
+  <div class="content">
+    <div class="name-box" id="nameBox"><div id="nameInputRow" class="name-row"><input type="text" id="studentNameInput" placeholder="Tu nombre completo"><button id="saveNameBtn">Guardar</button></div><div id="nameSavedRow" class="name-saved-row" style="display:none;"><span class="name-saved-text" id="nameSavedText"></span><button class="name-edit-btn" id="editNameBtn">✏️ Editar</button></div></div>
+    <div class="state-pill sp-waiting" id="statePill">⏳ Esperando pregunta...</div>
+    <div class="question-display" id="questionDisplay" style="display:none;"><div class="q-text" id="qTextDisplay">...</div><div class="q-timer" id="qTimerDisplay">⏱ 00:00</div></div>
+    <div class="options-grid" id="optionsGrid" style="display:none;"><button class="opt-btn ob-a" data-opt="A">A</button><button class="opt-btn ob-b" data-opt="B">B</button><button class="opt-btn ob-c" data-opt="C">C</button><button class="opt-btn ob-d" data-opt="D">D</button></div>
+    <div class="vote-results" id="voteResults" style="display:none;"><div class="vote-results-title">📊 Resultados</div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#e74c3c;">A</span><span id="sCntA">0</span></div><div class="bar-track"><div class="bar-fill bf-a" id="sBarA" style="width:0%"><span id="sBarAP"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#3498db;">B</span><span id="sCntB">0</span></div><div class="bar-track"><div class="bar-fill bf-b" id="sBarB" style="width:0%"><span id="sBarBP"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#f39c12;">C</span><span id="sCntC">0</span></div><div class="bar-track"><div class="bar-fill bf-c" id="sBarC" style="width:0%"><span id="sBarCP"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#27ae60;">D</span><span id="sCntD">0</span></div><div class="bar-track"><div class="bar-fill bf-d" id="sBarD" style="width:0%"><span id="sBarDP"></span></div></div></div><div class="total-label">👥 Total: <strong id="sTotalVotes">0</strong></div></div>
+    <div class="msg-toast" id="studentMsg" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Modal sorteo para estudiantes -->
+<div id="sorteoModalStudent">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:1rem;text-align:center;">
+    <div class="sorteo-winner-label-student" id="sorteoWinnerLabelStudent">🏆 ¡EL ELEGIDO ES!</div>
+    <div class="sorteo-stars-student" id="sorteoStarsTopStudent">✨ ⭐ ✨</div>
+    <div id="sorteoNombreStudent">...</div>
+    <div class="sorteo-stars-student" id="sorteoStarsBotStudent">✨ ⭐ ✨</div>
+    <button id="closeSorteoModalStudentBtn">Cerrar</button>
+  </div>
+</div>
+
+<script>
+// ================= CONFIGURACIÓN =================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDZsHt7nOOk13MgM8fa6JTK1iWLcY-CqVw",
+  authDomain: "alau-academy.firebaseapp.com",
+  databaseURL: "https://alau-academy-default-rtdb.firebaseio.com",
+  projectId: "alau-academy",
+  storageBucket: "alau-academy.firebasestorage.app",
+  messagingSenderId: "170213819709",
+  appId: "1:170213819709:web:69ea8bfaa126ce4926f154"
+};
+const TEACHER_PASSWORD = "alau2025";
+const SESSION_ID = "grado11_2025";
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+const sessionRef = db.ref(`sessions/${SESSION_ID}`);
+const questionRef = sessionRef.child('question');
+const responsesRef = sessionRef.child('responses');
+const sorteoGanadorRef = sessionRef.child('sorteoGanador');
+
+let currentRole = null;
+let studentName = localStorage.getItem('alau_student_name') || '';
+let questionOpenedAt = null;
+let timerInterval = null;
+let alreadyAnswered = false;
+let lastQuestionId = null;
+let sorteoRunning = false;
+
+// Offline
+window.addEventListener('online', () => document.getElementById('offlineBanner').style.display='none');
+window.addEventListener('offline', () => document.getElementById('offlineBanner').style.display='block');
+
+// ================= showScreen =================
+function showScreen(id){
+  const home = document.getElementById('screenHome');
+  const screens = document.querySelectorAll('.screen');
+  if(home) home.classList.remove('active');
+  screens.forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+
+// ================= INICIO =================
+document.getElementById('btnRoleTeacher').addEventListener('click', () => {
+  document.getElementById('passModal').classList.add('open');
+  setTimeout(()=>document.getElementById('passInput').focus(),200);
+});
+document.getElementById('btnRoleStudent').addEventListener('click', () => enterStudent());
+
+document.getElementById('passOkBtn').addEventListener('click', checkPass);
+document.getElementById('passInput').addEventListener('keydown', e => { if(e.key==='Enter') checkPass(); });
+document.getElementById('passCancelBtn').addEventListener('click', () => {
+  document.getElementById('passModal').classList.remove('open');
+  document.getElementById('passInput').value='';
+  document.getElementById('passError').style.display='none';
+});
+
+function checkPass(){
+  const val = document.getElementById('passInput').value;
+  if(val === TEACHER_PASSWORD){
+    document.getElementById('passModal').classList.remove('open');
+    document.getElementById('passInput').value='';
+    enterTeacher();
+  } else {
+    document.getElementById('passError').style.display='block';
+    document.getElementById('passInput').value='';
+    document.getElementById('passInput').focus();
+  }
+}
+
+// ================= DOCENTE =================
+function enterTeacher(){
+  currentRole='teacher';
+  showScreen('screenTeacher');
+  listenResults();
+  listenParticipantes();
+  // Limpiar cualquier sorteo anterior para que los estudiantes no lo vean
+  sorteoGanadorRef.remove().catch(err => console.warn("Error limpiando sorteo anterior:", err));
+}
+document.getElementById('teacherLogoutBtn').addEventListener('click', () => {
+  currentRole=null; showScreen('screenHome');
+});
+
+// Lanzar pregunta
+document.getElementById('launchBtn').addEventListener('click', async () => {
+  const text = document.getElementById('qTextInput').value.trim();
+  if(!text){ alert('Escribe una pregunta'); return; }
+  const correct = document.getElementById('qCorrectSelect').value || null;
+  const qId = Date.now();
+  await questionRef.set({
+    id: qId,
+    text,
+    correct,
+    open: true,
+    openedAt: qId,
+    shareResults: false
+  });
+  await responsesRef.remove();
+  setQStatusBadge(true, text);
+  document.getElementById('launchBtn').disabled=true;
+  setTimeout(()=>document.getElementById('launchBtn').disabled=false, 1500);
+});
+
+document.getElementById('closeQBtn').addEventListener('click', async () => {
+  await questionRef.update({ open: false, shareResults: true });
+  setQStatusBadge(false, document.getElementById('qTextInput').value);
+});
+
+function setQStatusBadge(open, text){
+  const b = document.getElementById('qStatusBadge');
+  b.textContent = open ? `🔓 Abierta: "${text.substring(0,40)}${text.length>40?'…':''}"` : '🔒 Cerrada';
+  b.className = 'q-status-badge ' + (open ? 'qbadge-open' : 'qbadge-closed');
+}
+
+function listenResults(){
+  responsesRef.on('value', snap => {
+    const data = snap.val() || {};
+    const responses = Object.values(data);
+    const counts = {A:0,B:0,C:0,D:0};
+    responses.forEach(r => { if(counts[r.option]!==undefined) counts[r.option]++; });
+    const total = responses.length;
+    updateBars('', counts, total);
+    renderRespTable(responses);
+  });
+  questionRef.on('value', snap => {
+    const q = snap.val();
+    if(!q) return;
+    setQStatusBadge(q.open, q.text||'');
+    if(!q.open) document.getElementById('launchBtn').disabled=false;
+  });
+}
+
+function updateBars(prefix, counts, total){
+  const max = Math.max(counts.A,counts.B,counts.C,counts.D,1);
+  ['A','B','C','D'].forEach(opt => {
+    const val = counts[opt]||0;
+    const pct = Math.round((val/max)*100);
+    const dispPct = total>0 ? Math.round((val/total)*100)+'%' : '';
+    const bar = document.getElementById(`${prefix}bar${opt}`);
+    const cnt = document.getElementById(`${prefix}cnt${opt}`);
+    const ptxt = document.getElementById(`${prefix}bar${opt}P`);
+    if(bar) bar.style.width = pct+'%';
+    if(cnt) cnt.textContent = val;
+    if(ptxt) ptxt.textContent = val>0 ? dispPct : '';
+  });
+  const tot = document.getElementById(`${prefix}totalVotes`);
+  if(tot) tot.textContent = total;
+}
+
+function renderRespTable(responses){
+  const tbody = document.getElementById('respTableBody');
+  if(!responses.length){
+    tbody.innerHTML='<tr><td colspan="3" style="color:#9aabb8;text-align:center;">Sin respuestas aún</td></tr>';
+    return;
+  }
+  const sorted = [...responses].sort((a,b)=>(a.sentAt||0)-(b.sentAt||0));
+  tbody.innerHTML = sorted.map(r => {
+    const colors={A:'pill-a',B:'pill-b',C:'pill-c',D:'pill-d'};
+    const sec = r.timeSec!=null ? r.timeSec.toFixed(1)+'s' : '—';
+    return `<tr><td style="font-weight:600;">${esc(r.student)}</td><td><span class="opt-pill ${colors[r.option]}">${r.option}</span></td><td style="color:#6a8a9a;">${sec}</td></tr>`;
+  }).join('');
+}
+
+// ================= GENERADOR DE PREGUNTAS =================
+const numPreguntasInput = document.getElementById('numPreguntas');
+const generarBtn = document.getElementById('generarPreguntasBtn');
+const selectorContainer = document.getElementById('selectorPreguntasContainer');
+const listaSelect = document.getElementById('listaPreguntasSelect');
+const qTextInput = document.getElementById('qTextInput');
+
+function generarListaPreguntas() {
+  let cantidad = parseInt(numPreguntasInput.value);
+  if(isNaN(cantidad) || cantidad < 1) cantidad = 1;
+  if(cantidad > 50) cantidad = 50;
+  listaSelect.innerHTML = '<option value="">-- Selecciona una pregunta --</option>';
+  for(let i = 1; i <= cantidad; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `Pregunta ${i}`;
+    listaSelect.appendChild(option);
+  }
+  selectorContainer.style.display = 'block';
+}
+listaSelect.addEventListener('change', function() {
+  const selected = listaSelect.value;
+  if(selected && selected !== "") {
+    qTextInput.value = `Pregunta ${selected}`;
+    document.getElementById('qCorrectSelect').value = "";
+  }
+});
+generarBtn.addEventListener('click', generarListaPreguntas);
+
+// ================= LISTA DE PARTICIPANTES =================
+let listaParticipantes = [];
+const listaContainer = document.getElementById('listaParticipantesContainer');
+
+function listenParticipantes() {
+  responsesRef.on('value', (snap) => {
+    const data = snap.val() || {};
+    const respuestas = Object.values(data);
+    const mapa = new Map();
+    respuestas.forEach(r => {
+      const nombre = r.student;
+      if(nombre) {
+        mapa.set(nombre, (mapa.get(nombre) || 0) + 1);
+      }
+    });
+    const participantes = Array.from(mapa.entries()).map(([nombre, cantidad]) => ({ nombre, cantidad }));
+    participantes.sort((a,b) => a.nombre.localeCompare(b.nombre));
+    listaParticipantes = participantes;
+    renderListaParticipantes(participantes);
+  });
+}
+
+function renderListaParticipantes(participantes) {
+  if(!listaContainer) return;
+  if(participantes.length === 0) {
+    listaContainer.innerHTML = '<div style="color:#9aabb8; text-align:center; padding:8px;">Aún no hay respuestas</div>';
+    return;
+  }
+  const html = participantes.map(p => `
+    <div class="participante-item">
+      <span class="participante-nombre">${esc(p.nombre)}</span>
+      <span class="participante-cantidad">${p.cantidad} respuesta${p.cantidad !== 1 ? 's' : ''}</span>
+    </div>
+  `).join('');
+  listaContainer.innerHTML = html;
+}
+
+document.getElementById('copiarListaBtn').addEventListener('click', () => {
+  if(listaParticipantes.length === 0) {
+    alert('No hay participantes para copiar');
+    return;
+  }
+  const soloNombres = listaParticipantes.map(p => p.nombre).join('\n');
+  navigator.clipboard.writeText(soloNombres).then(() => {
+    alert('✅ Lista copiada al portapapeles');
+  }).catch(() => {
+    alert('❌ No se pudo copiar');
+  });
+});
+
+document.getElementById('usarEnSorteoBtn').addEventListener('click', () => {
+  if(listaParticipantes.length === 0) {
+    alert('No hay participantes para usar en el sorteo');
+    return;
+  }
+  const soloNombres = listaParticipantes.map(p => p.nombre).join('\n');
+  const sorteoTextarea = document.getElementById('sorteoInput');
+  sorteoTextarea.value = soloNombres;
+  localStorage.setItem('alau_sorteo_nombres', soloNombres);
+  alert(`✅ Se han cargado ${listaParticipantes.length} nombres en el sorteo`);
+});
+
+// ================= SORTEO DOCENTE =================
+const sorteoInput = document.getElementById('sorteoInput');
+const girarBtn = document.getElementById('sorteoGirarBtn');
+const SORTEO_KEY = 'alau_sorteo_nombres';
+
+(()=>{ const saved = localStorage.getItem(SORTEO_KEY); if(saved) sorteoInput.value = saved; })();
+sorteoInput.addEventListener('input',()=>localStorage.setItem(SORTEO_KEY, sorteoInput.value));
+
+girarBtn.addEventListener('click', () => {
+  const nombres = sorteoInput.value.split('\n').map(n=>n.trim()).filter(n=>n);
+  if(!nombres.length){ alert('Escribe al menos un nombre'); return; }
+  if(sorteoRunning) return;
+  sorteoRunning = true;
+  document.getElementById('sorteoModal').classList.add('open');
+  const nombreEl = document.getElementById('sorteoNombre');
+  const winLabel = document.getElementById('sorteoWinnerLabel');
+  const stTop = document.getElementById('sorteoStarsTop');
+  const stBot = document.getElementById('sorteoStarsBot');
+  nombreEl.className = 'spinning';
+  winLabel.className = 'sorteo-winner-label';
+  stTop.className = 'sorteo-stars';
+  stBot.className = 'sorteo-stars';
+  let elapsed = 0, idx = 0;
+  const dur = 2800, i0 = 55, iF = 230;
+  function step(){
+    if(elapsed >= dur){
+      const ganador = nombres[Math.floor(Math.random()*nombres.length)];
+      nombreEl.className = 'winner';
+      nombreEl.textContent = ganador;
+      setTimeout(()=>{
+        winLabel.className = 'sorteo-winner-label show';
+        stTop.className = 'sorteo-stars show';
+        stBot.className = 'sorteo-stars show';
+      }, 300);
+      sorteoRunning = false;
+      // Enviar automáticamente a estudiantes
+      sorteoGanadorRef.set({
+        nombre: ganador,
+        timestamp: Date.now()
+      });
+      return;
+    }
+    const p = elapsed/dur;
+    const interval = i0 + (iF - i0) * Math.pow(p, 2.5);
+    nombreEl.textContent = nombres[idx++ % nombres.length];
+    elapsed += interval;
+    setTimeout(step, interval);
+  }
+  step();
+});
+
+document.getElementById('closeSorteoModalBtn').addEventListener('click', () => {
+  document.getElementById('sorteoModal').classList.remove('open');
+});
+document.getElementById('sorteoModal').addEventListener('click', (e) => {
+  if(e.target === document.getElementById('sorteoModal')) document.getElementById('sorteoModal').classList.remove('open');
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && document.getElementById('sorteoModal').classList.contains('open'))
+    document.getElementById('sorteoModal').classList.remove('open');
+});
+
+// ================= ESTUDIANTE =================
+function enterStudent(){
+  currentRole='student';
+  showScreen('screenStudent');
+  updateStudentNameUI();
+  listenQuestion();
+  listenSorteoEstudiante();
+}
+document.getElementById('studentLogoutBtn').addEventListener('click', () => {
+  currentRole=null; showScreen('screenHome');
+  if(timerInterval) clearInterval(timerInterval);
+});
+
+// Nombre
+document.getElementById('saveNameBtn').addEventListener('click', saveName);
+document.getElementById('studentNameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') saveName(); });
+document.getElementById('editNameBtn').addEventListener('click', ()=>{
+  document.getElementById('nameSavedRow').style.display='none';
+  document.getElementById('nameInputRow').style.display='flex';
+  document.getElementById('studentNameInput').focus();
+});
+
+function saveName(){
+  const n = document.getElementById('studentNameInput').value.trim();
+  if(n.length<2){ showStudentMsg('Mínimo 2 caracteres','err'); return; }
+  studentName=n; localStorage.setItem('alau_student_name',n);
+  updateStudentNameUI();
+}
+function updateStudentNameUI(){
+  if(studentName){
+    document.getElementById('nameSavedRow').style.display='flex';
+    document.getElementById('nameInputRow').style.display='none';
+    document.getElementById('nameSavedText').textContent='👤 '+studentName;
+    document.getElementById('studentNameInput').value=studentName;
+  } else {
+    document.getElementById('nameSavedRow').style.display='none';
+    document.getElementById('nameInputRow').style.display='flex';
+  }
+}
+
+function listenQuestion(){
+  questionRef.on('value', snap => {
+    const q = snap.val();
+    if(!q || !q.text){
+      setStudentState('waiting');
+      hideQuestionUI();
+      return;
+    }
+    if(q.id !== lastQuestionId){
+      lastQuestionId = q.id;
+      alreadyAnswered = false;
+      questionOpenedAt = q.openedAt || Date.now();
+      startStudentTimer();
+      document.getElementById('voteResults').style.display = 'none';
+    }
+    if(q.open){
+      setStudentState(alreadyAnswered ? 'answered' : 'open');
+      showQuestionUI(q.text);
+      enableOptions(!alreadyAnswered);
+      document.getElementById('voteResults').style.display = 'none';
+    } else {
+      setStudentState('closed');
+      if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+      showQuestionUI(q.text);
+      enableOptions(false);
+      if(q.shareResults === true){
+        listenAndShowStudentResults();
+      } else {
+        document.getElementById('voteResults').style.display = 'none';
+      }
+    }
+  });
+}
+
+function listenAndShowStudentResults(){
+  responsesRef.once('value', snap => {
+    const data = snap.val()||{};
+    const responses = Object.values(data);
+    const counts={A:0,B:0,C:0,D:0};
+    responses.forEach(r=>{if(counts[r.option]!==undefined)counts[r.option]++;});
+    const total=responses.length;
+    document.getElementById('voteResults').style.display = 'block';
+    const max=Math.max(counts.A,counts.B,counts.C,counts.D,1);
+    ['A','B','C','D'].forEach(opt=>{
+      const val=counts[opt]||0, pct=Math.round((val/max)*100);
+      const dispPct = total>0 ? Math.round((val/total)*100)+'%' : '';
+      const bar = document.getElementById(`sBar${opt}`);
+      const cnt = document.getElementById(`sCnt${opt}`);
+      const ptxt = document.getElementById(`sBar${opt}P`);
+      if(bar) bar.style.width = pct+'%';
+      if(cnt) cnt.textContent = val;
+      if(ptxt) ptxt.textContent = val>0 ? dispPct : '';
+    });
+    document.getElementById('sTotalVotes').textContent = total;
+  });
+}
+
+function setStudentState(st){
+  const pill=document.getElementById('statePill');
+  const msgs={waiting:'⏳ Esperando pregunta...',open:'🔓 ¡Pregunta abierta!',closed:'🔒 Pregunta cerrada',answered:'✅ Respuesta enviada'};
+  const cls={waiting:'sp-waiting',open:'sp-open',closed:'sp-closed',answered:'sp-answered'};
+  pill.textContent=msgs[st]||'';
+  pill.className='state-pill '+(cls[st]||'sp-waiting');
+}
+function showQuestionUI(text){
+  document.getElementById('questionDisplay').style.display='block';
+  document.getElementById('optionsGrid').style.display='grid';
+  document.getElementById('qTextDisplay').textContent=text;
+}
+function hideQuestionUI(){
+  document.getElementById('questionDisplay').style.display='none';
+  document.getElementById('optionsGrid').style.display='none';
+  document.getElementById('voteResults').style.display='none';
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+  document.getElementById('qTimerDisplay').textContent='⏱ 00:00';
+}
+function enableOptions(enabled){
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=!enabled);
+}
+function startStudentTimer(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    const elapsed = Math.floor((Date.now()-questionOpenedAt)/1000);
+    const m=Math.floor(elapsed/60), s=elapsed%60;
+    document.getElementById('qTimerDisplay').textContent=`⏱ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, 250);
+}
+document.querySelectorAll('.opt-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if(!studentName){ showStudentMsg('Primero guarda tu nombre','err'); return; }
+    if(alreadyAnswered){ showStudentMsg('Ya respondiste','err'); return; }
+    const opt = btn.getAttribute('data-opt');
+    const timeSec = questionOpenedAt ? (Date.now()-questionOpenedAt)/1000 : null;
+    const key = studentName.replace(/[.#$/\[\]]/g,'_')+'_'+Date.now();
+    try{
+      await responsesRef.child(key).set({
+        student: studentName,
+        option: opt,
+        timeSec: timeSec ? parseFloat(timeSec.toFixed(2)) : null,
+        sentAt: Date.now()
+      });
+      alreadyAnswered=true;
+      enableOptions(false);
+      setStudentState('answered');
+      showStudentMsg(`✅ Opción ${opt} registrada`, 'ok');
+    } catch(e){
+      showStudentMsg('⚠️ Error al enviar','err');
+    }
+  });
+});
+function showStudentMsg(text, type){
+  const el=document.getElementById('studentMsg');
+  el.textContent=text;
+  el.className='msg-toast msg-'+type;
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none', 4000);
+}
+
+// ================= SORTEO PARA ESTUDIANTES (con filtro de tiempo) =================
+function listenSorteoEstudiante(){
+  const modalStudent = document.getElementById('sorteoModalStudent');
+  const nombreSpan = document.getElementById('sorteoNombreStudent');
+  const winLabel = document.getElementById('sorteoWinnerLabelStudent');
+  const starsTop = document.getElementById('sorteoStarsTopStudent');
+  const starsBot = document.getElementById('sorteoStarsBotStudent');
+  let lastTimestamp = 0;
+
+  sorteoGanadorRef.on('value', (snap) => {
+    const data = snap.val();
+    if(!data || !data.nombre) return;
+    // Ignorar si el timestamp es muy antiguo (más de 5 minutos)
+    const ahora = Date.now();
+    const tiempoDesde = ahora - (data.timestamp || 0);
+    if(tiempoDesde > 300000) {
+      console.log("Sorteo antiguo ignorado");
+      return;
+    }
+    if(data.timestamp && data.timestamp === lastTimestamp) return;
+    lastTimestamp = data.timestamp;
+    const ganador = data.nombre;
+    nombreSpan.textContent = ganador;
+    nombreSpan.className = '';
+    winLabel.className = 'sorteo-winner-label-student';
+    starsTop.className = 'sorteo-stars-student';
+    starsBot.className = 'sorteo-stars-student';
+    modalStudent.classList.add('open');
+    setTimeout(() => {
+      nombreSpan.className = 'winner';
+      winLabel.className = 'sorteo-winner-label-student show';
+      starsTop.className = 'sorteo-stars-student show';
+      starsBot.className = 'sorteo-stars-student show';
+    }, 100);
+  });
+}
+
+// Cerrar modal de sorteo para estudiante
+document.getElementById('closeSorteoModalStudentBtn').addEventListener('click', () => {
+  document.getElementById('sorteoModalStudent').classList.remove('open');
+});
+document.getElementById('sorteoModalStudent').addEventListener('click', (e) => {
+  if(e.target === document.getElementById('sorteoModalStudent')) 
+    document.getElementById('sorteoModalStudent').classList.remove('open');
+});
+
+// ================= UTILS =================
+function esc(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// Iniciar
+</script>
+</body>
+</html>
