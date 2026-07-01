@@ -30181,4 +30181,15 @@ function reproducirSonidoOBS(tipo) {
 //
 // iniciarMonitorOBS();
 
+
+// Fix modales historial — ocultar divs internos con position:fixed
+document.addEventListener('DOMContentLoaded', function() {
+    const fixarModal = function(innerId) {
+        const el = document.getElementById(innerId);
+        if (el) el.style.display = 'none';
+    };
+    fixarModal('modalHistorialEstudianteInner');
+    fixarModal('modalDocenteHistorialInner');
+});
+
 </script>
