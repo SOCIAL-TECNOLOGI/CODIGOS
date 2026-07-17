@@ -28504,8 +28504,9 @@ async function iniciarVideoDocente() {
         // Abrir iframe docente (con cámara y micro completos)
         const frame = document.getElementById('jitsiFrameDocente');
         // En iniciarVideoDocente()
-        frame.src = `https://aula1.digitalsamba.com/demo-room`;
-        
+fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=Docente&rol=MODERATOR&sala=alau-clase`)
+    .then(r => r.json())
+    .then(data => { if(data.ok) frame.src = data.joinURL; });
         document.getElementById('jitsiDocente').style.display = 'flex';
         const panelManos = document.getElementById('manosPanel');
 if (panelManos) {
@@ -28716,21 +28717,22 @@ function listenVideoEstudiante() {
         const pastilla = document.getElementById('jitsiEstudianteMin');
 
         if (activa === true) {
-            // Abrir iframe estudiante (sin cámara, mic muteado por defecto)
+            // Abrir iframe estudiante con BBB
             const frame = document.getElementById('jitsiFrameEstudiante');
             const nombre = studentName || 'Estudiante';
-            // En listenVideoEstudiante() — frame estudiante
-            frame.src = `https://aula1.digitalsamba.com/demo-room`;
+            fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombre)}&rol=VIEWER&sala=alau-clase`)
+                .then(r => r.json())
+                .then(data => { if(data.ok) frame.src = data.joinURL; });
+
             // Mostrar ventana solo si no estaba minimizada
             if (pastilla.style.display !== 'flex') {
                 ventana.style.display = 'flex';
             }
 
-            // 🔥 WATCHDOG CORREGIDO: verifica f.src directamente
+            // 🔥 WATCHDOG CORREGIDO
             if (!watchdogJitsi) {
-                console.log('🔄 Watchdog de Jitsi iniciado');
+                console.log('🔄 Watchdog BBB iniciado');
                 watchdogJitsi = setInterval(() => {
-                    // Si el video ya no está activo, limpiar watchdog
                     if (!videoActivo) {
                         clearInterval(watchdogJitsi);
                         watchdogJitsi = null;
@@ -28740,26 +28742,24 @@ function listenVideoEstudiante() {
                     const f = document.getElementById('jitsiFrameEstudiante');
                     if (!f) return;
 
-                    // ✅ Verificar f.src (accesible, sin problemas cross-origin)
                     const srcActual = f.src || '';
-                    
-                    // Si el src está vacío o ya no apunta a meet.jit.si → reconectar
-                    if (!srcActual.includes('digitalsamba.com')) {
-                        console.log('🔄 Watchdog: Jitsi estudiante sin URL válida, reconectando...');
+
+                    if (!srcActual.includes('bigbluebutton')) {
+                        console.log('🔄 Watchdog: BBB estudiante sin URL válida, reconectando...');
                         const nombreReconexion = studentName || 'Estudiante';
-                       f.src = `https://aula1.digitalsamba.com/demo-room`;
-                        // Mostrar notificación al usuario
+                        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombreReconexion)}&rol=VIEWER&sala=alau-clase`)
+                            .then(r => r.json())
+                            .then(data => { if(data.ok) f.src = data.joinURL; });
                         mostrarNotificacion('🔄 Reconectando videollamada...', 'warning');
                     }
-                }, 30000); // Verificar cada 30 segundos
+                }, 30000);
             }
 
         } else if (activa === false) {
-            // Docente finalizó — cerrar todo
             if (watchdogJitsi) {
                 clearInterval(watchdogJitsi);
                 watchdogJitsi = null;
-                console.log('🔄 Watchdog de Jitsi detenido');
+                console.log('🔄 Watchdog BBB detenido');
             }
             cerrarJitsiUI('estudiante');
             yaPediPalabra = false;
