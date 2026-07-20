@@ -1,12 +1,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>AlaU · Clase en Línea-VERSIÓN 2 - SAMBA junio 30 DE 2026</title>
+<title>AlaU 72 · Clase en Línea- – BBB + AUDIO PEERS JS MEJORADO JULIO 20 DE 2026</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -3782,7 +3783,15 @@ body.dark .resp-col-name { color: white !important; }
   line-height: 0;
 }
 
-
+/* Fix modales historial — position:fixed escapa display:none del padre */
+#modalHistorialEstudianteInner,
+#modalDocenteHistorialInner {
+    display: none;
+}
+#modalHistorialEstudiante[style*="display: flex"] #modalHistorialEstudianteInner,
+#modalDocenteHistorial[style*="display: flex"] #modalDocenteHistorialInner {
+    display: flex;
+}
 
 </style>
 
@@ -3802,7 +3811,7 @@ body.dark .resp-col-name { color: white !important; }
   
   <div class="role-cards">
     <div class="role-card" id="btnRoleTeacher"><div class="rc-icon">👨‍🏫</div><div class="rc-title">Docente</div><div class="rc-desc">Lanzar preguntas</div></div>
-    <div class="role-card" id="btnRoleStudent"><div class="rc-icon">🎓</div><div class="rc-title">Estudiante</div><div class="rc-desc">Responder en tiempo real</div></div>
+    <div class="role-card" id="btnRoleStudent"><div class="rc-icon">🎓</div><div class="rc-title">Estudiante/Invitado</div><div class="rc-desc">Responder en tiempo real</div></div>
   </div>
 </div>
 
@@ -3933,7 +3942,7 @@ body.dark .resp-col-name { color: white !important; }
   </div>
 </div>
 
-
+ <!-- ── TOPBAR DOCENTE ── -->
 <div id="screenTeacher" class="screen">
   <div class="topbar" id="teacherTopbar">
   <span class="topbar-title">👨‍🏫 Panel Docente</span>
@@ -3946,12 +3955,26 @@ body.dark .resp-col-name { color: white !important; }
   
   <div class="topbar-collapsible">
     <span id="sesionActivaBadge" style="font-size:.72rem;background:rgba(39,174,96,.25);color:#b7f5d0;padding:4px 10px;border-radius:40px;font-weight:700;display:none;"></span>
+    
     <span id="codigoClaseBadge" style="display:none;align-items:center;gap:6px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:4px 10px;border-radius:40px;cursor:pointer;" title="Clic para copiar el código">
       <span class="topbar-status" id="teacherStatus">🟢 En línea</span>
       <span style="font-size:.65rem;color:#93c5fd;">CÓDIGO:</span>
       <span id="codigoClaseTexto" style="font-size:.9rem;font-weight:900;color:white;letter-spacing:2px;"></span>
       <span style="font-size:.65rem;color:#93c5fd;">📋</span>
     </span>
+    
+    <!-- ═══ NUEVO BADGE DE TUTOR (BLOQUE 3) ═══ -->
+     <!-- Código tutor invitado -->
+  <span id="tutorCodeBadge" style="
+      background:rgba(155,89,182,0.2); color:#d7bde2;
+      padding:4px 10px; border-radius:40px;
+      font-size:.75rem; font-weight:700;
+      cursor:pointer; display:none;
+    " title="Código para Tutor Invitado" onclick="copiarCodigoTutor()">
+    👨‍🏫 Tutor: <span id="tutorCodeDisplay">------</span>
+  </span>
+
+
     <span id="estudiantesOnlineBadge" style="background:rgba(39,174,96,.2); color:#b7f5d0; padding:4px 10px; border-radius:40px; font-size:.75rem; font-weight:700;">
       👥 <span id="onlineCount">0</span> en línea
     </span>
@@ -3990,7 +4013,41 @@ body.dark .resp-col-name { color: white !important; }
     transition: all 0.3s;
 ">🏠 Grupos</button>
 
+<!-- ── CHECKBOX ACTIVAR CHAT ── -->
+<label id="lblActivarChat" style="
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+    padding:4px 12px; border-radius:40px; cursor:pointer;
+    font-size:0.78rem; font-weight:700; color:white;
+">
+    <input type="checkbox" id="chkActivarChat" 
+        onchange="toggleActivarChat(this.checked)"
+        style="width:14px;height:14px;cursor:pointer;">
+    💬 Chat
+</label>
   </div>
+
+<!-- ── CHECKBOX AUDIO ── -->
+<label id="lblActivarAudio" style="
+    display:none; align-items:center; gap:6px;
+    background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+    padding:4px 12px; border-radius:40px; cursor:pointer;
+    font-size:0.78rem; font-weight:700; color:white;
+">
+    <input type="checkbox" id="chkActivarAudio"
+        onchange="toggleActivarAudio(this.checked)"
+        style="width:14px;height:14px;cursor:pointer;">
+    🎙 Audio
+</label>
+
+<!-- ── BOTÓN SILENCIAR MICRÓFONO DOCENTE ── -->
+<button id="btnMutearDocente" onclick="toggleMicrofonoDocente()" style="
+    display:none; background:linear-gradient(135deg,#e74c3c,#c0392b);
+    color:#fff; border:none; border-radius:40px;
+    padding:6px 16px; font-size:0.78rem; font-weight:700;
+    cursor:pointer; align-items:center; gap:6px;
+">🎙 Silenciar</button>
+
 </div>
 
   
@@ -4015,9 +4072,6 @@ body.dark .resp-col-name { color: white !important; }
         <span class="q-status-badge qbadge-closed" id="qStatusBadge" style="padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;">🔒 Cerrada</span>
       </div>
     </div>
-
-
-
 
 
            <div class="q-row" style="display: flex; gap: 8px; margin-bottom: 0.6rem;">
@@ -5514,6 +5568,159 @@ María López"></textarea>
     <span id="breakoutTimerEstudianteMin" style="color:#ffd84d;font-family:monospace;font-size:12px;">15:00</span>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     CHAT NATIVO ALAU — Botón flotante (patrón .floating-btn)
+     ══════════════════════════════════════════════════════════ -->
+    <button id="chatAlaUBtn" class="floating-btn" style="
+    bottom: 24px; left: 24px; right: auto; display: none;
+    background: linear-gradient(135deg, #2c7da0, #1a5276);
+    font-size: 1.4rem;
+" onclick="toggleChatAlau()">
+    💬
+    <span id="chatBadge" style="
+        display:none; position:absolute; top:-4px; right:-4px;
+        background:#ff6b6b; color:#fff; border-radius:50%;
+        width:18px; height:18px; font-size:10px; font-weight:700;
+        align-items:center; justify-content:center;
+        pointer-events:none;
+    ">0</span>
+</button>
+
+<div id="chatPanel" style="
+    display:none; position:fixed;
+    bottom:90px; left:16px;
+    width:300px; max-width:calc(100vw - 32px);
+    background:#1a2a1f; border:1px solid rgba(44,125,160,0.4);
+    border-radius:16px; z-index:99990;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5);
+    flex-direction:column; overflow:hidden;
+    max-height:360px;
+">
+    <div id="chatPanelHeader" style="
+        background:linear-gradient(135deg,#2c7da0,#1a5276);
+        padding:10px 14px; display:flex;
+        justify-content:space-between; align-items:center;
+        flex-shrink:0; cursor:move; user-select:none;
+    ">
+        <span style="color:#fff;font-weight:700;font-size:13px;">💬 Chat AlaU</span>
+        <button onclick="toggleChatAlau()" style="
+            background:none;border:none;color:#fff;
+            font-size:18px;cursor:pointer;padding:0;line-height:1;
+        ">✕</button>
+    </div>
+    <div id="chatMensajes" style="
+        flex:1; overflow-y:auto; padding:10px;
+        display:flex; flex-direction:column; gap:6px;
+        background:#0a1a0f; min-height:200px; max-height:260px;
+    ">
+        <p style="color:#6a8b72;font-size:12px;text-align:center;margin:auto;">
+            Aquí verás los mensajes de la clase
+        </p>
+    </div>
+    <div style="
+        padding:8px 10px; border-top:1px solid rgba(255,255,255,0.08);
+        display:flex; gap:6px; background:#1a2a1f; flex-shrink:0;
+    ">
+        <input id="chatInput" type="text"
+            placeholder="Escribe..." maxlength="200"
+            style="
+                flex:1; padding:7px 10px; border-radius:40px;
+                border:1px solid rgba(255,255,255,0.15);
+                background:rgba(255,255,255,0.06);
+                color:#fff; font-size:13px; outline:none;
+            ">
+        <button onclick="enviarMensajeChat()" style="
+            background:linear-gradient(135deg,#2c7da0,#1a5276);
+            color:#fff; border:none; border-radius:40px;
+            padding:7px 12px; font-size:13px; cursor:pointer;
+            font-weight:700;
+        ">➤</button>
+    </div>
+</div>
+
+
+<!-- ── INDICADOR AUDIO DOCENTE ── -->
+<div id="audioDocenteIndicador" style="
+    display:none; position:fixed; top:70px; right:16px;
+    background:linear-gradient(135deg,#c0392b,#922b21);
+    color:#fff; border-radius:40px; padding:6px 14px;
+    font-size:12px; font-weight:700; z-index:99995;
+    box-shadow:0 4px 16px rgba(192,57,43,0.4);
+    align-items:center; gap:6px;
+">
+    <span id="audioDocentePulso" style="
+        width:8px;height:8px;border-radius:50%;
+        background:#ff6b6b;display:inline-block;
+        animation:pulso 1s infinite;
+    "></span>
+    🎙 Transmitiendo
+</div>
+
+<!-- ── INDICADOR AUDIO ESTUDIANTE ── -->
+<div id="audioEstudianteIndicador" style="
+    display:none; position:fixed; top:70px; left:50%;
+    transform:translateX(-50%);
+    background:linear-gradient(135deg,#1a5276,#154360);
+    color:#fff; border-radius:40px; padding:6px 14px;
+    font-size:12px; font-weight:700; z-index:99995;
+    box-shadow:0 4px 16px rgba(26,82,118,0.4);
+    align-items:center; gap:6px;
+">
+    🔊 Audio en vivo
+</div>
+
+<!-- ── BOTÓN PEDIR PALABRA (audio) ── -->
+<button id="btnPedirPalabraAudio" style="
+    display:none; position:fixed; bottom:80px; right:72px;
+    width:46px; height:46px; border-radius:50%;
+    background:linear-gradient(135deg,#f39c12,#d68910);
+    border:none; cursor:pointer; z-index:99990;
+    align-items:center; justify-content:center;
+    font-size:20px;
+    box-shadow:0 4px 16px rgba(243,156,18,0.4);
+" onclick="pedirPalabraAudio()">
+    🖐
+</button>
+
+
+
+<!-- ── PANEL DE SOLICITUDES Y CONTROL DE PALABRA (audio, solo docente) ── -->
+<div id="panelSolicitudesAudio" style="
+    display:none; position:fixed; top:70px; right:16px;
+    background:linear-gradient(135deg,#2c2c2c,#1a1a1a);
+    color:#fff; border-radius:14px; padding:10px 14px;
+    font-size:13px; z-index:99996; min-width:240px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);
+">
+    <div id="seccionSolicitudesAudio" style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <strong>✋ Solicitudes de palabra</strong>
+            <button id="btnConcederTodos" onclick="concederTodasLasSolicitudes()" style="
+                background:linear-gradient(135deg,#27ae60,#1e8449);
+                color:#fff; border:none; border-radius:20px;
+                padding:4px 10px; font-size:11px; cursor:pointer; font-weight:700;
+            ">🎙 Conceder a todos</button>
+        </div>
+        <ul id="listaSolicitudesAudio" style="list-style:none; padding:0; margin:0; max-height:160px; overflow-y:auto;"></ul>
+    </div>
+
+    <div id="seccionHablandoAudio">
+        <strong style="display:block; margin-bottom:8px;">🎙 Hablando ahora</strong>
+        <ul id="listaHablandoAudio" style="list-style:none; padding:0; margin:0; max-height:160px; overflow-y:auto;"></ul>
+    </div>
+</div>
+
+
+
+
+<style>
+@keyframes pulso {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.5; transform:scale(1.3); }
+}
+</style>
+
+
 
 
 <script>
@@ -5542,20 +5749,28 @@ function normalizeName(name) {
 
 }
 
-// Función para restaurar sesión automáticamente al recargar
+
 
 // Función para restaurar sesión automáticamente al recargar (CON CONFIRMACIÓN)
 
 async function autoRestoreStudentSession() {
 
+  // 🔥🔥🔥 AUTENTICACIÓN ANÓNIMA - PRIMERO
+  if (!auth.currentUser) {
+    try {
+      await auth.signInAnonymously();
+      console.log('✅ Estudiante autenticado anónimamente (auto-restauración)');
+    } catch (authError) {
+      console.error('❌ Error en autenticación anónima:', authError);
+      limpiarDatosEstudianteLocal();
+      return false;
+    }
+  }
+
   const savedCode = localStorage.getItem('alau_last_class_code');
-
   const savedPath = localStorage.getItem('alau_session_path');
-
   const savedName = localStorage.getItem('alau_student_name');
-
   const savedMunicipio = localStorage.getItem('alau_student_municipio');
-
   const savedInstitucion = localStorage.getItem('alau_student_institucion');
 
   if (savedCode && savedPath && savedName) {
@@ -5563,148 +5778,97 @@ async function autoRestoreStudentSession() {
     try {
 
       // 1. Verificar que el código siga activo
-
       const codeSnap = await db.ref(`activeCodes/${savedCode}`).once('value');
-
       const codeData = codeSnap.val();
 
       if (!codeData || (codeData.expiresAt && Date.now() > codeData.expiresAt)) {
-
         console.log("🔴 Código expirado");
-
         limpiarDatosEstudianteLocal();
-
         return false;
-
       }
 
       // 2. Verificar que la ruta guardada coincida
-
       if (codeData.sessionPath !== savedPath) {
-
         console.log("🔴 Ruta de sesión no coincide");
-
         limpiarDatosEstudianteLocal();
-
         return false;
-
       }
 
       // 3. Verificar sessionActive
-
       let isSessionActive = false;
-
       try {
-
         const activeSnap = await db.ref(`sessions/${savedPath}/sessionActive`).once('value');
-
         isSessionActive = activeSnap.val() === true;
-
       } catch (e) {
-
         console.warn("Error verificando sessionActive:", e);
-
         return false;
-
       }
 
-    mostrarCodigoEnTopbarEstudiante(savedCode);
+      mostrarCodigoEnTopbarEstudiante(savedCode);
 
       if (isSessionActive !== true) {
-
         console.log("🔴 Sesión cerrada por el docente");
-
         limpiarDatosEstudianteLocal();
-
         alert("🔒 La sesión de clase ha sido cerrada por el docente.");
-
         return false;
-
       }
 
       // 🔥 PREGUNTAR AL USUARIO SI QUIERE RECONECTAR
-
       const reconectar = confirm(
-
         `¿Reconectar a la clase anterior?\n\n` +
-
         `📚 Clase: ${codeData.label || 'Sin etiqueta'}\n` +
-
         `👤 Estudiante: ${savedName}\n` +
-
         `📍 Municipio: ${savedMunicipio || 'No especificado'}\n\n` +
-
         `¿Deseas continuar donde lo dejaste?`
-
       );
 
       if (!reconectar) {
-
         console.log("👤 Usuario eligió no reconectar, limpiando datos...");
-
         limpiarDatosEstudianteLocal();
-
         return false;
-
       }
 
       // Si llegamos aquí, el usuario quiere reconectar
-
       console.log("✅ Usuario confirmó reconexión, restaurando sesión...");
 
       initFirebaseRefs(savedPath);
 
       studentName = savedName;
-
       studentMunicipio = savedMunicipio || '';
-
       studentInstitucion = savedInstitucion || '';
-
       updateStudentNameUI();
 
       // Iniciar todos los listeners
-
       listenQuestion();
-
       listenAutonomoRealtime();
-
       listenSharedPdf();
-
       listenModoEspecial();
-
       listenSessionStatusStudent();
-
       listenSessionEnded();
-
       startSessionHeartbeat();
-
       listenSorteoEstudiante();
-      
-      listenVideoEstudiante(); // ← AGREGAR ESTA LÍNEA
-
-      listenPizarraEstudiante(); // ← AGREGAR
-      
+      listenVideoEstudiante();
+      listenPizarraEstudiante();
       establecerPresenciaEstudiante();
-
       actualizarVistaEstudiante();
+
+      // 🔹 INICIAR CHAT ALAU AL RESTAURAR SESIÓN
+      iniciarChatAlau();
+      listenAudioEstudiante();
 
       return true;
 
     } catch (e) {
-
       console.warn('Auto-restauración fallida:', e);
-
       limpiarDatosEstudianteLocal();
-
       return false;
-
     }
 
   }
 
   return false;
-
 }
+
 
 // ══════════════════════════════════════════════════════════════
 
@@ -6033,6 +6197,16 @@ const modalTrazosPorPagina = {};  // { pageNum: ImageData }
 // ============ SISTEMA DE CIERRE DE SESIÓN PARA ESTUDIANTES ============
 
 let isBeingExpelled = false;
+
+
+
+// ============ VARIABLES PARA CONTROL DE AUDIO ============
+
+let solicitudesPendientes   = {}; // { key: {nombre, peerId} }
+let llamadasPalabraActivas  = {}; // { peerId: call }
+let hablandoAhora           = {}; // { peerId: nombre }
+let microfonoSilenciado = false;
+// =========================================================
 
 function limpiarDatosEstudianteLocal() {
 
@@ -7661,11 +7835,39 @@ document.getElementById('btnRoleStudent').addEventListener('click',()=>{
 
 });
 
-document.getElementById('studentCodeInput').addEventListener('keydown',e=>{
-
-  if(e.key==='Enter') document.getElementById('studentAccessName').focus();
-
+// 1. Navegación con Enter: de código a nombre
+document.getElementById('studentCodeInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('studentAccessName').focus();
+  }
 });
+
+// 2. Ocultar/mostrar campos de municipio e institución según prefijo T-
+document.getElementById('studentCodeInput').addEventListener('input', function() {
+  const codigo = this.value.trim().toUpperCase();
+  const esTutor = codigo.startsWith('T-');
+  
+  // Buscar los contenedores de los campos (asumiendo que tienen clase .campo-wrap)
+  const munContainer = document.getElementById('studentAccessMunicipio')?.closest('.campo-wrap');
+  const instContainer = document.getElementById('studentAccessInstitucion')?.closest('.campo-wrap');
+  
+  if (munContainer) {
+    munContainer.style.display = esTutor ? 'none' : 'block';
+  } else {
+    // Fallback: ocultar el input directamente si no tiene wrapper
+    const munInput = document.getElementById('studentAccessMunicipio');
+    if (munInput) munInput.style.display = esTutor ? 'none' : 'block';
+  }
+  
+  if (instContainer) {
+    instContainer.style.display = esTutor ? 'none' : 'block';
+  } else {
+    const instInput = document.getElementById('studentAccessInstitucion');
+    if (instInput) instInput.style.display = esTutor ? 'none' : 'block';
+  }
+});
+
 
 document.getElementById('studentAccessName').addEventListener('keydown',e=>{
 
@@ -7692,217 +7894,167 @@ document.getElementById('studentAccessCancelBtn').addEventListener('click',()=>{
 });
 
 async function unirseAClase() {
+  // 🔥 AUTENTICACIÓN ANÓNIMA - PRIMERO
+  if (!auth.currentUser) {
+    try {
+      await auth.signInAnonymously();
+      console.log('✅ Estudiante/Tutor autenticado anónimamente');
+    } catch (authError) {
+      console.error('❌ Error en autenticación anónima:', authError);
+      const err = document.getElementById('studentAccessError');
+      err.textContent = '❌ Error de autenticación. Verifica tu conexión.';
+      err.style.display = 'block';
+      return;
+    }
+  }
 
   const codigo = document.getElementById('studentCodeInput').value.trim().toUpperCase();
-
   const nombre = document.getElementById('studentAccessName').value.trim();
-
   const municipio = document.getElementById('studentAccessMunicipio').value.trim();
-
   const institucion = document.getElementById('studentAccessInstitucion').value.trim();
-
   const err = document.getElementById('studentAccessError');
-
   const btn = document.getElementById('studentAccessBtn');
 
+  // ========== VALIDACIONES BÁSICAS (código y nombre) ==========
   if (!codigo || codigo.length < 4) {
-
     err.textContent = '❌ Escribe el código de clase (4-8 caracteres)';
-
     err.style.display = 'block';
-
     document.getElementById('studentCodeInput').focus();
-
     return;
-
   }
-
   if (!nombre || nombre.length < 2) {
-
     err.textContent = '❌ Escribe tu nombre completo';
-
     err.style.display = 'block';
-
     document.getElementById('studentAccessName').focus();
-
     return;
-
-  }
-
-  if (!municipio) {
-
-    err.textContent = '❌ Escribe tu municipio';
-
-    err.style.display = 'block';
-
-    document.getElementById('studentAccessMunicipio').focus();
-
-    return;
-
-  }
-
-  if (!institucion) {
-
-    err.textContent = '❌ Escribe tu institución educativa';
-
-    err.style.display = 'block';
-
-    document.getElementById('studentAccessInstitucion').focus();
-
-    return;
-
   }
 
   btn.disabled = true;
-
   btn.innerHTML = '<span class="spinner"></span> Buscando clase...';
-
   err.style.display = 'none';
 
   try {
-
     // 1. Verificar que el código existe
-
     const snap = await db.ref(`activeCodes/${codigo}`).once('value');
-
     const data = snap.val();
 
     if (!data || !data.sessionPath) {
-
       err.textContent = '❌ Código no encontrado. Verifica con tu docente.';
-
       err.style.display = 'block';
-
       return;
-
     }
 
     if (data.expiresAt && Date.now() > data.expiresAt) {
-
       err.textContent = '❌ El código expiró. Pide al docente que genere uno nuevo.';
-
       err.style.display = 'block';
-
       return;
-
     }
 
-    // 2 y 3. Verificar sesión leyendo solo sessionActive (nodo con .read:true)
-
+    // 2. Verificar sesión activa
     const sessionPath = data.sessionPath;
-
     let isSessionActive = false;
-
     try {
-
       const activeSnap = await db.ref(`sessions/${sessionPath}/sessionActive`).once('value');
-
       isSessionActive = activeSnap.val() === true;
-
     } catch (e) {
-
       err.textContent = '❌ No se pudo verificar la sesión. Intenta de nuevo.';
-
       err.style.display = 'block';
-
       return;
-
     }
 
     if (!isSessionActive) {
-
       err.textContent = '❌ La clase ya ha finalizado o no existe. Verifica el código.';
-
       err.style.display = 'block';
-
       return;
-
     }
 
+    // ============================================================
+    // ✅ DETECTAR SI ES TUTOR INVITADO (antes de validar municipio/institución)
+    // ============================================================
+    if (data.esTutor === true) {
+      console.log('👨‍🏫 Código de tutor detectado — entrando como tutor invitado');
+      // El tutor no necesita municipio ni institución
+      document.getElementById('studentAccessModal').style.display = 'none';
+      initFirebaseRefs(sessionPath);
+      studentName = nombre;
+      studentMunicipio = '';        // No requerido para tutor
+      studentInstitucion = '';      // No requerido para tutor
+      localStorage.setItem('alau_session_path', sessionPath);
+      // Opcional: guardar código en localStorage si quieres
+      // localStorage.setItem('alau_last_class_code', codigo);
+      mostrarCodigoEnTopbarEstudiante(codigo);
+      currentRole = 'tutor';
+      enterTutor();
+      return;
+    }
+
+    // ============================================================
+    // PARA ESTUDIANTES: validar municipio e institución
+    // ============================================================
+    if (!municipio) {
+      err.textContent = '❌ Escribe tu municipio';
+      err.style.display = 'block';
+      document.getElementById('studentAccessMunicipio').focus();
+      return;
+    }
+    if (!institucion) {
+      err.textContent = '❌ Escribe tu institución educativa';
+      err.style.display = 'block';
+      document.getElementById('studentAccessInstitucion').focus();
+      return;
+    }
+
+    // ============================================================
     // 4. TODO OK - Inicializar y unir al estudiante
-
+    // ============================================================
     initFirebaseRefs(sessionPath);
-
     localStorage.setItem('alau_last_class_code', codigo);
-
     localStorage.setItem('alau_session_path', sessionPath);
-
     studentName = nombre;
-
     studentMunicipio = municipio;
-
     studentInstitucion = institucion;
-
     localStorage.setItem('alau_student_name', nombre);
-
     localStorage.setItem('alau_student_municipio', municipio);
-
     localStorage.setItem('alau_student_institucion', institucion);
 
     mostrarCodigoEnTopbarEstudiante(codigo);
-    
     listenSorteoEstudiante();
-
     listenSessionStatusStudent();
-
     startSessionHeartbeat();
 
     const topbarTitle = document.querySelector('#screenStudent .topbar-title');
-
     if (topbarTitle && data.label) {
-
       topbarTitle.textContent = `🎓 ${data.label}`;
-
     }
 
     document.getElementById('studentAccessModal').style.display = 'none';
-
     currentRole = 'student';
-
     showScreen('screenStudent');
-
     listenQuestion();
-
     listenSessionEnded();
-
     listenAutonomoRealtime();
-
     listenSharedPdf();
-
     listenModoEspecial();
-
     updateStudentNameUI();
-
-    listenVideoEstudiante(); 
-
-    listenPizarraEstudiante(); // ← AGREGAR ESTA LÍNEA
-
+    listenVideoEstudiante();
+    listenPizarraEstudiante();
     establecerPresenciaEstudiante();
-
     actualizarVistaEstudiante();
+    iniciarChatAlau();
+    listenAudioEstudiante();
 
     if (bancoDatos && bancoDatos.length) {
-
       await cargarRespuestasPrevias();
-
     }
 
   } catch (e) {
-
     console.error('Error buscando código:', e);
-
     err.textContent = '❌ Error de conexión. Verifica tu internet.';
-
     err.style.display = 'block';
-
   } finally {
-
     btn.disabled = false;
-
     btn.innerHTML = '✅ Unirme a la clase';
-
   }
-
 }
 
 document.getElementById('studentAccessBtn').addEventListener('click', unirseAClase);
@@ -8023,11 +8175,26 @@ async function publicarCodigoClase(sessionPath, sessionLabel, regenerar = false)
 
     }
 
+
+// Generar código de TUTOR INVITADO
+const codigoTutor = 'T-' + generarCodigoCorto(5);
+await db.ref(`activeCodes/${codigoTutor}`).set({
+    sessionPath,
+    label: sessionLabel,
+    createdAt: Date.now(),
+    expiresAt,
+    esTutor: true  // ← marca que es tutor
+});
+await sessionRef.child('_meta/currentTutorCode').set(codigoTutor);
+console.log(`👨‍🏫 Código tutor generado: ${codigoTutor}`);
+
+
     codigoActual = codigo;
 
     mostrarCodigoEnPanel(codigo);
 
     return codigo;
+
 
 }
 
@@ -8760,6 +8927,16 @@ document.getElementById('sessionCancelBtn').addEventListener('click',()=>{
 
 function enterTeacher() {
 
+  // ============================================================
+  // 🔥 BLOQUE 6 — Mostrar badge tutor cuando hay sesión activa
+  // ============================================================
+  const tutorBadge = document.getElementById('tutorCodeBadge');
+  if (tutorBadge && sessionRef) {
+    tutorBadge.style.display = 'inline-block';
+  }
+
+  listenTutorCode(); // Escucha en tiempo real el código del tutor
+
   currentRole = 'teacher';
 
   showScreen('screenTeacher');
@@ -8838,7 +9015,13 @@ function enterTeacher() {
     });
   }
 
-}  // ← Cierre de la función
+ // 🔹 INICIAR CHAT ALAU AL ENTRAR COMO DOCENTE
+  iniciarChatAlau();
+  mostrarCheckboxAudio();
+
+}  // ← CIERRE DE LA FUNCIÓN enterTeacher
+
+
 
 document.getElementById('teacherLogoutBtn').addEventListener('click', async () => {
 
@@ -12718,38 +12901,30 @@ function listenModoEspecial() {
 
 }
 
+
 function listenSessionEnded() {
-
   if (!sessionRef) return;
-
   sessionRef.child('sessionEnded').on('value', snap => {
-
     if (snap.val() === true) {
-
       console.log("📢 Docente finalizó la clase");
-
       localStorage.removeItem('alau_last_class_code');
-
       localStorage.removeItem('alau_session_path');
-
       localStorage.removeItem('alau_student_name');
-
       localStorage.removeItem('alau_student_municipio');
-
       localStorage.removeItem('alau_student_institucion');
 
-      alert('El docente ha finalizado la clase. ¡Hasta pronto!');
+      // Mostrar balance antes de ir al home
+      if (typeof abrirPantallaCierreEstudiante === 'function' && studentName) {
+        abrirPantallaCierreEstudiante(true);
+      } else {
+        alert('El docente ha finalizado la clase. ¡Hasta pronto!');
+      }
 
       currentRole = '';
-
       showScreen('screenHome');
-
     }
-
   });
-
 }
-
 // ════════════════════════════════
 
 // MODO FORMULARIO COMPLETO
@@ -15617,44 +15792,6 @@ function descargarCSV(contenido, nombre) {
 
 renderRanking();
 <\/script>
-<!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
 </body>
 </html>`;
 
@@ -15864,8 +16001,8 @@ function listenSharedPdf() {
 
     if (state && state.shared === true && state.pageImage) {
       container.style.display = 'block';
-studentAnnotation.showBar(true);   // ← AGREGAR
-if (!studentAnnotation.ctx) studentAnnotation.init();
+      studentAnnotation.showBar(true);
+      if (!studentAnnotation.ctx) studentAnnotation.init();
 
       if (state.totalPages) totalPages = state.totalPages;
       
@@ -15879,8 +16016,7 @@ if (!studentAnnotation.ctx) studentAnnotation.init();
           isSharingPdf = true;
           console.log(`✅ PDF cargado en estudiante: ${pdfDoc.numPages} páginas`);
 
-          // 🔥 PDF llegó tarde en modo autónomo — sincronizar con la pregunta actual
-          // renderAoPreguntaActual() ya corrió pero pdfDoc era null, por eso quedó en página 1
+          // PDF llegó tarde en modo autónomo — sincronizar con la pregunta actual
           if (habilitarAutonomo && bancoDatos.length > 0 && !aoFinished) {
             const paginaDestino = aoActual + 1;
             if (paginaDestino >= 1 && paginaDestino <= pdfDoc.numPages) {
@@ -15910,19 +16046,17 @@ if (!studentAnnotation.ctx) studentAnnotation.init();
         isSharingPdf = true;
       }
 
-      // 🔥 En modo autónomo NO sincronizar página con el docente —
-      // el estudiante navega independientemente según su pregunta actual.
-      // En modo en vivo SÍ seguir al docente.
+      // En modo autónomo NO sincronizar página con el docente
+      // En modo en vivo SÍ seguir al docente
       if (!habilitarAutonomo) {
-  if (state.currentPage) {
-    // ← AGREGAR ESTO antes de cambiar currentPage:
-    if (studentAnnotation.ctx && state.currentPage !== currentPage) {
-      studentAnnotation.changePage(state.currentPage);
-    }
-    currentPage = state.currentPage;
-  }
-  if (img.src !== state.pageImage) img.src = state.pageImage;
-}
+        if (state.currentPage) {
+          if (studentAnnotation.ctx && state.currentPage !== currentPage) {
+            studentAnnotation.changePage(state.currentPage);
+          }
+          currentPage = state.currentPage;
+        }
+        if (img.src !== state.pageImage) img.src = state.pageImage;
+      }
 
       // ✅ SOLO inicializar navegación UNA VEZ
       if (!window._studentPdfNavigationInitialized) {
@@ -15961,18 +16095,24 @@ if (!studentAnnotation.ctx) studentAnnotation.init();
       }
 
     } else {
-      container.style.display = 'none';
-      studentAnnotation.showBar(false);  // ← AGREGAR
-studentAnnotation.deactivateTool();
-      img.src = '';
-      desactivarLayoutSplit(screenStudent);
-      if (sharedPdfClickHandler) {
-        img.removeEventListener('click', sharedPdfClickHandler);
-        sharedPdfClickHandler = null;
+      // En modo autónomo: mantener PDF visible aunque shared cambie
+      if (!habilitarAutonomo) {
+        container.style.display = 'none';
+        studentAnnotation.showBar(false);
+        studentAnnotation.deactivateTool();
+        img.src = '';
+        desactivarLayoutSplit(screenStudent);
+        if (sharedPdfClickHandler) {
+          img.removeEventListener('click', sharedPdfClickHandler);
+          sharedPdfClickHandler = null;
+        }
       }
+      // En modo autónomo el contenedor queda visible —
+      // el estudiante navega el PDF según su pregunta actual
     }
   });
 }
+
 
 function activarLayoutSplit(screenStudent, pdfContainer){
 
@@ -16512,8 +16652,7 @@ async function enterStudent() {
 
   startSessionHeartbeat();
 
-
-   // ✅ AGREGAR AQUÍ - Después de listenSessionStatusStudent() y startSessionHeartbeat()
+  // ✅ AGREGAR AQUÍ - Después de listenSessionStatusStudent() y startSessionHeartbeat()
   listenVideoEstudiante();
 
   listenPizarraEstudiante(); // ← AGREGAR
@@ -16564,9 +16703,14 @@ async function enterStudent() {
 
   }
 
-// Nota: La navegación del PDF es simple y se sincroniza automáticamente con el docente.
+  // Nota: La navegación del PDF es simple y se sincroniza automáticamente con el docente.
+
+  // 🔹 INICIAR CHAT ALAU AL ENTRAR COMO ESTUDIANTE
+  iniciarChatAlau();
+  listenAudioEstudiante();
 
 }
+
 
 document.getElementById('studentLogoutBtn').addEventListener('click', async () => {
 
@@ -22308,45 +22452,7 @@ async function analizarEstudiante(csvData, nombreEstudiante = null) {
 
       </div>
 
-    <!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
-</body>
+    </body>
 
     </html>
 
@@ -22556,72 +22662,67 @@ function actualizarBadgeAutonomo() {
 
 // Función para mostrar el código en todos los lugares (incluyendo el nuevo bloque externo)
 
-function mostrarCodigoEnPanel(codigo){
-
+// ==================== Función principal para mostrar código de clase ====================
+function mostrarCodigoEnPanel(codigo) {
   // Panel principal de resultados en vivo
-
   const panel = document.getElementById('codigoClasePanel');
-
   const display = document.getElementById('codigoClaseDisplay');
-
-  if(panel){
-
+  if (panel) {
     panel.style.display = codigo ? 'block' : 'none';
-
   }
-
-  if(display){
-
+  if (display) {
     display.textContent = codigo || '------';
-
   }
 
   // Badge superior / topbar
-
   const badge = document.getElementById('codigoClaseBadge');
-
   const texto = document.getElementById('codigoClaseTexto');
-
-  if(badge){
-
+  if (badge) {
     badge.style.display = codigo ? 'flex' : 'none';
-
   }
-
-  if(texto){
-
+  if (texto) {
     texto.textContent = codigo || '------';
-
   }
 
   // ✅ Bloque DENTRO del acordeón (existente)
-
   const pvpBox = document.getElementById('pvpCodigoClaseBox');
-
   const pvpTexto = document.getElementById('pvpCodigoClaseTexto');
-
-  if(pvpBox){
-
+  if (pvpBox) {
     pvpBox.style.display = codigo ? 'flex' : 'none';
-
   }
-
-  if(pvpTexto){
-
+  if (pvpTexto) {
     pvpTexto.textContent = codigo || '------';
-
   }
 
   // ✅ Actualizar modal grande
-
-  if(codigoModalTexto){
-
+  if (codigoModalTexto) {
     codigoModalTexto.textContent = codigo || '------';
-
   }
-
 }
 
+// ==================== BLOQUE 2 — Mostrar código tutor en panel docente ====================
+
+// Función para actualizar el display del código tutor
+function mostrarCodigoTutorEnPanel(codigo) {
+  const el = document.getElementById('tutorCodeDisplay');
+  if (el) el.textContent = codigo || '------';
+}
+
+// Escuchar en tiempo real el código tutor guardado en la sesión
+function listenTutorCode() {
+  if (!sessionRef) return;
+  sessionRef.child('_meta/currentTutorCode').on('value', snap => {
+    const code = snap.val();
+    if (code) mostrarCodigoTutorEnPanel(code);
+  });
+}
+
+// ==================== NOTA ====================
+// No olvides llamar a listenTutorCode() al final de enterTeacher():
+// function enterTeacher() {
+//   ... tu código existente ...
+//   listenTutorCode();
+// }
 // ========== EVENTOS PARA ABRIR MODAL GRANDE DESDE AMBOS BLOQUES ==========
 
 // Función para abrir el modal con el código actual
@@ -27229,17 +27330,22 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
 })();
 
 
-// ========== MODAL HISTORIAL DEL ESTUDIANTE ==========
+// ========== MODAL HISTORIAL DEL ESTUDIANTE (CORREGIDO) ==========
 (function() {
     // Crear el modal de historial si no existe
     function crearModalHistorial() {
-        if(document.getElementById('modalHistorialEstudiante')) return;
+        if (document.getElementById('modalHistorialEstudiante')) return;
         
         const modal = document.createElement('div');
         modal.id = 'modalHistorialEstudiante';
-        modal.style.display = 'none';
-        modal.innerHTML = `
-        <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:999999999; display:flex; align-items:center; justify-content:center;">
+        modal.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:999999999; align-items:center; justify-content:center;';
+        
+        // Contenedor interior (¡AHORA CON display:flex POR DEFECTO!)
+        const inner = document.createElement('div');
+        inner.id = 'modalHistorialEstudianteInner';
+        inner.style.cssText = 'display:flex; align-items:center; justify-content:center; width:100%; height:100%;';
+        
+        inner.innerHTML = `
             <div style="background:linear-gradient(145deg,#1a1a2e,#0f0f1a); border-radius:28px; width:90%; max-width:650px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; border:2px solid #2c7da0;">
                 <div style="background:linear-gradient(135deg,#2c7da0,#1e4a6b); padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; color:white;">📊 Mi historial de respuestas</h3>
@@ -27268,13 +27374,26 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                     <button id="exportarHistorialBtn" style="background:#27ae60; color:white; border:none; border-radius:40px; padding:8px 20px; font-size:0.75rem; font-weight:700; cursor:pointer;">📥 Exportar CSV</button>
                 </div>
             </div>
-        </div>`;
+        `;
+        
+        modal.appendChild(inner);
         document.body.appendChild(modal);
         
+        // Evento cerrar
         document.getElementById('cerrarHistorialBtn').onclick = () => {
             modal.style.display = 'none';
+            document.getElementById('modalHistorialEstudianteInner').style.display = 'none';
         };
         
+        // Cerrar al hacer clic fuera del contenido
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.getElementById('modalHistorialEstudianteInner').style.display = 'none';
+            }
+        });
+        
+        // Exportar CSV
         document.getElementById('exportarHistorialBtn').onclick = () => {
             exportarHistorialCSV();
         };
@@ -27307,7 +27426,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         URL.revokeObjectURL(url);
     }
     
-    // Función para abrir el modal y cargar el historial del estudiante
+    // Función principal para abrir el modal y cargar datos
     window.abrirMiHistorialEstudiante = async function() {
         if(!studentName) {
             alert('Primero guarda tu nombre');
@@ -27316,31 +27435,50 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         
         crearModalHistorial();
         const modal = document.getElementById('modalHistorialEstudiante');
+        const inner = document.getElementById('modalHistorialEstudianteInner');
         const cuerpo = document.getElementById('cuerpoHistorial');
         const resumen = document.getElementById('resumenHistorial');
         
+        // ✅ Mostrar ambos contenedores
         modal.style.display = 'flex';
+        if (inner) inner.style.display = 'flex';
+        
         cuerpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">Cargando respuestas...</td></tr>';
+        resumen.textContent = 'Cargando tu historial...';
         
         try {
             // Obtener respuestas del estudiante desde Firebase
             const stuKey = getStudentKey();
-            const respuestasSnap = await bancoRespRef?.child(stuKey).once('value');
-            const respuestas = respuestasSnap?.val() || {};
+            let respuestas = [];
             
-            // También obtener respuestas de preguntas en vivo (historial)
-            let respuestasVivo = [];
-            if(historialRef) {
+            // 1. Respuestas autónomas (banco_respuestas)
+            if (bancoRespRef) {
+                const respSnap = await bancoRespRef.child(stuKey).once('value');
+                const data = respSnap.val() || {};
+                for (const [pregId, resp] of Object.entries(data)) {
+                    const orden = resp.orden || pregId.replace('q_', '');
+                    const tiempoMs = resp.tiempoMs || 0;
+                    respuestas.push({
+                        preguntaNumero: orden,
+                        tiempo: tiempoMs ? formatMsAutonomo(tiempoMs) : '—',
+                        opcion: resp.opcion,
+                        timestamp: resp.sentAt || 0
+                    });
+                }
+            }
+            
+            // 2. Respuestas en vivo (historial)
+            if (historialRef) {
                 const histSnap = await historialRef.once('value');
                 const historial = histSnap.val() || {};
-                
-                for(const [qId, pregunta] of Object.entries(historial)) {
+                for (const [qId, pregunta] of Object.entries(historial)) {
                     const respuestasPregunta = pregunta.respuestas || {};
-                    for(const [respKey, resp] of Object.entries(respuestasPregunta)) {
-                        if(resp.student === studentName) {
-                            respuestasVivo.push({
+                    for (const [respKey, resp] of Object.entries(respuestasPregunta)) {
+                        if (resp.student === studentName) {
+                            const tiempoSeg = resp.timeSec || 0;
+                            respuestas.push({
                                 preguntaNumero: pregunta.numero || qId,
-                                tiempo: resp.timeSec ? formatSegundos(resp.timeSec) : '—',
+                                tiempo: formatSegundos(tiempoSeg),
                                 opcion: resp.option,
                                 timestamp: resp.sentAt || 0
                             });
@@ -27349,34 +27487,21 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                 }
             }
             
-            // Procesar respuestas autónomas
-            const respuestasAutonomas = [];
-            for(const [preguntaId, resp] of Object.entries(respuestas)) {
-                const orden = resp.orden || preguntaId.replace('q_', '');
-                respuestasAutonomas.push({
-                    preguntaNumero: orden,
-                    tiempo: resp.tiempoMs ? formatMsAutonomo(resp.tiempoMs) : '—',
-                    opcion: resp.opcion,
-                    timestamp: resp.sentAt || 0
-                });
-            }
+            // Ordenar por timestamp (más antiguo primero)
+            respuestas.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
             
-            // Combinar y ordenar por timestamp
-            const todasRespuestas = [...respuestasVivo, ...respuestasAutonomas];
-            todasRespuestas.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-            
-            if(todasRespuestas.length === 0) {
+            if (respuestas.length === 0) {
                 cuerpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px;">📭 Aún no has respondido preguntas</td></tr>';
                 resumen.textContent = '0 preguntas respondidas';
                 return;
             }
             
-            // Contar estadísticas
-            const total = todasRespuestas.length;
+            // Mostrar resumen
+            const total = respuestas.length;
             resumen.textContent = `📊 ${total} pregunta${total !== 1 ? 's' : ''} respondida${total !== 1 ? 's' : ''}`;
             
             // Generar tabla
-            cuerpo.innerHTML = todasRespuestas.map((r, idx) => `
+            cuerpo.innerHTML = respuestas.map((r, idx) => `
                 <tr style="border-bottom:1px solid #333;">
                     <td style="padding:10px; text-align:center;">${r.preguntaNumero}</td>
                     <td style="padding:10px; text-align:center; font-family:monospace;">${r.tiempo}</td>
@@ -27389,10 +27514,13 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         } catch(err) {
             console.error('Error cargando historial:', err);
             cuerpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px; color:#f87171;">❌ Error al cargar tu historial</td></tr>';
+            resumen.textContent = 'Error al cargar';
         }
     };
     
+    // Funciones auxiliares
     function formatSegundos(seg) {
+        if (!seg || seg === 0) return '—';
         const minutos = Math.floor(seg / 60);
         const segundos = Math.floor(seg % 60);
         const centesimas = Math.floor((seg % 1) * 100);
@@ -27400,9 +27528,11 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
     }
     
     function formatMsAutonomo(ms) {
-        const minutos = Math.floor(ms / 60000);
-        const segundos = Math.floor((ms % 60000) / 1000);
-        const centesimas = Math.floor((ms % 1000) / 10);
+        if (!ms || ms === 0) return '—';
+        const seg = ms / 1000;
+        const minutos = Math.floor(seg / 60);
+        const segundos = Math.floor(seg % 60);
+        const centesimas = Math.floor((seg % 1) * 100);
         return `${String(minutos).padStart(2,'0')}:${String(segundos).padStart(2,'0')}.${String(centesimas).padStart(2,'0')}`;
     }
     
@@ -27434,7 +27564,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
     }
 })();
 
-
 // ========== PANEL DOCENTE: VER TODOS LOS HISTORIALES DE ESTUDIANTES ==========
 (function() {
     // Crear modal docente para ver historiales
@@ -27445,7 +27574,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         modal.id = 'modalDocenteHistorial';
         modal.style.display = 'none';
         modal.innerHTML = `
-        <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:999999999; display:flex; align-items:center; justify-content:center;">
+        <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.95); z-index:999999999; display:flex; align-items:center; justify-content:center;" id="modalDocenteHistorialInner">
             <div style="background:linear-gradient(145deg,#1a1a2e,#0f0f1a); border-radius:28px; width:95%; max-width:1200px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; border:2px solid #2c7da0;">
                 <div style="background:linear-gradient(135deg,#2c7da0,#1e4a6b); padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; color:white;">📊 Historial de respuestas por estudiante</h3>
@@ -27499,9 +27628,11 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         </div>`;
         document.body.appendChild(modal);
         
-        document.getElementById('cerrarDocenteHistorialBtn').onclick = () => {
-            modal.style.display = 'none';
-        };
+       document.getElementById('cerrarDocenteHistorialBtn').onclick = () => {
+    modal.style.display = 'none';
+    // AGREGAR ESTA LÍNEA:
+    document.getElementById('modalDocenteHistorialInner').style.display = 'none';
+};
         
         document.getElementById('exportarTodosHistorialBtn').onclick = () => {
             exportarTodosLosHistoriales();
@@ -27834,11 +27965,15 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
             btnHistorial.className = 'topbar-btn';
             btnHistorial.style.cssText = 'background:rgba(255,255,255,.15); color:white; border-radius:40px; padding:5px 12px; font-size:.75rem; font-weight:600; margin-left:5px; cursor:pointer; border:1px solid rgba(255,255,255,.2);';
             btnHistorial.onclick = () => {
-                crearModalDocenteHistorial();
-                document.getElementById('modalDocenteHistorial').style.display = 'flex';
-                cargarListaEstudiantes();
-            };
-            topbarCollapsible.appendChild(btnHistorial);
+    crearModalDocenteHistorial();
+     document.getElementById('modalDocenteHistorial').style.display = 'flex';
+    document.getElementById('modalDocenteHistorialInner').style.display = 'flex'; // el hijo
+    cargarListaEstudiantes();
+};
+            
+
+
+topbarCollapsible.appendChild(btnHistorial);
         }
     }
     
@@ -27850,9 +27985,10 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
     };
     
     // Si ya estamos en docente, agregar botón
-    if(currentRole === 'teacher') {
-        setTimeout(agregarBotonDocenteHistorial, 500);
-    }
+   // DESPUÉS — verificación más estricta
+if(currentRole === 'teacher' && document.getElementById('teacherTopbar')) {
+    setTimeout(agregarBotonDocenteHistorial, 500);
+}
 })();
 
 
@@ -28095,29 +28231,34 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
 
 })();
 
+
 // ════════════════════════════════════════════════════════════════
 // PANTALLA DE CIERRE ESTUDIANTE — Balance final + Embudo de conversión
-// Muestra: balance de respuestas (con correctas reveladas) + CTA WhatsApp/curso
-// Se activa: (1) botón manual junto a "Mi historial" / "Ranking"
-//            (2) automáticamente cuando el docente finaliza la sesión (sessionEnded)
 // ════════════════════════════════════════════════════════════════
+
 (function() {
 
-  // ── 🔧 CONFIGURACIÓN DEL EMBUDO — edita aquí ──────────────────────
-  const CIERRE_CONFIG = {
-    whatsappNumero: '573145706959', // Solo dígitos, con código de país, sin +, sin espacios
-    whatsappMensaje: 'Hola, tengo dudas sobre la clase de hoy y quiero saber más sobre el curso personalizado 🎓',
-    cursoNombre: 'Curso personalizado de refuerzo académico',
-    cursoDescripcion: 'Repasa exactamente los temas donde tuviste más dificultad, a tu ritmo y con acompañamiento personalizado.',
-    cursoEnlace: 'https://chat.whatsapp.com/HQWeMxgoV5WF36pT3qOf3g' // Si tienes un link de pago/inscripción, ponlo aquí. Si está vacío, el CTA principal será WhatsApp.
-  };
+ const CIERRE_CONFIG = {
+  whatsappNumero: '573145706959',
+  whatsappMensaje: 'Hola, tengo dudas sobre la clase de hoy y quiero saber más sobre el curso personalizado 🎓',
+  whatsappGrupo: 'https://chat.whatsapp.com/IoOxcQ1MBJn6syQYcYnEby',
+
+  cursoNombre: 'Curso personalizado de refuerzo académico',
+  cursoDescripcion: 'Repasa exactamente los temas donde tuviste más dificultad, a tu ritmo y con acompañamiento personalizado.',
+  cursoEnlace: 'https://formularios.lostutores.co/lostutores/form/INSCRIPCINSEMILLEROAlaUREDDEESCUELASCIRCULARES2026/formperma/4sMlXGWWdGgnkji7kgKFQneImv-_UgdC8LAKDYkUens'
+};
 
   function construirEnlaceWhatsApp(mensajeExtra) {
     const msg = encodeURIComponent(mensajeExtra || CIERRE_CONFIG.whatsappMensaje);
-    return `https://wa.me/${CIERRE_CONFIG.whatsappNumero}?text=${msg}`;
+    return `https://api.whatsapp.com/send/?phone=${CIERRE_CONFIG.whatsappNumero}&text=${msg}&app_absent=0`;
   }
 
-  // ── Crear el modal si no existe ───────────────────────────────────
+
+function construirEnlaceGrupoWhatsApp() {
+  return CIERRE_CONFIG.whatsappGrupo;
+}
+
+
   function crearModalCierreEstudiante() {
     if (document.getElementById('modalCierreEstudiante')) return;
 
@@ -28138,28 +28279,26 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         display:flex; flex-direction:column; overflow:hidden;
         box-shadow:0 25px 60px rgba(0,0,0,0.6); font-family:system-ui,sans-serif;
       ">
+        <!-- HEADER CON BOTÓN DE CIERRE -->
         <div style="
           background:linear-gradient(135deg,#1e4a6b,#2c7da0);
           padding:18px 20px; text-align:center; flex-shrink:0; position:relative;
         ">
           <div style="font-size:2rem; margin-bottom:4px;">🎓</div>
-          <div style="color:white; font-weight:800; font-size:1.1rem;">¡Clase finalizada!</div>
+          <div id="cierreEstTitulo" style="color:white; font-weight:800; font-size:1.1rem;">¡Clase finalizada!</div>
           <div id="cierreEstSubtitulo" style="color:rgba(255,255,255,0.75); font-size:0.78rem; margin-top:3px;"></div>
           <button id="cerrarModalCierreEstudianteBtn" style="
             position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.15);
             border:none; color:white; border-radius:50%; width:30px; height:30px;
-            font-size:1rem; cursor:pointer;
+            font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
           ">✕</button>
         </div>
 
         <div style="flex:1; overflow-y:auto; padding:18px 20px;">
-
-          <!-- BALANCE -->
           <div id="cierreEstBalanceGrid" style="
             display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:18px;
           "></div>
 
-          <!-- BARRA DE ACIERTO -->
           <div style="margin-bottom:18px;">
             <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:rgba(255,255,255,0.6); margin-bottom:5px;">
               <span>📊 Tu porcentaje de aciertos</span>
@@ -28170,7 +28309,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
             </div>
           </div>
 
-          <!-- DETALLE DE RESPUESTAS -->
           <div style="font-size:0.7rem; font-weight:700; color:rgba(255,255,255,0.45); letter-spacing:0.5px; margin-bottom:8px; text-transform:uppercase;">
             📋 Detalle de tus respuestas
           </div>
@@ -28178,7 +28316,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
             <p style="color:rgba(255,255,255,0.5); text-align:center; padding:16px; font-size:0.8rem;">Cargando tu balance...</p>
           </div>
 
-          <!-- EMBUDO DE CONVERSIÓN -->
           <div style="
             background:linear-gradient(135deg,rgba(39,174,96,0.18),rgba(44,125,160,0.12));
             border:1.5px solid rgba(39,174,96,0.4); border-radius:18px; padding:16px;
@@ -28190,22 +28327,51 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                 Escríbenos por WhatsApp y resolvemos tus preguntas académicas.
               </div>
             </div>
-            <a id="cierreEstWhatsappBtn" href="#" target="_blank" rel="noopener" style="
-              display:flex; align-items:center; justify-content:center; gap:8px;
-              background:linear-gradient(135deg,#25D366,#1ebe57); color:white;
-              text-decoration:none; border-radius:40px; padding:11px; font-weight:700;
-              font-size:0.88rem; margin-bottom:12px; box-shadow:0 4px 14px rgba(37,211,102,0.35);
-            ">
-              📱 Escribir por WhatsApp
-            </a>
+          <a id="cierreEstWhatsappBtn" href="#" target="_blank" rel="noopener" style="
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+background:linear-gradient(135deg,#25D366,#1ebe57);
+color:white;
+text-decoration:none;
+border-radius:40px;
+padding:11px;
+font-weight:700;
+font-size:0.88rem;
+margin-bottom:10px;
+box-shadow:0 4px 14px rgba(37,211,102,.35);
+">
+🟢 Hablar con un asesor
+</a>
+
+<a id="cierreEstGrupoBtn" href="#" target="_blank" rel="noopener" style="
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+background:transparent;
+border:2px solid #25D366;
+color:#25D366;
+text-decoration:none;
+border-radius:40px;
+padding:11px;
+font-weight:700;
+font-size:0.88rem;
+margin-bottom:12px;
+">
+👥 Unirme al grupo de WhatsApp
+</a>
+
+
 
             <div style="width:100%; height:1px; background:rgba(255,255,255,0.12); margin-bottom:12px;"></div>
 
             <div style="text-align:center; margin-bottom:8px;">
               <div style="font-size:1.6rem;">🚀</div>
-              <div style="color:#FFD700; font-weight:800; font-size:0.95rem; margin-top:2px;">${esc(CIERRE_CONFIG.cursoNombre)}</div>
+              <div style="color:#FFD700; font-weight:800; font-size:0.95rem; margin-top:2px;">${CIERRE_CONFIG.cursoNombre}</div>
               <div style="color:rgba(255,255,255,0.65); font-size:0.74rem; margin-top:4px; line-height:1.4;">
-                ${esc(CIERRE_CONFIG.cursoDescripcion)}
+                ${CIERRE_CONFIG.cursoDescripcion}
               </div>
             </div>
             <a id="cierreEstCursoBtn" href="#" target="_blank" rel="noopener" style="
@@ -28213,10 +28379,9 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
               background:linear-gradient(135deg,#FFD700,#FFA500); color:#1a1a2e;
               text-decoration:none; border-radius:40px; padding:11px; font-weight:800;
               font-size:0.88rem; box-shadow:0 4px 14px rgba(255,165,0,0.35);
-            ">
-              ⭐ Quiero reforzar mis debilidades
-            </a>
+            ">⭐ Quiero reforzar mis debilidades</a>
           </div>
+
 
         </div>
       </div>
@@ -28224,34 +28389,48 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
 
     document.body.appendChild(modal);
 
-    document.getElementById('cerrarModalCierreEstudianteBtn').onclick = () => {
-      modal.style.display = 'none';
-    };
+    // ---------- MANEJADORES DE CIERRE ----------
+    const cerrarBtn = document.getElementById('cerrarModalCierreEstudianteBtn');
+    if (cerrarBtn) {
+      cerrarBtn.onclick = () => {
+        modal.style.display = 'none';
+      };
+    }
+    // Clic fuera del modal (fondo)
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.style.display = 'none';
     });
+    // -------------------------------------------
+
+    const btnWa = document.getElementById('cierreEstWhatsappBtn');
+if (btnWa)
+    btnWa.href = construirEnlaceWhatsApp(CIERRE_CONFIG.whatsappMensaje);
+
+const btnGrupo = document.getElementById('cierreEstGrupoBtn');
+if (btnGrupo)
+    btnGrupo.href = construirEnlaceGrupoWhatsApp();
+    
+    const btnCurso = document.getElementById('cierreEstCursoBtn');
+    if (btnCurso) btnCurso.href = CIERRE_CONFIG.cursoEnlace;
   }
 
-  // ── Cargar y renderizar el balance del estudiante ─────────────────
-  async function cargarBalanceCierreEstudiante() {
+  async function cargarBalanceCierreEstudiante(esCierre = false) {
     const balanceGrid = document.getElementById('cierreEstBalanceGrid');
-    const detalleDiv   = document.getElementById('cierreEstDetalle');
-    const subtitulo    = document.getElementById('cierreEstSubtitulo');
-    const pctTexto      = document.getElementById('cierreEstPctTexto');
-    const pctBarra       = document.getElementById('cierreEstPctBarra');
+    const detalleDiv  = document.getElementById('cierreEstDetalle');
+    const subtitulo   = document.getElementById('cierreEstSubtitulo');
+    const pctTexto    = document.getElementById('cierreEstPctTexto');
+    const pctBarra    = document.getElementById('cierreEstPctBarra');
 
     if (!studentName) {
       detalleDiv.innerHTML = '<p style="color:#f87171;text-align:center;padding:16px;">Primero guarda tu nombre.</p>';
       return;
     }
-
     if (subtitulo) subtitulo.textContent = studentName;
     detalleDiv.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center;padding:16px;font-size:0.8rem;">Cargando tu balance...</p>';
 
     try {
-      const respuestas = []; // { numero, texto, opcion, correcta, esCorrecta, tiempoSeg }
+      const respuestas = [];
 
-      // 1. Historial archivado (preguntas cerradas durante la clase)
       if (historialRef) {
         const histSnap = await historialRef.once('value');
         const historial = histSnap.val() || {};
@@ -28264,8 +28443,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
             respuestas.push({
               numero: pregunta.numero || '?',
               texto: pregunta.texto || `Pregunta ${pregunta.numero}`,
-              opcion,
-              correcta,
+              opcion, correcta,
               esCorrecta: correcta ? (opcion === correcta.toString().toUpperCase()) : null,
               tiempoSeg: r.timeSec || null
             });
@@ -28273,13 +28451,9 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         }
       }
 
-      // 2. Pregunta activa actual (si el estudiante ya respondió pero el docente no la ha archivado)
       if (typeof activeQuestionId !== 'undefined' && activeQuestionId && typeof responsesRef !== 'undefined' && responsesRef) {
         try {
-          const [qSnap, rSnap] = await Promise.all([
-            questionRef.once('value'),
-            responsesRef.once('value')
-          ]);
+          const [qSnap, rSnap] = await Promise.all([questionRef.once('value'), responsesRef.once('value')]);
           const qActiva = qSnap.val();
           if (qActiva && qActiva.text) {
             const respuestasActivas = rSnap.val() || {};
@@ -28290,9 +28464,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
               const opcion = (r.option || '').toString().trim().toUpperCase();
               respuestas.push({
                 numero: qActiva.numero || 'ACTIVA',
-                texto: qActiva.text,
-                opcion,
-                correcta,
+                texto: qActiva.text, opcion, correcta,
                 esCorrecta: correcta ? (opcion === correcta.toString().toUpperCase()) : null,
                 tiempoSeg: r.timeSec || null
               });
@@ -28301,12 +28473,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         } catch(e) { console.warn('Error leyendo pregunta activa en cierre:', e); }
       }
 
-      // Ordenar por número de pregunta
-      respuestas.sort((a, b) => {
-        const na = parseInt(a.numero) || 999;
-        const nb = parseInt(b.numero) || 999;
-        return na - nb;
-      });
+      respuestas.sort((a, b) => (parseInt(a.numero)||999) - (parseInt(b.numero)||999));
 
       const total = respuestas.length;
       const conCorrecta = respuestas.filter(r => r.correcta);
@@ -28315,7 +28482,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
       const sinEvaluar = total - conCorrecta.length;
       const pct = conCorrecta.length > 0 ? Math.round((correctas / conCorrecta.length) * 100) : 0;
 
-      // ── Balance grid ──
       const stat = (num, label, color) => `
         <div style="background:rgba(255,255,255,0.06); border-radius:14px; padding:10px 6px; text-align:center;">
           <div style="font-size:1.35rem; font-weight:800; color:${color};">${num}</div>
@@ -28335,7 +28501,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         return;
       }
 
-      // ── Tabla de detalle con la correcta revelada ──
       detalleDiv.innerHTML = `
         <div style="max-height:260px; overflow-y:auto; border-radius:14px; background:rgba(255,255,255,0.04);">
           <table style="width:100%; border-collapse:collapse; font-size:0.74rem;">
@@ -28344,16 +28509,20 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                 <th style="padding:7px 8px; text-align:left; color:rgba(255,255,255,0.5); font-weight:700;">#</th>
                 <th style="padding:7px 8px; text-align:left; color:rgba(255,255,255,0.5); font-weight:700;">Pregunta</th>
                 <th style="padding:7px 8px; text-align:center; color:rgba(255,255,255,0.5); font-weight:700;">Tu resp.</th>
+                ${esCierre ? `
                 <th style="padding:7px 8px; text-align:center; color:rgba(255,255,255,0.5); font-weight:700;">Correcta</th>
-                <th style="padding:7px 8px; text-align:center; color:rgba(255,255,255,0.5); font-weight:700;">✓</th>
+                <th style="padding:7px 8px; text-align:center; color:rgba(255,255,255,0.5); font-weight:700;">✓</th>` : ''}
               </tr>
             </thead>
             <tbody>
               ${respuestas.map(r => {
                 const colorResp = { A:'#e74c3c', B:'#3498db', C:'#f39c12', D:'#27ae60' }[r.opcion] || '#6c5ce7';
-                let badge = '<span style="color:rgba(255,255,255,0.35);">—</span>';
-                if (r.esCorrecta === true)  badge = '<span style="color:#4ade80;">✅</span>';
-                if (r.esCorrecta === false) badge = '<span style="color:#f87171;">❌</span>';
+                let badge = '';
+                if (esCierre) {
+                  if (r.esCorrecta === true)  badge = '<span style="color:#4ade80;">✅</span>';
+                  else if (r.esCorrecta === false) badge = '<span style="color:#f87171;">❌</span>';
+                  else badge = '<span style="color:rgba(255,255,255,0.35);">—</span>';
+                }
                 return `
                   <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
                     <td style="padding:6px 8px; color:rgba(255,255,255,0.7);">${r.numero}</td>
@@ -28361,8 +28530,9 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                     <td style="padding:6px 8px; text-align:center;">
                       <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${colorResp};color:white;font-weight:800;font-size:0.68rem;">${r.opcion||'—'}</span>
                     </td>
+                    ${esCierre ? `
                     <td style="padding:6px 8px; text-align:center; color:#4ade80; font-weight:700;">${r.correcta || '—'}</td>
-                    <td style="padding:6px 8px; text-align:center;">${badge}</td>
+                    <td style="padding:6px 8px; text-align:center;">${badge}</td>` : ''}
                   </tr>`;
               }).join('')}
             </tbody>
@@ -28371,21 +28541,15 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         ${sinEvaluar > 0 ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);margin-top:6px;text-align:center;">ℹ️ ${sinEvaluar} pregunta(s) sin respuesta correcta definida por el docente</div>` : ''}
       `;
 
-      // ── Personalizar mensaje de WhatsApp con el balance ──
-      const mensajePersonalizado =
-        `Hola, soy ${studentName}. Tuve ${correctas}/${conCorrecta.length} aciertos (${pct}%) en la clase de hoy y quiero resolver mis dudas académicas 🎓`;
+      const mensajePersonalizado = `Hola, soy ${studentName}. Tuve ${correctas}/${conCorrecta.length} aciertos (${pct}%) en la clase de hoy y quiero resolver mis dudas académicas 🎓`;
       const btnWa = document.getElementById('cierreEstWhatsappBtn');
       if (btnWa) btnWa.href = construirEnlaceWhatsApp(mensajePersonalizado);
 
+      const btnGrupo = document.getElementById('cierreEstGrupoBtn');
+      if (btnGrupo)
+      btnGrupo.href = construirEnlaceGrupoWhatsApp();
       const btnCurso = document.getElementById('cierreEstCursoBtn');
-      if (btnCurso) {
-        if (CIERRE_CONFIG.cursoEnlace) {
-          btnCurso.href = CIERRE_CONFIG.cursoEnlace;
-        } else {
-          const mensajeCurso = `Hola, soy ${studentName}. Vi que tuve ${pct}% de aciertos en la clase de hoy y me interesa el curso personalizado de refuerzo 🚀`;
-          btnCurso.href = construirEnlaceWhatsApp(mensajeCurso);
-        }
-      }
+      if (btnCurso) btnCurso.href = CIERRE_CONFIG.cursoEnlace;
 
     } catch (e) {
       console.error('Error cargando balance de cierre:', e);
@@ -28393,19 +28557,19 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
     }
   }
 
-  // ── Abrir la pantalla de cierre (función pública) ──────────────────
-  window.abrirPantallaCierreEstudiante = async function() {
+  window.abrirPantallaCierreEstudiante = async function(esCierre = false) {
     crearModalCierreEstudiante();
-    document.getElementById('modalCierreEstudiante').style.display = 'flex';
-    await cargarBalanceCierreEstudiante();
+    const titulo = document.getElementById('cierreEstTitulo');
+    if (titulo) titulo.textContent = esCierre ? '🎓 ¡Clase finalizada!' : '🎓 Mi balance de la clase';
+    const modal = document.getElementById('modalCierreEstudiante');
+    modal.style.display = 'flex';
+    await cargarBalanceCierreEstudiante(esCierre);
   };
 
-  // ── Botón manual — mismo patrón que "📊 Mi historial" / "🏆 Ranking" ──
   function agregarBotonCierreEstudiante() {
     if (document.getElementById('btnMiBalanceFinal')) return;
     const nameSavedRow = document.getElementById('nameSavedRow');
     if (!nameSavedRow) return;
-
     const btn = document.createElement('button');
     btn.id = 'btnMiBalanceFinal';
     btn.textContent = '🎓 Mi balance final';
@@ -28416,7 +28580,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
       cursor:pointer;border:1px solid rgba(39,174,96,.5);
       box-shadow:0 2px 8px rgba(39,174,96,.3);
     `;
-    btn.onclick = () => abrirPantallaCierreEstudiante();
+    btn.onclick = () => abrirPantallaCierreEstudiante(false);
     nameSavedRow.appendChild(btn);
   }
 
@@ -28425,31 +28589,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
   } else {
     agregarBotonCierreEstudiante();
   }
-
-  // ── Disparo automático cuando el docente finaliza la clase ─────────
-  // listenSessionEnded() ya escucha sessionRef.child('sessionEnded') y hace
-  // alert + showScreen('screenHome'). Aquí añadimos un listener ADICIONAL
-  // (no modifica el original) que se dispara primero y muestra el balance
-  // antes de que el alert/redirect del flujo original ocurra.
-  let _cierreAutoYaMostrado = false;
-  function activarListenerCierreAutomatico() {
-    if (typeof sessionRef === 'undefined' || !sessionRef) {
-      // sessionRef todavía no existe (el estudiante aún no se unió) — reintentar
-      setTimeout(activarListenerCierreAutomatico, 1000);
-      return;
-    }
-    sessionRef.child('sessionEnded').on('value', (snap) => {
-      if (snap.val() === true && !_cierreAutoYaMostrado && currentRole === 'student' && studentName) {
-        _cierreAutoYaMostrado = true;
-        // Pequeño retraso para no competir visualmente con el alert original
-        setTimeout(() => { abrirPantallaCierreEstudiante(); }, 400);
-      }
-    });
-  }
-
-  // Intentar activar el listener automático cuando el estudiante entra a clase
-  // (se reintenta hasta que sessionRef exista, sin bloquear el resto del flujo)
-  setTimeout(activarListenerCierreAutomatico, 1500);
 
 })();
 
@@ -28487,6 +28626,8 @@ async function toggleVideoDocente() {
         }
     }
 }
+
+
 
 async function iniciarVideoDocente() {
     try {
@@ -28531,6 +28672,9 @@ console.log('🎥 Video iniciado — sala:', JITSI_ROOM);
         console.error('Error iniciando video:', e);
     }
 }
+
+
+
 
 async function finalizarVideoDocente() {
     try {
@@ -28798,6 +28942,7 @@ function listenVideoEstudiante() {
         }
     });
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICACIÓN FLOTANTE
@@ -30210,4 +30355,1315 @@ function reproducirSonidoOBS(tipo) {
         gain.connect(audioContext.destination);
 
         if (tipo === 'alerta') {
-            osc.fr
+            osc.frequency.value = 440;
+            gain.gain.value = 0.3;
+            osc.start();
+            setTimeout(() => osc.stop(), 300);
+        } else if (tipo === 'confirmacion') {
+            osc.frequency.value = 880;
+            gain.gain.value = 0.2;
+            osc.start();
+            setTimeout(() => osc.stop(), 200);
+        }
+
+        // Voz hablada (Web Speech API — gratis, nativa del navegador)
+        if ('speechSynthesis' in window) {
+            const mensaje = tipo === 'alerta'
+                ? 'Recuerda iniciar la grabación en OBS'
+                : 'Grabación iniciada correctamente';
+            const utter = new SpeechSynthesisUtterance(mensaje);
+            utter.lang = 'es-ES';
+            utter.rate = 1;
+            utter.volume = 0.8;
+            speechSynthesis.speak(utter);
+        }
+    } catch (e) {
+        console.warn('Audio no disponible:', e.message);
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ENGANCHAR AL INICIO DE VIDEO DEL DOCENTE
+// ══════════════════════════════════════════════════════════════
+// Agregar esta línea dentro de iniciarVideoDocente(), 
+// justo después de: escucharManos();
+//
+// iniciarMonitorOBS();
+
+
+// Fix modales historial — ocultar divs internos con position:fixed
+document.addEventListener('DOMContentLoaded', function() {
+    const fixarModal = function(innerId) {
+        const el = document.getElementById(innerId);
+        if (el) el.style.display = 'none';
+    };
+    fixarModal('modalHistorialEstudianteInner');
+    fixarModal('modalDocenteHistorialInner');
+});
+
+
+// ══════════════════════════════════════════════════════════════
+// CHAT NATIVO ALAU — Firebase puro, móvil-first
+// VERSIÓN CORREGIDA — con limpieza de listener y sincronización
+// ══════════════════════════════════════════════════════════════
+
+let chatListener = null;
+let chatAbierto = false;
+let chatNoLeidos = 0;
+let chatUltimoLeido = 0;
+const esDocente = () => currentRole === 'teacher';
+
+function getChatRef() {
+    if (!sessionRef) {
+        console.warn('⚠️ sessionRef es null, no se puede acceder al chat');
+        return null;
+    }
+    return sessionRef.child('chat/mensajes');
+}
+
+// ── Mostrar/ocultar botón del chat ──
+function mostrarBotonChat() {
+    const btn = document.getElementById('chatAlaUBtn');
+    if (btn) {
+        btn.style.display = 'flex';
+        console.log('✅ Botón de chat visible para:', esDocente() ? 'Docente' : 'Estudiante');
+    } else {
+        console.error('❌ Botón #chatAlaUBtn NO ENCONTRADO en el DOM');
+        // Crear el botón si no existe (fallback)
+        crearBotonChatFallback();
+    }
+}
+// ── Toggle chat ──
+function toggleChatAlau() {
+    const panel = document.getElementById('chatPanel');
+    const btn = document.getElementById('chatAlaUBtn');
+    if (!panel || !btn) {
+        console.warn('⚠️ Panel o botón del chat no encontrados');
+        return;
+    }
+
+    chatAbierto = !chatAbierto;
+
+    if (chatAbierto) {
+        panel.style.display = 'flex';
+        btn.style.display = 'none';
+        chatUltimoLeido = Date.now();
+        chatNoLeidos = 0;
+        actualizarBadgeChat();
+        // Forzar renderizado al abrir
+        const ref = getChatRef();
+        if (ref) {
+            ref.limitToLast(50).once('value', snap => {
+                const data = snap.val() || {};
+                const mensajes = Object.values(data).sort((a, b) => a.ts - b.ts);
+                renderMensajesChat(mensajes);
+            });
+        }
+        setTimeout(() => {
+            document.getElementById('chatInput')?.focus();
+            scrollChatAbajo();
+        }, 100);
+    } else {
+        panel.style.display = 'none';
+        btn.style.display = 'flex';
+    }
+}
+
+// ── Enviar mensaje ──
+async function enviarMensajeChat() {
+    const input = document.getElementById('chatInput');
+    const texto = input?.value.trim();
+    if (!texto) return;
+
+    const ref = getChatRef();
+    if (!ref) {
+        console.warn('⚠️ No se pudo obtener referencia al chat');
+        return;
+    }
+
+  const nombre = currentRole === 'tutor'
+    ? (studentName || 'Tutor')
+    : esDocente()
+        ? 'Administrador'
+        : (studentName || 'Estudiante');
+
+const rol = currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante';
+
+    try {
+       
+await ref.push({
+    autor: nombre,
+    rol: currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante',
+    texto,
+    ts: Date.now()
+});
+
+        input.value = '';
+        console.log('✅ Mensaje enviado:', texto);
+
+        // NO cerrar el chat automáticamente
+        // El usuario decide cuándo cerrarlo
+
+    } catch (e) {
+        console.error('❌ Error enviando mensaje:', e);
+        alert('Error al enviar el mensaje. Verifica tu conexión.');
+    }
+}
+
+// ── Escuchar mensajes en tiempo real ──
+function iniciarChatAlau() {
+    // Limpiar listener anterior si existe
+    if (chatListener && sessionRef) {
+        sessionRef.child('chat/mensajes').off('value', chatListener);
+        chatListener = null;
+        console.log('🧹 Listener anterior limpiado');
+    }
+
+    const ref = getChatRef();
+    if (!ref) {
+        console.warn('⚠️ No se pudo obtener referencia al chat');
+        return;
+    }
+
+    // ✅ MOSTRAR EL BOTÓN DEL CHAT
+    const btn = document.getElementById('chatAlaUBtn');
+    if (btn) {
+        btn.style.display = 'flex';
+        console.log('✅ Botón de chat visible para:', esDocente() ? 'Docente' : 'Estudiante');
+    } else {
+        console.error('❌ Botón #chatAlaUBtn NO ENCONTRADO en el DOM');
+        return;
+    }
+
+    // Crear el listener
+    chatListener = ref.limitToLast(50).on('value', snap => {
+        const data = snap.val() || {};
+        const mensajes = Object.values(data).sort((a, b) => a.ts - b.ts);
+        
+        renderMensajesChat(mensajes);
+
+        if (!chatAbierto) {
+            const nuevos = mensajes.filter(m =>
+                m.ts > chatUltimoLeido &&
+                m.rol !== (esDocente() ? 'docente' : 'estudiante')
+            ).length;
+            if (nuevos > chatNoLeidos) {
+                chatNoLeidos = nuevos;
+                actualizarBadgeChat();
+            }
+        }
+    });
+
+    console.log('✅ Chat listener activado en tiempo real');
+
+// Al final de iniciarChatAlau(), agregar:
+// Escuchar si el chat está activo (solo para estudiantes)
+if (!esDocente() && sessionRef) {
+    sessionRef.child('chat/activo').on('value', snap => {
+        const activo = snap.val();
+        const btn = document.getElementById('chatAlaUBtn');
+        const panel = document.getElementById('chatPanel');
+        if (!activo) {
+            // Ocultar chat para estudiante
+            if (btn) btn.style.display = 'none';
+            if (panel) panel.style.display = 'none';
+            chatAbierto = false;
+        } else {
+            // Mostrar botón para estudiante
+            if (btn) btn.style.display = 'flex';
+        }
+    });
+}
+
+
+  }
+
+
+// ── Render mensajes ──
+function renderMensajesChat(mensajes) {
+    const container = document.getElementById('chatMensajes');
+    if (!container) {
+        console.warn('❌ No se encontró #chatMensajes en el DOM');
+        return;
+    }
+
+    if (!mensajes.length) {
+        container.innerHTML = `
+            <div style="
+                display:flex; flex-direction:column; 
+                align-items:center; justify-content:center; 
+                height:100%; color:#6a8b72; font-size:13px; 
+                text-align:center; padding:20px;
+            ">
+                <span style="font-size:2rem; margin-bottom:8px;">💬</span>
+                <p>No hay mensajes aún</p>
+                <p style="font-size:11px; opacity:0.7;">Escribe el primer mensaje</p>
+            </div>
+        `;
+        return;
+    }
+
+   const miRol = currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante';
+
+    container.innerHTML = mensajes.map(msg => {
+        const esMio = msg.rol === miRol;
+        const esDoc = msg.rol === 'docente';
+        const esTutor = msg.rol === 'tutor';
+        const hora = new Date(msg.ts).toLocaleTimeString('es-CO',
+            {hour:'2-digit', minute:'2-digit'});
+
+        const inicial = (msg.autor || '?').charAt(0).toUpperCase();
+        const colorAvatar = esDoc ? '#27ae60' : (esMio ? '#2c7da0' : '#6c5ce7');
+
+        return `
+        <div style="
+            display:flex; flex-direction:${esMio ? 'row-reverse' : 'row'};
+            align-items:flex-start;
+            gap:8px;
+            margin-bottom:8px;
+            max-width:100%;
+        ">
+            <div style="
+                width:32px; height:32px; border-radius:50%;
+                background:${colorAvatar};
+                color:white;
+                display:flex; align-items:center; justify-content:center;
+                font-weight:700; font-size:14px;
+                flex-shrink:0;
+            ">${inicial}</div>
+
+            <div style="
+                display:flex; flex-direction:column;
+                align-items:${esMio ? 'flex-end' : 'flex-start'};
+                max-width:80%;
+            ">
+                <span style="
+    color:${esDoc ? '#4ade80' : esTutor ? '#c39bd3' : '#8b9dc3'};
+    font-size:10px; font-weight:600;
+    padding:0 4px; margin-bottom:2px;
+">${esDoc 
+    ? '👨‍🏫 Administrador' 
+    : esTutor 
+        ? `👨‍🏫 Tutor ${msg.autor}` 
+        : `👤 ${msg.autor}`}</span>
+
+                <div style="
+                    background:${esMio
+                        ? 'linear-gradient(135deg,#2c7da0,#1a5276)'
+                        : esDoc
+                            ? 'rgba(39,174,96,0.25)'
+                            : 'rgba(255,255,255,0.08)'};
+                    color:#fff;
+                    padding:8px 14px;
+                    border-radius:${esMio ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};
+                    font-size:13px; line-height:1.5;
+                    word-break:break-word;
+                    border:${esDoc && !esMio ? '1px solid rgba(39,174,96,0.3)' : 'none'};
+                    box-shadow:0 1px 4px rgba(0,0,0,0.1);
+                    max-width:100%;
+                ">
+                    ${msg.texto}
+                    <span style="
+                        font-size:8px; opacity:0.4;
+                        display:block; text-align:${esMio ? 'left' : 'right'};
+                        margin-top:4px;
+                    ">${hora}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Auto-scroll al final solo si el chat está abierto
+    if (chatAbierto) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// ── Scroll al último mensaje ──
+function scrollChatAbajo() {
+    const container = document.getElementById('chatMensajes');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// ── Badge no leídos ──
+function actualizarBadgeChat() {
+    const badge = document.getElementById('chatBadge');
+    if (!badge) return;
+    if (chatNoLeidos > 0) {
+        badge.textContent = chatNoLeidos > 9 ? '9+' : chatNoLeidos;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// ── Enter para enviar ──
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('chatInput')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            enviarMensajeChat();
+        }
+    });
+});
+
+// ── Notificación sonora (opcional) ──
+function reproducirSonidoNotificacion() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.start();
+        setTimeout(() => osc.stop(), 150);
+    } catch(e) { /* Silencio */ }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// CONTROL DE CHAT — Docente activa/desactiva para estudiantes
+// ══════════════════════════════════════════════════════════════
+async function toggleActivarChat(activo) {
+    const vRef = getVideoRef();
+    if (!vRef) {
+        // Si no hay sesión activa, usar sessionRef directo
+        if (!sessionRef) return;
+        await sessionRef.child('chat/activo').set(activo);
+    } else {
+        await sessionRef.child('chat/activo').set(activo);
+    }
+    console.log('💬 Chat ' + (activo ? 'activado' : 'desactivado') + ' para estudiantes');
+}
+
+// ── Drag para PC + centrado para móvil ──
+(function() {
+    function initChatDrag() {
+        const panel = document.getElementById('chatPanel');
+        const header = document.getElementById('chatPanelHeader');
+        if (!panel || !header) return;
+
+        // En móvil: centrar en pantalla
+        function aplicarPosicion() {
+            if (window.innerWidth <= 700) {
+                panel.style.left = '50%';
+                panel.style.transform = 'translateX(-50%)';
+                panel.style.bottom = '80px';
+                panel.style.top = 'auto';
+                panel.style.right = 'auto';
+                panel.style.width = 'calc(100vw - 32px)';
+                panel.style.maxWidth = '340px';
+            } else {
+                panel.style.transform = '';
+                if (!panel.dataset.dragged) {
+                    panel.style.left = '16px';
+                    panel.style.bottom = '90px';
+                    panel.style.top = 'auto';
+                    panel.style.right = 'auto';
+                }
+            }
+        }
+
+        aplicarPosicion();
+        window.addEventListener('resize', aplicarPosicion);
+
+        // Drag solo en PC
+        let isDragging = false, startX, startY, startLeft, startTop;
+
+        header.addEventListener('mousedown', e => {
+            if (e.target.tagName === 'BUTTON') return;
+            if (window.innerWidth <= 700) return; // No drag en móvil
+            isDragging = true;
+            panel.dataset.dragged = 'true';
+            const rect = panel.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = rect.left;
+            startTop = rect.top;
+            panel.style.left = startLeft + 'px';
+            panel.style.top = startTop + 'px';
+            panel.style.bottom = 'auto';
+            panel.style.right = 'auto';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const newLeft = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, startLeft + (e.clientX - startX)));
+            const newTop = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, startTop + (e.clientY - startY)));
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+    }
+
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChatDrag);
+    } else {
+        initChatDrag();
+    }
+})();
+
+
+// ══════════════════════════════════════════════════════════════
+// AUDIO WebRTC — PeerJS — Modelo webinar (docente transmite)
+// Múltiples sesiones simultáneas por sessionId
+// ══════════════════════════════════════════════════════════════
+
+const PEERJS_HOST = 'alau2.lostutores.co';
+const PEERJS_PATH = '/peerjs';
+const PEERJS_PORT = 443;
+
+let peerDocente       = null;  // instancia Peer del docente
+let peerEstudiante    = null;  // instancia Peer del estudiante
+let streamLocal       = null;  // stream del micrófono del docente
+let llamadasActivas   = {};    // {peerId: call} — conexiones activas
+let audioActivo       = false;
+let yaTengoAudio      = false; // evitar reconexiones duplicadas
+
+// ── Obtener IDs de peer por sesión ──
+function getPeerIdEstudiante() {
+    const sid = sessionRef?.key || 'default';
+    const nom = (studentName || 'estudiante')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 15)
+        .replace(/-+$/g, '');  // ← DESPUÉS del substring
+    const sesion = sid
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 10)
+        .replace(/-+$/g, '');  // ← DESPUÉS del substring
+    return 'est-' + nom + '-' + sesion;
+}
+
+function getPeerIdDocente() {
+    const sid = sessionRef?.key || 'default';
+    return 'doc-' + sid
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 30)
+        .replace(/-+$/g, '');  // ← DESPUÉS del substring
+}
+
+
+
+// ── Credenciales TURN temporales (seguras) ──
+async function getIceServers() {
+    try {
+        const resp = await fetch('https://alau2.lostutores.co/bbb-api/turn-credentials');
+        const data = await resp.json();
+        if (data.ok) return data.iceServers;
+    } catch(e) {
+        console.warn('⚠️ No se pudieron obtener credenciales TURN, usando STUN');
+    }
+    return [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ];
+}
+
+
+
+// ══════════════════════════════════════════════════════════════
+// DOCENTE — INICIAR AUDIO
+// ══════════════════════════════════════════════════════════════
+async function iniciarAudioDocente() {
+    if (peerDocente) return;
+
+    try {
+        streamLocal = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        console.log('🎙 Micrófono capturado');
+
+       const iceServers = await getIceServers();
+peerDocente = new Peer(getPeerIdDocente(), {
+    host: PEERJS_HOST,
+    port: PEERJS_PORT,
+    path: PEERJS_PATH,
+    secure: true,
+    config: { iceServers }
+});
+
+        peerDocente.on('open', (id) => {
+            console.log('✅ Peer docente conectado:', id);
+            mostrarIndicadorAudio('docente', true);
+
+            if (sessionRef) {
+                sessionRef.child('audio').set({
+                    activo: true,
+                    docentePeerId: id,
+                    inicio: Date.now()
+                });
+            }
+        });
+
+        peerDocente.on('call', (call) => {
+            call.answer(streamLocal);
+            console.log('📞 Conexión entrante:', call.peer);
+
+            call.on('stream', (stream) => {
+                if (call.peer.startsWith('cohost-')) {
+                    console.log('🎙 Recibiendo audio del tutor');
+                    let audioEl = document.getElementById('audioTutorRemoto');
+                    if (!audioEl) {
+                        audioEl = document.createElement('audio');
+                        audioEl.id = 'audioTutorRemoto';
+                        audioEl.autoplay = true;
+                        audioEl.style.display = 'none';
+                        document.body.appendChild(audioEl);
+                    }
+                    audioEl.srcObject = stream;
+
+                    // Admin llama de vuelta al tutor para canal bidireccional
+                    setTimeout(() => {
+                        if (peerDocente && streamLocal) {
+                            console.log('📞 Admin llamando de vuelta al tutor:', call.peer);
+                            const callBack = peerDocente.call(call.peer, streamLocal);
+                            if (callBack) {
+                                callBack.on('stream', () => {
+                                    console.log('✅ Canal bidireccional tutor-admin establecido');
+                                });
+                                callBack.on('error', err => {
+                                    console.error('❌ Error llamada de vuelta al tutor:', err);
+                                });
+                            }
+                        }
+                    }, 500);
+
+                } else {
+                    console.log('🎙 Recibiendo audio de estudiante:', call.peer);
+                    reproducirAudioRemoto(stream);
+                }
+            });
+
+            call.on('close', () => {
+                console.log('📞 Desconectado:', call.peer);
+                delete llamadasActivas[call.peer];
+            });
+
+            llamadasActivas[call.peer] = call;
+        });
+
+        peerDocente.on('error', (err) => {
+            console.error('❌ Error PeerJS docente:', err);
+            if (err.type === 'unavailable-id') {
+                peerDocente.destroy();
+                peerDocente = null;
+                setTimeout(iniciarAudioDocente, 1000);
+            }
+        });
+
+        audioActivo = true;
+
+    } catch(e) {
+        console.error('Error capturando micrófono:', e);
+        if (e.name === 'NotAllowedError') {
+            mostrarNotificacion('⚠️ Permiso de micrófono denegado. Verifica la configuración del navegador.', 'error');
+        } else {
+            mostrarNotificacion('⚠️ Error iniciando audio: ' + e.message, 'error');
+        }
+    }
+}
+
+async function detenerAudioDocente() {
+    if (sessionRef) {
+        sessionRef.child('audio').set({ activo: false });
+    }
+
+    Object.values(llamadasActivas).forEach(call => call.close());
+    llamadasActivas = {};
+
+    if (streamLocal) {
+        streamLocal.getTracks().forEach(track => track.stop());
+        streamLocal = null;
+    }
+
+    if (peerDocente) {
+        peerDocente.destroy();
+        peerDocente = null;
+    }
+
+    audioActivo = false;
+    mostrarIndicadorAudio('docente', false);
+    console.log('🎙 Audio docente detenido');
+}
+
+async function conectarAudioTutor(adminPeerId) {
+    if (yaTengoAudio) return;
+    yaTengoAudio = true;
+
+    try {
+        const streamTutor = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+
+        if (peerEstudiante) {
+            peerEstudiante.destroy();
+            peerEstudiante = null;
+        }
+
+        const tutorPeerId = 'cohost-' + getPeerIdEstudiante()
+            .replace('est-', '')
+            .replace(/-+$/g, '');
+
+        const iceServers = await getIceServers();
+peerDocente = new Peer(getPeerIdDocente(), {
+    host: PEERJS_HOST,
+    port: PEERJS_PORT,
+    path: PEERJS_PATH,
+    secure: true,
+    config: { iceServers }
+});
+
+        peerEstudiante.on('open', () => {
+            console.log('🎙 Tutor peer abierto:', tutorPeerId);
+            console.log('🎯 Intentando llamar a admin:', adminPeerId);
+            console.log('🎵 Stream tutor activo:', streamTutor.active, 'tracks:', streamTutor.getTracks().length);
+
+            let intentos = 0;
+            const intentarLlamar = () => {
+                intentos++;
+                console.log(`🔄 Tutor intentando conectar al admin (intento ${intentos})`);
+
+                const call = peerEstudiante.call(adminPeerId, streamTutor);
+
+                if (!call) {
+                    if (intentos < 5) {
+                        setTimeout(intentarLlamar, 2000);
+                    } else {
+                        console.warn('⚠️ No se pudo conectar al admin después de 5 intentos');
+                        yaTengoAudio = false;
+                    }
+                    return;
+                }
+
+                call.on('stream', remoteStream => {
+                    console.log('🔊 Tutor recibe stream del admin (llamada inicial)');
+                    reproducirAudioRemoto(remoteStream);
+                });
+
+                call.on('close', () => { yaTengoAudio = false; });
+                call.on('error', () => {
+                    yaTengoAudio = false;
+                    if (intentos < 5) setTimeout(intentarLlamar, 2000);
+                });
+            };
+
+            setTimeout(intentarLlamar, 1000);
+        });
+
+        // ── Tutor recibe llamadas entrantes ──
+        // Del admin (llamada de vuelta para canal bidireccional) y de estudiantes con palabra
+        peerEstudiante.on('call', call => {
+            console.log('📞 Llamada entrante al tutor desde:', call.peer);
+            call.answer(streamTutor);
+            call.on('stream', remoteStream => {
+                if (call.peer.startsWith('doc-')) {
+                    console.log('🔊 Tutor recibe audio del admin (canal bidireccional)');
+                } else {
+                    console.log('🔊 Tutor recibe audio de estudiante con palabra');
+                }
+                reproducirAudioRemoto(remoteStream);
+            });
+            call.on('error', err => console.error('❌ Error llamada entrante tutor:', err));
+        });
+
+        peerEstudiante.on('error', err => {
+            console.error('❌ Error audio tutor:', err);
+            yaTengoAudio = false;
+            streamTutor.getTracks().forEach(t => t.stop());
+        });
+
+    } catch(e) {
+        console.error('Error capturando mic tutor:', e);
+        mostrarNotificacion('⚠️ No se pudo activar el micrófono del tutor', 'error');
+        yaTengoAudio = false;
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ESTUDIANTE — ESCUCHAR AUDIO
+// ══════════════════════════════════════════════════════════════
+
+function listenAudioEstudiante() {
+    if (!sessionRef) return;
+
+    // Limpiar estado anterior para evitar peers zombie
+    if (peerEstudiante) {
+        peerEstudiante.destroy();
+        peerEstudiante = null;
+    }
+    yaTengoAudio = false;
+
+    escucharEstadoPalabraAudio();
+
+    sessionRef.child('audio').on('value', snap => {
+        const data = snap.val();
+
+        if (data?.activo && data?.docentePeerId) {
+            mostrarIndicadorAudio('estudiante', true);
+            // Tutor no pide palabra — micrófono activo automáticamente
+            mostrarBotonPalabraAudio(currentRole !== 'tutor');
+
+            if (!yaTengoAudio) {
+                if (currentRole === 'tutor') {
+                    conectarAudioTutor(data.docentePeerId);
+                } else {
+                    conectarAudioEstudiante(data.docentePeerId);
+                }
+            }
+        } else {
+            desconectarAudioEstudiante();
+            mostrarIndicadorAudio('estudiante', false);
+            mostrarBotonPalabraAudio(false);
+        }
+    });
+}
+
+async function conectarAudioEstudiante(docentePeerId) {
+    if (yaTengoAudio) return;
+    yaTengoAudio = true;
+
+    try {
+        if (peerEstudiante) {
+            peerEstudiante.destroy();
+            peerEstudiante = null;
+        }
+
+       
+        const iceServers = await getIceServers();
+peerDocente = new Peer(getPeerIdDocente(), {
+    host: PEERJS_HOST,
+    port: PEERJS_PORT,
+    path: PEERJS_PATH,
+    secure: true,
+    config: { iceServers }
+});
+        peerEstudiante.on('open', (id) => {
+            console.log('✅ Peer estudiante conectado:', id);
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            const destino = ctx.createMediaStreamDestination();
+            const streamSilencioso = destino.stream;
+
+            const call = peerEstudiante.call(docentePeerId, streamSilencioso);
+
+            if (!call) {
+                console.warn('⚠️ No se pudo establecer llamada con el docente');
+                yaTengoAudio = false;
+                return;
+            }
+
+            call.on('stream', (remoteStream) => {
+                console.log('🔊 Stream del docente recibido');
+                reproducirAudioRemoto(remoteStream);
+            });
+
+            call.on('close', () => {
+                console.log('🔊 Stream del docente cerrado');
+                yaTengoAudio = false;
+            });
+
+            call.on('error', (err) => {
+                console.error('❌ Error en llamada:', err);
+                yaTengoAudio = false;
+            });
+        });
+
+        peerEstudiante.on('error', (err) => {
+            console.error('❌ Error PeerJS estudiante:', err);
+            yaTengoAudio = false;
+        });
+
+        // Recibir palabra concedida
+        peerEstudiante.on('call', (call) => {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    call.answer(stream);
+                    mostrarNotificacion('🎙 Tienes la palabra', 'success');
+
+                    call.on('close', () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        mostrarNotificacion('🎙 Se terminó tu turno', 'info');
+                    });
+                })
+                .catch(err => {
+                    console.error('Error capturando mic estudiante:', err);
+                    mostrarNotificacion('⚠️ No se pudo activar el micrófono', 'error');
+                });
+        });
+
+    } catch(e) {
+        console.error('Error conectando audio estudiante:', e);
+        yaTengoAudio = false;
+    }
+}
+
+function desconectarAudioEstudiante() {
+    if (peerEstudiante) {
+        peerEstudiante.destroy();
+        peerEstudiante = null;
+    }
+    yaTengoAudio = false;
+
+    // Remover audio element
+    const audioEl = document.getElementById('audioDocenteRemoto');
+    if (audioEl) audioEl.remove();
+}
+
+function reproducirAudioRemoto(stream) {
+    let audioEl = document.getElementById('audioDocenteRemoto');
+    if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.id = 'audioDocenteRemoto';
+        audioEl.autoplay = true;
+        audioEl.style.display = 'none';
+        document.body.appendChild(audioEl);
+    }
+    audioEl.srcObject = stream;
+}
+
+// ══════════════════════════════════════════════════════════════
+// PEDIR PALABRA (audio)
+// ══════════════════════════════════════════════════════════════
+function pedirPalabraAudio() {
+    if (!sessionRef || !studentName) return;
+
+    sessionRef.child('audio/solicitudes').push({
+        nombre: studentName,
+        peerId: getPeerIdEstudiante(),
+        ts: Date.now()
+    });
+
+    const btn = document.getElementById('btnPedirPalabraAudio');
+    if (btn) {
+        btn.textContent = '⏳';
+        btn.style.background = 'linear-gradient(135deg,#7f8c8d,#5d6d6e)';
+        btn.disabled = true;
+    }
+
+    mostrarNotificacion('✋ Solicitud enviada al docente', 'info');
+}
+
+
+// Refleja en tiempo real si este estudiante tiene la palabra
+function escucharEstadoPalabraAudio() {
+    if (!sessionRef) return;
+
+    sessionRef.child(`audio/hablando/${getPeerIdEstudiante()}`).on('value', snap => {
+        const btn = document.getElementById('btnPedirPalabraAudio');
+        if (!btn) return;
+
+        if (snap.exists()) {
+            btn.textContent = '🎙 Habla ahora';
+            btn.style.background = 'linear-gradient(135deg,#2ecc71,#27ae60)';
+            btn.disabled = true;
+        } else {
+            btn.textContent = '🖐';
+            btn.style.background = 'linear-gradient(135deg,#f39c12,#d68910)';
+            btn.disabled = false;
+        }
+    });
+}
+
+// Docente: escuchar solicitudes de palabra
+function escucharSolicitudesPalabraAudio() {
+    if (!sessionRef) return;
+
+    sessionRef.child('audio/solicitudes').on('child_added', snap => {
+        const sol = snap.val();
+        if (!sol || !sol.nombre) return;
+        const key = snap.key;
+
+        solicitudesPendientes[key] = { nombre: sol.nombre, peerId: sol.peerId };
+        renderPanelSolicitudesAudio();
+        mostrarNotificacion(`✋ ${sol.nombre} pide la palabra`, 'warning');
+    });
+
+    sessionRef.child('audio/solicitudes').on('child_removed', snap => {
+        delete solicitudesPendientes[snap.key];
+        renderPanelSolicitudesAudio();
+    });
+
+    // Reflejar quién está hablando (útil si el docente recarga la página)
+    sessionRef.child('audio/hablando').on('value', snap => {
+        hablandoAhora = snap.val() || {};
+        renderPanelSolicitudesAudio();
+    });
+}
+
+function renderPanelSolicitudesAudio() {
+    const panel   = document.getElementById('panelSolicitudesAudio');
+    const listaSol = document.getElementById('listaSolicitudesAudio');
+    const listaHab = document.getElementById('listaHablandoAudio');
+    if (!panel || !listaSol || !listaHab) return;
+
+    const clavesSol = Object.keys(solicitudesPendientes);
+    const clavesHab = Object.keys(hablandoAhora);
+
+    panel.style.display = (clavesSol.length === 0 && clavesHab.length === 0) ? 'none' : 'block';
+
+    listaSol.innerHTML = clavesSol.length === 0
+        ? '<li style="color:#888; font-size:12px; padding:4px 0;">Sin solicitudes pendientes</li>'
+        : clavesSol.map(key => {
+            const sol = solicitudesPendientes[key];
+            return `
+                <li style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span>${sol.nombre}</span>
+                    <button onclick="concederPalabraAudio('${sol.peerId}', '${key}', '${sol.nombre}')" style="
+                        background:linear-gradient(135deg,#f39c12,#d68910);
+                        color:#fff; border:none; border-radius:16px;
+                        padding:4px 10px; font-size:11px; cursor:pointer; font-weight:700;
+                    ">🎙 Conceder</button>
+                </li>
+            `;
+        }).join('');
+
+    listaHab.innerHTML = clavesHab.length === 0
+        ? '<li style="color:#888; font-size:12px; padding:4px 0;">Nadie tiene la palabra</li>'
+        : clavesHab.map(peerId => {
+            const nombre = hablandoAhora[peerId];
+            return `
+                <li style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span>🔴 ${nombre}</span>
+                    <button onclick="quitarPalabraAudio('${peerId}')" style="
+                        background:linear-gradient(135deg,#e74c3c,#c0392b);
+                        color:#fff; border:none; border-radius:16px;
+                        padding:4px 10px; font-size:11px; cursor:pointer; font-weight:700;
+                    ">🔇 Quitar palabra</button>
+                </li>
+            `;
+        }).join('');
+}
+
+function concederTodasLasSolicitudes() {
+    Object.entries(solicitudesPendientes).forEach(([key, sol]) => {
+        concederPalabraAudio(sol.peerId, key, sol.nombre);
+    });
+}
+
+async function concederPalabraAudio(estudiantePeerId, solicitudKey, nombre) {
+    if (!peerDocente || !streamLocal) return;
+
+    const call = peerDocente.call(estudiantePeerId, streamLocal);
+
+    call.on('stream', (stream) => {
+        reproducirAudioRemoto(stream);
+        mostrarNotificacion(`🎙 ${nombre} tiene la palabra`, 'success');
+    });
+
+    call.on('close', () => {
+        delete llamadasPalabraActivas[estudiantePeerId];
+        if (sessionRef) sessionRef.child(`audio/hablando/${estudiantePeerId}`).remove();
+    });
+
+    call.on('error', (err) => {
+        console.error('❌ Error en llamada de palabra:', err);
+    });
+
+    llamadasPalabraActivas[estudiantePeerId] = call;
+
+    if (sessionRef) {
+        sessionRef.child(`audio/hablando/${estudiantePeerId}`).set(nombre || estudiantePeerId);
+    }
+
+    if (solicitudKey && sessionRef) {
+        sessionRef.child(`audio/solicitudes/${solicitudKey}`).remove();
+    }
+}
+
+function quitarPalabraAudio(estudiantePeerId) {
+    const call = llamadasPalabraActivas[estudiantePeerId];
+    if (call) call.close();
+
+    delete llamadasPalabraActivas[estudiantePeerId];
+    if (sessionRef) sessionRef.child(`audio/hablando/${estudiantePeerId}`).remove();
+}
+// ══════════════════════════════════════════════════════════════
+// UI — INDICADORES Y CONTROLES
+// ══════════════════════════════════════════════════════════════
+function toggleActivarAudio(activo) {
+    if (!sessionRef) return;
+
+    if (activo) {
+        iniciarAudioDocente();
+        escucharSolicitudesPalabraAudio();
+    } else {
+        detenerAudioDocente();
+    }
+
+    // Mostrar/ocultar checkbox en estudiantes via Firebase
+    sessionRef.child('audio/habilitado').set(activo);
+}
+
+function mostrarIndicadorAudio(rol, visible) {
+    const id = rol === 'docente' ? 'audioDocenteIndicador' : 'audioEstudianteIndicador';
+    const el = document.getElementById(id);
+    if (el) el.style.display = visible ? 'flex' : 'none';
+}
+
+function mostrarBotonPalabraAudio(visible) {
+    const btn = document.getElementById('btnPedirPalabraAudio');
+    if (btn) btn.style.display = visible ? 'flex' : 'none';
+}
+
+// ── Mostrar checkbox audio en topbar docente ──
+function mostrarCheckboxAudio() {
+    const lbl = document.getElementById('lblActivarAudio');
+    if (lbl) lbl.style.display = 'inline-flex';
+}
+
+function toggleMicrofonoDocente() {
+    if (!streamLocal) {
+        mostrarNotificacion('⚠️ El audio no está activo', 'warning');
+        return;
+    }
+    const audioTrack = streamLocal.getAudioTracks()[0];
+    if (!audioTrack) return;
+
+    microfonoSilenciado = !microfonoSilenciado;
+    audioTrack.enabled = !microfonoSilenciado;
+
+    const btn = document.getElementById('btnMutearDocente');
+    if (btn) {
+        if (microfonoSilenciado) {
+            btn.textContent = '🔇 Silenciado';
+            btn.style.background = 'linear-gradient(135deg,#7f8c8d,#5d6d6e)';
+        } else {
+            btn.textContent = '🎙 Silenciar';
+            btn.style.background = 'linear-gradient(135deg,#e74c3c,#c0392b)';
+        }
+    }
+
+    const indicador = document.getElementById('audioDocenteIndicador');
+    if (indicador) {
+        indicador.innerHTML = microfonoSilenciado
+            ? '🔇 Silenciado'
+            : `<span id="audioDocentePulso" style="
+                width:8px;height:8px;border-radius:50%;
+                background:#ff6b6b;display:inline-block;
+                animation:pulso 1s infinite;
+              "></span> 🎙 Transmitiendo`;
+    }
+
+    mostrarNotificacion(microfonoSilenciado ? '🔇 Micrófono silenciado' : '🎙 Micrófono activo', 'info');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ATAJO DE TECLADO — Silencio momentáneo con barra espaciadora
+// Mantener presionada = silenciar · Soltar = reactivar
+// ══════════════════════════════════════════════════════════════
+
+let espacioPresionado = false;
+
+document.addEventListener('keydown', (e) => {
+    if (currentRole !== 'teacher' || !streamLocal) return;
+
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    if (e.code === 'Space' && !espacioPresionado) {
+        espacioPresionado = true;
+        e.preventDefault();
+
+        const audioTrack = streamLocal.getAudioTracks()[0];
+        if (audioTrack && !microfonoSilenciado) {
+            audioTrack.enabled = false;
+
+            const btn = document.getElementById('btnMutearDocente');
+            if (btn) {
+                btn.textContent = '🔇 Silenciado';
+                btn.style.background = 'linear-gradient(135deg,#7f8c8d,#5d6d6e)';
+            }
+            const indicador = document.getElementById('audioDocenteIndicador');
+            if (indicador) indicador.innerHTML = '🔇 Silenciado (espacio)';
+        }
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (currentRole !== 'teacher' || !streamLocal) return;
+
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    if (e.code === 'Space' && espacioPresionado) {
+        espacioPresionado = false;
+
+        const audioTrack = streamLocal.getAudioTracks()[0];
+        if (audioTrack && !microfonoSilenciado) {
+            audioTrack.enabled = true;
+
+            const btn = document.getElementById('btnMutearDocente');
+            if (btn) {
+                btn.textContent = '🎙 Silenciar';
+                btn.style.background = 'linear-gradient(135deg,#e74c3c,#c0392b)';
+            }
+            const indicador = document.getElementById('audioDocenteIndicador');
+            if (indicador) {
+                indicador.innerHTML = `<span id="audioDocentePulso" style="
+                    width:8px;height:8px;border-radius:50%;
+                    background:#ff6b6b;display:inline-block;
+                    animation:pulso 1s infinite;
+                "></span> 🎙 Transmitiendo`;
+            }
+        }
+    }
+});
+
+
+function copiarCodigoTutor() {
+    const texto = document.getElementById('tutorCodeDisplay')?.textContent;
+    if (!texto || texto === '------') return;
+    navigator.clipboard?.writeText(texto)
+        .then(() => mostrarNotificacion(`✅ Código tutor copiado: ${texto}`, 'success'))
+        .catch(() => alert(`Código tutor: ${texto}`));
+}
+
+function enterTutor() {
+    enterTeacher();
+    currentRole = 'tutor';
+
+    // ── Limpiar estado de audio anterior ──
+    yaTengoAudio = false;
+    if (peerEstudiante) {
+        peerEstudiante.destroy();
+        peerEstudiante = null;
+    }
+
+    setTimeout(() => {
+        const controlesOcultar = [
+            'closeSessionForAllBtn',
+            'openSessionManagerBtn',
+            'teacherLogoutBtn',
+            'btnIniciarVideo',
+            'btnBreakoutRooms',
+            'lblActivarChat',
+            'chkActivarChat',
+            'lblActivarAudio',
+            'chkActivarAudio',
+            'btnDocenteHistorial',
+            'tutorCodeBadge',
+            'sesionActivaBadge',
+        ];
+        controlesOcultar.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.setProperty('display', 'none', 'important');
+        });
+
+        // Ocultar Autónomo por texto
+        document.querySelectorAll('#teacherTopbar label, #teacherTopbar button').forEach(el => {
+            const txt = el.textContent.trim();
+            if (txt.includes('Autónomo') || txt.includes('Autonomo')) {
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+
+        // Tarjetas ocultar
+        const tarjetasOcultar = [
+            'cardAnalisisBanco',
+            'cardResultadosVivo',
+            'cardBanco',
+            'cardHistorial',
+            'cardParticipantes',
+            'cardSorteo',
+        ];
+        tarjetasOcultar.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.setProperty('display', 'none', 'important');
+        });
+
+        // Botón mute visible según estado del audio
+        if (sessionRef) {
+            sessionRef.child('audio/activo').on('value', snap => {
+                const btnMute = document.getElementById('btnMutearDocente');
+                if (!btnMute) return;
+                if (snap.val() === true) {
+                    btnMute.style.setProperty('display', 'flex', 'important');
+                } else {
+                    btnMute.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        // Iniciar audio como tutor
+        listenAudioEstudiante();
+
+        console.log('👨‍🏫 Restricciones tutor aplicadas');
+    }, 500);
+
+    // Badge tutor y botón salir
+    setTimeout(() => {
+        const topbar = document.querySelector('#teacherTopbar .topbar-collapsible');
+        if (topbar && !document.getElementById('tutorNombreBadge')) {
+            const badge = document.createElement('span');
+            badge.id = 'tutorNombreBadge';
+            badge.style.cssText = `
+                background:rgba(155,89,182,0.25); color:#c39bd3;
+                padding:4px 12px; border-radius:40px;
+                font-size:.75rem; font-weight:500; margin-right:6px;
+                display:inline-flex; align-items:center; gap:5px;
+            `;
+            badge.innerHTML = `<span style="font-size:13px;">👨‍🏫</span> ${studentName} (tutor)`;
+            topbar.prepend(badge);
+        }
+
+        if (!document.getElementById('btnSalirTutor')) {
+            const btn = document.createElement('button');
+            btn.id = 'btnSalirTutor';
+            btn.innerHTML = '🚪 Salir';
+            btn.style.cssText = `
+                background:rgba(231,76,60,0.15); color:#e74c3c;
+                border:0.5px solid rgba(231,76,60,0.3); border-radius:40px;
+                padding:5px 12px; font-size:.75rem; font-weight:500;
+                cursor:pointer; margin-left:6px;
+            `;
+            
+            btn.onclick = () => {
+    // Solo limpiar estado del tutor — NO desconectar sessionRef del admin
+    yaTengoAudio = false;
+    if (peerEstudiante) {
+        peerEstudiante.destroy();
+        peerEstudiante = null;
+    }
+    if (streamLocal) {
+        streamLocal.getTracks().forEach(t => t.stop());
+    }
+    currentRole = null;
+    studentName = '';
+    showScreen('screenHome');
+};
+            
+            const topbarRight = document.querySelector('#teacherTopbar') || topbar;
+            if (topbarRight) topbarRight.appendChild(btn);
+        }
+    }, 100);
+
+    console.log('👨‍🏫 Tutor invitado conectado:', studentName);
+}
+
+
+function reproducirAudioTutorEnAdmin(stream) {
+    let audioEl = document.getElementById('audioTutorRemoto');
+    if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.id = 'audioTutorRemoto';
+        audioEl.autoplay = true;
+        audioEl.style.display = 'none';
+        document.body.appendChild(audioEl);
+    }
+    audioEl.srcObject = stream;
+}
+
+</script>
