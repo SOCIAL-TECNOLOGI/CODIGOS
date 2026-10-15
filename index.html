@@ -21925,6 +21925,18 @@ function abrirModoPresentador() {
 
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
+      <button id="presenterLaunchVotacion" style="
+        background:linear-gradient(90deg,#27ae60,#2ecc71);color:white;border:none;
+        border-radius:40px;padding:6px 14px;font-weight:700;font-size:0.78rem;
+        cursor:pointer;white-space:nowrap;">▶️ Votación</button>
+
+      <button id="presenterCerrarVotacion" style="
+        background:linear-gradient(90deg,#c0392b,#e74c3c);color:white;border:none;
+        border-radius:40px;padding:6px 14px;font-weight:700;font-size:0.78rem;
+        cursor:pointer;white-space:nowrap;">🔒 Cerrar</button>
+
+      <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
+
       <button id="presenterFullscreenBtn" style="
         background:rgba(255,255,255,0.12);color:white;
         border:1px solid rgba(255,255,255,0.25);border-radius:40px;
@@ -22817,6 +22829,16 @@ function abrirModoPresentador() {
   }
 
   document.getElementById('presenterCloseOverlay').onclick = cerrarPresentador;
+
+  document.getElementById('presenterLaunchVotacion').onclick = () => {
+    const btn = document.getElementById('pvpLaunchBtn');
+    if (btn) btn.click();
+  };
+
+  document.getElementById('presenterCerrarVotacion').onclick = () => {
+    const btn = document.getElementById('pvpCloseBtn');
+    if (btn) btn.click();
+  };
 
   // ════════════════════════════════════════════
   // TECLADO
