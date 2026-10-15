@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generador de Cuestionarios 10.3-C – SITE-RUTA LATAM</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --azul:#25447e;--azul2:#3366cc;--ok:#189359;--err:#e60118;
+  --fondo:#f5f5f5;
+}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--fondo);}
+h1{text-align:center;color:var(--azul);}
+textarea{width:90%;height:220px;display:block;margin:10px auto;padding:10px;border:2px solid #ccc;border-radius:10px;font-size:14px;}
+button{padding:10px 20px;margin:5px;border:none;border-radius:20px;cursor:pointer;color:#fff;background:var(--azul);}
+button:hover{background:var(--azul2);}
+#cuestionario-container{display:none;width:90%;margin:20px auto;padding:20px;border:2px solid #ccc;border-radius:10px;background:#fff;}
+.pregunta{margin:20px 0;padding:15px;background:#fafafa;border-radius:10px;}
+.retroalimentacion-container{margin-top:10px;padding:8px;border-radius:8px;}
+.retroalimentacion-container.respuesta-correcta{background:#c8f7d4;border-left:5px solid var(--ok);}
+.retroalimentacion-container.respuesta-incorrecta{background:#f8d7da;border-left:5px solid var(--err);}
+.explicacion{background:#eef3ff;border-left:5px solid var(--azul);padding:8px;border-radius:8px;margin-top:5px;}
+#menuContenedor{position:fixed;top:20px;right:75px;background:#fff;border:2px solid #ccc;border-radius:12px;padding:10px 14px;display:none;gap:8px;z-index:1000;}
+#menuContenedor.show{display:flex;}
+.nivel-container{display:inline-block;padding:6px 12px;border-radius:6px;font-weight:bold;color:#fff;}
+.p1{background:#b91c1c}.p2{background:#d97706}.p3{background:#ffee52;color:#0b1022}.p4{background:#65a30d}
+#toast-site{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#25447e,#1e3a8a);color:#fff;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;box-shadow:0 4px 10px rgba(0,0,0,.25);z-index:3000;opacity:0;transition:opacity .4s,transform .4s}
+</style>
+
+</head>
+<body>
+
+<h1>Generador de Cuestionarios – Versión 10.3-C</h1>
+
+<!-- === MODO DOCENTE === -->
+<div id="docente-container">
+  <p style="width:90%;margin:auto;text-align:justify;font-size:15px;">
+    ⚙️ <strong>Instrucciones:</strong> Copia y pega tus preguntas siguiendo <u>al menos los tres campos obligatorios</u> 
+    (<b>Pregunta</b>, <b>Opciones de Respuesta</b>, <b>Respuesta Correcta</b>).
+    No importa el orden, el sistema se adaptará automáticamente.<br>
+    Los campos <b>Retroalimentación</b> y <b>URL</b> son opcionales, pero se recomienda incluirlos 
+    para cumplir con la función formativa del PMAP (Ausubel 1976: “El factor más importante que influye en el aprendizaje es lo que el alumno ya sabe…”).
+  </p>
+  <textarea id="entradaPreguntas" placeholder="Ejemplo:
+Pregunta: ¿Qué hueso protege el cerebro humano?
+Opciones: A. Cráneo  B. Columna vertebral  C. Fémur  D. Pelvis
+Respuesta Correcta: A. Cráneo
+Retroalimentación: El cráneo protege el encéfalo.
+URL: https://es.wikipedia.org/wiki/Cráneo"></textarea>
+  <div style="text-align:center;">
+    <button onclick="procesarPreguntas()">Generar Cuestionario</button>
+  </div>
+  <div id="diagnostico" style="width:90%;margin:auto;font-size:14px;color:#333;"></div>
+</div>
+
+<!-- === MODO ESTUDIANTE === -->
+<div id="cuestionario-container">
+  <h2 id="tituloEvaluacion">Evaluación generada</h2>
+  <button style="background:var(--azul2);" onclick="regresarDocente()">🔙 Volver a modo docente</button>
+  <div id="preguntasRender"></div>
+  <div style="text-align:center;">
+    <button onclick="calcularPuntaje()">Ver Puntaje</button>
+    <button onclick="reiniciarEvaluacion()">Reiniciar</button>
+  </div>
+</div>
+
+<!-- === MODAL DE RESULTADOS === -->
+<div id="puntaje-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);justify-content:center;align-items:center;z-index:2000;">
+  <div id="popup-content" style="background:#fff;padding:30px;border-radius:12px;width:80%;max-width:700px;text-align:center;"></div>
+</div>
+
+<script>
+// ===========================================================
+// PARSER FLEXIBLE (acepta cualquier orden de campos)
+// ===========================================================
+function procesarPreguntas(){
+  const texto=document.getElementById("entradaPreguntas").value.trim();
+  const bloques=texto.split(/\n\s*\n/);
+  const preguntas=[];
+  let reporte="";
+
+  bloques.forEach((bloque,idx)=>{
+    const p=bloque.match(/pregunta\s*:\s*(.+)/i);
+    const o=bloque.match(/opciones\s*:\s*(.+)/i);
+    const r=bloque.match(/respuesta\s*correcta\s*:\s*(.+)/i);
+    const retro=bloque.match(/retroalimentación\s*:\s*(.+)/i);
+    const url=bloque.match(/url\s*:\s*(https?:\/\/[^\s]+)/i);
+
+    const pregunta=p?p[1].trim():"";
+    const opciones=o?o[1].trim():"";
+    const correcta=r?r[1].trim():"";
+    const retroal=retro?retro[1].trim():"";
+    const enlace=url?url[1].trim():"";
+
+    const completos=pregunta&&opciones&&correcta;
+    const color=completos?"#189359":"#b10000";
+    reporte+=`<div style="color:${color}">🔹 <b>Bloque ${idx+1}</b> → `
+      +`${pregunta?"🟩P ":""}${opciones?"🟦O ":""}${correcta?"🟨R ":""}`
+      +`${retroal?"🟫Re ":""}${enlace?"🟪U":""}</div>`;
+    if(completos){
+      preguntas.push({pregunta,opciones,correcta,retroal,enlace});
+    }
+  });
+
+  document.getElementById("diagnostico").innerHTML=reporte;
+  if(preguntas.length===0){
+    alert("⚠️ No se detectaron preguntas válidas. Debes incluir al menos: Pregunta, Opciones y Respuesta Correcta.");
+    return;
+  }
+
+  renderCuestionario(preguntas);
+}
+
+// ===========================================================
+// RENDERIZAR MODO ESTUDIANTE (idéntico a versión 9)
+// ===========================================================
+let respuestasCorrectas=[];
+function renderCuestionario(preguntas){
+  document.getElementById("docente-container").style.display="none";
+  document.getElementById("cuestionario-container").style.display="block";
+  const cont=document.getElementById("preguntasRender");
+  cont.innerHTML="";
+  respuestasCorrectas=[];
+
+  preguntas.forEach((item,i)=>{
+    const opciones=item.opciones.split(/\s+[A-Da-d]\.\s*/).filter(x=>x.trim()!=="");
+    const letras=["A","B","C","D"];
+    const div=document.createElement("div");
+    div.className="pregunta";
+    div.innerHTML=`<p><strong>${i+1}. ${item.pregunta}</strong></p>`;
+    opciones.forEach((op,j)=>{
+      div.innerHTML+=`<div><input type="radio" name="respuesta${i}" value="${letras[j]}"> ${letras[j]}. ${op.trim()}</div>`;
+    });
+    div.innerHTML+=`<div class="retroalimentacion-container"></div>`;
+    if(item.retroal||item.enlace){
+      const exp=`<div class="explicacion" style="display:none;">
+      <p><strong>Retroalimentación:</strong> ${item.retroal||"Sin información."}</p>
+      ${item.enlace?`<p><a href="${item.enlace}" target="_blank">🔗 Refuerza este tema</a></p>`:""}
+      </div>`;
+      div.innerHTML+=exp;
+    }
+    cont.appendChild(div);
+    respuestasCorrectas.push(item.correcta.trim()[0].toUpperCase());
+  });
+  mostrarToast("✅ Cuestionario generado correctamente. Modo estudiante activo.");
+}
+
+// ===========================================================
+// CÁLCULO DE PUNTAJE (idéntico a versión 9, simplificado)
+// ===========================================================
+function calcularPuntaje(){
+  const preguntas=document.getElementsByClassName("pregunta");
+  const total=preguntas.length;
+  let correctas=0;
+  for(let i=0;i<total;i++){
+    const opciones=preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion="";
+    opciones.forEach(op=>{if(op.checked)seleccion=op.value;});
+    const retro=preguntas[i].querySelector(".retroalimentacion-container");
+    retro.innerHTML="";
+    if(!seleccion){alert("Debes responder todas las preguntas.");return;}
+    if(seleccion===respuestasCorrectas[i]){
+      correctas++;retro.className="retroalimentacion-container respuesta-correcta";
+      retro.innerHTML="✅ <strong>Respuesta correcta</strong>";
+    }else{
+      retro.className="retroalimentacion-container respuesta-incorrecta";
+      retro.innerHTML="❌ <strong>Respuesta incorrecta</strong>";
+    }
+  }
+  const porcentaje=((correctas/total)*100).toFixed(1);
+  let nivelTexto="",nivelClase="";
+  if(porcentaje<40){nivelTexto="Nivel 1 (Bajo)";nivelClase="p1";}
+  else if(porcentaje<60){nivelTexto="Nivel 2 (Básico)";nivelClase="p2";}
+  else if(porcentaje<80){nivelTexto="Nivel 3 (Alto)";nivelClase="p3";}
+  else{nivelTexto="Nivel 4 (Superior)";nivelClase="p4";}
+  const modal=document.getElementById("puntaje-popup");
+  const popup=document.getElementById("popup-content");
+  popup.innerHTML=`<h2>Resultado de la Evaluación</h2>
+  <p><b>Aciertos:</b> ${correctas}/${total}</p>
+  <p><b>Porcentaje:</b> ${porcentaje}%</p>
+  <div class="nivel-container ${nivelClase}">${nivelTexto}</div>
+  <canvas id="graficoCircular" width="280" height="280"></canvas>
+  <div style="margin-top:10px;"><button onclick="cerrarPuntaje()">Cerrar</button></div>`;
+  modal.style.display="flex";
+  const ctx=document.getElementById("graficoCircular").getContext("2d");
+  new Chart(ctx,{type:"doughnut",data:{labels:["Correctas","Incorrectas"],
+  datasets:[{data:[correctas,total-correctas],backgroundColor:["#4CAF50","#F44336"]}]},
+  options:{plugins:{legend:{position:"bottom"}}}});
+}
+function cerrarPuntaje(){document.getElementById("puntaje-popup").style.display="none";}
+
+// ===========================================================
+// UTILIDADES
+// ===========================================================
+function reiniciarEvaluacion(){
+  document.querySelectorAll("input[type='radio']").forEach(el=>el.checked=false);
+  document.querySelectorAll(".retroalimentacion-container").forEach(el=>el.innerHTML="");
+  document.querySelectorAll(".explicacion").forEach(el=>el.style.display="none");
+  mostrarToast("🧩 Cuestionario reiniciado.");
+}
+function regresarDocente(){
+  document.getElementById("docente-container").style.display="block";
+  document.getElementById("cuestionario-container").style.display="none";
+}
+function mostrarToast(msg){
+  let t=document.getElementById("toast-site");
+  if(t)t.remove();
+  t=document.createElement("div");t.id="toast-site";t.innerHTML=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity=1;t.style.transform="translateX(-50%) translateY(-8px)";},50);
+  setTimeout(()=>{t.style.opacity=0;t.style.transform="translateX(-50%)";setTimeout(()=>t.remove(),400);},4000);
+}
+</script>
+</body>
+</html>

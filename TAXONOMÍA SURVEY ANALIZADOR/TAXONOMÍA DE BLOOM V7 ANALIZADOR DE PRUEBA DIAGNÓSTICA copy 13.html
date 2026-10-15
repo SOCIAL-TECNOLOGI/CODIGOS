@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Análisis Taxonomía de Bloom 13 – Versión Ajustada</title>
+
+<!-- Librerías -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="DejaVuSans-normal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+
+
+
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9fafb; color: #333; }
+  h1 { color: #1d4ed8; }
+  h2 { margin-top: 30px; color: #059669; }
+  input[type="file"], select, button { margin: 10px 5px; padding: 6px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: center; }
+  th { background: #1d4ed8; color: #fff; }
+  .ok { background: #d1fae5; }
+  .error { background: #fee2e2; }
+
+  #chartsRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  .chartBox {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+  }
+  .chartBox canvas {
+    width: 100% !important;
+    height: 350px !important;
+  }
+
+  #chartComparativo {
+    width: 50px;
+    height: 50px;
+    margin-top: 20px;
+  }
+
+  .verbo-ok { color: #16a34a; }
+  .verbo-error { color: #dc2626; }
+  .verbo-alerta { color: #6b7280; }
+
+#nivelesWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.nivelesBox {
+  max-width: 1400px;
+  width: 95%;
+  margin: auto;
+}
+
+#chartNiveles {
+  width: 100% !important;
+  height: 450px !important;
+}
+
+/* Contenedor centrado del comparativo */
+#comparativoWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+/* Caja del gráfico comparativo */
+.comparativoBox {
+  max-width: 600px;
+  width: 85%;
+  margin: auto;
+}
+
+/* Tamaño ideal del gráfico */
+#chartComparativo {
+  width: 100% !important;
+  height: 320px !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>📊 Análisis Diagnóstico — Taxonomía de Bloom 13</h1>
+<p>Sube el archivo Excel con los resultados de la prueba:</p>
+
+<input type="file" id="inputExcel" accept=".xlsx,.xls" />
+
+<div id="tablaResultados"></div>
+
+<button id="btnExcel" style="display:none;">📥 Descargar Excel (Resumen)</button>
+<button id="btnExcelTodos" style="display:none;">📥 Descargar Consolidado (Todos)</button>
+
+<!-- Tres gráficos -->
+<div id="chartsRow">
+  <div class="chartBox"><canvas id="chartDistribucion"></canvas></div>
+  <div class="chartBox"><canvas id="chartTopMedia"></canvas></div>
+  <div class="chartBox"><canvas id="chartTopVar"></canvas></div>
+</div>
+
+<div id="chartContainer"><canvas id="chartVerbos"></canvas></div>
+
+<!-- Cuarto gráfico: Niveles por Verbo -->
+<div id="nivelesWrapper">
+  <div class="chartBox nivelesBox">
+    <h3 style="text-align:center; color:#1d4ed8; margin-bottom:15px; font-weight:600;">
+      Distribución por Niveles – Todos los Verbos
+    </h3>
+    <canvas id="chartNiveles"></canvas>
+  </div>
+</div>
+
+
+<div id="tablaResponses"></div>
+
+<h2>📌 Informe Individual</h2>
+
+<select id="docenteSelect"><option value="">-- Selecciona un docente --</option></select>
+<input type="text" id="filtroDocente" placeholder="🔍 Buscar docente..." style="margin:10px 0; padding:6px; width:250px;">
+<button id="btnPDF" style="display:none;">📥 Descargar PDF</button>
+<button id="btnExcelDocente">📥 Descargar Excel Individual</button>
+<button id="btnExcelGrupal" style="display:none">Descargar Informe Grupal (Excel)</button>
+
+<div id="informeDocente"></div>
+<div id="comparativoWrapper">
+  <div class="chartBox comparativoBox">
+    <h3 style="text-align:center; color:#059669; margin-bottom:15px; font-weight:600;">
+      Comparativo Docente vs Grupo
+    </h3>
+    <canvas id="chartComparativo"></canvas>
+  </div>
+</div>
+
+<br>
+
+<script>
+
+/* ============================================================================
+   1. BASE DE NIVELES CORRECTOS POR DIMENSIÓN
+   ============================================================================ */
+const DATA = {
+  saber: { 
+    4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser:{
+    4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+// Diccionario global de niveles correctos
+let nivelesCorrectos = {};
+for (let dim in DATA) {
+  for (let nivel in DATA[dim]) {
+    DATA[dim][nivel].forEach(v => {
+      nivelesCorrectos[v.toUpperCase()] = parseInt(nivel);
+    });
+  }
+}
+
+/* ============================================================================
+   2. VARIABLES GLOBALES
+   ============================================================================ */
+let docentes = [];
+let verbosGlobal = [];
+let indicesVerbos = [];
+let nombresVerbos = [];
+let resumenExport = [];
+let resumenVerbos = [];
+let docenteActual = null;
+
+let chartDistribucion = null;
+let chartTopMedia     = null;
+let chartTopVar       = null;
+let chartComparativo  = null;
+
+/* ============================================================================
+   3. UTILIDADES
+   ============================================================================ */
+function toTitleCase(str){
+  return str
+    ? str.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(" ")
+    : "";
+}
+
+/* Detectar cabecera de RESPONSES (fila que tiene "Nombre" y "Apellido") */
+function findHeaderRowResponses(rows){
+  for(let i=0;i<rows.length;i++){
+    const row = rows[i] || [];
+    const lower = row.map(c => c ? c.toString().toLowerCase() : "");
+    const hasNombre   = lower.some(c => c.includes("nombre"));
+    const hasApellido = lower.some(c => c.includes("apellido"));
+    if(hasNombre && hasApellido){
+      return i; // índice 0-based
+    }
+  }
+  return 0; // fallback
+}
+
+/* Buscar columna con includes + excludes */
+function findColumnFlexible(headers, mustInclude, mustNotInclude=[]){
+  return headers.findIndex(h => {
+    if(!h) return false;
+    const s = h.toString().toLowerCase();
+    const okInc = mustInclude.some(k => s.includes(k));
+    const bad   = mustNotInclude.some(k => s.includes(k));
+    return okInc && !bad;
+  });
+}
+
+/* Extraer verbo desde cabeceras tipo [VERBO] o (VERBO) */
+function extractVerbo(raw){
+  if(!raw) return null;
+  const text = raw.toString();
+  let m = text.match(/\[(.*?)\]/) || text.match(/\((.*?)\)/);
+  return (m ? m[1] : text).trim().toUpperCase();
+}
+
+/* ============================================================================
+   4. EVENTOS
+   ============================================================================ */
+document.getElementById('inputExcel').addEventListener('change', handleFile);
+document.getElementById('docenteSelect').addEventListener('change', mostrarInforme);
+document.getElementById('btnExcel').addEventListener('click', exportarExcel);
+document.getElementById('btnExcelTodos').addEventListener('click', exportarExcelTodos);
+// BOTÓN PARA DESCARGAR EL EXCEL INDIVIDUAL
+btnExcelDocente.addEventListener("click", () => {
+    const d = docenteActual;
+    const dim = calcularDimensiones(d);
+
+   const docenteData = {
+    nombre: d.nombre,
+    apellidos: d.apellidos,
+    correo: d.correo || "-",
+    telefono: d.telefono || "-",
+    puntaje: d.puntaje,
+
+    resultados: [
+        {
+            dimension: "SABER",
+            aciertos: dim.SABER.aciertos,
+            total: dim.SABER.total,
+            porcentaje: dim.SABER.total ? ((dim.SABER.aciertos / dim.SABER.total) * 100).toFixed(1) : "0"
+        },
+        {
+            dimension: "HACER",
+            aciertos: dim.HACER.aciertos,
+            total: dim.HACER.total,
+            porcentaje: dim.HACER.total ? ((dim.HACER.aciertos / dim.HACER.total) * 100).toFixed(1) : "0"
+        },
+        {
+            dimension: "SER",
+            aciertos: dim.SER.aciertos,
+            total: dim.SER.total,
+            porcentaje: dim.SER.total ? ((dim.SER.aciertos / dim.SER.total) * 100).toFixed(1) : "0"
+        }
+    ],
+
+    aciertos: dim._aciertos.map(a => ({
+        verbo: a.verbo,
+        nivel: a.correcto,
+        definicion: a.definicion,
+        referencia: a.referencia
+    })),
+
+    errores: dim._errores.map(e => ({
+        verbo: e.verbo,
+        marco: e.marco,
+        correcto: e.correcto,
+        definicion: e.definicion,
+        referencia: e.referencia
+    })),
+
+    detalle: {
+        saber: dim.SABER.detalle,
+        hacer: dim.HACER.detalle,
+        ser: dim.SER.detalle
+    },
+
+    lectura: docenteActual.lecturaPedagogica || "Sin observaciones.",
+
+    referencias: [
+        "Bloom, B. S. (1956). Taxonomy of educational objectives. Longman.",
+        "Anderson, L. W., & Krathwohl, D. R. (2001). A taxonomy for learning. Longman.",
+        "Krathwohl, D. R. (2002). A revision of Bloom's taxonomy. Theory Into Practice."
+    ]
+};
+
+    generarExcelDocente(docenteData);
+});
+
+
+
+/* ============================================================================
+   5. LECTURA Y PROCESAMIENTO DEL EXCEL (COMPATIBLE CON AMBOS FORMATOS)
+   ============================================================================ */
+function handleFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    const data = new Uint8Array(evt.target.result);
+    const workbook = XLSX.read(data, {type:'array'});
+
+    /* ---------- 5.1. Identificar hojas SUMMARY y RESPONSES ---------- */
+    const summarySheetName  = workbook.SheetNames.find(n => n.toLowerCase().includes("summary"));
+    const responsesSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes("responses"));
+
+    if(!summarySheetName || !responsesSheetName){
+      alert("No se encontraron las hojas 'Summary Report' y 'Responses' en el archivo.");
+      return;
+    }
+
+    const sheetSummary   = workbook.Sheets[summarySheetName];
+    const sheetResponses = workbook.Sheets[responsesSheetName];
+
+    const jsSummary   = XLSX.utils.sheet_to_json(sheetSummary,  {header:1});
+    const jsResponses = XLSX.utils.sheet_to_json(sheetResponses,{header:1});
+
+    /* ---------- 5.2. PROCESAR SUMMARY (verbos y niveles) ---------- */
+    verbosGlobal   = [];
+    resumenExport  = [];
+    resumenVerbos  = [];
+    let statsVerbos = [];
+
+    for(let i=0;i<jsSummary.length;i++){
+      const row = jsSummary[i] || [];
+     const verbCell = limpiarCelda(row[1]);
+
+
+      if(typeof verbCell === "string" && verbCell.trim()){
+        const verbo = verbCell.toString().trim().toUpperCase();
+        if(!nivelesCorrectos[verbo]) continue; // ignorar verbos que no están en la tabla
+
+        // En ambos archivos, porcentajes están en las columnas 2,4,6,8 (índices 2,4,6,8)
+        let p1 = parseFloat(row[2] || 0);
+        let p2 = parseFloat(row[4] || 0);
+        let p3 = parseFloat(row[6] || 0);
+        let p4 = parseFloat(row[8] || 0);
+
+        // Si vinieran como 0-100 en vez de 0-1, normalizamos:
+        if(p1 > 1 || p2 > 1 || p3 > 1 || p4 > 1){
+          p1 /= 100; p2 /= 100; p3 /= 100; p4 /= 100;
+        }
+
+        const nivelCorrecto = nivelesCorrectos[verbo];
+
+        const niveles = [p1,p2,p3,p4];
+        const maxVal  = Math.max(...niveles);
+        const pred    = niveles.indexOf(maxVal) + 1;
+
+        const mean = 1*p1 + 2*p2 + 3*p3 + 4*p4;
+        const variance = p1*Math.pow(1-mean,2)
+                       + p2*Math.pow(2-mean,2)
+                       + p3*Math.pow(3-mean,2)
+                       + p4*Math.pow(4-mean,2);
+
+        verbosGlobal.push(verbo);
+        resumenVerbos.push({
+          verbo,
+          nivelCorrecto,
+          p1, p2, p3, p4,
+          pred
+        });
+
+        statsVerbos.push({
+          verbo,
+          mean,
+          std: Math.sqrt(variance)
+        });
+      }
+    }
+
+    // Preparar datos para exportar a Excel
+    resumenExport = resumenVerbos.map(v => ({
+      Verbo: v.verbo,
+      "Nivel Correcto": "Nivel " + v.nivelCorrecto,
+      "%N1": (v.p1*100).toFixed(1) + "%",
+      "%N2": (v.p2*100).toFixed(1) + "%",
+      "%N3": (v.p3*100).toFixed(1) + "%",
+      "%N4": (v.p4*100).toFixed(1) + "%",
+      Predominante: "Nivel " + v.pred
+    }));
+
+    // Render de tabla global de verbos
+    let htmlTabla = "<h2>📑 Resultados por Verbo</h2>";
+    htmlTabla += "<table><tr><th>Verbo</th><th>Nivel Correcto</th><th>%N1</th><th>%N2</th><th>%N3</th><th>%N4</th><th>Pred.</th></tr>";
+    resumenVerbos.forEach(v => {
+      const clase = (v.nivelCorrecto === v.pred) ? "ok" : "error";
+      htmlTabla += `
+        <tr class="${clase}">
+          <td>${v.verbo}</td>
+          <td>Nivel ${v.nivelCorrecto}</td>
+          <td>${(v.p1*100).toFixed(1)}%</td>
+          <td>${(v.p2*100).toFixed(1)}%</td>
+          <td>${(v.p3*100).toFixed(1)}%</td>
+          <td>${(v.p4*100).toFixed(1)}%</td>
+          <td>Nivel ${v.pred}</td>
+        </tr>`;
+    });
+    htmlTabla += "</table>";
+    document.getElementById("tablaResultados").innerHTML = htmlTabla;
+
+    /* ---------- 5.3. PROCESAR RESPONSES (lista de docentes) ---------- */
+    if(!jsResponses.length){
+      alert("La hoja 'Responses' está vacía o no se pudo leer.");
+      return;
+    }
+
+    const headerRowIdx = findHeaderRowResponses(jsResponses);
+    const headers = jsResponses[headerRowIdx] || [];
+
+    const idxNombre   = findColumnFlexible(headers, ["nombre"], ["recopilador"]);
+    // Buscar todas las columnas que contengan "apellido"
+const idxApellidosTodos = headers
+  .map((h, i) => ({ h: h?.toString().toLowerCase() || "", i }))
+  .filter(col => col.h.includes("apellido"))
+  .map(col => col.i);
+
+    const idxTelefono = findColumnFlexible(headers, ["teléfono","telefono"]);
+    const idxCorreo   = findColumnFlexible(headers, ["correo"]);
+    const idxPuntaje  = findColumnFlexible(headers, ["puntuación","puntaje","score"]);
+
+    // Detectar columnas de verbos
+    indicesVerbos = [];
+    nombresVerbos = [];
+    headers.forEach((h,i) => {
+      if(!h) return;
+      const text = h.toString();
+      if(text.toLowerCase().includes("dimensión") || /\[.*?\]/.test(text) || /\(.*?\)/.test(text)){
+        const verbo = extractVerbo(text);
+        if(verbo && nivelesCorrectos[verbo]){
+          indicesVerbos.push(i);
+          nombresVerbos.push(verbo);
+        }
+      }
+    });
+
+    // Construir arreglo de docentes
+    docentes = [];
+    for(let i=headerRowIdx+1; i<jsResponses.length; i++){
+      const row = jsResponses[i] || [];
+      if(idxNombre < 0) continue;
+      const nombreRaw = row[idxNombre];
+      if(!nombreRaw) continue;
+
+     // Unir todos los apellidos encontrados
+let apellidosRaw = idxApellidosTodos
+  .map(i => row[i] ? row[i].toString() : "")
+  .filter(v => v.trim() !== "")
+  .join(" ");
+
+      const telRaw       = (idxTelefono >= 0) ? row[idxTelefono] : "";
+      const correoRaw    = (idxCorreo   >= 0) ? row[idxCorreo]   : "";
+      const puntRaw      = (idxPuntaje  >= 0) ? row[idxPuntaje]  : 0;
+
+      docentes.push({
+        nombre:    toTitleCase(nombreRaw.toString()),
+        apellidos: toTitleCase((apellidosRaw || "").toString()),
+        telefono:  telRaw   ? telRaw.toString()   : "-",
+        correo:    correoRaw? correoRaw.toString(): "-",
+        puntaje:   parseFloat(puntRaw) || 0,
+        respuestas: row.map(c => limpiarCelda(c))
+
+      });
+    }
+
+    // Render tabla de docentes
+    let htmlDoc = "<h2>👩‍🏫 Docentes</h2><table>";
+    htmlDoc += "<tr><th>Nombre</th><th>Apellidos</th><th>Teléfono</th><th>Correo</th><th>Puntaje</th></tr>";
+    docentes.forEach(d => {
+      const clase = d.puntaje >= 40 ? "ok" : "error";
+      htmlDoc += `
+        <tr class="${clase}">
+          <td>${d.nombre}</td>
+          <td>${d.apellidos}</td>
+          <td>${d.telefono || "-"}</td>
+          <td>${d.correo || "-"}</td>
+          <td>${d.puntaje}</td>
+        </tr>`;
+    });
+    htmlDoc += "</table>";
+    document.getElementById("tablaResponses").innerHTML = htmlDoc;
+
+    // Llenar select de docentes
+    const select = document.getElementById("docenteSelect");
+    select.innerHTML = "<option value=''>-- Selecciona un docente --</option>";
+    docentes.forEach((d,i) => {
+      select.innerHTML += `<option value="${i}">${d.nombre} ${d.apellidos}</option>`;
+    });
+
+
+// =======================
+//  CÁLCULO DE PUNTAJES
+// =======================
+const puntajes = docentes.map(d => parseFloat(d.puntaje) || 0);
+
+// =======================
+//  GRÁFICOS GLOBALES
+// =======================
+renderTresGraficos(puntajes, statsVerbos);
+renderGraficoNiveles();
+
+document.getElementById("btnExcel").style.display      = "inline-block";
+document.getElementById("btnExcelTodos").style.display = "inline-block";
+
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+/* ============================================================================
+   6. GRÁFICOS
+   ============================================================================ */
+function buildHistogramData(values, binSize=5){
+  if(!values.length) return {labels:[], counts:[]};
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const start = Math.floor(min/binSize)*binSize;
+  const end   = Math.ceil(max/binSize)*binSize;
+
+  const bins = [];
+  for(let b=start; b<=end; b+=binSize){
+    bins.push([b, b+binSize]);
+  }
+
+  const counts = new Array(bins.length).fill(0);
+  values.forEach(v => {
+    let idx = Math.floor((v - start)/binSize);
+    if(idx < 0) idx = 0;
+    if(idx >= counts.length) idx = counts.length - 1;
+    counts[idx]++;
+  });
+
+  return {
+    labels: bins.map(([a,b]) => `${a}-${b}`),
+    counts
+  };
+}
+
+function renderTresGraficos(puntajes, statsVerbos){
+  // Distribución de puntajes
+  const hist = buildHistogramData(puntajes, 5);
+  if(chartDistribucion) chartDistribucion.destroy();
+  chartDistribucion = new Chart(document.getElementById("chartDistribucion"),{
+    type: "bar",
+    data: {
+      labels: hist.labels,
+      datasets: [{
+        label: "Docentes",
+        data: hist.counts,
+        backgroundColor: "rgba(29,78,216,0.7)"
+      }]
+    },
+    options: { responsive: true, scales:{y:{beginAtZero:true}} }
+  });
+
+  // Top por media
+  const topMedia = statsVerbos.slice().sort((a,b) => b.mean - a.mean).slice(0,10);
+  if(chartTopMedia) chartTopMedia.destroy();
+  chartTopMedia = new Chart(document.getElementById("chartTopMedia"),{
+    type: "bar",
+    data: {
+      labels: topMedia.map(x => x.verbo),
+      datasets: [{
+        label: "Media",
+        data: topMedia.map(x => x.mean),
+        backgroundColor: "#65a30d"
+      }]
+    },
+    options:{ indexAxis: "y" }
+  });
+
+  // Top por desviación estándar
+  const topVar = statsVerbos.slice().sort((a,b) => b.std - a.std).slice(0,10);
+  if(chartTopVar) chartTopVar.destroy();
+  chartTopVar = new Chart(document.getElementById("chartTopVar"),{
+    type: "bar",
+    data: {
+      labels: topVar.map(x => x.verbo),
+      datasets: [{
+        label: "DE",
+        data: topVar.map(x => x.std),
+        backgroundColor: "#d97706"
+      }]
+    },
+    options:{ indexAxis: "y" }
+  });
+}
+
+
+// ================== INFO DE VERBOS (Definiciones + APA) ==================
+const VERBOS_INFO = {
+  SABER: {
+    4: [
+      {verbo:"Evaluar", definicion:"Emitir juicios fundamentados basados en criterios explícitos y evidencia disponible.", referencia:"Anderson, L. W., & Krathwohl, D. R. (2001). A taxonomy for learning, teaching, and assessing. Longman."},
+      {verbo:"Argumentar", definicion:"Sustentar una posición utilizando premisas, contraejemplos y evidencia crítica.", referencia:"Bloom, B. S. (1956). Taxonomy of educational objectives. Longman."},
+      {verbo:"Justificar", definicion:"Defender una decisión con base en datos, razones y análisis crítico.", referencia:"Krathwohl, D. R. (2002). A revision of Bloom's taxonomy. Theory Into Practice."},
+      {verbo:"Diseñar", definicion:"Proponer soluciones originales considerando restricciones y variables clave.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Formular", definicion:"Plantear hipótesis o problemas investigables con supuestos claros.", referencia:"Krathwohl (2002)."},
+      {verbo:"Crear", definicion:"Producir un modelo, producto o idea original integrando saberes previos.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Innovar", definicion:"Proponer mejoras inéditas que resuelvan problemas reales o potenciales.", referencia:"Krathwohl (2002)."},
+      {verbo:"Planificar", definicion:"Organizar metas, recursos y tiempos anticipando posibles riesgos.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Concebir", definicion:"Imaginar estructuras o productos viables a partir de requerimientos.", referencia:"Bloom (1956)."},
+      {verbo:"Diseñar Prompts", definicion:"Redactar instrucciones estratégicas para orientar sistemas de IA.", referencia:"Anderson & Krathwohl (2001)."}
+    ],
+    3: [
+      {verbo:"Aplicar", definicion:"Trasladar procedimientos a casos conocidos respetando pasos esenciales.", referencia:"Bloom (1956)."},
+      {verbo:"Analizar", definicion:"Descomponer información en partes y relaciones para comprender su funcionamiento.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Comparar", definicion:"Identificar semejanzas y diferencias para evaluar alternativas.", referencia:"Bloom (1956)."},
+      {verbo:"Organizar", definicion:"Estructurar datos o ideas en categorías coherentes.", referencia:"Krathwohl (2002)."},
+      {verbo:"Diferenciar", definicion:"Distinguir lo relevante de lo irrelevante en un contexto dado.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Contrastar", definicion:"Poner a prueba explicaciones frente a evidencias.", referencia:"Krathwohl (2002)."},
+      {verbo:"Revisar", definicion:"Examinar un producto para detectar errores y ajustarlos.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Refinar", definicion:"Ajustar una idea para hacerla más precisa o clara.", referencia:"Krathwohl (2002)."}
+    ],
+    2: [
+      {verbo:"Comprender", definicion:"Explicar con palabras propias mostrando conexiones básicas.", referencia:"Bloom (1956)."},
+      {verbo:"Describir", definicion:"Exponer características sin inferir causas.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Explicar", definicion:"Aclarar el porqué de un fenómeno.", referencia:"Krathwohl (2002)."},
+      {verbo:"Interpretar", definicion:"Dar significado a datos o textos en contexto.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Ejemplificar", definicion:"Ilustrar un concepto con casos típicos.", referencia:"Bloom (1956)."},
+      {verbo:"Clasificar", definicion:"Agrupar elementos siguiendo un criterio explícito.", referencia:"Krathwohl (2002)."}
+    ],
+    1: [
+      {verbo:"Recordar", definicion:"Evocar hechos o conceptos tal como se aprendieron.", referencia:"Bloom (1956)."},
+      {verbo:"Identificar", definicion:"Reconocer un elemento entre varias opciones.", referencia:"Bloom (1956)."},
+      {verbo:"Reconocer", definicion:"Distinguir lo ya visto al ser presentado nuevamente.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Definir", definicion:"Enunciar rasgos esenciales.", referencia:"Krathwohl (2002)."},
+      {verbo:"Listar", definicion:"Enumerar datos o pasos literalmente.", referencia:"Bloom (1956)."},
+      {verbo:"Nombrar", definicion:"Mencionar conceptos o términos cuando se pide.", referencia:"Bloom (1956)."}
+    ]
+  },
+  HACER: {
+    4: [
+      {verbo:"Automatizar", definicion:"Transformar procesos en rutinas reproducibles.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Optimizar", definicion:"Reducir tiempos o costos manteniendo calidad.", referencia:"Krathwohl (2002)."},
+      {verbo:"Transferir", definicion:"Aplicar destrezas en contextos nuevos.", referencia:"Bloom (1956)."},
+      {verbo:"Innovar", definicion:"Aplicar técnicas o herramientas inéditas.", referencia:"Krathwohl (2002)."},
+      {verbo:"Trazar Estrategias", definicion:"Definir tácticas y recursos.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Combinar Herramientas", definicion:"Integrar herramientas diversas.", referencia:"Bloom (1956)."}
+    ],
+    3: [
+      {verbo:"Coordinar", definicion:"Secuenciar tareas y recursos con autonomía.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Implementar", definicion:"Poner en práctica un plan.", referencia:"Bloom (1956)."},
+      {verbo:"Integrar", definicion:"Ensambla componentes en una unidad funcional.", referencia:"Krathwohl (2002)."},
+      {verbo:"Perfeccionar", definicion:"Ajustar la ejecución para mejorar precisión.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Aplicar Con Autonomía", definicion:"Ejecutar sin supervisión constante.", referencia:"Krathwohl (2002)."}
+    ],
+    2: [
+      {verbo:"Ejecutar", definicion:"Realizar procedimientos básicos siguiendo un plan.", referencia:"Bloom (1956)."},
+      {verbo:"Practicar", definicion:"Repetir tareas para ganar fluidez.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Demostrar", definicion:"Evidenciar una destreza paso a paso.", referencia:"Krathwohl (2002)."},
+      {verbo:"Operar", definicion:"Manejar equipos o software cumpliendo protocolos.", referencia:"Bloom (1956)."},
+      {verbo:"Utilizar Con Apoyo", definicion:"Usar herramientas con guía puntual.", referencia:"Anderson & Krathwohl (2001)."}
+    ],
+    1: [
+      {verbo:"Imitar", definicion:"Reproducir una acción observada.", referencia:"Bloom (1956)."},
+      {verbo:"Copiar", definicion:"Replicar un modelo sin variaciones propias.", referencia:"Krathwohl (2002)."},
+      {verbo:"Seguir Instrucciones", definicion:"Cumplir pasos exactamente como fueron dados.", referencia:"Bloom (1956)."},
+      {verbo:"Manipular Con Ayuda", definicion:"Manipular materiales con supervisión.", referencia:"Anderson & Krathwohl (2001)."}
+    ]
+  },
+  SER: {
+    4: [
+      {verbo:"Interiorizar", definicion:"Actuar por convicción alineando decisiones con valores.", referencia:"Krathwohl (2002)."},
+      {verbo:"Liderar", definicion:"Guiar a otros cuidando el clima ético.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Modelar", definicion:"Ser ejemplo visible de conducta deseada.", referencia:"Bloom (1956)."},
+      {verbo:"Transformar", definicion:"Impulsar cambios positivos sostenibles.", referencia:"Krathwohl (2002)."},
+      {verbo:"Influir Positivamente", definicion:"Motivar persuadiendo conductas valiosas.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Validar Éticamente", definicion:"Contrastar acciones con principios éticos.", referencia:"Krathwohl (2002)."}
+    ],
+    3: [
+      {verbo:"Valorar", definicion:"Emitir juicios éticos sobre prácticas o conductas.", referencia:"Krathwohl (2002)."},
+      {verbo:"Argumentar", definicion:"Sostener posturas respetuosas en dilemas.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Promover", definicion:"Impulsar participación en iniciativas.", referencia:"Bloom (1956)."},
+      {verbo:"Asumir Responsabilidades", definicion:"Responder por tareas asignadas.", referencia:"Krathwohl (2002)."},
+      {verbo:"Ser Consciente", definicion:"Reconocer impactos de los actos propios.", referencia:"Anderson & Krathwohl (2001)."}
+    ],
+    2: [
+      {verbo:"Responder", definicion:"Actuar adecuadamente ante normas o solicitudes.", referencia:"Bloom (1956)."},
+      {verbo:"Participar", definicion:"Involucrarse en actividades grupales.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Colaborar", definicion:"Trabajar con otros ofreciendo apoyo.", referencia:"Krathwohl (2002)."},
+      {verbo:"Respetar", definicion:"Cumplir normas y reconocer dignidad del otro.", referencia:"Bloom (1956)."},
+      {verbo:"Cumplir", definicion:"Realizar tareas según lo pactado.", referencia:"Anderson & Krathwohl (2001)."}
+    ],
+    1: [
+      {verbo:"Atender", definicion:"Prestar atención inicial a una instrucción.", referencia:"Bloom (1956)."},
+      {verbo:"Escuchar", definicion:"Escuchar activamente.", referencia:"Anderson & Krathwohl (2001)."},
+      {verbo:"Aceptar", definicion:"Abrirse a nuevas ideas o críticas.", referencia:"Krathwohl (2002)."},
+      {verbo:"Mostrar Disposición", definicion:"Participar con actitud positiva.", referencia:"Bloom (1956)."}
+    ]
+  }
+};
+
+
+// ================ VERBOS TRANSVERSALES (Cambian de dimensión) ================
+const VERBOS_TRANSVERSALES = {
+  "ARGUMENTAR": {
+    SABER:{ nivel:4, definicion:"Razonamiento crítico basado en evidencia.", referencia:"Anderson & Krathwohl (2001)." },
+    SER:{ nivel:3, definicion:"Diálogo ético y respetuoso.", referencia:"Krathwohl et al. (1964)." }
+  },
+  "INNOVAR": {
+    SABER:{ nivel:4, definicion:"Ideas inéditas a nivel conceptual.", referencia:"Bloom (1956)." },
+    HACER:{ nivel:4, definicion:"Aplicación de técnicas novedosas.", referencia:"Anderson & Krathwohl (2001)." }
+  }
+};
+
+
+// ================= HELPER PARA INFO DE VERBOS =================
+function getVerboInfo(verbo) {
+  verbo = verbo.trim().toUpperCase();
+  for (let dim in VERBOS_INFO) {
+    for (let nivel in VERBOS_INFO[dim]) {
+      for (let item of VERBOS_INFO[dim][nivel]) {
+        if (item.verbo.toUpperCase() === verbo) {
+          return {
+            dimension: dim,
+            nivel: parseInt(nivel),
+            definicion: item.definicion,
+            referencia: item.referencia
+          };
+        }
+      }
+    }
+  }
+  if (VERBOS_TRANSVERSALES[verbo]) {
+    return VERBOS_TRANSVERSALES[verbo];
+  }
+  return null;
+}
+
+
+
+
+
+
+/* ============================================================================
+   7. INFORME INDIVIDUAL
+   ============================================================================ */
+function mostrarInforme() {
+  const idx = document.getElementById("docenteSelect").value;
+  if (idx === "") return;
+
+  docenteActual = docentes[idx];
+
+  const promedio = (
+    docentes.reduce((a, b) => a + parseFloat(b.puntaje || 0), 0) /
+    docentes.length
+  ).toFixed(1);
+
+  let resultadosDim = {
+    SABER: { aciertos: 0, total: 0, detalle: [] },
+    HACER: { aciertos: 0, total: 0, detalle: [] },
+    SER: { aciertos: 0, total: 0, detalle: [] }
+  };
+
+  let correctos = [];
+  let erroresGraves = [];
+
+  for (let i = 0; i < nombresVerbos.length; i++) {
+    const verbo = nombresVerbos[i];
+    const colIdx = indicesVerbos[i];
+
+    let valorCrudo = docenteActual.respuestas[colIdx];
+    let respuesta = null;
+    if (valorCrudo !== undefined && valorCrudo !== null) {
+      let limpio = valorCrudo.toString().trim().replace(/[^0-9]/g, "");
+      respuesta = limpio ? parseInt(limpio) : null;
+    }
+    const correcto = nivelesCorrectos[verbo];
+
+    // hallar dimensión
+    let dim = null;
+    for (let d in DATA) {
+      for (let nivel in DATA[d]) {
+        if (DATA[d][nivel].map(v => v.toUpperCase()).includes(verbo)) {
+          dim = d.toUpperCase();
+        }
+      }
+    }
+
+    resultadosDim[dim].total++;
+
+    if (respuesta === correcto) {
+      resultadosDim[dim].aciertos++;
+      correctos.push({ verbo, dim, correcto });
+      resultadosDim[dim].detalle.push(`✅ ${verbo} (Nivel ${correcto})`);
+    } else if (respuesta !== null) {
+      const dist = Math.abs(respuesta - correcto);
+      erroresGraves.push({ verbo, dim, correcto, respuesta, dist });
+      resultadosDim[dim].detalle.push(
+        `❌ ${verbo} (marcó Nivel ${respuesta}, correcto Nivel ${correcto})`
+      );
+    } else {
+      resultadosDim[dim].detalle.push(
+        `⚠️ ${verbo} (sin respuesta, correcto Nivel ${correcto})`
+      );
+    }
+  }
+
+  erroresGraves.sort((a, b) => b.dist - a.dist);
+
+  // ===== HTML =====
+  let html = `<h3>Informe de ${docenteActual.nombre} ${docenteActual.apellidos}</h3>
+  <p><b>Correo:</b> ${docenteActual.correo} | <b>Tel:</b> ${docenteActual.telefono}</p>
+  <p><b>Puntaje:</b> ${docenteActual.puntaje} / 70 (Promedio grupal: ${promedio})</p>`;
+
+  html += `<h4>📊 Resultados por dimensión</h4><ul>`;
+  for (let d in resultadosDim) {
+    const r = resultadosDim[d];
+    const pct = r.total ? ((r.aciertos / r.total) * 100).toFixed(1) : 0;
+    html += `<li><b>${d}:</b> ${r.aciertos}/${r.total} → ${pct}%</li>`;
+  }
+  html += `</ul>`;
+
+  // ACIERTOS
+  html += `<h4>✅ Principales aciertos</h4><ul>`;
+  correctos.slice(0, 10).forEach(c => {
+    const info = getVerboInfo(c.verbo);
+    if (info) {
+      html += `<li><b>${c.verbo}</b> [${c.dim}] (Nivel ${c.correcto})<br>
+               <i>${info.definicion}</i><br>
+               <small>${info.referencia}</small></li>`;
+    } else {
+      html += `<li>${c.verbo} [${c.dim}] (Nivel ${c.correcto})</li>`;
+    }
+  });
+  html += `</ul>`;
+
+  // ERRORES GRAVES
+  html += `<h4>❌ Errores más graves</h4><ul>`;
+  erroresGraves.slice(0, 10).forEach(e => {
+    const info = getVerboInfo(e.verbo);
+    if (info) {
+      html += `<li><b>${e.verbo}</b> [${e.dim}] → marcó Nivel ${e.respuesta}, correcto Nivel ${e.correcto} (distancia ${e.dist})<br>
+               <i>${info.definicion}</i><br>
+               <small>${info.referencia}</small></li>`;
+    } else {
+      html += `<li>${e.verbo} [${e.dim}] → marcó Nivel ${e.respuesta}, correcto Nivel ${e.correcto}</li>`;
+    }
+  });
+  html += `</ul>`;
+
+  // DETALLE
+  html += `<h4>📋 Detalle completo por dimensión</h4>`;
+  for (let d in resultadosDim) {
+    html += `<h5>${d}</h5><ul>`;
+    resultadosDim[d].detalle.forEach(v => {
+      const icono = v.trim().charAt(0);
+      const verboMatch = v.replace(/(✅|❌|⚠️)\s*/, "").match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+/);
+      const verbo = verboMatch ? verboMatch[0].trim() : "";
+      const info = getVerboInfo(verbo);
+
+      let clase = "";
+      if (icono === "✅") clase = "verbo-ok";
+      if (icono === "❌") clase = "verbo-error";
+      if (icono === "⚠️") clase = "verbo-alerta";
+
+      const vColoreado = v.replace(
+        verbo,
+        `<span class="${clase}"><b>${verbo}</b></span>`
+      );
+
+      if (info) {
+        html += `<li>${vColoreado}<br><i>${info.definicion}</i><br>
+                 <small>${info.referencia}</small></li>`;
+      } else {
+        html += `<li>${vColoreado}</li>`;
+      }
+    });
+    html += `</ul>`;
+  }
+
+  html += `<h4>📌 Lectura pedagógica</h4>
+  <p>El docente muestra mayor solidez en <b>SABER</b>, mientras que en <b>HACER</b> y <b>SER</b> aparecen más errores. 
+  Se recomienda reforzar progresivamente: primero verbos básicos, luego autonomía, y finalmente innovación y liderazgo.</p>`;
+
+  document.getElementById("informeDocente").innerHTML = html;
+
+  // GRÁFICO
+  if (chartComparativo) chartComparativo.destroy();
+  chartComparativo = new Chart(document.getElementById("chartComparativo"), {
+    type: "bar",
+    data: {
+      labels: ["Aciertos", "Errores"],
+      datasets: [
+        {
+          label: "Docente",
+          data: [correctos.length, erroresGraves.length],
+          backgroundColor: ["#22c55e", "#ef4444"]
+        },
+        {
+          label: "Grupo",
+          data: [
+            (promedio / 70) * nombresVerbos.length,
+            nombresVerbos.length - (promedio / 70) * nombresVerbos.length
+          ],
+          backgroundColor: ["#93c5fd", "#fca5a5"]
+        }
+      ]
+    },
+    options: { responsive: true }
+  });
+
+  document.getElementById("btnPDF").style.display = "inline-block";
+  document.getElementById("btnExcelDocente").style.display = "inline-block";
+  document.getElementById("btnExcelGrupal").style.display = "inline-block";
+
+}
+
+/* ============================================================================
+   8. EXPORTAR EXCEL
+   ============================================================================ */
+function exportarExcel(){
+  if(!resumenExport.length) return;
+  const ws = XLSX.utils.json_to_sheet(resumenExport);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Resumen");
+  XLSX.writeFile(wb, "Resumen_Global.xlsx");
+}
+
+
+function san(x) {
+  if (x === undefined || x === null) return "-";
+  return x
+    .toString()
+    .trim()
+    .replace(/[\u00A0\u2000-\u200F\u202F\u205F\u3000]/g, " ")  // espacios invisibles Zoho
+    .replace(/\s+/g, " ")                                     // espacios dobles
+    .replace(/[^\w\sáéíóúÁÉÍÓÚñÑ0-9\.,;:()/%-]/g, "")         // caracteres raros
+    || "-";
+}
+
+
+
+async function generarExcelDocente(docente) {
+    const ExcelJS = window.ExcelJS;
+    const libro = new ExcelJS.Workbook();
+    const hoja = libro.addWorksheet("Informe Individual");
+
+    hoja.properties.defaultRowHeight = 22;
+
+    // ============================
+    // ESTILOS
+    // ============================
+    const estiloTitulo = {
+        font: { bold: true, size: 14 },
+        alignment: { horizontal: "center" }
+    };
+
+    const estiloHeader = {
+        font: { bold: true },
+        fill: { type: "pattern", pattern: "solid", fgColor: { argb: "D9E1F2" } },
+        border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" }
+        }
+    };
+
+    const estiloCelda = {
+        alignment: { vertical: "top", wrapText: true },
+        border: {
+            top: { style: "thin" },
+            bottom: { style: "thin" },
+            left: { style: "thin" },
+            right: { style: "thin" }
+        }
+    };
+
+    // ============================
+    // TÍTULO
+    // ============================
+    hoja.mergeCells("A1:D1");
+    hoja.getCell("A1").value = "SITE–RUTA LATAM — Informe Profesional Individual";
+    hoja.getCell("A1").style = estiloTitulo;
+
+    hoja.addRow([]);
+
+    // ============================
+    // DATOS PERSONALES
+    // ============================
+    hoja.addRow(["Nombre completo", san(docente.nombre + " " + docente.apellidos)]);
+    hoja.addRow(["Puntaje", san(docente.puntaje)]);
+    hoja.addRow([]);
+
+    // ============================
+    // RESULTADOS DIMENSIONES
+    // ============================
+    hoja.addRow(["Dimensión", "Aciertos", "Total", "Porcentaje"])
+        .eachCell(c => c.style = estiloHeader);
+
+    docente.resultados.forEach(r => {
+        hoja.addRow([
+            san(r.dimension),
+            san(r.aciertos),
+            san(r.total),
+            san(r.porcentaje + "%")
+        ]).eachCell(c => c.style = estiloCelda);
+    });
+
+    hoja.addRow([]);
+
+    // ============================
+    // ACIERTOS
+    // ============================
+    hoja.addRow(["Principales aciertos"]).getCell(1).style = estiloHeader;
+    hoja.addRow(["Verbo", "Nivel Correcto", "Definición", "Referencia APA"])
+        .eachCell(c => c.style = estiloHeader);
+
+    docente.aciertos.forEach(a => {
+        hoja.addRow([
+            san(a.verbo),
+            san(a.nivel),
+            san(a.definicion),
+            san(a.referencia)
+        ]).eachCell(c => c.style = estiloCelda);
+    });
+
+    hoja.addRow([]);
+
+    // ============================
+    // ERRORES
+    // ============================
+    hoja.addRow(["Errores principales"]).getCell(1).style = estiloHeader;
+    hoja.addRow(["Verbo", "Marcó Nivel", "Correcto", "Definición"])
+        .eachCell(c => c.style = estiloHeader);
+
+    docente.errores.forEach(e => {
+        hoja.addRow([
+            san(e.verbo),
+            san(e.marco),
+            san(e.correcto),
+            san(e.definicion)
+        ]).eachCell(c => c.style = estiloCelda);
+    });
+
+    hoja.addRow([]);
+
+    // ============================
+    // DETALLE SABER/HACER/SER
+    // ============================
+    function agregarSeccion(titulo, items) {
+        hoja.addRow([titulo]).getCell(1).style = estiloHeader;
+        hoja.addRow(["Verbo", "Nivel Marcado", "Correcto", "Definición"])
+            .eachCell(c => c.style = estiloHeader);
+
+        items.forEach(i => {
+            hoja.addRow([
+                san(i.verbo),
+                san(i.nivel),
+                san(i.correcto),
+                san(i.definicion)
+            ]).eachCell(c => c.style = estiloCelda);
+        });
+
+        hoja.addRow([]);
+    }
+
+    agregarSeccion("DIMENSIÓN SABER", docente.detalle.saber);
+    agregarSeccion("DIMENSIÓN HACER", docente.detalle.hacer);
+    agregarSeccion("DIMENSIÓN SER", docente.detalle.ser);
+
+    // ============================
+    // LECTURA PEDAGÓGICA
+    // ============================
+    hoja.addRow(["Lectura pedagógica SITE–RUTA LATAM"]).getCell(1).style = estiloHeader;
+    hoja.addRow([san(docente.lectura)]).eachCell(c => (c.style = estiloCelda));
+
+    hoja.addRow([]);
+
+    // ============================
+    // REFERENCIAS
+    // ============================
+    hoja.addRow(["Referencias APA"]).getCell(1).style = estiloHeader;
+
+    docente.referencias.forEach(ref => {
+        hoja.addRow([san(ref)]).eachCell(c => (c.style = estiloCelda));
+    });
+
+    // ============================
+    // AJUSTES
+    // ============================
+    hoja.columns.forEach(col => {
+        col.width = 35;
+    });
+
+    // ============================
+    // DESCARGA
+    // ============================
+    const buffer = await libro.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Informe_${san(docente.nombre)}.xlsx`;
+    link.click();
+}
+
+function exportarExcelTodos(){
+  if(!docentes.length) return;
+  const wb = XLSX.utils.book_new();
+  docentes.forEach(d => {
+    const data = [
+      {Ítem:"Nombre",Detalle:`${d.nombre} ${d.apellidos}`},
+      {Ítem:"Puntaje",Detalle:d.puntaje}
+    ];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const nombreHoja = (d.nombre + "_" + d.apellidos).substring(0,25);
+    XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+  });
+  XLSX.writeFile(wb, "Consolidado.xlsx");
+}
+
+
+/* ============================================================================
+   9. GRÁFICO GLOBAL — N1, N2, N3, N4 (CUARTO GRÁFICO)
+   ============================================================================ */
+let chartNiveles = null;
+
+function renderGraficoNiveles() {
+
+  const labels = verbosGlobal;
+  const dataN1 = resumenVerbos.map(v => v.p1 * 100);
+  const dataN2 = resumenVerbos.map(v => v.p2 * 100);
+  const dataN3 = resumenVerbos.map(v => v.p3 * 100);
+  const dataN4 = resumenVerbos.map(v => v.p4 * 100);
+
+  if(chartNiveles) chartNiveles.destroy();
+
+  chartNiveles = new Chart(document.getElementById("chartNiveles"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Nivel 1",
+          data: dataN1,
+          backgroundColor: "#dc2626" /* rojo */
+        },
+        {
+          label: "Nivel 2",
+          data: dataN2,
+          backgroundColor: "#f59e0b" /* amarillo */
+        },
+        {
+          label: "Nivel 3",
+          data: dataN3,
+          backgroundColor: "#65a30d" /* verde claro */
+        },
+        {
+          label: "Nivel 4",
+          data: dataN4,
+          backgroundColor: "#15803d" /* verde oscuro */
+        }
+      ]
+    },
+    options: { 
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true, max: 100 },
+        x: { ticks: { maxRotation: 90, minRotation: 90 } }
+      }
+    }
+  });
+}
+
+
+
+document.getElementById("btnExcelGrupal").addEventListener("click", generarExcelGrupal);
+
+function generarExcelGrupal() {
+  if (!docentes || docentes.length === 0) return;
+
+  const wb = XLSX.utils.book_new();
+
+  docentes.forEach((docente, index) => {
+
+    // =========================
+    // 1. ARRAY DE FILAS
+    // =========================
+    let rows = [];
+
+    // ---- Título institucional
+    rows.push(["SITE–RUTA LATAM — Informe Profesional por Docente"]);
+
+    rows.push([]);
+    rows.push(["Nombre", `${docente.nombre} ${docente.apellidos}`]);
+    rows.push(["Correo", docente.correo || "No registrado"]);
+    rows.push(["Teléfono", docente.telefono || "No registrado"]);
+    rows.push(["Puntaje", `${docente.puntaje} / 70`]);
+    rows.push([]);
+    rows.push(["Resultados por dimensión"]);
+
+    // =========================
+    // Cálculo dimensiones
+    // =========================
+    const dimensiones = {
+      SABER: { total: 0, aciertos: 0, detalle: [] },
+      HACER: { total: 0, aciertos: 0, detalle: [] },
+      SER: { total: 0, aciertos: 0, detalle: [] }
+    };
+
+    nombresVerbos.forEach((verbo, i) => {
+      const colIdx = indicesVerbos[i];
+      let valor = docente.respuestas[colIdx];
+      let limpio = valor ? valor.toString().trim().replace(/[^0-9]/g, "") : "";
+      let respuesta = limpio ? parseInt(limpio) : null;
+      const correcto = nivelesCorrectos[verbo];
+
+      let dimName = "SABER";
+      for (let d in DATA) {
+        for (let n in DATA[d]) {
+          if (DATA[d][n].map(v => v.toUpperCase()).includes(verbo.toUpperCase())) {
+            dimName = d.toUpperCase();
+          }
+        }
+      }
+
+      dimensiones[dimName].total++;
+
+      if (respuesta === correcto) {
+        dimensiones[dimName].aciertos++;
+        dimensiones[dimName].detalle.push({
+          tipo: "ACIERTO",
+          verbo,
+          correcto
+        });
+      } else if (respuesta !== null) {
+        dimensiones[dimName].detalle.push({
+          tipo: "ERROR",
+          verbo,
+          respuesta,
+          correcto
+        });
+      } else {
+        dimensiones[dimName].detalle.push({
+          tipo: "SIN RESPUESTA",
+          verbo,
+          correcto
+        });
+      }
+    });
+
+    // ----- agregar resultados
+    rows.push(["Dimensión", "Aciertos", "Total", "Porcentaje"]);
+
+    Object.keys(dimensiones).forEach((dim) => {
+      const d = dimensiones[dim];
+      const pct = d.total ? ((d.aciertos / d.total) * 100).toFixed(1) + "%" : "0%";
+      rows.push([dim, d.aciertos, d.total, pct]);
+    });
+    rows.push([]);
+
+    // =========================
+    // ACIERTOS PRINCIPALES
+    // =========================
+    rows.push(["Principales aciertos"]);
+    rows.push(["Verbo", "Nivel Correcto", "Definición", "Referencia APA"]);
+
+    nombresVerbos.forEach((verbo, i) => {
+      const colIdx = indicesVerbos[i];
+      let v = docente.respuestas[colIdx];
+      let limpio = v ? v.toString().trim().replace(/[^0-9]/g, "") : "";
+      let respuesta = limpio ? parseInt(limpio) : null;
+      const correcto = nivelesCorrectos[verbo];
+
+      if (respuesta === correcto) {
+        const info = getVerboInfo(verbo) || {};
+        rows.push([
+          verbo,
+          `Nivel ${correcto}`,
+          info.definicion || "",
+          info.referencia || ""
+        ]);
+      }
+    });
+
+    rows.push([]);
+
+    // =========================
+    // ERRORES PRINCIPALES
+    // =========================
+    rows.push(["Errores principales"]);
+    rows.push(["Verbo", "Marcó", "Correcto", "Definición", "Referencia APA"]);
+
+    nombresVerbos.forEach((verbo, i) => {
+      const colIdx = indicesVerbos[i];
+      let v = docente.respuestas[colIdx];
+      let limpio = v ? v.toString().trim().replace(/[^0-9]/g, "") : "";
+      let respuesta = limpio ? parseInt(limpio) : null;
+      const correcto = nivelesCorrectos[verbo];
+
+      if (respuesta !== correcto && respuesta !== null) {
+        const info = getVerboInfo(verbo) || {};
+        rows.push([
+          verbo,
+          respuesta,
+          correcto,
+          info.definicion || "",
+          info.referencia || ""
+        ]);
+      }
+    });
+
+    rows.push([]);
+
+    // =========================
+    // DETALLE COMPLETO POR DIMENSIÓN
+    // =========================
+    rows.push(["Detalle completo por dimensión"]);
+    rows.push([]);
+
+    Object.keys(dimensiones).forEach((dim) => {
+      rows.push([dim]); // Título de dimensión
+
+      dimensiones[dim].detalle.forEach((d) => {
+        let info = getVerboInfo(d.verbo) || {};
+        if (d.tipo === "ACIERTO") {
+          rows.push([
+            `✅ ${d.verbo}`,
+            `Nivel correcto: ${d.correcto}`,
+            info.definicion,
+            info.referencia
+          ]);
+        } else if (d.tipo === "ERROR") {
+          rows.push([
+            `❌ ${d.verbo}`,
+            `Marcó ${d.respuesta}`,
+            `Correcto ${d.correcto}`,
+            info.definicion,
+            info.referencia
+          ]);
+        } else {
+          rows.push([
+            `⚠️ ${d.verbo}`,
+            "Sin respuesta",
+            `Correcto " + d.correcto`,
+            info.definicion,
+            info.referencia
+          ]);
+        }
+      });
+
+      rows.push([]);
+    });
+
+    // =========================
+    // LECTURA PEDAGÓGICA
+    // =========================
+    rows.push(["Lectura pedagógica SITE–RUTA LATAM"]);
+    rows.push([
+      "El docente muestra mayor solidez en SABER, mientras que en HACER y SER aparecen más errores. " +
+      "Se recomienda reforzar progresivamente: primero verbos básicos, luego autonomía y finalmente innovación y liderazgo."
+    ]);
+    rows.push([]);
+
+    // =========================
+    // REFERENCIAS APA
+    // =========================
+    rows.push(["Referencias APA"]);
+    rows.push(["Bloom, B. S. (1956). Taxonomy of educational objectives. Longman."]);
+    rows.push(["Anderson, L. W., & Krathwohl, D. R. (2001). A taxonomy for learning. Longman."]);
+    rows.push(["Krathwohl, D. R. (2002). A revision of Bloom's taxonomy. Theory Into Practice."]);
+
+    // =========================
+    // 2. GENERAR HOJA
+    // =========================
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // =========================
+    // 3. APLICAR ESTILOS FULL
+    // =========================
+    const range = XLSX.utils.decode_range(ws['!ref']);
+
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        let cell_address = XLSX.utils.encode_cell({r: R, c: C});
+        let cell = ws[cell_address];
+        if (!cell) continue;
+
+        // Estilos base (bordes)
+        cell.s = {
+          border: {
+            top: { style: "thin", color: { rgb: "CCCCCC" } },
+            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+            left: { style: "thin", color: { rgb: "CCCCCC" } },
+            right: { style: "thin", color: { rgb: "CCCCCC" } }
+          },
+          alignment: { vertical: "center", wrapText: true }
+        };
+
+        // Título principal
+        if (R === 0 && C === 0) {
+          cell.s.font = { bold: true, sz: 14, color: { rgb: "1E3A8A" } };
+          cell.s.alignment = { horizontal: "center", vertical: "center" };
+        }
+
+        // Subtítulos importantes
+        const subtitulos = [
+          "Resultados por dimensión",
+          "Principales aciertos",
+          "Errores principales",
+          "Detalle completo por dimensión",
+          "Lectura pedagógica SITE–RUTA LATAM",
+          "Referencias APA"
+        ];
+
+        if (subtitulos.includes(cell.v)) {
+          cell.s.font = { bold: true, sz: 12 };
+          cell.s.fill = { fgColor: { rgb: "E5E7EB" } };
+        }
+
+      }
+    }
+
+    // =========================
+    // Nombre de hoja seguro
+    // =========================
+    let base = (docente.nombre + "_" + docente.apellidos)
+      .replace(/[^\w]/g, "_")
+      .substring(0, 15);
+
+    // 1. Tomar el nombre tal cual
+let nombreHoja = `${docente.nombre} ${docente.apellidos}`.trim();
+
+// 2. Eliminar únicamente los caracteres prohibidos por Excel
+nombreHoja = nombreHoja.replace(/[:\\\/\?\*\[\]]/g, "");
+
+// 3. Limitar a máximo 31 caracteres (regla obligatoria de Excel)
+if (nombreHoja.length > 31) {
+  nombreHoja = nombreHoja.substring(0, 31);
+}
+
+// 4. Evitar duplicados agregando (2), (3), …
+let originalName = nombreHoja;
+let contador = 2;
+
+while (wb.SheetNames.includes(nombreHoja)) {
+  let temp = `${originalName.substring(0, 28)}(${contador})`;
+  nombreHoja = temp;
+  contador++;
+}
+
+XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+  });
+
+  XLSX.writeFile(wb, "INFORME_GRUPAL_SITE-RUTA_LATAM.xlsx");
+}
+
+
+
+
+
+
+// --- Limpia nombres para archivos seguros en Windows/Mac ---
+function limpiarNombreArchivo(str) {
+  return str
+    .normalize("NFD")                 // separa tildes
+    .replace(/[\u0300-\u036f]/g, "")  // remueve tildes
+    .replace(/\s+/g, "_")             // espacios → _
+    .replace(/[^\w]/g, "")            // remueve símbolos prohibidos
+    .trim();
+}
+
+
+function procesarDocentesDesdeExcel(data) {
+
+  const rows = data;
+  const headers = rows[0].map(h => h?.toString().trim());
+
+  // ================================
+  // 1. DETECTAR TODAS LAS COLUMNAS
+  // ================================
+
+  // Columnas de NOMBRES
+  const columnasNombres = headers
+    .map((h, i) => ({ h: h?.toLowerCase() || "", i }))
+    .filter(col =>
+      col.h.includes("nombre") ||      // Nombre
+      col.h.includes("name") ||        // Name
+      col.h.includes("nombres")        // Nombres
+    )
+    .map(col => col.i);
+
+  // Columnas de APELLIDOS
+  const columnasApellidos = headers
+    .map((h, i) => ({ h: h?.toLowerCase() || "", i }))
+    .filter(col =>
+      col.h.includes("apellido") ||    // Apellido
+      col.h.includes("lastname") ||    // Last name
+      col.h.includes("surname")        // Surname
+    )
+    .map(col => col.i);
+
+  // Normalización tipo nombre propio
+  function toTitleCase(str) {
+    return str
+      .toLowerCase()
+      .split(" ")
+      .filter(s => s.trim() !== "")
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(" ");
+  }
+
+  // ================================
+  // 2. CREAR EL ARREGLO "docentes"
+  // ================================
+
+  let docentes = [];
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+
+    // ---- Unificar TODOS los nombres
+    const nombresRaw = columnasNombres
+      .map(i => row[i] ? row[i].toString().trim() : "")
+      .filter(v => v !== "")
+      .join(" ");
+
+    // ---- Unificar TODOS los apellidos
+    const apellidosRaw = columnasApellidos
+      .map(i => row[i] ? row[i].toString().trim() : "")
+      .filter(v => v !== "")
+      .join(" ");
+
+    // ---- Normalizar
+    const nombres = toTitleCase(nombresRaw);
+    const apellidos = toTitleCase(apellidosRaw);
+
+    // Construcción del docente
+    docentes.push({
+      nombre: nombres,
+      apellidos: apellidos,
+      respuestas: row,           // Tu matriz actual de respuestas
+      puntaje: 0,                // Luego tú lo calculas en tu flujo
+      correo: "",                // el resto de tus campos
+      telefono: ""
+    });
+  }
+
+  return docentes;
+}
+
+document.getElementById("btnPDF").addEventListener("click", exportarPDF);
+
+function calcularDimensiones(docente) {
+
+  const resultado = {
+    SABER: { total: 0, aciertos: 0, detalle: [] },
+    HACER: { total: 0, aciertos: 0, detalle: [] },
+    SER:   { total: 0, aciertos: 0, detalle: [] },
+    _aciertos: [],
+    _errores: []
+  };
+
+  nombresVerbos.forEach((verbo, i) => {
+
+    const idx = indicesVerbos[i];
+    const valorOriginal = docente.respuestas[idx];
+
+    // limpiar espacios raros (ZOHO)
+    let limpio = valorOriginal
+      ? valorOriginal.toString()
+          .replace(/[\u00A0\u2000-\u200F\u202F\u205F\u3000]/g, " ")
+          .replace(/[^\d]/g, "")
+          .trim()
+      : "";
+
+    let respuesta = limpio ? parseInt(limpio) : null;
+    const correcto = nivelesCorrectos[verbo.toUpperCase()];
+
+    // obtener info completa del verbo
+    const info = getVerboInfo(verbo) || {
+      definicion: "",
+      referencia: ""
+    };
+
+    // detectar dimensión EXACTA
+    let dim = "SABER";
+    for (let d in DATA) {
+      for (let n in DATA[d]) {
+        if (DATA[d][n].map(v => v.toUpperCase()).includes(verbo.toUpperCase())) {
+          dim = d.toUpperCase();
+        }
+      }
+    }
+
+    resultado[dim].total++;
+
+    // ============================
+    // ✔ ACIERTO
+    // ============================
+    if (respuesta === correcto) {
+
+      const registro = {
+        tipo: "ACIERTO",
+        verbo,
+        marco: respuesta,     // ←🔥 ESTE ES EL CAMPO EXACTO (NO SE CAMBIA)
+        correcto,
+        definicion: info.definicion,
+        referencia: info.referencia
+      };
+
+      resultado[dim].aciertos++;
+      resultado._aciertos.push(registro);
+      resultado[dim].detalle.push(registro);
+    }
+
+    // ============================
+    // ❌ ERROR
+    // ============================
+    else if (respuesta !== null) {
+
+      const registro = {
+        tipo: "ERROR",
+        verbo,
+        marco: respuesta,     // ←🔥 EXACTO COMO ME LO PEDISTE
+        correcto,
+        definicion: info.definicion,
+        referencia: info.referencia
+      };
+
+      resultado._errores.push(registro);
+      resultado[dim].detalle.push(registro);
+    }
+
+    // ============================
+    // ⭕ SIN RESPUESTA
+    // ============================
+    else {
+
+      resultado[dim].detalle.push({
+        tipo: "SIN RESPUESTA",
+        verbo,
+        marco: "-",           // ←🔥 EXACTO COMO EN TU IMAGEN
+        correcto,
+        definicion: info.definicion,
+        referencia: info.referencia
+      });
+    }
+
+  });
+
+  return resultado;
+}
+
+
+function exportarPDF() {
+  if (!docenteActual) {
+    alert("Selecciona un docente primero.");
+    return;
+  }
+
+  const jsPDFConstructor = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+  const doc = new jsPDFConstructor({ unit: "pt", format: "letter" });
+
+  const margen = 40;
+  let y = 40;
+
+  /* ------------------------------------------------------
+     SISTEMA SEGURO DE SALTO DE PÁGINA
+  ------------------------------------------------------ */
+  function checkPageSpace(extra = 20) {
+    if (y + extra > 750) {
+      doc.addPage();
+      y = 40;
+    }
+  }
+
+  /* ------------------------------------------------------
+     ELEMENTOS BASE
+  ------------------------------------------------------ */
+  function salto(px = 18) {
+    checkPageSpace(px);
+    y += px;
+  }
+
+  function titulo(txt) {
+    checkPageSpace(40);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(25, 70, 200);
+    doc.text(txt, margen, y);
+    salto(40);
+  }
+
+  function subtitulo(txt) {
+    checkPageSpace(30);
+    doc.setDrawColor(25, 70, 200);
+    doc.setLineWidth(3);
+    doc.line(margen, y - 2, margen, y + 12);
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(25, 70, 200);
+    doc.text(txt, margen + 10, y + 6);
+
+    salto(28);
+  }
+
+  function linea(txt, color = "black", indent = 0, devolverY = false) {
+    checkPageSpace(25);
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+
+    if (color === "green") doc.setTextColor(5,150,105);
+    else if (color === "red") doc.setTextColor(200,20,20);
+    else if (color === "yellow") doc.setTextColor(240,170,10);
+    else doc.setTextColor(40,40,40);
+
+    const ancho = 520 - indent;
+    const lines = doc.splitTextToSize(txt, ancho);
+
+    const yInicio = y;
+
+    lines.forEach(l => {
+      doc.text(l, margen + indent, y);
+      salto();
+    });
+
+    if (devolverY) return yInicio;
+  }
+
+  function separador() {
+    checkPageSpace(20);
+    doc.setDrawColor(210);
+    doc.setLineWidth(1);
+    doc.line(margen, y, 550, y);
+    salto(12);
+  }
+
+  /* ------------------------------------------------------
+     ÍCONOS PREMIUM ALINEADOS
+  ------------------------------------------------------ */
+  function icono(tipo, yText) {
+    const x = margen + 2;
+    let yIcon = yText - 6;
+
+    if (tipo === "check") yIcon = yText - 9; // ✔ corregido
+    if (tipo === "x")     yIcon = yText - 8; // ❌ perfecto
+    if (tipo === "warn")  yIcon = yText - 6; // ▲ perfecto
+
+    if (tipo === "check") drawCheck(x, yIcon);
+    if (tipo === "x") drawXicon(x, yIcon);
+    if (tipo === "warn") drawWarning(x, yIcon);
+  }
+
+  function drawCheck(x, y) {
+    doc.setDrawColor(5,150,105);
+    doc.setLineWidth(2.2);
+    doc.line(x,     y + 6, x + 5,  y + 11);
+    doc.line(x + 5, y + 11, x + 13, y - 1);
+  }
+
+  function drawXicon(x, y) {
+    doc.setDrawColor(200,20,20);
+    doc.setLineWidth(2.2);
+    doc.line(x, y, x + 10, y + 10);
+    doc.line(x + 10, y, x, y + 10);
+  }
+
+  function drawWarning(x, y) {
+    doc.setDrawColor(240,170,10);
+    doc.setLineWidth(2);
+    doc.line(x + 6, y - 4, x + 12, y + 10);
+    doc.line(x + 12, y + 10, x, y + 10);
+    doc.line(x, y + 10, x + 6, y - 4);
+  }
+
+  /* ------------------------------------------------------
+     SISTEMA SEGURO PARA TEXTO + ÍCONO (evita duplicados)
+  ------------------------------------------------------ */
+  function safeIconLine(texto, tipoIcono, color, indent = 16) {
+    const blockHeight = 26;
+    checkPageSpace(blockHeight);
+
+    const yText = linea(`  ${texto}`, color, indent, true);
+    icono(tipoIcono, yText);
+
+    salto(8);
+  }
+
+  /* ------------------------------------------------------
+     INICIO DEL INFORME
+  ------------------------------------------------------ */
+  const d = docenteActual;
+  const dim = calcularDimensiones(d);
+
+  titulo("SITE–RUTA LATAM — Informe Profesional Individual");
+
+  linea(`Nombre completo: ${d.nombre} ${d.apellidos}`);
+  linea(`Correo: ${d.correo || "No registrado"}`);
+  linea(`Teléfono: ${d.telefono || "No registrado"}`);
+  linea(`Puntaje: ${d.puntaje} / 70`);
+  separador();
+
+  /* ------------------------------------------------------
+     RESULTADOS POR DIMENSIÓN
+  ------------------------------------------------------ */
+  subtitulo("Resultados por dimensión");
+
+  ["SABER", "HACER", "SER"].forEach(area => {
+    const r = dim[area];
+    const pct = r.total ? ((r.aciertos / r.total) * 100).toFixed(1) : "0";
+    linea(`${area}: ${r.aciertos} / ${r.total} → ${pct}%`);
+  });
+
+  separador();
+
+  /* ------------------------------------------------------
+     PRINCIPALES ACIERTOS
+  ------------------------------------------------------ */
+  subtitulo("Principales aciertos");
+
+  dim._aciertos.forEach(a => {
+    const info = getVerboInfo(a.verbo) || {};
+
+    safeIconLine(`${a.verbo} — Nivel ${a.correcto}`, "check", "green");
+
+    if (info.definicion) linea(`Definición: ${info.definicion}`, "black", 28);
+    if (info.referencia) linea(`Referencia APA: ${info.referencia}`, "black", 28);
+  });
+
+  separador();
+
+  /* ------------------------------------------------------
+     ERRORES PRINCIPALES
+  ------------------------------------------------------ */
+  subtitulo("Errores principales");
+
+  dim._errores.forEach(e => {
+    const info = getVerboInfo(e.verbo) || {};
+
+    safeIconLine(
+      `${e.verbo} — Marcó ${e.respuesta} | Correcto ${e.correcto}`,
+      "x",
+      "red"
+    );
+
+    if (info.definicion) linea(`Definición: ${info.definicion}`, "black", 28);
+    if (info.referencia) linea(`Referencia APA: ${info.referencia}`, "black", 28);
+  });
+
+  separador();
+
+  /* ------------------------------------------------------
+     DETALLE COMPLETO
+  ------------------------------------------------------ */
+  subtitulo("Detalle completo por dimensión");
+
+  ["SABER", "HACER", "SER"].forEach(area => {
+    linea(area + ":", "black");
+
+    dim[area].detalle.forEach(dv => {
+      const info = getVerboInfo(dv.verbo) || {};
+
+      const tipo =
+        dv.tipo === "ACIERTO" ? "check" :
+        dv.tipo === "ERROR"   ? "x" :
+                                "warn";
+
+      const color =
+        dv.tipo === "ACIERTO" ? "green" :
+        dv.tipo === "ERROR"   ? "red" :
+                                "yellow";
+
+      const texto =
+        dv.tipo === "ACIERTO" ? `${dv.verbo} — Nivel ${dv.correcto}` :
+        dv.tipo === "ERROR"   ? `${dv.verbo} — Marcó ${dv.respuesta} | Correcto ${dv.correcto}` :
+                                `${dv.verbo} — Sin respuesta | Correcto ${dv.correcto}`;
+
+      safeIconLine(texto, tipo, color);
+
+      if (info.definicion) linea(`Definición: ${info.definicion}`, "black", 28);
+      if (info.referencia) linea(`Referencia APA: ${info.referencia}`, "black", 28);
+    });
+
+    salto(8);
+  });
+
+  separador();
+
+  /* ------------------------------------------------------
+     LECTURA PEDAGÓGICA
+  ------------------------------------------------------ */
+  subtitulo("Lectura pedagógica SITE–RUTA LATAM");
+
+  linea(
+    "El análisis evidencia fortalezas cognitivas y oportunidades de mejora en las dimensiones procedimentales " +
+    "y actitudinales. Un proceso regulado mediante PMAP permitirá avanzar desde la comprensión hacia la autonomía " +
+    "y posteriormente hacia la innovación docente."
+  );
+
+  separador();
+
+  /* ------------------------------------------------------
+     REFERENCIAS APA
+  ------------------------------------------------------ */
+  subtitulo("Referencias APA");
+
+  linea("Bloom, B. S. (1956). Taxonomy of educational objectives. Longman.");
+  linea("Anderson, L. W., & Krathwohl, D. R. (2001). A taxonomy for learning. Longman.");
+  linea("Krathwohl, D. R. (2002). A revision of Bloom's taxonomy. Theory Into Practice.");
+
+  /* ------------------------------------------------------
+     GUARDAR PDF
+  ------------------------------------------------------ */
+  const nombreSeguro = `${d.nombre}_${d.apellidos}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w]/g, "_");
+
+  doc.save(`INFORME_INDIVIDUAL_${nombreSeguro}.pdf`);
+}
+
+
+function limpiarCelda(valor) {
+  if (!valor) return "";
+
+  return valor
+    .toString()
+    .trim()
+    .replace(/[^\w\sáéíóúÁÉÍÓÚñÑ0-9]/g, "")  // <-- elimina símbolos como ! ’ # ? %
+    .replace(/\s+/g, " ");                   // <-- corrige espacios múltiples
+}
+
+
+
+</script>
+
+</body>
+</html>

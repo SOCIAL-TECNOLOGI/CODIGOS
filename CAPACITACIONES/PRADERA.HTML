@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Taller "Del Dato al Aula" - Pradera | Checklist interactivo · DCE · Bloom · Vygotsky</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f7f4;
+            color: #1a2e2c;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header principal */
+        .hero {
+            background: linear-gradient(135deg, #0b3b35 0%, #1a5f55 100%);
+            border-radius: 2rem;
+            padding: 2rem 2rem 1.8rem 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .hero h1 i {
+            background: #ffcd7e;
+            color: #1a5f55;
+            padding: 0.5rem;
+            border-radius: 60%;
+            font-size: 1.6rem;
+        }
+
+        .hero .sub {
+            font-size: 1.1rem;
+            margin-top: 0.8rem;
+            opacity: 0.9;
+            border-left: 4px solid #ffcd7e;
+            padding-left: 1rem;
+        }
+
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.2rem;
+        }
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* progreso general */
+        .progress-summary {
+            background: white;
+            border-radius: 1.2rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .progress-text {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .progress-bar-bg {
+            background: #e0e7e5;
+            border-radius: 40px;
+            height: 12px;
+            width: 250px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #2c8c7a;
+            width: 0%;
+            height: 100%;
+            border-radius: 40px;
+            transition: width 0.3s ease;
+        }
+        .reset-check {
+            background: none;
+            border: 1px solid #bdcfc9;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c5a4f;
+        }
+        .reset-check:hover {
+            background: #eef4f1;
+        }
+
+        /* tarjetas de bloque con checklist */
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem 0;
+            padding-left: 0.5rem;
+            border-left: 6px solid #2c8c7a;
+            color: #0e3b35;
+        }
+        .timeline-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .bloque-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .bloque-header {
+            background: #fef7e0;
+            padding: 1rem 1.8rem;
+            border-bottom: 1px solid #e9e0c7;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: baseline;
+            cursor: pointer;
+            user-select: none;
+        }
+        .bloque-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .bloque-check {
+            transform: scale(1.2);
+            margin-right: 0.3rem;
+            accent-color: #1a5f55;
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+        .bloque-nombre {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #2c5a4f;
+        }
+        .bloque-hora {
+            font-family: monospace;
+            font-weight: 600;
+            background: #e0e9e6;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+        .bloque-body {
+            padding: 1.5rem 1.8rem;
+            transition: all 0.2s;
+        }
+        .bloque-body ul, .bloque-detail {
+            list-style: none;
+        }
+        .bloque-body li {
+            margin-bottom: 0.9rem;
+            display: flex;
+            gap: 0.8rem;
+            align-items: flex-start;
+        }
+        .bloque-body li i {
+            color: #2c8c7a;
+            margin-top: 0.2rem;
+            width: 1.4rem;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+            padding: 0.2rem 0;
+            border-radius: 0.5rem;
+            transition: background 0.1s;
+        }
+        .checklist-item:hover {
+            background: #f9f7ef;
+        }
+        .checklist-item input {
+            transform: scale(1.1);
+            accent-color: #2c8c7a;
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+        .checklist-item label {
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+        }
+        .completed-label {
+            text-decoration: line-through;
+            opacity: 0.7;
+            color: #5e7c74;
+        }
+        .highlight {
+            background: #eefbf7;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #ffb347;
+        }
+        .level-badge {
+            display: inline-block;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin: 0 2px;
+        }
+        .level-bajo { background: #e9b5a1; color: #5a2a1a; }
+        .level-basico { background: #f9e0a0; color: #6b4c1a; }
+        .level-alto { background: #b8d9c5; color: #1a4d3a; }
+        .level-superior { background: #b2d8fa; color: #0a3b5c; }
+
+        .transform-table-wrapper {
+            background: white;
+            border-radius: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .transform-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 680px;
+        }
+        .transform-table th {
+            background: #1e5a50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .transform-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2ece9;
+            vertical-align: top;
+        }
+        .protocolo-card {
+            background: linear-gradient(115deg, #fef9e6 0%, #ffffff 100%);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #ddece7;
+        }
+        .btn-copy {
+            background: #1a5f55;
+            border: none;
+            color: white;
+            padding: 0.6rem 1.3rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #5d7b74;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 1.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1><i class="fas fa-chalkboard-user"></i> Del Dato al Aula</h1>
+        <div class="sub"><i class="fas fa-map-pin"></i> Pradera, Valle del Cauca · Docentes municipio | Correlación DCE - Bloom - Vygotsky</div>
+        <div class="badge-container">
+            <span class="badge"><i class="fas fa-chart-line"></i> Analítica</span>
+            <span class="badge"><i class="fas fa-brain"></i> Taxonomía Bloom</span>
+            <span class="badge"><i class="fas fa-hand-sparkles"></i> ZDP y andamiaje</span>
+            <span class="badge"><i class="fas fa-check-circle"></i> Checklist interactivo</span>
+        </div>
+    </div>
+
+    <!-- barra de progreso global y reset -->
+    <div class="progress-summary">
+        <div class="progress-text"><i class="fas fa-list-check"></i> Avance del taller:</div>
+        <div class="progress-bar-bg"><div class="progress-fill" id="globalProgressFill"></div></div>
+        <div><span id="completedCount">0</span> / <span id="totalCount">0</span> actividades</div>
+        <button id="resetAllBtn" class="reset-check"><i class="fas fa-undo-alt"></i> Reiniciar checklist</button>
+    </div>
+
+    <!-- ESTRUCTURA DEL TALLER CON CHECKLIST POR CADA BLOQUE Y SUBTEMAS -->
+    <div class="timeline-grid" id="checklistContainer">
+        <!-- Los bloques se generarán con JS para facilitar el manejo de IDs, pero definimos estructura semántica con data-atributos -->
+    </div>
+
+    <!-- TABLA DE TRANSFORMACIÓN (estática) -->
+    <div class="section-title"><i class="fas fa-chart-simple"></i> Transformación del Docente: Antes y Después</div>
+    <div class="transform-table-wrapper">
+        <table class="transform-table">
+            <thead><tr><th>Dimensión</th><th>07:00 a.m.</th><th>01:00 p.m.</th></tr></thead>
+            <tbody>
+                <tr><td class="dimension">Visión de Datos</td><td class="antes">Ve el puntaje como cifra aislada.</td><td class="despues">Entiende el puntaje como arquitectura cognitiva (Bajo a Superior).</td></tr>
+                <tr><td class="dimension">Uso de Taxonomía</td><td class="antes">Identifica temas o contenidos.</td><td class="despues">Diseña tareas por niveles de complejidad Bloom.</td></tr>
+                <tr><td class="dimension">Planeación</td><td class="antes">Planifica basado en currículo (ZDR).</td><td class="despues">Planifica andamiaje hacia ZDP (Alto/Superior).</td></tr>
+                <tr><td class="dimension">Acción el Martes</td><td class="antes">Seguiría el libro o guía tradicional.</td><td class="despues">Intervención focalizada para movilizar nivel específico.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PROTOCOLO DE INTERVENCIÓN -->
+    <div class="protocolo-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <h3 style="color:#1a5f55;"><i class="fas fa-clipboard-list"></i> Protocolo de Intervención para el Martes</h3>
+            <button id="copyProtocolBtn" class="btn-copy"><i class="far fa-copy"></i> Copiar ejemplo</button>
+        </div>
+        <div id="protocolText" style="background:#fefcf5; padding:1rem; border-radius:1rem; margin-top:1rem;">
+            <p><strong>📌 I.E. Ejemplo (Pradera):</strong> ZDR mayoritaria nivel <span class="level-badge level-bajo">Bajo</span> (recordar).<br>
+            <strong>🎯 ZDP:</strong> Alcanzar nivel <span class="level-badge level-alto">Alto</span> (analizar).<br>
+            <strong>🧩 Andamiaje:</strong> Actividad con dos fuentes locales, preguntas de contraste y justificación.<br>
+            <strong>📈 Evidencia:</strong> Rúbrica que evalúe paso de literal a crítico.</p>
+        </div>
+    </div>
+    <footer><i class="fas fa-chalkboard"></i> Taller “Del Dato al Aula” – Pradera. Marca cada concepto abordado para seguimiento colectivo.</footer>
+</div>
+
+<script>
+    // Definición de la estructura completa del taller con ítems checklist por bloque
+    const talleresData = [
+        {
+            bloque: "I. Bloque de Apertura: El Espejo de Pradera",
+            hora: "07:00 a.m. – 08:30 a.m.",
+            items: [
+                "Analítica de Resultados: Exposición trayectoria municipal 2021-2025 por área",
+                "Lectura Comparativa: Brechas institucionales (Ateneo vs Alfredo Posada)",
+                "Identificación de Estancamientos: Población anclada en niveles BAJO (A- / Nivel 1)"
+            ]
+        },
+        {
+            bloque: "II. Fundamentación Técnica: Desarmando la Caja Negra ICFES",
+            hora: "08:30 a.m. – 10:30 a.m.",
+            items: [
+                "Cadena DCE: Tarea → Evidencia → Afirmación → Competencia",
+                "Mapeo Cognitivo (Bloom): Nivel 1 (Bajo: Recordar) hasta Nivel 4 (Superior: Evaluar/Crear)",
+                "Ejercicio práctico: Clasificación de ítems liberados (Bajo/Básico vs Alto/Superior)"
+            ]
+        },
+        {
+            bloque: "III. Aplicación Pedagógica: El Puente del Aprendizaje (Vygotsky)",
+            hora: "10:30 a.m. – 12:00 p.m.",
+            items: [
+                "Definición de la ZDR (Zona Desarrollo Real) con datos propios",
+                "Proyección de la ZDP (siguiente salto cognitivo: hacia niveles Alto/Superior)",
+                "Diseño de Andamiaje: Evidencia crítica convertida en estrategia de intervención"
+            ]
+        },
+        {
+            bloque: "IV. Cierre y Compromiso: Transferencia al Aula (Acción Martes)",
+            hora: "12:00 p.m. – 01:00 p.m.",
+            items: [
+                "Consolidación del Puente: Redacción de actividad concreta para el martes",
+                "Socialización por Áreas: Validación de tareas que movilicen HOTS (Alto/Superior)",
+                "Transformación del Docente: Reflexión colectiva sobre el antes y después"
+            ]
+        }
+    ];
+
+    // Items adicionales del protocolo y tabla? se integran como elementos independientes? Para checklist total añadimos también la revisión de la tabla transformación y el protocolo.
+    const extraItems = [
+        { name: "✨ Tabla 'Transformación del Docente' analizada y comprendida" },
+        { name: "📝 Protocolo de Intervención: Diseño preliminar o lectura del ejemplo" },
+        { name: "🎯 Compromiso concreto: Tarea a implementar el martes definida" }
+    ];
+
+    let allChecklistItems = []; // almacenará objetos { id, text, checked }
+    let nextId = 1;
+
+    function buildFullChecklist() {
+        const container = document.getElementById('checklistContainer');
+        container.innerHTML = '';
+        allChecklistItems = [];
+        nextId = 1;
+
+        // generar bloques
+        talleresData.forEach((bloque, idx) => {
+            const bloqueId = `bloque_${idx}`;
+            const card = document.createElement('div');
+            card.className = 'bloque-card';
+            
+            // header con checkbox principal del bloque (opcional)
+            const header = document.createElement('div');
+            header.className = 'bloque-header';
+            header.innerHTML = `
+                <div class="bloque-header-left">
+                    <input type="checkbox" class="bloque-check" data-bloqueidx="${idx}" id="blockCheck_${idx}">
+                    <span class="bloque-nombre"><i class="fas ${idx===0 ? 'fa-chart-simple' : (idx===1?'fa-microchip':(idx===2?'fa-bridge':'fa-calendar-check'))}"></i> ${bloque.bloque}</span>
+                </div>
+                <span class="bloque-hora"><i class="far fa-clock"></i> ${bloque.hora}</span>
+            `;
+            const body = document.createElement('div');
+            body.className = 'bloque-body';
+            // agregar los items checklist
+            bloque.items.forEach(itemText => {
+                const itemId = `check_${nextId++}`;
+                const checkedState = false;
+                const itemObj = { id: itemId, text: itemText, checked: false, bloqueIdx: idx };
+                allChecklistItems.push(itemObj);
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'checklist-item';
+                itemDiv.innerHTML = `
+                    <input type="checkbox" id="${itemId}" data-id="${itemId}">
+                    <label for="${itemId}">${itemText}</label>
+                `;
+                body.appendChild(itemDiv);
+            });
+            card.appendChild(header);
+            card.appendChild(body);
+            container.appendChild(card);
+        });
+
+        // Agregar sección extra de elementos complementarios (como tarjeta extra)
+        const extraCard = document.createElement('div');
+        extraCard.className = 'bloque-card';
+        extraCard.innerHTML = `<div class="bloque-header"><span class="bloque-nombre"><i class="fas fa-clipboard-check"></i> Cierre y Aplicación práctica</span><span class="bloque-hora">Post-taller</span></div><div class="bloque-body" id="extraBody"></div>`;
+        const extraBody = extraCard.querySelector('#extraBody');
+        extraItems.forEach(extra => {
+            const itemId = `check_${nextId++}`;
+            const itemObj = { id: itemId, text: extra.name, checked: false, bloqueIdx: -1 };
+            allChecklistItems.push(itemObj);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'checklist-item';
+            itemDiv.innerHTML = `<input type="checkbox" id="${itemId}" data-id="${itemId}"><label for="${itemId}">${extra.name}</label>`;
+            extraBody.appendChild(itemDiv);
+        });
+        container.appendChild(extraCard);
+        
+        // actualizar contadores y añadir event listeners a todos los checkboxes
+        attachCheckEvents();
+        updateGlobalProgress();
+        attachBlockSelectors();
+    }
+
+    function attachCheckEvents() {
+        // para cada checkbox individual
+        document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(checkbox => {
+            checkbox.removeEventListener('change', handleItemChange);
+            checkbox.addEventListener('change', handleItemChange);
+        });
+    }
+
+    function handleItemChange(e) {
+        const checkbox = e.target;
+        const id = checkbox.id;
+        const item = allChecklistItems.find(i => i.id === id);
+        if (item) {
+            item.checked = checkbox.checked;
+            // efecto visual en label
+            const label = checkbox.nextElementSibling;
+            if (checkbox.checked) label.classList.add('completed-label');
+            else label.classList.remove('completed-label');
+        }
+        updateGlobalProgress();
+        updateBlockHeaderState();
+    }
+
+    function updateGlobalProgress() {
+        const total = allChecklistItems.length;
+        const completed = allChecklistItems.filter(i => i.checked).length;
+        document.getElementById('totalCount').innerText = total;
+        document.getElementById('completedCount').innerText = completed;
+        const percent = total === 0 ? 0 : (completed / total) * 100;
+        const fillBar = document.getElementById('globalProgressFill');
+        if (fillBar) fillBar.style.width = `${percent}%`;
+    }
+
+    function updateBlockHeaderState() {
+        // marcar/desmarcar los checkbox de bloque según todos los items internos
+        for (let bIdx = 0; bIdx < talleresData.length; bIdx++) {
+            const itemsBloque = allChecklistItems.filter(i => i.bloqueIdx === bIdx);
+            const allChecked = itemsBloque.length > 0 && itemsBloque.every(i => i.checked);
+            const blockCheckbox = document.getElementById(`blockCheck_${bIdx}`);
+            if (blockCheckbox) {
+                blockCheckbox.checked = allChecked;
+            }
+        }
+        // para los extra no hay bloque principal
+    }
+
+    function attachBlockSelectors() {
+        for (let bIdx = 0; bIdx < talleresData.length; bIdx++) {
+            const blockChk = document.getElementById(`blockCheck_${bIdx}`);
+            if (blockChk) {
+                blockChk.removeEventListener('change', handleBlockChange);
+                blockChk.addEventListener('change', (e) => {
+                    const isChecked = e.target.checked;
+                    const itemsBloque = allChecklistItems.filter(i => i.bloqueIdx === bIdx);
+                    itemsBloque.forEach(item => {
+                        item.checked = isChecked;
+                        const chkElement = document.getElementById(item.id);
+                        if (chkElement) {
+                            chkElement.checked = isChecked;
+                            const label = chkElement.nextElementSibling;
+                            if (isChecked) label.classList.add('completed-label');
+                            else label.classList.remove('completed-label');
+                        }
+                    });
+                    updateGlobalProgress();
+                });
+            }
+        }
+    }
+
+    function resetAllChecks() {
+        allChecklistItems.forEach(item => {
+            item.checked = false;
+            const chk = document.getElementById(item.id);
+            if (chk) {
+                chk.checked = false;
+                const label = chk.nextElementSibling;
+                if (label) label.classList.remove('completed-label');
+            }
+        });
+        updateGlobalProgress();
+        updateBlockHeaderState();
+    }
+
+    // Copiar protocolo
+    function setupCopyProtocol() {
+        const copyBtn = document.getElementById('copyProtocolBtn');
+        const protocolDiv = document.getElementById('protocolText');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                let text = protocolDiv.innerText;
+                navigator.clipboard.writeText(text.trim()).then(() => {
+                    const original = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                    setTimeout(() => { copyBtn.innerHTML = original; }, 2000);
+                });
+            });
+        }
+    }
+
+    // restablecer estilos de labels iniciales
+    function syncLabelsFromStorage() {
+        allChecklistItems.forEach(item => {
+            const chk = document.getElementById(item.id);
+            if (chk) {
+                chk.checked = item.checked;
+                const label = chk.nextElementSibling;
+                if (label) {
+                    if (item.checked) label.classList.add('completed-label');
+                    else label.classList.remove('completed-label');
+                }
+            }
+        });
+        updateBlockHeaderState();
+        updateGlobalProgress();
+    }
+
+    // Inicializar, además guardar estado en localStorage opcional (solo sesión)
+    function saveStateToLocal() {
+        const state = allChecklistItems.map(i => ({ id: i.id, checked: i.checked }));
+        localStorage.setItem('tallerPraderaChecklist', JSON.stringify(state));
+    }
+    function loadStateFromLocal() {
+        const saved = localStorage.getItem('tallerPraderaChecklist');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                parsed.forEach(savedItem => {
+                    const item = allChecklistItems.find(i => i.id === savedItem.id);
+                    if (item) item.checked = savedItem.checked;
+                });
+                syncLabelsFromStorage();
+            } catch(e) {}
+        }
+    }
+    // autoguardado al cambiar
+    function autoSave() { saveStateToLocal(); }
+    function wrapAutoSave() {
+        const originalHandle = handleItemChange;
+        window.handleItemChange = function(e) {
+            originalHandle(e);
+            autoSave();
+        };
+        handleItemChange = window.handleItemChange;
+        // también en reset
+        const originalReset = resetAllChecks;
+        window.resetAllChecks = function() { originalReset(); autoSave(); };
+        resetAllChecks = window.resetAllChecks;
+    }
+
+    // sobreescritura para integración
+    buildFullChecklist();
+    setupCopyProtocol();
+    loadStateFromLocal();
+    // reemplazar handleItemChange por version con autosave
+    const origHandler = handleItemChange;
+    handleItemChange = function(e) {
+        origHandler(e);
+        saveStateToLocal();
+    };
+    window.handleItemChange = handleItemChange;
+    // reset button
+    const resetBtn = document.getElementById('resetAllBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            resetAllChecks();
+            saveStateToLocal();
+        });
+    }
+    // adicional actualizar etiquetas luego de carga
+    syncLabelsFromStorage();
+    // refrescar global
+    updateGlobalProgress();
+</script>
+</body>
+</html>

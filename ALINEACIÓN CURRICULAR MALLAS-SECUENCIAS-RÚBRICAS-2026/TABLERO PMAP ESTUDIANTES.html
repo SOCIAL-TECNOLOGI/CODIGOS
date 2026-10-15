@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapa Fractal de Aprendizaje - SITE-RUTA LATAM</title>
+
+<style>
+  :root {
+    --bg: #020617;
+    --panel: #0f172a;
+    --card: #111827;
+    --accent: #38bdf8;
+    --accent-soft: rgba(56,189,248,.15);
+    --ok: #22c55e;
+    --warn: #f97316;
+    --danger: #ef4444;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --border: #1f2937;
+    --saber: #3b82f6;
+    --hacer: #10b981;
+    --ser: #8b5cf6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header mejorado para estudiantes */
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    letter-spacing: .03em;
+  }
+
+  .subtitle {
+    font-size: .85rem;
+    color: var(--muted);
+  }
+
+  .student-management {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .current-student {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .current-student strong {
+    color: var(--accent);
+  }
+
+  /* Sistema de pestañas para gestión */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-pane {
+    display: none;
+  }
+
+  .tab-pane.active {
+    display: block;
+  }
+
+  /* Formulario de estudiante */
+  .estudiante-form {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    transition: all 0.2s ease;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Área de carga de archivos */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .upload-area:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .upload-area.dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+
+  /* Vista de dimensiones */
+  .dimensions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .dimension-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .dimension-card.saber {
+    border-left: 4px solid var(--saber);
+  }
+
+  .dimension-card.hacer {
+    border-left: 4px solid var(--hacer);
+  }
+
+  .dimension-card.ser {
+    border-left: 4px solid var(--ser);
+  }
+
+  .dimension-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .dimension-icon {
+    font-size: 1.5rem;
+  }
+
+  .dimension-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .progress-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) 0deg, transparent 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    position: relative;
+  }
+
+  .progress-ring-inner {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .progress-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* Lista de estudiantes */
+  .estudiantes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .estudiante-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .estudiante-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .estudiante-card.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .estudiante-info {
+    margin-bottom: 12px;
+  }
+
+  .estudiante-nombre {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .estudiante-meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .progreso-dimensiones {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .dimension-mini {
+    flex: 1;
+    text-align: center;
+  }
+
+  .dimension-mini .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .dimension-mini .progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+
+  .dimension-mini.saber .progress-fill { background: var(--saber); }
+  .dimension-mini.hacer .progress-fill { background: var(--hacer); }
+  .dimension-mini.ser .progress-fill { background: var(--ser); }
+
+  /* Botones generales */
+  .btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background: rgba(56,189,248,.25);
+  }
+
+  .btn-success {
+    background: rgba(34,197,94,.1);
+    color: var(--ok);
+  }
+
+  .btn-success:hover {
+    background: rgba(34,197,94,.2);
+  }
+
+  .btn-danger {
+    background: rgba(239,68,68,.1);
+    color: var(--danger);
+  }
+
+  .btn-danger:hover {
+    background: rgba(239,68,68,.2);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .dimensions-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .estudiantes-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>Mapa Fractal de Aprendizaje – SITE–RUTA LATAM</h1>
+    <div class="subtitle">
+      Migración académica intra e internivel en 3 dimensiones (Saber-Hacer-Ser)
+    </div>
+    <div class="current-student">
+      <span>Estudiante actual:</span>
+      <strong id="currentStudentName">Selecciona un estudiante</strong>
+    </div>
+  </div>
+  
+  <div class="student-management">
+    <button class="btn btn-success" id="btnManageStudents">
+      👥 Gestionar Estudiantes
+    </button>
+    <button class="btn" id="btnReports">
+      📊 Generar Reportes
+    </button>
+    <button class="btn" id="btnSettings">
+      ⚙️ Configuración
+    </button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1;">
+  
+  <!-- Panel de Gestión de Estudiantes -->
+  <div id="studentsPanel" class="tab-pane active">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="lista">📋 Lista de Estudiantes</button>
+      <button class="tab-btn" data-tab="registro">👤 Registro Manual</button>
+      <button class="tab-btn" data-tab="importar">📤 Importar desde Excel</button>
+      <button class="tab-btn" data-tab="plantilla">📋 Descargar Plantilla</button>
+    </div>
+
+    <!-- Pestaña: Lista de Estudiantes -->
+    <div id="lista" class="tab-pane active">
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+        <select id="filtroGrado" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+          <option value="todos">Todos los grados</option>
+          <option value="transicion">Transición</option>
+          <option value="1">1° Primaria</option>
+          <option value="2">2° Primaria</option>
+          <option value="3">3° Primaria</option>
+          <option value="4">4° Primaria</option>
+          <option value="5">5° Primaria</option>
+          <option value="6">6° Secundaria</option>
+          <option value="7">7° Secundaria</option>
+          <option value="8">8° Secundaria</option>
+          <option value="9">9° Secundaria</option>
+          <option value="10">10° Secundaria</option>
+          <option value="11">11° Secundaria</option>
+        </select>
+        
+        <select id="filtroGrupo" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+          <option value="todos">Todos los grupos</option>
+        </select>
+        
+        <select id="filtroPeriodo" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+
+      <div class="estudiantes-grid" id="estudiantesList">
+        <!-- Los estudiantes se cargarán aquí dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Pestaña: Registro Manual -->
+    <div id="registro" class="tab-pane">
+      <form id="formEstudianteManual" class="estudiante-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="codigo">Código Estudiante *</label>
+            <input type="text" id="codigo" name="codigo" required placeholder="Ej: 2024-001">
+          </div>
+
+          <div class="form-group">
+            <label for="nombres">Nombres *</label>
+            <input type="text" id="nombres" name="nombres" required placeholder="María Alejandra">
+          </div>
+
+          <div class="form-group">
+            <label for="apellidos">Apellidos *</label>
+            <input type="text" id="apellidos" name="apellidos" required placeholder="Gómez Rodríguez">
+          </div>
+
+          <div class="form-group">
+            <label for="documento">Documento *</label>
+            <input type="text" id="documento" name="documento" required placeholder="123456789">
+          </div>
+
+          <div class="form-group">
+            <label for="grado">Grado *</label>
+            <select id="grado" name="grado" required>
+              <option value="">Seleccionar grado</option>
+              <option value="transicion">Transición</option>
+              <option value="1">1° Primaria</option>
+              <option value="2">2° Primaria</option>
+              <option value="3">3° Primaria</option>
+              <option value="4">4° Primaria</option>
+              <option value="5">5° Primaria</option>
+              <option value="6">6° Secundaria</option>
+              <option value="7">7° Secundaria</option>
+              <option value="8">8° Secundaria</option>
+              <option value="9">9° Secundaria</option>
+              <option value="10">10° Secundaria</option>
+              <option value="11">11° Secundaria</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="grupo">Grupo *</label>
+            <select id="grupo" name="grupo" required>
+              <option value="">Seleccionar grupo</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="jornada">Jornada *</label>
+            <select id="jornada" name="jornada" required>
+              <option value="">Seleccionar jornada</option>
+              <option value="MAÑANA">Mañana</option>
+              <option value="TARDE">Tarde</option>
+              <option value="NOCTURNA">Nocturna</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="director_grupo">Director de Grupo</label>
+            <input type="text" id="director_grupo" name="director_grupo" placeholder="Nombre del director de grupo">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="submit" class="btn btn-success">
+            💾 Guardar Estudiante
+          </button>
+          <button type="button" class="btn" onclick="limpiarFormulario()">
+            🗑️ Limpiar Formulario
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Pestaña: Importar desde Excel -->
+    <div id="importar" class="tab-pane">
+      <div class="upload-area" id="dropZone">
+        <div class="upload-icon">📤</div>
+        <h4>Arrastra tu archivo Excel aquí</h4>
+        <p>o haz clic para seleccionar</p>
+        <input type="file" id="archivoExcel" accept=".xlsx, .xls, .csv" style="display: none;">
+        <button class="btn" onclick="document.getElementById('archivoExcel').click()">
+          Seleccionar Archivo
+        </button>
+      </div>
+      
+      <div id="importPreview" style="display: none; margin-top: 20px;">
+        <h4>Vista Previa de Importación</h4>
+        <div id="previewTable"></div>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button class="btn btn-success" onclick="confirmarImportacion()">
+            ✅ Confirmar Importación
+          </button>
+          <button class="btn btn-danger" onclick="cancelarImportacion()">
+            ❌ Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña: Descargar Plantilla -->
+    <div id="plantilla" class="tab-pane">
+      <div style="text-align: center; padding: 40px 20px;">
+        <div style="font-size: 4rem; margin-bottom: 16px;">📋</div>
+        <h3>Plantilla de Carga Masiva</h3>
+        <p style="color: var(--muted); margin-bottom: 24px;">
+          Descarga la plantilla guía para cargar estudiantes de forma masiva desde Excel
+        </p>
+        <button class="btn btn-success" onclick="descargarPlantilla()">
+          ⬇️ Descargar Plantilla Excel
+        </button>
+        <div style="margin-top: 24px; text-align: left; background: var(--card); padding: 16px; border-radius: 8px;">
+          <h4>Instrucciones:</h4>
+          <ul style="color: var(--muted); margin-left: 20px;">
+            <li>Complete solo las columnas marcadas como obligatorias</li>
+            <li>No modifique los nombres de las columnas</li>
+            <li>Use los formatos indicados en cada columna</li>
+            <li>Guarde el archivo y cárguelo en el sistema</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de Progreso del Estudiante (se muestra cuando se selecciona un estudiante) -->
+  <div id="progressPanel" class="tab-pane" style="display: none;">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+      <h2 id="studentProgressTitle">Progreso del Estudiante</h2>
+      <button class="btn" onclick="volverALista()">← Volver a la lista</button>
+    </div>
+
+    <!-- Selector de Período -->
+    <div style="margin-bottom: 20px;">
+      <label style="color: var(--muted); margin-right: 8px;">Período académico:</label>
+      <select id="selectorPeriodo" style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+        <option value="1">Periodo 1</option>
+        <option value="2">Periodo 2</option>
+        <option value="3">Periodo 3</option>
+        <option value="4">Periodo 4</option>
+      </select>
+    </div>
+
+    <!-- Vista de Dimensiones -->
+    <div class="dimensions-grid">
+      <div class="dimension-card saber">
+        <div class="dimension-header">
+          <div class="dimension-icon">📚</div>
+          <div class="dimension-title">DIMENSIÓN SABER</div>
+        </div>
+        <div class="progress-ring" id="saberProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="saberProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('saber')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 1.1, 1.2, 1.3</div>
+          <div>Micromigraciones: <span id="saberMicromigraciones">0/9</span></div>
+        </div>
+      </div>
+
+      <div class="dimension-card hacer">
+        <div class="dimension-header">
+          <div class="dimension-icon">🛠️</div>
+          <div class="dimension-title">DIMENSIÓN HACER</div>
+        </div>
+        <div class="progress-ring" id="hacerProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="hacerProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('hacer')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 2.1, 2.2, 2.3</div>
+          <div>Micromigraciones: <span id="hacerMicromigraciones">0/9</span></div>
+        </div>
+      </div>
+
+      <div class="dimension-card ser">
+        <div class="dimension-header">
+          <div class="dimension-icon">🌟</div>
+          <div class="dimension-title">DIMENSIÓN SER</div>
+        </div>
+        <div class="progress-ring" id="serProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="serProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('ser')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 3.1, 3.2, 3.3</div>
+          <div>Micromigraciones: <span id="serMicromigraciones">0/9</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progreso General -->
+    <div style="background: var(--card); padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid var(--border);">
+      <h3 style="margin-bottom: 16px;">📊 Progreso General del Período</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--saber);" id="generalSaber">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Saber</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--hacer);" id="generalHacer">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Hacer</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--ser);" id="generalSer">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Ser</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--accent);" id="generalTotal">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Progreso Total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===============================
+// CONFIGURACIÓN INICIAL
+// ===============================
+const STUDENTS_STORAGE_KEY = 'siteRuta_students';
+const CURRENT_STUDENT_KEY = 'siteRuta_currentStudent';
+let estudiantes = [];
+let estudianteActual = null;
+let periodoActual = 1;
+
+// Estructura de dimensiones y micromigraciones
+const dimensionesData = {
+  saber: {
+    nombre: "Saber",
+    icono: "📚",
+    color: "--saber",
+    niveles: [
+      {
+        codigo: "S1",
+        nombre: "Fundamentación Conceptual",
+        pasos: [
+          { codigo: "S1.1", titulo: "Identificación de conceptos clave", dba: "1.1" },
+          { codigo: "S1.2", titulo: "Comprensión de relaciones simples", dba: "1.2" },
+          { codigo: "S1.3", titulo: "Aplicación en contextos conocidos", dba: "1.3" }
+        ]
+      },
+      {
+        codigo: "S2", 
+        nombre: "Profundización Conceptual",
+        pasos: [
+          { codigo: "S2.1", titulo: "Análisis de relaciones complejas", dba: "1.4" },
+          { codigo: "S2.2", titulo: "Transferencia a nuevos contextos", dba: "1.5" },
+          { codigo: "S2.3", titulo: "Integración interdisciplinar", dba: "1.6" }
+        ]
+      },
+      {
+        codigo: "S3",
+        nombre: "Aplicación Avanzada", 
+        pasos: [
+          { codigo: "S3.1", titulo: "Resolución de problemas complejos", dba: "1.7" },
+          { codigo: "S3.2", titulo: "Generación de hipótesis", dba: "1.8" },
+          { codigo: "S3.3", titulo: "Creación de nuevo conocimiento", dba: "1.9" }
+        ]
+      }
+    ]
+  },
+  hacer: {
+    nombre: "Hacer",
+    icono: "🛠️",
+    color: "--hacer",
+    niveles: [
+      {
+        codigo: "H1",
+        nombre: "Ejecución Básica",
+        pasos: [
+          { codigo: "H1.1", titulo: "Seguimiento de protocolos", dba: "2.1" },
+          { codigo: "H1.2", titulo: "Aplicación de procedimientos", dba: "2.2" },
+          { codigo: "H1.3", titulo: "Resolución de problemas rutinarios", dba: "2.3" }
+        ]
+      },
+      {
+        codigo: "H2",
+        nombre: "Aplicación Estratégica",
+        pasos: [
+          { codigo: "H2.1", titulo: "Adaptación de procedimientos", dba: "2.4" },
+          { codigo: "H2.2", titulo: "Diseño de soluciones", dba: "2.5" },
+          { codigo: "H2.3", titulo: "Optimización de procesos", dba: "2.6" }
+        ]
+      },
+      {
+        codigo: "H3",
+        nombre: "Innovación",
+        pasos: [
+          { codigo: "H3.1", titulo: "Creación de procedimientos", dba: "2.7" },
+          { codigo: "H3.2", titulo: "Desarrollo de prototipos", dba: "2.8" },
+          { codigo: "H3.3", titulo: "Implementación de innovaciones", dba: "2.9" }
+        ]
+      }
+    ]
+  },
+  ser: {
+    nombre: "Ser",
+    icono: "🌟", 
+    color: "--ser",
+    niveles: [
+      {
+        codigo: "P1",
+        nombre: "Autoconocimiento",
+        pasos: [
+          { codigo: "P1.1", titulo: "Reconocimiento de fortalezas", dba: "3.1" },
+          { codigo: "P1.2", titulo: "Identificación de áreas mejora", dba: "3.2" },
+          { codigo: "P1.3", titulo: "Desarrollo de hábitos estudio", dba: "3.3" }
+        ]
+      },
+      {
+        codigo: "P2",
+        nombre: "Autorregulación",
+        pasos: [
+          { codigo: "P2.1", titulo: "Gestión del tiempo", dba: "3.4" },
+          { codigo: "P2.2", titulo: "Control emocional", dba: "3.5" },
+          { codigo: "P2.3", titulo: "Perseverancia en retos", dba: "3.6" }
+        ]
+      },
+      {
+        codigo: "P3",
+        nombre: "Liderazgo",
+        pasos: [
+          { codigo: "P3.1", titulo: "Trabajo colaborativo", dba: "3.7" },
+          { codigo: "P3.2", titulo: "Comunicación efectiva", dba: "3.8" },
+          { codigo: "P3.3", titulo: "Iniciativa y emprendimiento", dba: "3.9" }
+        ]
+      }
+    ]
+  }
+};
+
+// ===============================
+// FUNCIONES DE GESTIÓN DE DATOS
+// ===============================
+
+// Cargar estudiantes desde localStorage
+function cargarEstudiantes() {
+  try {
+    const saved = localStorage.getItem(STUDENTS_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    console.error('Error cargando estudiantes:', e);
+    return [];
+  }
+}
+
+// Guardar estudiantes en localStorage
+function guardarEstudiantes() {
+  try {
+    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(estudiantes));
+  } catch (e) {
+    console.error('Error guardando estudiantes:', e);
+  }
+}
+
+// Generar grupos disponibles según grado
+function generarGruposDisponibles(grado) {
+  if (grado === 'transicion') {
+    return ['transicion-A', 'transicion-B', 'transicion-C'];
+  }
+  
+  const grupos = [];
+  for (let i = 1; i <= 3; i++) {
+    grupos.push(`${grado}-${i}`);
+  }
+  return grupos;
+}
+
+// ===============================
+// FUNCIONES DE INTERFAZ
+// ===============================
+
+// Cambiar entre pestañas
+function cambiarPestaña(pestañaId) {
+  // Ocultar todas las pestañas
+  document.querySelectorAll('.tab-pane').forEach(pane => {
+    pane.style.display = 'none';
+  });
+  
+  // Mostrar la pestaña seleccionada
+  document.getElementById(pestañaId).style.display = 'block';
+  
+  // Actualizar botones activos
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+// Actualizar grupos según grado seleccionado
+function actualizarGrupos() {
+  const grado = document.getElementById('grado').value;
+  const grupoSelect = document.getElementById('grupo');
+  
+  grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
+  
+  if (grado) {
+    const grupos = generarGruposDisponibles(grado);
+    grupos.forEach(grupo => {
+      const option = document.createElement('option');
+      option.value = grupo;
+      option.textContent = grupo;
+      grupoSelect.appendChild(option);
+    });
+  }
+}
+
+// Limpiar formulario de registro
+function limpiarFormulario() {
+  document.getElementById('formEstudianteManual').reset();
+  document.getElementById('grupo').innerHTML = '<option value="">Seleccionar grupo</option>';
+}
+
+// ===============================
+// GESTIÓN DE ESTUDIANTES
+// ===============================
+
+// Registrar nuevo estudiante
+function registrarEstudiante(datos) {
+  const nuevoEstudiante = {
+    id: generarIdUnico(),
+    datos_basicos: {
+      codigo: datos.codigo,
+      nombres: datos.nombres,
+      apellidos: datos.apellidos,
+      documento: datos.documento,
+      fecha_nacimiento: datos.fecha_nacimiento || '',
+      genero: datos.genero || '',
+      contacto: {
+        telefono: datos.telefono || '',
+        email: datos.email || '',
+        direccion: datos.direccion || ''
+      }
+    },
+    ubicacion_academica: {
+      grado: datos.grado,
+      grupo: datos.grupo,
+      jornada: datos.jornada,
+      director_grupo: datos.director_grupo || '',
+      año_lectivo: new Date().getFullYear(),
+      periodo_actual: 1
+    },
+    progreso_academico: {
+      periodos: inicializarProgresoPeriodos(),
+      historial_migraciones: []
+    },
+    fecha_registro: new Date().toISOString()
+  };
+  
+  estudiantes.push(nuevoEstudiante);
+  guardarEstudiantes();
+  return nuevoEstudiante;
+}
+
+// Inicializar progreso por períodos
+function inicializarProgresoPeriodos() {
+  const periodos = {};
+  for (let i = 1; i <= 4; i++) {
+    periodos[i] = {
+      saber: { progreso: 0, micromigraciones: {} },
+      hacer: { progreso: 0, micromigraciones: {} },
+      ser: { progreso: 0, micromigraciones: {} }
+    };
+    
+    // Inicializar todas las micromigraciones como no completadas
+    Object.keys(dimensionesData).forEach(dimension => {
+      dimensionesData[dimension].niveles.forEach(nivel => {
+        nivel.pasos.forEach(paso => {
+          periodos[i][dimension].micromigraciones[paso.codigo] = false;
+        });
+      });
+    });
+  }
+  return periodos;
+}
+
+// Generar ID único
+function generarIdUnico() {
+  return 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// ===============================
+// VISUALIZACIÓN DE ESTUDIANTES
+// ===============================
+
+// Actualizar lista de estudiantes
+function actualizarListaEstudiantes() {
+  const lista = document.getElementById('estudiantesList');
+  const filtroGrado = document.getElementById('filtroGrado').value;
+  const filtroGrupo = document.getElementById('filtroGrupo').value;
+  
+  // Filtrar estudiantes
+  let estudiantesFiltrados = estudiantes;
+  
+  if (filtroGrado !== 'todos') {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.ubicacion_academica.grado === filtroGrado
+    );
+  }
+  
+  if (filtroGrupo !== 'todos') {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.ubicacion_academica.grupo === filtroGrupo
+    );
+  }
+  
+  // Renderizar estudiantes
+  lista.innerHTML = '';
+  
+  if (estudiantesFiltrados.length === 0) {
+    lista.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--muted);">
+        <div style="font-size: 3rem; margin-bottom: 16px;">👥</div>
+        <h3>No hay estudiantes</h3>
+        <p>Registra estudiantes manualmente o importa desde Excel</p>
+      </div>
+    `;
+    return;
+  }
+  
+  estudiantesFiltrados.forEach(estudiante => {
+    const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+    
+    const card = document.createElement('div');
+    card.className = `estudiante-card ${estudianteActual?.id === estudiante.id ? 'active' : ''}`;
+    card.innerHTML = `
+      <div class="estudiante-info">
+        <div class="estudiante-nombre">${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}</div>
+        <div class="estudiante-meta">
+          ${estudiante.datos_basicos.codigo} • ${estudiante.ubicacion_academica.grupo}
+        </div>
+      </div>
+      
+      <div class="progreso-dimensiones">
+        <div class="dimension-mini saber">
+          <div style="font-size: 0.7rem;">📚 ${progreso.saber}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.saber}%"></div>
+          </div>
+        </div>
+        <div class="dimension-mini hacer">
+          <div style="font-size: 0.7rem;">🛠️ ${progreso.hacer}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.hacer}%"></div>
+          </div>
+        </div>
+        <div class="dimension-mini ser">
+          <div style="font-size: 0.7rem;">🌟 ${progreso.ser}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.ser}%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="seleccionarEstudiante('${estudiante.id}')" style="width: 100%;">
+        👁️ Ver Progreso
+      </button>
+    `;
+    
+    lista.appendChild(card);
+  });
+}
+
+// Calcular progreso de un estudiante
+function calcularProgresoEstudiante(estudiante, periodo) {
+  const progresoPeriodo = estudiante.progreso_academico.periodos[periodo];
+  
+  const calcularProgresoDimension = (dimension) => {
+    const micromigraciones = progresoPeriodo[dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v).length;
+    return total > 0 ? Math.round((completadas / total) * 100) : 0;
+  };
+  
+  return {
+    saber: calcularProgresoDimension('saber'),
+    hacer: calcularProgresoDimension('hacer'),
+    ser: calcularProgresoDimension('ser'),
+    total: 0 // Se calcula después
+  };
+}
+
+// ===============================
+// EVENT LISTENERS
+// ===============================
+
+// Inicializar aplicación
+document.addEventListener('DOMContentLoaded', function() {
+  // Cargar datos
+  estudiantes = cargarEstudiantes();
+  
+  // Configurar event listeners
+  document.getElementById('grado').addEventListener('change', actualizarGrupos);
+  document.getElementById('filtroGrado').addEventListener('change', actualizarListaEstudiantes);
+  document.getElementById('filtroGrupo').addEventListener('change', actualizarListaEstudiantes);
+  document.getElementById('filtroPeriodo').addEventListener('change', function() {
+    periodoActual = parseInt(this.value);
+    actualizarListaEstudiantes();
+    if (estudianteActual) {
+      actualizarVistaProgreso();
+    }
+  });
+  
+  document.getElementById('selectorPeriodo').addEventListener('change', function() {
+    periodoActual = parseInt(this.value);
+    actualizarVistaProgreso();
+  });
+  
+  // Formulario de registro
+  document.getElementById('formEstudianteManual').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const datos = {
+      codigo: formData.get('codigo'),
+      nombres: formData.get('nombres'),
+      apellidos: formData.get('apellidos'),
+      documento: formData.get('documento'),
+      grado: formData.get('grado'),
+      grupo: formData.get('grupo'),
+      jornada: formData.get('jornada'),
+      director_grupo: formData.get('director_grupo')
+    };
+    
+    // Validar que el código no exista
+    if (estudiantes.find(est => est.datos_basicos.codigo === datos.codigo)) {
+      alert('❌ Ya existe un estudiante con ese código');
+      return;
+    }
+    
+    // Validar que el documento no exista
+    if (estudiantes.find(est => est.datos_basicos.documento === datos.documento)) {
+      alert('❌ Ya existe un estudiante con ese documento');
+      return;
+    }
+    
+    try {
+      const nuevoEstudiante = registrarEstudiante(datos);
+      alert('✅ Estudiante registrado exitosamente');
+      limpiarFormulario();
+      actualizarListaEstudiantes();
+      cambiarPestaña('lista');
+    } catch (error) {
+      alert('❌ Error registrando estudiante: ' + error.message);
+    }
+  });
+  
+  // Configurar pestañas
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      cambiarPestaña(this.dataset.tab);
+    });
+  });
+  
+  // Inicializar vista
+  actualizarListaEstudiantes();
+});
+
+// Función placeholder para descargar plantilla
+function descargarPlantilla() {
+  alert('📋 Esta funcionalidad descargaría una plantilla Excel para carga masiva de estudiantes');
+  // En implementación real, aquí se generaría y descargaría un archivo Excel
+}
+
+// Función placeholder para importar
+function manejarImportacion() {
+  alert('📤 Esta funcionalidad permitiría importar estudiantes desde Excel');
+  // En implementación real, aquí se procesaría el archivo Excel
+}
+
+// Seleccionar estudiante para ver progreso
+function seleccionarEstudiante(estudianteId) {
+  estudianteActual = estudiantes.find(est => est.id === estudianteId);
+  if (estudianteActual) {
+    document.getElementById('currentStudentName').textContent = 
+      `${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+    
+    // Cambiar a vista de progreso
+    document.getElementById('studentsPanel').style.display = 'none';
+    document.getElementById('progressPanel').style.display = 'block';
+    
+    actualizarVistaProgreso();
+  }
+}
+
+// Volver a la lista de estudiantes
+function volverALista() {
+  document.getElementById('studentsPanel').style.display = 'block';
+  document.getElementById('progressPanel').style.display = 'none';
+  actualizarListaEstudiantes();
+}
+
+// Actualizar vista de progreso del estudiante
+function actualizarVistaProgreso() {
+  if (!estudianteActual) return;
+  
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+  
+  // Actualizar títulos
+  document.getElementById('studentProgressTitle').textContent = 
+    `Progreso de ${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+  
+  // Actualizar anillos de progreso
+  actualizarAnilloProgreso('saber', progreso.saber);
+  actualizarAnilloProgreso('hacer', progreso.hacer);
+  actualizarAnilloProgreso('ser', progreso.ser);
+  
+  // Actualizar valores generales
+  document.getElementById('generalSaber').textContent = `${progreso.saber}%`;
+  document.getElementById('generalHacer').textContent = `${progreso.hacer}%`;
+  document.getElementById('generalSer').textContent = `${progreso.ser}%`;
+  
+  // Calcular progreso total (promedio ponderado)
+  const progresoTotal = Math.round((progreso.saber + progreso.hacer + progreso.ser) / 3);
+  document.getElementById('generalTotal').textContent = `${progresoTotal}%`;
+  
+  // Actualizar contadores de micromigraciones
+  actualizarContadoresMicromigraciones();
+}
+
+// Actualizar anillo de progreso visual
+function actualizarAnilloProgreso(dimension, porcentaje) {
+  const ring = document.getElementById(`${dimension}ProgressRing`);
+  const valueElement = document.getElementById(`${dimension}ProgressValue`);
+  
+  if (ring && valueElement) {
+    ring.style.background = `conic-gradient(var(${dimensionesData[dimension].color}) 0deg, var(${dimensionesData[dimension].color}) ${porcentaje * 3.6}deg, transparent ${porcentaje * 3.6}deg)`;
+    valueElement.textContent = `${porcentaje}%`;
+  }
+}
+
+// Actualizar contadores de micromigraciones
+function actualizarContadoresMicromigraciones() {
+  if (!estudianteActual) return;
+  
+  Object.keys(dimensionesData).forEach(dimension => {
+    const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v).length;
+    
+    const elemento = document.getElementById(`${dimension}Micromigraciones`);
+    if (elemento) {
+      elemento.textContent = `${completadas}/${total}`;
+    }
+  });
+}
+
+// Abrir detalle de dimensión (placeholder)
+function abrirDetalleDimension(dimension) {
+  alert(`🔍 Abriendo panel de detalles para la dimensión ${dimensionesData[dimension].nombre}`);
+  // En implementación real, aquí se abriría un modal con el detalle completo de micromigraciones
+}
+</script>
+
+</body>
+</html>

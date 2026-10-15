@@ -1,0 +1,3564 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Taxonomía de Bloom · Sistema Completo</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at 20% 30%, rgba(44,125,160,.12), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(39,174,96,.1), transparent 40%),
+                linear-gradient(145deg, #e8f0f7, #d9e7f3);
+    min-height: 100vh;
+    color: #0f2b3d;
+}
+:root { --blue: #2c7da0; --green: #27ae60; --red: #c0392b; --orange: #e67e22; --purple: #8e44ad; --card: #fff; --border: #e2edf2; }
+body.dark { background: #0d1117; --card: #161b22; --border: #30363d; color: #e6edf3; }
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
+.topbar {
+    background: #0f2b3d;
+    color: white;
+    padding: 0.75rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
+body.dark .topbar { background: #010409; }
+.btn {
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-primary { background: var(--blue); color: white; }
+.btn-success { background: var(--green); color: white; }
+.btn-danger { background: var(--red); color: white; }
+.btn-warning { background: var(--orange); color: white; }
+.btn-secondary { background: #6c757d; color: white; }
+.container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; width: 100%; }
+.role-cards { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 2rem; }
+.role-card {
+    flex: 1;
+    min-width: 250px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 24px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.45);
+}
+body.dark .role-card { background: rgba(22,27,34,0.85); }
+.role-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px rgba(0,0,0,0.15); }
+.rc-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+.rc-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 0.3rem; }
+.rc-desc { font-size: 0.75rem; color: #5a7a8a; }
+.card-modulo {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+}
+.modulo-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--blue);
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.modulo-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.modulo-buttons .btn { flex: 1; min-width: 140px; }
+.text-center { text-align: center; }
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.modal.open { display: flex; }
+.modal-content {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 1.5rem;
+    max-width: 550px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.close-modal-btn { background: var(--red); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+form input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 40px;
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    background: var(--card);
+}
+.flex { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.card-title { font-size: 0.7rem; font-weight: 800; color: var(--blue); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+/* ========== DISEÑO DE FILAS TIPO TABLA ========== */
+.verbos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.verbo-fila {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+.verbo-fila:hover { transform: translateX(4px); }
+.verbo-etiqueta {
+    flex: 0 0 180px;
+    background: #e8f0fe;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px 12px;
+    border-left: 4px solid #2c7da0;
+}
+.verbo-etiqueta span {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #1e4a6b;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+}
+.niveles-contenedor {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 12px 16px;
+    border: 1px solid #e2edf2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+}
+body.dark .niveles-contenedor { background: #1c2430; border-color: #30363d; }
+.niveles-contenedor:hover { border-color: #2c7da0; box-shadow: 0 2px 8px rgba(44,125,160,0.1); }
+.niveles-grupo {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+.btn-nivel {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 12px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    color: #4a5568;
+}
+body.dark .btn-nivel { background: #21262d; border-color: #30363d; color: #e6edf3; }
+.btn-nivel:hover { background: #f0f4f8; border-color: #2c7da0; transform: translateY(-1px); }
+.btn-nivel.seleccionado {
+    background: linear-gradient(135deg, #2c7da0, #1e4a6b);
+    border-color: #2c7da0;
+    color: white;
+    box-shadow: 0 2px 8px rgba(44,125,160,0.3);
+}
+.btn-nivel[data-nivel="1"].seleccionado { background: linear-gradient(135deg, #c0392b, #e74c3c); border-color: #c0392b; }
+.btn-nivel[data-nivel="2"].seleccionado { background: linear-gradient(135deg, #d4a017, #f39c12); border-color: #d4a017; }
+.btn-nivel[data-nivel="3"].seleccionado { background: linear-gradient(135deg, #2980b9, #3498db); border-color: #2980b9; }
+.btn-nivel[data-nivel="4"].seleccionado { background: linear-gradient(135deg, #1e8449, #27ae60); border-color: #1e8449; }
+@media (max-width: 640px) {
+    .verbo-fila { flex-direction: column; gap: 10px; }
+    .verbo-etiqueta { flex: none; width: 100%; padding: 12px; }
+    .niveles-grupo { gap: 8px; }
+    .btn-nivel { min-width: 60px; padding: 8px 10px; font-size: 0.75rem; }
+}
+.verbos-grid {
+    max-height: 550px;
+    overflow-y: auto;
+    padding-right: 5px;
+    scrollbar-width: thin;
+}
+.verbos-grid::-webkit-scrollbar { width: 5px; }
+.verbos-grid::-webkit-scrollbar-track { background: #e2edf2; border-radius: 10px; }
+.verbos-grid::-webkit-scrollbar-thumb { background: #2c7da0; border-radius: 10px; }
+
+.step-indicator { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.step { padding: 8px 20px; border-radius: 40px; background: #f1f5f9; color: #64748b; font-weight: 600; }
+.step.active { background: var(--blue); color: white; }
+.step.completed { background: var(--green); color: white; }
+.progress-bar { height: 6px; background: #ddd; border-radius: 10px; margin-bottom: 1rem; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f1f5f9; }
+.bar-wrap { margin-bottom: 0.65rem; }
+.bar-label-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+.bar-track { background: var(--border); border-radius: 40px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 40px; transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.bar-fill span { font-size: 0.7rem; font-weight: 800; color: white; }
+.bf-n1 { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+.bf-n2 { background: linear-gradient(90deg, #d4a017, #f1c40f); }
+.bf-n3 { background: linear-gradient(90deg, #2980b9, #3498db); }
+.bf-n4 { background: linear-gradient(90deg, #1e8449, #27ae60); }
+.total-label { font-size: 0.8rem; text-align: right; margin-top: 0.5rem; font-weight: 600; }
+.pdf-container { display: flex; gap: 1rem; padding: 1rem; min-height: calc(100vh - 80px); }
+.pdf-left { flex: 2; background: var(--card); border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+.pdf-left-header { background: linear-gradient(135deg, #0f2b3d, #1e4a6b); color: white; padding: 1rem; text-align: center; }
+.verbo-display { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; }
+.verbo-grande { font-size: clamp(2rem, 6vw, 4rem); font-weight: 800; text-align: center; }
+.pdf-right { flex: 1; background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; }
+.panel-section { padding: 1rem; border-bottom: 1px solid var(--border); }
+.panel-title { font-size: 0.7rem; font-weight: 800; color: var(--blue); text-transform: uppercase; margin-bottom: 0.5rem; }
+.verbo-item-lista { padding: 8px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.verbo-item-lista:hover { background: var(--border); }
+@media (max-width: 900px) { .pdf-container { flex-direction: column; } .verbo-grande { font-size: 2rem; } }
+
+/* Estilos para el detalle de respuestas en el modal */
+.respuesta-item {
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.respuesta-correcta { background: #d4edda; color: #155724; }
+.respuesta-incorrecta { background: #f8d7da; color: #721c24; }
+.respuesta-sin { background: #fff3cd; color: #856404; }
+
+/* ========== FEEDBACK PARA EL DOCENTE ========== */
+.feedback-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.feedback-modal.open { display: flex; }
+.feedback-card {
+    background: var(--card);
+    border-radius: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.feedback-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--blue);
+}
+.feedback-title { font-size: 1.3rem; font-weight: 800; color: var(--blue); }
+.feedback-subtitle { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+.feedback-chart { max-width: 250px; margin: 0 auto 1rem auto; }
+.feedback-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 1rem 0;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.feedback-stat {
+    background: var(--card2);
+    border-radius: 16px;
+    padding: 0.8rem;
+    text-align: center;
+    flex: 1;
+}
+.feedback-stat-number { font-size: 1.8rem; font-weight: 800; color: var(--blue); }
+.feedback-stat-label { font-size: 0.7rem; color: var(--text-muted); }
+.feedback-errores {
+    margin-top: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.feedback-error-item {
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 0.6rem;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid var(--red);
+}
+.feedback-error-verbo { font-weight: 700; font-size: 0.85rem; }
+.feedback-error-nivel { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+.feedback-buttons {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    justify-content: center;
+}
+.btn-feedback {
+    flex: 1;
+    padding: 10px;
+    border-radius: 40px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+}
+.btn-feedback-excel { background: var(--green); color: white; }
+.btn-feedback-pdf { background: var(--red); color: white; }
+.btn-feedback-cerrar { background: var(--border); color: var(--text-primary); }
+
+
+/* ========== MEJORA DATOS DEL DOCENTE ========== */
+.datos-docente-card {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.datos-docente-card:hover {
+    box-shadow: 0 8px 30px rgba(44,125,160,0.15);
+    transform: translateY(-2px);
+}
+
+.datos-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--blue);
+}
+
+.datos-header-icon {
+    font-size: 1.8rem;
+}
+
+.datos-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.datos-header-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+.datos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.datos-field {
+    position: relative;
+}
+
+.datos-field label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.datos-field input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    font-size: 0.9rem;
+    background: var(--card);
+    transition: all 0.2s ease;
+}
+
+.datos-field input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(44,125,160,0.15);
+}
+
+.datos-field input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.datos-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.datos-buttons .btn-guardar {
+    background: linear-gradient(135deg, var(--green), #2ecc71);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.datos-buttons .btn-guardar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(39,174,96,0.3);
+}
+
+.datos-buttons .btn-guardar:active {
+    transform: translateY(0);
+}
+
+.datos-buttons .btn-limpiar {
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 12px 28px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.dark .datos-buttons .btn-limpiar {
+    background: #21262d;
+    color: #8b949e;
+}
+
+.datos-buttons .btn-limpiar:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+body.dark .datos-buttons .btn-limpiar:hover {
+    background: #30363d;
+}
+
+/* Mensaje de confirmación */
+.datos-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.datos-toast.show {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .datos-grid {
+        grid-template-columns: 1fr;
+    }
+    .datos-buttons {
+        flex-direction: column;
+    }
+    .datos-buttons button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* ========== ACORDEÓN PARA DATOS DEL DOCENTE ========== */
+.datos-docente-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.datos-docente-card.collapsed .datos-grid,
+.datos-docente-card.collapsed .datos-buttons {
+    display: none;
+}
+
+.datos-docente-card.collapsed {
+    padding-bottom: 0.8rem;
+}
+
+.datos-header {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.datos-header:hover {
+    opacity: 0.8;
+}
+
+.datos-header-icon {
+    transition: transform 0.3s ease;
+}
+
+.datos-docente-card.collapsed .datos-header-icon {
+    transform: rotate(0deg);
+}
+
+.datos-header-arrow {
+    margin-left: auto;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.datos-docente-card.collapsed .datos-header-arrow {
+    transform: rotate(-90deg);
+}
+
+.datos-header-arrow::before {
+    content: "▲";
+}
+
+.datos-docente-card.collapsed .datos-header-arrow::before {
+    content: "▼";
+}
+
+
+/* ========== ESTILOS FACILITADOR ========== */
+.facilitador-card {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border-radius: 24px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.facilitador-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex: 2;
+}
+
+.facilitador-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.facilitador-field label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.facilitador-field input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    font-size: 0.9rem;
+    background: var(--card);
+    transition: all 0.2s ease;
+}
+
+.facilitador-field input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(44,125,160,0.15);
+}
+
+.facilitador-field input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.facilitador-codigo-box {
+    background: linear-gradient(135deg, rgba(44,125,160,0.12), rgba(39,174,96,0.08));
+    border-radius: 20px;
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 280px;
+}
+
+.facilitador-codigo-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--blue);
+    background: rgba(44,125,160,0.15);
+    padding: 4px 12px;
+    border-radius: 40px;
+    white-space: nowrap;
+}
+
+.facilitador-codigo-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    font-family: monospace;
+    letter-spacing: 3px;
+    color: var(--blue);
+    background: var(--card);
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.facilitador-codigo-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.facilitador-codigo-buttons button {
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    border-radius: 40px;
+    font-weight: 600;
+}
+
+.facilitador-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.facilitador-actions button {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    border-radius: 40px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-facilitador-guardar {
+    background: linear-gradient(135deg, var(--green), #2ecc71);
+    color: white;
+}
+
+.btn-facilitador-limpiar {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+body.dark .btn-facilitador-limpiar {
+    background: #21262d;
+    color: #8b949e;
+}
+
+/* Toast para facilitador */
+.facilitador-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.facilitador-toast.show {
+    opacity: 1;
+}
+
+@media (max-width: 700px) {
+    .facilitador-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .facilitador-info {
+        flex-direction: column;
+    }
+    .facilitador-field {
+        width: 100%;
+    }
+    .facilitador-codigo-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .facilitador-codigo-buttons {
+        justify-content: center;
+    }
+    .facilitador-actions {
+        justify-content: center;
+    }
+    .facilitador-toast {
+        white-space: normal;
+        text-align: center;
+        max-width: 90%;
+    }
+}
+
+
+
+/* ========== ESTILOS PARTICIPANTE ========== */
+.participante-card {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.participante-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--blue);
+}
+
+.participante-header-icon {
+    font-size: 1.8rem;
+}
+
+.participante-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.participante-header-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+.participante-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+}
+
+.participante-field {
+    position: relative;
+}
+
+.participante-field label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.participante-field input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.95rem;
+    background: var(--card);
+    transition: all 0.2s ease;
+}
+
+.participante-field input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(44,125,160,0.15);
+}
+
+.participante-field input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.participante-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.participante-buttons button {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-participante-unirse {
+    background: linear-gradient(135deg, var(--blue), #1e4a6b);
+    color: white;
+}
+
+.btn-participante-unirse:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(44,125,160,0.3);
+}
+
+.btn-participante-limpiar {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+body.dark .btn-participante-limpiar {
+    background: #21262d;
+    color: #8b949e;
+}
+
+.btn-participante-limpiar:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+body.dark .btn-participante-limpiar:hover {
+    background: #30363d;
+}
+
+/* Estado de conexión del participante */
+.participante-status {
+    background: linear-gradient(135deg, rgba(44,125,160,0.08), rgba(39,174,96,0.05));
+    border-radius: 20px;
+    padding: 0.8rem 1rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.participante-status-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--blue);
+    background: rgba(44,125,160,0.15);
+    padding: 4px 12px;
+    border-radius: 40px;
+}
+
+.participante-status-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--card);
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.participante-status-value.conectado {
+    color: var(--green);
+}
+
+.participante-status-value.desconectado {
+    color: var(--red);
+}
+
+/* Área de juego del participante */
+.participante-juego-card {
+    background: linear-gradient(135deg, var(--card) 0%, var(--card2) 100%);
+    border-radius: 24px;
+    padding: 1.8rem;
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.participante-verbo-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.participante-verbo {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--blue);
+    margin: 0.5rem 0;
+    word-break: break-word;
+}
+
+.participante-estado {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+
+.participante-estado.esperando {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.participante-estado.abierta {
+    background: #d4edda;
+    color: #155724;
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.participante-estado.cerrada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.participante-botones-voto {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.participante-botones-voto button {
+    width: 80px;
+    height: 80px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    border-radius: 24px;
+    transition: all 0.2s ease;
+}
+
+.participante-botones-voto button:hover:not(:disabled) {
+    transform: translateY(-4px) scale(1.05);
+}
+
+.participante-botones-voto button:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+}
+
+.participante-mensaje {
+    font-size: 0.85rem;
+    padding: 8px;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+}
+
+.participante-mensaje.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.participante-mensaje.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.participante-nota {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .participante-grid {
+        grid-template-columns: 1fr;
+    }
+    .participante-buttons {
+        flex-direction: column;
+    }
+    .participante-botones-voto button {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+    .participante-verbo {
+        font-size: 1.8rem;
+    }
+}
+
+/* Estilos para la nueva tarjeta de respuestas por nivel */
+#respGridNivel {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.resp-col-n1, .resp-col-n2, .resp-col-n3, .resp-col-n4 {
+    transition: all 0.2s ease;
+}
+
+.resp-col-n1:hover, .resp-col-n2:hover, .resp-col-n3:hover, .resp-col-n4:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+
+/* Estilos para la tarjeta de respuestas por voto */
+#respGridVotos {
+    animation: fadeIn 0.3s ease;
+}
+
+.respuesta-voto-item {
+    transition: all 0.2s ease;
+}
+
+.respuesta-voto-item:hover {
+    transform: translateX(4px);
+}
+
+
+
+/* ========== MEJORA ESTÉTICA TARJETA RESPUESTAS POR VOTO ========== */
+#respGridVotos {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding: 0.5rem;
+}
+
+#respGridVotos > div {
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+#respGridVotos > div:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+#respGridVotos .resp-col-header {
+    padding: 14px 8px !important;
+    font-size: 0.85rem !important;
+    font-weight: 800;
+    text-align: center;
+}
+
+#respGridVotos > div > div:last-child {
+    padding: 12px 8px !important;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+#respGridVotos .respuesta-voto-item {
+    margin-bottom: 8px;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+}
+
+/* Responsive para móvil */
+@media (max-width: 700px) {
+    #respGridVotos {
+        grid-template-columns: 1fr !important;
+        gap: 0.8rem;
+    }
+}
+
+
+/* ========== MEJORA BOTONES VOLVER EN MODO OSCURO ========== */
+.topbar .btn {
+    background: rgba(255,255,255,0.2) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+.topbar .btn:hover {
+    background: rgba(255,255,255,0.35) !important;
+    transform: translateY(-1px);
+}
+
+body.dark .topbar .btn {
+    background: rgba(255,255,255,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+body.dark .topbar .btn:hover {
+    background: rgba(255,255,255,0.3) !important;
+}
+
+/* Asegurar que todos los botones de volver tengan texto blanco */
+#volverMainEncuesta,
+#volverMainJuego,
+#volverEncuestaMenu,
+#volverAdminMenu,
+#volverJuegoMenu,
+#volverJuegoParticipante {
+    color: white !important;
+    font-weight: 600 !important;
+}
+</style>
+
+
+<body>
+
+<div id="screenMain" class="screen active">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;">
+        <div style="font-size: 3.5rem;">📚</div>
+        <h1>Taxonomía de Bloom</h1>
+        <p>Sistema de evaluación y capacitación docente</p>
+        <div class="role-cards">
+            <div class="role-card" id="cardEncuesta"><div class="rc-icon">📝</div><div class="rc-title">Encuesta Individual</div><div class="rc-desc">Evaluación diagnóstica de conocimientos</div></div>
+            <div class="role-card" id="cardJuego"><div class="rc-icon">🎮</div><div class="rc-title">Juego Bloom</div><div class="rc-desc">Capacitación grupal · Clasifica verbos</div></div>
+        </div>
+        <button class="btn" id="darkModeToggle" style="margin-top: 2rem; background: var(--blue); color: white;">🌙 Modo Oscuro</button>
+    </div>
+</div>
+
+
+<div id="screenEncuestaMenu" class="screen">
+    <div class="topbar"><span>📝 Encuesta Individual</span><button class="btn" id="volverMainEncuesta" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container"><div class="card-modulo"><div class="modulo-title">📋 EVALUACIÓN DE CONOCIMIENTOS</div><p>Instrumento para evaluar la comprensión de la Taxonomía de Bloom</p><div class="modulo-buttons"><button id="btnRealizarEncuesta" class="btn btn-primary">📝 Realizar Encuesta</button><button id="btnAdminEncuesta" class="btn btn-warning">🔐 Panel Administrador</button></div></div></div>
+</div>
+
+
+<div id="screenJuegoMenu" class="screen">
+    <div class="topbar"><span>🎮 Juego Bloom</span><button class="btn" id="volverMainJuego" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container"><div class="card-modulo"><div class="modulo-title">🎯 CAPACITACIÓN GRUPAL</div><p>Los docentes clasifican verbos según su nivel. Los resultados muestran el conocimiento colectivo.</p><div class="modulo-buttons"><button id="btnFacilitador" class="btn btn-success">👨‍🏫 Facilitador</button><button id="btnParticipante" class="btn btn-primary">🎓 Participante</button></div><p style="margin-top:1rem; font-size:0.7rem;">💡 Los docentes son coautores de los resultados</p></div></div>
+</div>
+
+
+
+<div id="screenRealizarEncuesta" class="screen">
+    <div class="topbar"><span>📋 Encuesta Taxonomía</span><button class="btn" id="volverEncuestaMenu" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container">
+        
+        <!-- DATOS DEL DOCENTE (ACORDEÓN) -->
+        <div class="datos-docente-card" id="datosDocenteCard">
+    <div class="datos-header" onclick="toggleDatosCard()">
+        <div class="datos-header-icon">👤</div>
+        <div class="datos-header-title">DATOS DEL DOCENTE</div>
+        <div class="datos-header-sub" id="datosResumen">Información personal</div>
+        <div class="datos-header-arrow"></div>
+    </div>
+    <div class="datos-grid">
+        <div class="datos-field">
+            <label>📝 NOMBRE</label>
+            <input type="text" id="encNombre" placeholder="Escribe tu nombre" autocomplete="off">
+        </div>
+        <div class="datos-field">
+            <label>📋 APELLIDOS</label>
+            <input type="text" id="encApellidos" placeholder="Escribe tus apellidos" autocomplete="off">
+        </div>
+        <div class="datos-field">
+            <label>🏫 INSTITUCIÓN EDUCATIVA</label>
+            <input type="text" id="encInstitucion" placeholder="Ej: IEM San José · Colegio Los Andes" autocomplete="off">
+        </div>
+        <div class="datos-field">
+            <label>📱 TELÉFONO</label>
+            <input type="tel" id="encTelefono" placeholder="Número de contacto" autocomplete="off">
+        </div>
+        <div class="datos-field">
+            <label>✉️ CORREO ELECTRÓNICO</label>
+            <input type="email" id="encCorreo" placeholder="nombre@ejemplo.com" autocomplete="off">
+        </div>
+    </div>
+    <div class="datos-buttons">
+        <button id="btnGuardarDatos" class="btn-guardar">💾 Guardar mis datos</button>
+        <button id="btnLimpiarDatos" class="btn-limpiar">🗑️ Limpiar</button>
+    </div>
+</div>
+
+        <!-- PROGRESO Y PASOS -->
+        <div class="progress-bar"><div class="progress-fill" id="encProgress"></div></div>
+        
+        <div class="step-indicator">
+            <div class="step" id="step1Indicator">1. SABER</div>
+            <div class="step" id="step2Indicator">2. HACER</div>
+            <div class="step" id="step3Indicator">3. SER</div>
+        </div>
+        
+        <!-- DIMENSIONES -->
+        <div id="pasoSaberEnc">
+            <div class="card">
+                <div class="card-title">📚 DIMENSIÓN SABER</div>
+                <div id="verbosSaberEnc" class="verbos-grid"></div>
+            </div>
+        </div>
+        
+        <div id="pasoHacerEnc" style="display:none;">
+            <div class="card">
+                <div class="card-title">🛠️ DIMENSIÓN HACER</div>
+                <div id="verbosHacerEnc" class="verbos-grid"></div>
+            </div>
+        </div>
+        
+        <div id="pasoSerEnc" style="display:none;">
+            <div class="card">
+                <div class="card-title">❤️ DIMENSIÓN SER</div>
+                <div id="verbosSerEnc" class="verbos-grid"></div>
+            </div>
+        </div>
+        
+        <!-- BOTONES DE NAVEGACIÓN -->
+        <div class="flex" style="margin-top:1rem;">
+            <button id="encBtnAnterior" class="btn" style="background:#6c757d; color:white; display:none;">◀ Anterior</button>
+            <button id="encBtnSiguiente" class="btn btn-primary">Siguiente ▶</button>
+            <button id="encBtnEnviar" class="btn btn-success" style="display:none;">📤 Enviar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="screenAdminEncuesta" class="screen">
+    <div class="topbar"><span>🔐 Administrador · Encuestas</span><div class="flex">
+        <button id="exportarExcelConsolidado" class="btn btn-success">📥 Exportar Excel Consolidado</button>
+        <button id="logoutAdminBtn" class="btn btn-danger">🚪 Cerrar sesión</button>
+        <button id="volverAdminMenu" class="btn btn-secondary" style="background: #6c757d;">← Volver</button>
+    </div></div>
+    <div class="container">
+        <div class="filtros">
+            <input type="text" id="filtroAdminEnc" placeholder="🔍 Buscar por nombre, correo o institución...">
+            <select id="filtroInstitucion" style="margin-left: 0.5rem; padding: 8px; border-radius: 40px; border: 1px solid var(--border);">
+                <option value="">Todas las instituciones</option>
+            </select>
+        </div>
+
+        <!-- TABLA DE ENCUESTAS EXISTENTE -->
+        <div class="card">
+            <div style="overflow-x:auto;">
+                <table id="tablaAdminEnc">
+                    <thead>
+                        <tr>
+                            <th>Institución</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Correo</th>
+                            <th>Fecha</th>
+                            <th>Puntaje</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminEncBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- NUEVA TARJETA: RESPUESTAS DE DOCENTES POR NIVEL -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-title" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleRespuestasNivelCard()">
+                <span>📊 RESPUESTAS DE DOCENTES POR NIVEL (N1, N2, N3, N4)</span>
+                <span id="toggleRespuestasNivelArrow" style="font-size: 0.8rem;">▼</span>
+            </div>
+            <div id="respuestasNivelContent" style="margin-top: 1rem;">
+                <div id="respGridNivel" style="display: flex; gap: 1rem; flex-wrap: wrap; min-height: 200px;">
+                    <p style="color: var(--text-muted); text-align: center; width: 100%;">Cargando respuestas de los docentes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="screenFacilitador" class="screen">
+    <div class="topbar"><span>👨‍🏫 Facilitador · Juego Bloom</span><div class="flex"><button id="logoutFacilitadorBtn" class="btn btn-danger">🚪 Cerrar sesión</button><button id="volverJuegoMenu" class="btn btn-secondary" style="background: #6c757d;">← Volver</button></div></div>
+    
+    <div class="container">
+        <!-- Tarjeta del facilitador -->
+        <div class="facilitador-card">
+            <div class="facilitador-info">
+                <div class="facilitador-field">
+                    <label>👤 NOMBRE DEL FACILITADOR</label>
+                    <input type="text" id="facilitadorNombre" placeholder="Ej: Mg. Juan Pérez" autocomplete="off">
+                </div>
+                <div class="facilitador-field">
+                    <label>🏫 INSTITUCIÓN EDUCATIVA</label>
+                    <input type="text" id="facInstitucion" placeholder="Ej: IEM San José · Colegio Los Andes" autocomplete="off">
+                </div>
+            </div>
+            <div class="facilitador-codigo-box">
+                <span class="facilitador-codigo-label">🔑 CÓDIGO DE SESIÓN</span>
+                <span class="facilitador-codigo-value" id="codigoDisplay">------</span>
+                <div class="facilitador-codigo-buttons">
+                    <button id="copiarCodigoBtn" class="btn btn-primary">📋 Copiar</button>
+                    <button id="regenerarCodigoBtn" class="btn btn-warning">🔄 Nuevo</button>
+                </div>
+            </div>
+            <div class="facilitador-actions">
+                <button id="guardarDatosFacilitador" class="btn-facilitador-guardar">💾 Guardar</button>
+                <button id="limpiarDatosFacilitador" class="btn-facilitador-limpiar">🗑️ Limpiar</button>
+            </div>
+        </div>
+
+        <!-- Resto del contenido (visor PDF) -->
+        <div class="pdf-container">
+            <div class="pdf-left">
+                <div class="pdf-left-header"><h2>🎯 VERBO EN EVALUACIÓN</h2></div>
+                <div class="verbo-display">
+                    <div class="verbo-grande" id="juegoVerboActual">---</div>
+                    <div id="juegoNivelCorrecto" style="background:#a78bfa; color:white; padding:0.5rem 1rem; border-radius:40px; margin-top:0.5rem;">Nivel correcto: ---</div>
+                    <div id="juegoEstadoVotacion" style="margin-top:1rem; padding:0.5rem; border-radius:12px;">⏳ Selecciona un verbo</div>
+                    <div class="flex" style="margin-top:1rem;"><button id="juegoLanzarBtn" class="btn btn-success">▶️ Lanzar</button><button id="juegoCerrarBtn" class="btn btn-danger">🔒 Cerrar</button></div>
+                </div>
+            </div>
+            <div class="pdf-right">
+                <div class="panel-section"><div class="panel-title">📋 SELECCIONAR VERBO</div><select id="juegoDimension" style="width:100%; padding:8px; border-radius:40px;"><option value="saber">📘 SABER</option><option value="hacer">🛠️ HACER</option><option value="ser">❤️ SER</option></select><input type="text" id="juegoBuscar" placeholder="🔍 Buscar..." style="width:100%; margin-top:0.5rem; padding:8px; border-radius:40px;"><div id="juegoListaVerbos" style="max-height:200px; overflow-y:auto; margin-top:0.5rem;"></div></div>
+                <div class="panel-section"><div class="panel-title">📊 RESULTADOS</div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#e74c3c;">N1</span><span id="jCnt1">0</span></div><div class="bar-track"><div class="bar-fill bf-n1" id="jBar1" style="width:0%"><span id="jBar1P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#f39c12;">N2</span><span id="jCnt2">0</span></div><div class="bar-track"><div class="bar-fill bf-n2" id="jBar2" style="width:0%"><span id="jBar2P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#3498db;">N3</span><span id="jCnt3">0</span></div><div class="bar-track"><div class="bar-fill bf-n3" id="jBar3" style="width:0%"><span id="jBar3P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#27ae60;">N4</span><span id="jCnt4">0</span></div><div class="bar-track"><div class="bar-fill bf-n4" id="jBar4" style="width:0%"><span id="jBar4P"></span></div></div></div><div class="total-label">👥 Total: <span id="jTotalVotos">0</span></div></div>
+                <div class="panel-section"><div class="panel-title">📋 HISTORIAL</div><div style="max-height:150px; overflow-y:auto;"><table style="width:100%; font-size:0.7rem;"><tbody id="juegoHistorialBody"></tbody></table></div><div class="flex" style="margin-top:0.5rem;"><button id="exportarJuegoExcel" class="btn btn-success" style="flex:1;">📥 Excel</button><button id="exportarJuegoPDF" class="btn btn-danger" style="flex:1;">📄 PDF</button><button id="limpiarJuegoHistorial" class="btn btn-warning" style="flex:1;">🗑️ Limpiar</button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUEVA TARJETA: RESPUESTAS RECIBIDAS POR NIVEL (VOTOS EN VIVO) -->
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-title" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="toggleRespuestasVotosCard()">
+        <span>📊 RESPUESTAS RECIBIDAS - VOTOS DE DOCENTES POR NIVEL (N1, N2, N3, N4)</span>
+        <span id="toggleRespuestasVotosArrow" style="font-size: 0.8rem;">▼</span>
+    </div>
+    <div id="respuestasVotosContent" style="margin-top: 1rem;">
+        <div id="respGridVotos" style="display: flex; gap: 1rem; flex-wrap: wrap; min-height: 200px;">
+            <p style="color: var(--text-muted); text-align: center; width: 100%;">Esperando votos de los docentes...</p>
+        </div>
+    </div>
+</div>
+</div>
+
+<div id="screenParticipante" class="screen">
+    <div class="topbar"><span>🎓 Participante · Juego Bloom</span><div class="flex"><button id="salirParticipanteBtn" class="btn btn-danger">🚪 Salir</button><button id="volverJuegoParticipante" class="btn btn-secondary" style="background: #6c757d;">← Volver</button></div></div>
+    
+    <div class="container" style="max-width: 600px;">
+        <!-- Tarjeta de datos del participante -->
+        <div class="participante-card">
+            <div class="participante-header">
+                <div class="participante-header-icon">🎓</div>
+                <div class="participante-header-title">TUS DATOS</div>
+                <div class="participante-header-sub">Identifícate para participar</div>
+            </div>
+            <div class="participante-grid">
+                <div class="participante-field">
+                    <label>👤 NOMBRE COMPLETO</label>
+                    <input type="text" id="partNombre" placeholder="Ej: María Rodríguez" autocomplete="off">
+                </div>
+                <div class="participante-field">
+                    <label>🔑 CÓDIGO DE SESIÓN</label>
+                    <input type="text" id="partCodigo" placeholder="Ej: A3F9K2" autocomplete="off" maxlength="6" style="text-transform: uppercase;">
+                </div>
+            </div>
+            <div class="participante-buttons">
+                <button id="partUnirse" class="btn-participante-unirse">✅ Unirse a la sesión</button>
+                <button id="partLimpiar" class="btn-participante-limpiar">🗑️ Limpiar</button>
+            </div>
+            <div class="participante-status" id="participanteStatus" style="display: none;">
+                <span class="participante-status-label">📡 ESTADO</span>
+                <span class="participante-status-value" id="participanteEstadoValor">Desconectado</span>
+            </div>
+        </div>
+
+        <!-- Área de juego (se muestra después de unirse) -->
+        <div id="partAreaJuego" style="display: none;">
+            <div class="participante-juego-card">
+                <div class="participante-verbo-label">🎯 VERBO ACTUAL</div>
+                <div class="participante-verbo" id="partVerbo">---</div>
+                <div class="participante-estado esperando" id="partEstado">⏳ Esperando verbo...</div>
+                
+                <div class="participante-botones-voto">
+                    <button id="partVotar1" class="btn" style="background: #e74c3c; color: white;" disabled>N1</button>
+                    <button id="partVotar2" class="btn" style="background: #f39c12; color: white;" disabled>N2</button>
+                    <button id="partVotar3" class="btn" style="background: #3498db; color: white;" disabled>N3</button>
+                    <button id="partVotar4" class="btn" style="background: #27ae60; color: white;" disabled>N4</button>
+                </div>
+                
+                <div id="partMensaje" class="participante-mensaje" style="display: none;"></div>
+                <div class="participante-nota">💡 Tu voto es parte del diagnóstico colectivo del plantel</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="modalDetalleEncuesta" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalDetalleTitulo">Detalle de Respuestas</h3>
+            <button class="close-modal-btn" onclick="cerrarModalDetalle()">✕</button>
+        </div>
+        <div id="modalDetalleBody"></div>
+        <div style="margin-top: 1rem; text-align: center; display: flex; gap: 0.5rem; justify-content: center;">
+            <button id="btnExportarDocenteModal" class="btn btn-success">📥 Exportar Excel este docente</button>
+            <button class="btn btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="loginModalTitle">🔐 Acceso</h3>
+            <button class="close-modal-btn" onclick="cerrarLoginModal()">✕</button>
+        </div>
+        <form id="loginForm" onsubmit="event.preventDefault(); login()" autocomplete="off">
+            <input type="email" id="loginEmail" name="email" placeholder="Correo electrónico" autocomplete="email" required="">
+            <input type="password" id="loginPassword" name="password" placeholder="Contraseña" autocomplete="current-password" required="">
+            <button type="submit" class="btn btn-primary" style="width:100%;">Ingresar</button>
+        </form>
+        <div id="loginError" style="color: #c0392b; font-size: 0.8rem; margin-top: 0.5rem; text-align: center; display: none;"></div>
+    </div>
+</div>
+
+
+<!-- MODAL FEEDBACK PARA EL DOCENTE -->
+<div id="feedbackModal" class="feedback-modal">
+    <div class="feedback-card">
+        <div class="feedback-header">
+            <div class="feedback-title">🎉 ¡Encuesta Completada!</div>
+            <div class="feedback-subtitle">Gracias por tu participación</div>
+        </div>
+        <div class="feedback-chart">
+            <canvas id="feedbackChart" style="max-height: 200px;"></canvas>
+        </div>
+        <div class="feedback-stats">
+            <div class="feedback-stat">
+                <div class="feedback-stat-number" id="feedbackAciertos">0</div>
+                <div class="feedback-stat-label">Aciertos</div>
+            </div>
+            <div class="feedback-stat">
+                <div class="feedback-stat-number" id="feedbackErrores">0</div>
+                <div class="feedback-stat-label">Errores</div>
+            </div>
+            <div class="feedback-stat">
+                <div class="feedback-stat-number" id="feedbackPorcentaje">0%</div>
+                <div class="feedback-stat-label">Porcentaje</div>
+            </div>
+        </div>
+        <div id="feedbackErroresLista" class="feedback-errores"></div>
+        <div class="feedback-buttons">
+            <button id="feedbackExportarExcel" class="btn-feedback btn-feedback-excel">📥 Excel</button>
+            <button id="feedbackExportarPDF" class="btn-feedback btn-feedback-pdf">📄 PDF</button>
+            <button id="feedbackCerrar" class="btn-feedback btn-feedback-cerrar">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+// ==================== FIREBASE ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyCxFxPRL9TcqTs3a_1YOYWOE1hhbf-C8xc",
+    authDomain: "taxonomia-de-bloom.firebaseapp.com",
+    databaseURL: "https://taxonomia-de-bloom-default-rtdb.firebaseio.com",
+    projectId: "taxonomia-de-bloom",
+    storageBucket: "taxonomia-de-bloom.firebasestorage.app",
+    messagingSenderId: "201947408125",
+    appId: "1:201947408125:web:21ccd5a50c1d50f056c094"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+// ==================== VARIABLES ====================
+let encuestasGuardadas = [];
+let lastAction = null;
+let juegoSesionRef = null, juegoCodigo = null, juegoVotos = {1:0,2:0,3:0,4:0}, juegoHistorial = [], juegoVerboActual = null, juegoNivelActual = null, juegoListenerVotos = null;
+let docenteActual = null;
+// ==================== NAVEGACIÓN ====================
+function mostrarPantalla(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+}
+
+// ==================== AUTENTICACIÓN ====================
+function abrirLoginModal(accion) {
+    lastAction = accion;
+    const title = accion === 'admin' ? '🔐 Acceso Administrador' : '👨‍🏫 Acceso Facilitador';
+    document.getElementById('loginModalTitle').innerText = title;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginModal').classList.add('open');
+}
+
+function cerrarLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
+
+async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        cerrarLoginModal();
+    } catch (e) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = '❌ Correo o contraseña incorrectos';
+    }
+}
+
+function logoutAdmin() { auth.signOut().then(() => mostrarPantalla('screenEncuestaMenu')); }
+function logoutFacilitador() { auth.signOut().then(() => { if(juegoSesionRef) juegoSesionRef.update({ activa: false }); mostrarPantalla('screenJuegoMenu'); }); }
+
+// ==================== ENCUESTA: DATOS ====================
+const VERBOS_ENC = {
+    saber: ["EVALUAR","ARGUMENTAR","JUSTIFICAR","DISEÑAR","FORMULAR","CREAR","INNOVAR","PLANIFICAR","CONCEBIR","APLICAR","ANALIZAR","COMPARAR","ORGANIZAR","DIFERENCIAR","CONTRASTAR","REVISAR","REFINAR","COMPRENDER","DESCRIBIR","EXPLICAR","INTERPRETAR","EJEMPLIFICAR","CLASIFICAR","RECORDAR","IDENTIFICAR","RECONOCER","DEFINIR","LISTAR","NOMBRAR"],
+    hacer: ["AUTOMATIZAR","OPTIMIZAR","TRANSFERIR","INNOVAR","TRAZAR ESTRATEGIAS","COMBINAR HERRAMIENTAS","COORDINAR","IMPLEMENTAR","INTEGRAR","PERFECCIONAR","APLICAR CON AUTONOMÍA","EJECUTAR","PRACTICAR","DEMOSTRAR","OPERAR","UTILIZAR CON APOYO","IMITAR","COPIAR","SEGUIR INSTRUCCIONES","MANIPULAR CON AYUDA"],
+    ser: ["INTERIORIZAR","LIDERAR","MODELAR","TRANSFORMAR","INFLUIR POSITIVAMENTE","VALIDAR ÉTICAMENTE","VALORAR","ARGUMENTAR","PROMOVER","ASUMIR RESPONSABILIDADES","SER CONSCIENTE","RESPONDER","PARTICIPAR","COLABORAR","RESPETAR","CUMPLIR","ATENDER","ESCUCHAR","ACEPTAR","MOSTRAR DISPOSICIÓN"]
+};
+const NIVELES_CORRECTOS_ENC = {
+    "EVALUAR":4,"ARGUMENTAR":4,"JUSTIFICAR":4,"DISEÑAR":4,"FORMULAR":4,"CREAR":4,"INNOVAR":4,"PLANIFICAR":4,"CONCEBIR":4,"APLICAR":3,"ANALIZAR":3,"COMPARAR":3,"ORGANIZAR":3,"DIFERENCIAR":3,"CONTRASTAR":3,"REVISAR":3,"REFINAR":3,"COMPRENDER":2,"DESCRIBIR":2,"EXPLICAR":2,"INTERPRETAR":2,"EJEMPLIFICAR":2,"CLASIFICAR":2,"RECORDAR":1,"IDENTIFICAR":1,"RECONOCER":1,"DEFINIR":1,"LISTAR":1,"NOMBRAR":1,
+    "AUTOMATIZAR":4,"OPTIMIZAR":4,"TRANSFERIR":4,"TRAZAR ESTRATEGIAS":4,"COMBINAR HERRAMIENTAS":4,"COORDINAR":3,"IMPLEMENTAR":3,"INTEGRAR":3,"PERFECCIONAR":3,"APLICAR CON AUTONOMÍA":3,"EJECUTAR":2,"PRACTICAR":2,"DEMOSTRAR":2,"OPERAR":2,"UTILIZAR CON APOYO":2,"IMITAR":1,"COPIAR":1,"SEGUIR INSTRUCCIONES":1,"MANIPULAR CON AYUDA":1,
+    "INTERIORIZAR":4,"LIDERAR":4,"MODELAR":4,"TRANSFORMAR":4,"INFLUIR POSITIVAMENTE":4,"VALIDAR ÉTICAMENTE":4,"VALORAR":3,"PROMOVER":3,"ASUMIR RESPONSABILIDADES":3,"SER CONSCIENTE":3,"RESPONDER":2,"PARTICIPAR":2,"COLABORAR":2,"RESPETAR":2,"CUMPLIR":2,"ATENDER":1,"ESCUCHAR":1,"ACEPTAR":1,"MOSTRAR DISPOSICIÓN":1
+};
+let respuestasEnc = { saber: {}, hacer: {}, ser: {} };
+let pasoEnc = 1;
+
+function renderizarVerbosEnc(dim, verbos, contId) {
+    const cont = document.getElementById(contId);
+    if (!cont) return;
+    cont.innerHTML = '';
+    verbos.forEach(verbo => {
+        const respuestaGuardada = respuestasEnc[dim][verbo] || null;
+        const fila = document.createElement('div');
+        fila.className = 'verbo-fila';
+        const etiqueta = document.createElement('div');
+        etiqueta.className = 'verbo-etiqueta';
+        etiqueta.innerHTML = `<span>${verbo}</span>`;
+        const contenedorNiveles = document.createElement('div');
+        contenedorNiveles.className = 'niveles-contenedor';
+        const grupoNiveles = document.createElement('div');
+        grupoNiveles.className = 'niveles-grupo';
+        for (let nivel = 1; nivel <= 4; nivel++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-nivel';
+            if (respuestaGuardada === nivel) btn.classList.add('seleccionado');
+            btn.setAttribute('data-nivel', nivel);
+            btn.textContent = `Nivel ${nivel}`;
+            btn.addEventListener('click', () => {
+                respuestasEnc[dim][verbo] = nivel;
+                const botones = fila.querySelectorAll('.btn-nivel');
+                botones.forEach(b => b.classList.remove('seleccionado'));
+                btn.classList.add('seleccionado');
+            });
+            grupoNiveles.appendChild(btn);
+        }
+        contenedorNiveles.appendChild(grupoNiveles);
+        fila.appendChild(etiqueta);
+        fila.appendChild(contenedorNiveles);
+        cont.appendChild(fila);
+    });
+}
+
+function cargarEncuestaUI() {
+    renderizarVerbosEnc('saber', VERBOS_ENC.saber, 'verbosSaberEnc');
+    renderizarVerbosEnc('hacer', VERBOS_ENC.hacer, 'verbosHacerEnc');
+    renderizarVerbosEnc('ser', VERBOS_ENC.ser, 'verbosSerEnc');
+    actualizarPasosEnc();
+}
+
+function actualizarPasosEnc() {
+    document.getElementById('pasoSaberEnc').style.display = pasoEnc === 1 ? 'block' : 'none';
+    document.getElementById('pasoHacerEnc').style.display = pasoEnc === 2 ? 'block' : 'none';
+    document.getElementById('pasoSerEnc').style.display = pasoEnc === 3 ? 'block' : 'none';
+    document.getElementById('encBtnAnterior').style.display = pasoEnc === 1 ? 'none' : 'inline-block';
+    document.getElementById('encBtnSiguiente').style.display = pasoEnc === 3 ? 'none' : 'inline-block';
+    document.getElementById('encBtnEnviar').style.display = pasoEnc === 3 ? 'inline-block' : 'none';
+    document.getElementById('encProgress').style.width = ((pasoEnc-1)/3*100) + (pasoEnc===3?33.33:0) + '%';
+    const steps = ['step1Indicator','step2Indicator','step3Indicator'];
+    steps.forEach((id,i) => { const el = document.getElementById(id); if(el) { if(i+1 === pasoEnc) { el.classList.add('active'); el.classList.remove('completed'); } else if(i+1 < pasoEnc) { el.classList.remove('active'); el.classList.add('completed'); } else { el.classList.remove('active','completed'); } } });
+}
+
+function validarPasoEnc() { 
+    const dim = {1:'saber',2:'hacer',3:'ser'}[pasoEnc];
+    for (let v of VERBOS_ENC[dim]) if (!respuestasEnc[dim][v]) { alert(`Por favor, responde: ${v}`); return false; }
+    return true; 
+}
+
+
+
+async function enviarEncuesta() {
+    if (!validarPasoEnc()) return;
+    const nombre = document.getElementById('encNombre').value.trim(), 
+          apellidos = document.getElementById('encApellidos').value.trim(), 
+          institucion = document.getElementById('encInstitucion').value.trim(),
+          telefono = document.getElementById('encTelefono').value.trim(), 
+          correo = document.getElementById('encCorreo').value.trim();
+    
+    if (!nombre || !apellidos || !correo) { alert('Completa tus datos personales'); return; }
+    if (!institucion) { alert('Por favor, escribe el nombre de tu institución educativa'); return; }
+    
+    let correctos = 0, total = 0;
+    let erroresLista = [];
+    
+    for (let dim of ['saber', 'hacer', 'ser']) {
+        for (let [verbo, nivel] of Object.entries(respuestasEnc[dim])) {
+            total++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) {
+                correctos++;
+            } else {
+                erroresLista.push({ verbo, nivel, correcto, dimension: dim.toUpperCase() });
+            }
+        }
+    }
+    
+    const porcentaje = total ? Math.round((correctos / total) * 100) : 0;
+    
+    // Guardar en Firebase con institución
+    await db.ref('encuestas').push().set({ 
+        nombre, apellidos, institucion, telefono, correo, 
+        fecha: new Date().toISOString(), 
+        respuestas: JSON.parse(JSON.stringify(respuestasEnc)), 
+        puntaje: correctos, 
+        totalPreguntas: total, 
+        porcentaje 
+    });
+    
+    // Mostrar feedback
+    mostrarFeedback(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestasEnc);
+}
+
+// ==================== ENCUESTA: ADMIN ====================
+async function cargarEncuestasAdmin() { 
+    const snap = await db.ref('encuestas').once('value'); 
+    encuestasGuardadas = Object.values(snap.val() || {}); 
+    renderizarAdminEnc(); renderizarRespuestasPorNivel();
+}
+
+function renderizarAdminEnc(filtro='', filtroInstitucion='') { 
+    const tbody = document.getElementById('adminEncBody'); 
+    if(!tbody) return; 
+    
+    let f = encuestasGuardadas;
+    
+    // Filtrar por texto (nombre, apellidos, correo)
+    if (filtro) {
+        f = f.filter(e => e.nombre?.toLowerCase().includes(filtro) || 
+                          e.apellidos?.toLowerCase().includes(filtro) || 
+                          e.correo?.toLowerCase().includes(filtro));
+    }
+    
+    // Filtrar por institución
+    if (filtroInstitucion) {
+        f = f.filter(e => e.institucion === filtroInstitucion);
+    }
+    
+    tbody.innerHTML = f.map((e, idx) => `
+        <tr>
+            <td><span style="background: var(--card2); padding: 4px 8px; border-radius: 20px; font-size: 0.7rem;">🏫 ${e.institucion || 'No especificada'}</span></td>
+            <td>${e.nombre || ''}</td>
+            <td>${e.apellidos || ''}</td>
+            <td>${e.correo || ''}</td>
+            <td>${new Date(e.fecha).toLocaleDateString()}</td>
+            <td>${e.puntaje}/${e.totalPreguntas} (${e.porcentaje}%)</td>
+            <td><button class="btn btn-primary" style="padding:4px 12px;" onclick="verDetalleEncuesta(${idx})">Ver</button></td>
+        </tr>
+    `).join('');
+    
+    // Actualizar el select de instituciones
+    const instituciones = [...new Set(encuestasGuardadas.map(e => e.institucion).filter(i => i))];
+    const selectInstitucion = document.getElementById('filtroInstitucion');
+    if (selectInstitucion) {
+        selectInstitucion.innerHTML = '<option value="">Todas las instituciones</option>' +
+            instituciones.map(inst => `<option value="${inst}">🏫 ${inst}</option>`).join('');
+    }
+}
+
+// Modificar el evento del filtro
+document.getElementById('filtroAdminEnc').oninput = (e) => {
+    const filtroTexto = e.target.value.toLowerCase();
+    const filtroInst = document.getElementById('filtroInstitucion')?.value || '';
+    renderizarAdminEnc(filtroTexto, filtroInst);
+};
+
+document.getElementById('filtroInstitucion')?.addEventListener('change', (e) => {
+    const filtroTexto = document.getElementById('filtroAdminEnc').value.toLowerCase();
+    renderizarAdminEnc(filtroTexto, e.target.value);
+});
+
+// ========== FUNCIÓN PARA VER DETALLE DE RESPUESTAS DEL DOCENTE ==========
+let encuestaActual = null;  // Variable global para la encuesta actual
+let modalHistorialAbierto = false;
+window.verDetalleEncuesta = function(idx) {
+    encuestaActual = encuestasGuardadas[idx];  // Guardar referencia
+    const encuesta = encuestaActual;
+    if (!encuesta) return;
+    
+    document.getElementById('modalDetalleTitulo').innerHTML = `📋 ${encuesta.nombre} ${encuesta.apellidos}`;
+    
+    let html = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--card2); border-radius: 12px;">
+            <p><strong>📧 Correo:</strong> ${encuesta.correo || 'No especificado'}</p>
+            <p><strong>📱 Teléfono:</strong> ${encuesta.telefono || 'No especificado'}</p>
+            <p><strong>📅 Fecha:</strong> ${new Date(encuesta.fecha).toLocaleString()}</p>
+            <p><strong>🎯 Puntaje:</strong> ${encuesta.puntaje}/${encuesta.totalPreguntas} (${encuesta.porcentaje}%)</p>
+        </div>
+    `;
+    
+    for (let dim of ['saber', 'hacer', 'ser']) {
+        const dimNombre = dim.toUpperCase();
+        const dimIcono = dim === 'saber' ? '📚' : dim === 'hacer' ? '🛠️' : '❤️';
+        html += `<h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">${dimIcono} DIMENSIÓN ${dimNombre}</h4>`;
+        html += `<div style="margin-bottom: 1rem;">`;
+        
+        const respuestasDim = encuesta.respuestas?.[dim] || {};
+        if (Object.keys(respuestasDim).length === 0) {
+            html += `<p style="color: #666;">No hay respuestas registradas</p>`;
+        } else {
+            for (let [verbo, nivel] of Object.entries(respuestasDim)) {
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                let clase = 'respuesta-incorrecta';
+                let icono = '❌';
+                if (nivel === correcto) {
+                    clase = 'respuesta-correcta';
+                    icono = '✅';
+                } else if (!nivel) {
+                    clase = 'respuesta-sin';
+                    icono = '⚠️';
+                }
+                html += `
+                    <div class="respuesta-item ${clase}">
+                        <span><strong>${verbo}</strong></span>
+                        <span>${icono} Respuesta: Nivel ${nivel || '?'} | Correcto: Nivel ${correcto}</span>
+                    </div>
+                `;
+            }
+        }
+        html += `</div>`;
+    }
+    
+    document.getElementById('modalDetalleBody').innerHTML = html;
+    document.getElementById('modalDetalleEncuesta').classList.add('open');
+};
+
+// Evento para el botón del modal
+document.getElementById('btnExportarDocenteModal')?.addEventListener('click', () => {
+    if (encuestaActual) {
+        exportarExcelDocente(encuestaActual);
+    } else {
+        alert('No hay datos para exportar');
+    }
+});
+
+function cerrarModalDetalle() {
+    document.getElementById('modalDetalleEncuesta').classList.remove('open');
+}
+
+
+
+// ==================== INICIO DESCARGAS EXCEL ====================
+
+async function juegoExportarExcel() {
+    if (!juegoHistorial.length) {
+        alert('No hay datos para exportar');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Crear datos para el Excel
+    const exportData = juegoHistorial.map(h => ({
+        'Verbo': h.verbo,
+        'Nivel Correcto': h.nivelCorrecto,
+        'Votos N1': h.votos[1] || 0,
+        'Votos N2': h.votos[2] || 0,
+        'Votos N3': h.votos[3] || 0,
+        'Votos N4': h.votos[4] || 0,
+        'Total Votos': h.totalVotos || 0,
+        'Aciertos': h.aciertos || 0,
+        '% Aciertos': h.porcentaje || 0
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Juego Bloom');
+    
+    XLSX.writeFile(wb, `juego_bloom_${new Date().toISOString().slice(0,19)}.xlsx`);
+}
+
+function exportarExcelDocente(encuesta) {
+    if (!encuesta) {
+        alert('No hay datos del docente para exportar');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    const data = [];
+    
+    // Encabezado con formato Tipo/Valor
+    data.push({ 'Tipo': 'INFORME INDIVIDUAL - TAXONOMÍA DE BLOOM', 'Valor': '' });
+    data.push({ 'Tipo': 'Docente', 'Valor': `${encuesta.nombre} ${encuesta.apellidos}` });
+    data.push({ 'Tipo': 'Correo', 'Valor': encuesta.correo || 'No especificado' });
+    data.push({ 'Tipo': 'Teléfono', 'Valor': encuesta.telefono || 'No especificado' });
+    data.push({ 'Tipo': 'Fecha', 'Valor': encuesta.fecha ? new Date(encuesta.fecha).toLocaleString() : '' });
+    
+    // Calcular totales
+    let correctos = 0;
+    let totalRespondidos = 0;
+    
+    for (let dim of ['saber', 'hacer', 'ser']) {
+        for (let verbo of VERBOS_ENC[dim]) {
+            const nivel = encuesta.respuestas?.[dim]?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                totalRespondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) correctos++;
+            }
+        }
+    }
+    
+    const porcentajeGeneral = totalRespondidos > 0 ? ((correctos / totalRespondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'Puntaje Total', 'Valor': `${correctos}/${totalRespondidos} (${porcentajeGeneral}%)` });
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Calcular estadísticas por dimensión
+    const stats = { SABER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.saber.length }, 
+                    HACER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.hacer.length }, 
+                    SER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.ser.length } };
+    
+    for (let verbo of VERBOS_ENC.saber) {
+        const nivel = encuesta.respuestas?.saber?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.SABER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.SABER.correctos++;
+        }
+    }
+    
+    for (let verbo of VERBOS_ENC.hacer) {
+        const nivel = encuesta.respuestas?.hacer?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.HACER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.HACER.correctos++;
+        }
+    }
+    
+    for (let verbo of VERBOS_ENC.ser) {
+        const nivel = encuesta.respuestas?.ser?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.SER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.SER.correctos++;
+        }
+    }
+    
+    // Resumen por dimensión
+    data.push({ 'Tipo': '📊 RESUMEN POR DIMENSIÓN', 'Valor': '' });
+    
+    const pctSaber = stats.SABER.respondidos > 0 ? ((stats.SABER.correctos / stats.SABER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'SABER', 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} (sobre ${stats.SABER.total} verbos) → ${pctSaber}%` });
+    
+    const pctHacer = stats.HACER.respondidos > 0 ? ((stats.HACER.correctos / stats.HACER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'HACER', 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} (sobre ${stats.HACER.total} verbos) → ${pctHacer}%` });
+    
+    const pctSer = stats.SER.respondidos > 0 ? ((stats.SER.correctos / stats.SER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'SER', 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} (sobre ${stats.SER.total} verbos) → ${pctSer}%` });
+    
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión SABER
+    data.push({ 'Tipo': `📚 DIMENSIÓN SABER`, 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} respondidos → ${pctSaber}%` });
+    for (let verbo of VERBOS_ENC.saber) {
+        const nivel = encuesta.respuestas?.saber?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión HACER
+    data.push({ 'Tipo': `🛠️ DIMENSIÓN HACER`, 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} respondidos → ${pctHacer}%` });
+    for (let verbo of VERBOS_ENC.hacer) {
+        const nivel = encuesta.respuestas?.hacer?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión SER
+    data.push({ 'Tipo': `❤️ DIMENSIÓN SER`, 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} respondidos → ${pctSer}%` });
+    for (let verbo of VERBOS_ENC.ser) {
+        const nivel = encuesta.respuestas?.ser?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 35 }, { wch: 65 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Informe Individual');
+    XLSX.writeFile(wb, `informe_${encuesta.nombre}_${encuesta.apellidos}.xlsx`);
+}
+
+function exportarExcelConsolidado() {
+    if (!encuestasGuardadas.length) { 
+        alert('No hay datos para exportar'); 
+        return; 
+    }
+    
+    // Obtener nombre de la institución (de la primera encuesta o del facilitador)
+    let institucionNombre = '';
+    
+    // Intentar obtener de la primera encuesta
+    if (encuestasGuardadas[0] && encuestasGuardadas[0].institucion) {
+        institucionNombre = encuestasGuardadas[0].institucion;
+    }
+    
+    // Si no hay, intentar del localStorage del facilitador
+    if (!institucionNombre) {
+        const datosFacilitador = localStorage.getItem('bloom_facilitador_datos');
+        if (datosFacilitador) {
+            try {
+                const facilitador = JSON.parse(datosFacilitador);
+                institucionNombre = facilitador.institucion || '';
+            } catch(e) {}
+        }
+    }
+    
+    // Si aún no hay, usar un valor por defecto
+    if (!institucionNombre) {
+        institucionNombre = 'varias_instituciones';
+    }
+    
+    // Limpiar el nombre de la institución para usarlo en el archivo
+    let nombreLimpio = institucionNombre
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')  // Eliminar tildes
+        .replace(/[^a-zA-Z0-9]/g, '_')     // Reemplazar caracteres especiales por _
+        .replace(/_+/g, '_')               // Reemplazar múltiples _ por uno
+        .replace(/^_|_$/g, '')             // Eliminar _ al inicio y final
+        .substring(0, 40);                 // Limitar a 40 caracteres
+    
+    const wb = XLSX.utils.book_new();
+    let nombresHojaUsados = new Set();
+    
+    // ==================== HOJA 1: RESUMEN GLOBAL POR VERBO ====================
+    const resumenData = [];
+    resumenData.push(['VERBO', 'NIVEL CORRECTO', '%N1', '%N2', '%N3', '%N4', 'PREDOMINANTE']);
+    
+    for (let dim of ['SABER', 'HACER', 'SER']) {
+        resumenData.push([`📊 DIMENSIÓN ${dim}`, '', '', '', '', '', '']);
+        
+        const dimKey = dim.toLowerCase();
+        const verbosDim = VERBOS_ENC[dimKey] || [];
+        
+        for (let verbo of verbosDim) {
+            const nivelCorrecto = NIVELES_CORRECTOS_ENC[verbo] || 1;
+            
+            let totalRespuestas = 0;
+            let conteos = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            
+            encuestasGuardadas.forEach(encuesta => {
+                const respuestasDim = encuesta.respuestas?.[dimKey] || {};
+                const nivel = respuestasDim[verbo];
+                if (nivel && nivel >= 1 && nivel <= 4) {
+                    totalRespuestas++;
+                    conteos[nivel]++;
+                }
+            });
+            
+            const pct1 = totalRespuestas > 0 ? ((conteos[1] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct2 = totalRespuestas > 0 ? ((conteos[2] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct3 = totalRespuestas > 0 ? ((conteos[3] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct4 = totalRespuestas > 0 ? ((conteos[4] / totalRespuestas) * 100).toFixed(1) : 0;
+            
+            const niveles = [parseFloat(pct1), parseFloat(pct2), parseFloat(pct3), parseFloat(pct4)];
+            const maxIndex = niveles.indexOf(Math.max(...niveles));
+            const predominante = maxIndex + 1;
+            
+            resumenData.push([
+                verbo,
+                `Nivel ${nivelCorrecto}`,
+                `${pct1}%`,
+                `${pct2}%`,
+                `${pct3}%`,
+                `${pct4}%`,
+                `Nivel ${predominante}`
+            ]);
+        }
+        resumenData.push(['', '', '', '', '', '', '']);
+    }
+    
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    wsResumen['!cols'] = [{wch:25}, {wch:15}, {wch:10}, {wch:10}, {wch:10}, {wch:10}, {wch:15}];
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen_Global');
+    nombresHojaUsados.add('Resumen_Global');
+    
+    // ==================== HOJAS POR CADA DOCENTE ====================
+    for (let idx = 0; idx < encuestasGuardadas.length; idx++) {
+        const e = encuestasGuardadas[idx];
+        const docenteData = [];
+        
+        docenteData.push(['INFORME INDIVIDUAL - TAXONOMÍA DE BLOOM', '']);
+        docenteData.push(['', '']);
+        docenteData.push(['Institución:', e.institucion || 'No especificada']);
+        docenteData.push(['Docente:', `${e.nombre} ${e.apellidos}`]);
+        docenteData.push(['Correo:', e.correo || 'No especificado']);
+        docenteData.push(['Teléfono:', e.telefono || 'No especificado']);
+        docenteData.push(['Fecha:', e.fecha ? new Date(e.fecha).toLocaleString() : '']);
+        docenteData.push(['', '']);
+        
+        // Calcular puntaje total
+        let correctos = 0;
+        let totalRespondidos = 0;
+        
+        for (let dim of ['saber', 'hacer', 'ser']) {
+            for (let verbo of VERBOS_ENC[dim]) {
+                const nivel = e.respuestas?.[dim]?.[verbo];
+                if (nivel && nivel >= 1 && nivel <= 4) {
+                    totalRespondidos++;
+                    const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                    if (nivel === correcto) correctos++;
+                }
+            }
+        }
+        
+        const porcentajeGeneral = totalRespondidos > 0 ? ((correctos / totalRespondidos) * 100).toFixed(1) : 0;
+        docenteData.push(['Puntaje Total:', `${correctos}/${totalRespondidos} (${porcentajeGeneral}%)`]);
+        docenteData.push(['', '']);
+        
+        // Calcular estadísticas por dimensión
+        const stats = {
+            SABER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.saber.length },
+            HACER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.hacer.length },
+            SER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.ser.length }
+        };
+        
+        for (let verbo of VERBOS_ENC.saber) {
+            const nivel = e.respuestas?.saber?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.SABER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.SABER.correctos++;
+            }
+        }
+        
+        for (let verbo of VERBOS_ENC.hacer) {
+            const nivel = e.respuestas?.hacer?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.HACER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.HACER.correctos++;
+            }
+        }
+        
+        for (let verbo of VERBOS_ENC.ser) {
+            const nivel = e.respuestas?.ser?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.SER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.SER.correctos++;
+            }
+        }
+        
+        const pctSaber = stats.SABER.respondidos > 0 ? ((stats.SABER.correctos / stats.SABER.respondidos) * 100).toFixed(1) : 0;
+        const pctHacer = stats.HACER.respondidos > 0 ? ((stats.HACER.correctos / stats.HACER.respondidos) * 100).toFixed(1) : 0;
+        const pctSer = stats.SER.respondidos > 0 ? ((stats.SER.correctos / stats.SER.respondidos) * 100).toFixed(1) : 0;
+        
+        docenteData.push(['📊 RESUMEN POR DIMENSIÓN', '']);
+        docenteData.push([`SABER:`, `${stats.SABER.correctos}/${stats.SABER.respondidos} (sobre ${stats.SABER.total} verbos) → ${pctSaber}%`]);
+        docenteData.push([`HACER:`, `${stats.HACER.correctos}/${stats.HACER.respondidos} (sobre ${stats.HACER.total} verbos) → ${pctHacer}%`]);
+        docenteData.push([`SER:`, `${stats.SER.correctos}/${stats.SER.respondidos} (sobre ${stats.SER.total} verbos) → ${pctSer}%`]);
+        docenteData.push(['', '']);
+        
+        // Dimensión SABER
+        docenteData.push([`📚 DIMENSIÓN SABER`, `${stats.SABER.correctos}/${stats.SABER.respondidos} respondidos → ${pctSaber}%`]);
+        for (let verbo of VERBOS_ENC.saber) {
+            const nivel = e.respuestas?.saber?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel) {
+                const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                docenteData.push([verbo, `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}`]);
+            } else {
+                docenteData.push([verbo, `⚠️ Sin respuesta | Correcto: Nivel ${correcto}`]);
+            }
+        }
+        docenteData.push(['', '']);
+        
+        // Dimensión HACER
+        docenteData.push([`🛠️ DIMENSIÓN HACER`, `${stats.HACER.correctos}/${stats.HACER.respondidos} respondidos → ${pctHacer}%`]);
+        for (let verbo of VERBOS_ENC.hacer) {
+            const nivel = e.respuestas?.hacer?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel) {
+                const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                docenteData.push([verbo, `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}`]);
+            } else {
+                docenteData.push([verbo, `⚠️ Sin respuesta | Correcto: Nivel ${correcto}`]);
+            }
+        }
+        docenteData.push(['', '']);
+        
+        // Dimensión SER
+        docenteData.push([`❤️ DIMENSIÓN SER`, `${stats.SER.correctos}/${stats.SER.respondidos} respondidos → ${pctSer}%`]);
+        for (let verbo of VERBOS_ENC.ser) {
+            const nivel = e.respuestas?.ser?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel) {
+                const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                docenteData.push([verbo, `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}`]);
+            } else {
+                docenteData.push([verbo, `⚠️ Sin respuesta | Correcto: Nivel ${correcto}`]);
+            }
+        }
+        
+        const wsDocente = XLSX.utils.aoa_to_sheet(docenteData);
+        wsDocente['!cols'] = [{wch:35}, {wch:65}];
+        
+        let nombreHoja = `${e.nombre || 'Docente'}_${e.apellidos || idx}`.substring(0, 31);
+        nombreHoja = nombreHoja.replace(/[\\/*?:\[\]]/g, '');
+        
+        let finalNombre = nombreHoja;
+        let contador = 1;
+        while (nombresHojaUsados.has(finalNombre)) {
+            finalNombre = `${nombreHoja.substring(0, 27)}_${contador}`;
+            contador++;
+        }
+        nombresHojaUsados.add(finalNombre);
+        
+        XLSX.utils.book_append_sheet(wb, wsDocente, finalNombre);
+    }
+    
+    // ========== NOMBRE DEL ARCHIVO CON INSTITUCIÓN ==========
+    const fecha = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+    const nombreArchivo = `consolidado_bloom_${nombreLimpio}_${fecha}.xlsx`;
+    
+    XLSX.writeFile(wb, nombreArchivo);
+    alert(`✅ Archivo exportado: ${nombreArchivo}`);
+}
+// ==================== FINAL DESCARGAS EXCEL ====================
+
+// ==================== JUEGO ====================
+function construirListaVerbos() {
+    const lista = [];
+    for (let dim in VERBOS_ENC) for (let verbo of VERBOS_ENC[dim]) lista.push({ verbo, dimension: dim, nivelCorrecto: NIVELES_CORRECTOS_ENC[verbo] || 1 });
+    return lista;
+}
+const VERBOS_JUEGO = construirListaVerbos();
+
+function juegoGenerarCodigo() { const c='BCDFGHJKMNPQRSTVWXYZ23456789'; let r=''; for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
+async function juegoCrearSesion() { juegoCodigo = juegoGenerarCodigo(); juegoSesionRef = db.ref(`sesiones_bloom/${juegoCodigo}`); await juegoSesionRef.set({ creada: Date.now(), activa: true, codigo: juegoCodigo, verboActual: null, nivelCorrecto: null, votacionAbierta: false, historial: [] }); await juegoSesionRef.child('votos').remove(); document.getElementById('codigoDisplay').textContent = juegoCodigo; setTimeout(() => renderizarRespuestasPorVoto(), 500);}
+async function juegoCargarLista() { const dim = document.getElementById('juegoDimension').value; const busqueda = document.getElementById('juegoBuscar').value.toLowerCase(); let f = VERBOS_JUEGO.filter(v => v.dimension === dim); if (busqueda) f = f.filter(v => v.verbo.toLowerCase().includes(busqueda)); document.getElementById('juegoListaVerbos').innerHTML = f.map(v => `<div class="verbo-item-lista" onclick="juegoSeleccionarVerbo('${v.verbo}', ${v.nivelCorrecto})"><div style="font-weight:600;">${v.verbo}</div><div style="font-size:0.7rem;">Nivel correcto: ${v.nivelCorrecto}</div></div>`).join(''); }
+window.juegoSeleccionarVerbo = function(v, n) { juegoVerboActual = v; juegoNivelActual = n; document.getElementById('juegoVerboActual').textContent = v; document.getElementById('juegoNivelCorrecto').innerHTML = `Nivel correcto: ${n}`; document.getElementById('juegoEstadoVotacion').innerHTML = '📌 Verbo seleccionado'; };
+async function juegoLanzarVotacion() { if (!juegoVerboActual) { alert('Selecciona un verbo'); return; } if (!juegoSesionRef) await juegoCrearSesion(); await juegoSesionRef.update({ verboActual: juegoVerboActual, nivelCorrecto: juegoNivelActual, votacionAbierta: true }); await juegoSesionRef.child('votos').remove(); juegoVotos = {1:0,2:0,3:0,4:0}; juegoActualizarBarras(); document.getElementById('juegoEstadoVotacion').innerHTML = '🔓 ¡VOTACIÓN ABIERTA!'; juegoIniciarEscucha(); }
+async function juegoCerrarVotacion() { if (!juegoSesionRef) return; await juegoSesionRef.update({ votacionAbierta: false }); const total = juegoVotos[1]+juegoVotos[2]+juegoVotos[3]+juegoVotos[4]; const aciertos = juegoVotos[juegoNivelActual]||0; const pct = total>0?Math.round(aciertos/total*100):0; juegoHistorial.unshift({ verbo: juegoVerboActual, nivelCorrecto: juegoNivelActual, votos: {...juegoVotos}, total, aciertos, porcentaje: pct }); await juegoSesionRef.child('historial').set(juegoHistorial); juegoRenderizarHistorial(); document.getElementById('juegoEstadoVotacion').innerHTML = `🔒 Cerrada. ${pct}% acertaron`; }
+function juegoIniciarEscucha() { if (juegoListenerVotos) juegoSesionRef.child('votos').off('value', juegoListenerVotos); juegoListenerVotos = juegoSesionRef.child('votos').on('value', snap => { const votos = snap.val() || {}; juegoVotos = {1:0,2:0,3:0,4:0}; Object.values(votos).forEach(v => { if (v.nivel >=1 && v.nivel <=4) juegoVotos[v.nivel]++; }); juegoActualizarBarras(); }); }
+function juegoActualizarBarras() { const total = juegoVotos[1]+juegoVotos[2]+juegoVotos[3]+juegoVotos[4]; const max = Math.max(juegoVotos[1],juegoVotos[2],juegoVotos[3],juegoVotos[4],1); for(let i=1;i<=4;i++){ const pct = Math.round(juegoVotos[i]/max*100); const disp = total>0?Math.round(juegoVotos[i]/total*100)+'%':''; const bar=document.getElementById(`jBar${i}`); if(bar) bar.style.width=pct+'%'; const cnt=document.getElementById(`jCnt${i}`); if(cnt) cnt.textContent=juegoVotos[i]; const pSpan=document.getElementById(`jBar${i}P`); if(pSpan) pSpan.textContent=juegoVotos[i]>0?disp:''; } document.getElementById('jTotalVotos').textContent=total; }
+function juegoRenderizarHistorial() { const tbody = document.getElementById('juegoHistorialBody'); if(!tbody) return; tbody.innerHTML = juegoHistorial.map(h => `<tr><td>${h.verbo}</td><td>Nivel ${h.nivelCorrecto}</td><td>${h.porcentaje}%</td></tr>`).join(''); }
+async function juegoExportarExcel() { if(!juegoHistorial.length){alert('No hay datos');return;} const ws=XLSX.utils.json_to_sheet(juegoHistorial.map(h=>({Verbo:h.verbo,'Nivel Correcto':h.nivelCorrecto,'Votos N1':h.votos[1],'Votos N2':h.votos[2],'Votos N3':h.votos[3],'Votos N4':h.votos[4],'% Aciertos':h.porcentaje}))); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Juego Bloom'); XLSX.writeFile(wb,`juego_bloom_${new Date().toISOString().slice(0,19)}.xlsx`); }
+async function juegoExportarPDF() { const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.text("Informe Juego Bloom",14,20); doc.text(`Fecha: ${new Date().toLocaleString()}`,14,30); doc.autoTable({head:[["Verbo","Nivel","N1","N2","N3","N4","%"]],body:juegoHistorial.map(h=>[h.verbo,h.nivelCorrecto,h.votos[1],h.votos[2],h.votos[3],h.votos[4],`${h.porcentaje}%`]),startY:45,styles:{fontSize:8}}); doc.save(`juego_bloom_${new Date().toISOString().slice(0,10)}.pdf`); }
+async function juegoLimpiarHistorial() { if(confirm('¿Limpiar historial?')){ juegoHistorial=[]; if(juegoSesionRef) await juegoSesionRef.child('historial').set([]); juegoRenderizarHistorial(); } }
+
+// ==================== PARTICIPANTE ====================
+let partSesionRef = null, partNombre = '', partYaVoto = false;
+async function partUnirse() { 
+    const cod=document.getElementById('partCodigo').value.trim().toUpperCase(); 
+    const nom=document.getElementById('partNombre').value.trim(); 
+    if(!cod||cod.length!==6){alert('Código inválido');return;} 
+    if(!nom){alert('Ingresa tu nombre');return;} 
+    const snap=await db.ref(`sesiones_bloom/${cod}`).once('value'); 
+    if(!snap.exists()){alert('Código no encontrado');return;} 
+    const data=snap.val(); 
+    if(data.activa!==true){alert('Sesión no activa');return;} 
+    partNombre=nom; 
+    partSesionRef=db.ref(`sesiones_bloom/${cod}`); 
+    document.getElementById('partAreaJuego').style.display='block'; 
+    document.getElementById('partUnirse').disabled=true; 
+    partSesionRef.on('value',sn=>{ 
+        const d=sn.val(); 
+        if(d&&d.verboActual){ 
+            document.getElementById('partVerbo').textContent=d.verboActual; 
+            if(d.votacionAbierta){ 
+                document.getElementById('partEstado').textContent='🔓 ¡Votación abierta!'; 
+                document.getElementById('partEstado').style.background='#27ae60'; 
+                partYaVoto=false; 
+                partHabilitarBotones(true); 
+            } else { 
+                document.getElementById('partEstado').textContent='🔒 Votación cerrada'; 
+                document.getElementById('partEstado').style.background='#6c757d'; 
+                partHabilitarBotones(false); 
+            } 
+        } 
+    }); 
+}
+function partHabilitarBotones(h){ ['partVotar1','partVotar2','partVotar3','partVotar4'].forEach(id=>{ const btn=document.getElementById(id); if(btn) btn.disabled=!h||partYaVoto; }); }
+async function partVotar(nivel){ 
+    if(partYaVoto){partMostrarMsg('Ya votaste','error');return;} 
+    if(!partSesionRef){partMostrarMsg('No hay sesión','error');return;} 
+    const key=`${partNombre.replace(/[^a-z0-9]/gi,'_')}_${Date.now()}`; 
+    await partSesionRef.child('votos').child(key).set({participante:partNombre,nivel:nivel,timestamp:Date.now()}); 
+    partYaVoto=true; 
+    partHabilitarBotones(false); 
+    partMostrarMsg(`✅ Voto registrado: Nivel ${nivel}`,'success'); 
+}
+function partMostrarMsg(msg,tipo){ const div=document.getElementById('partMensaje'); div.innerHTML=msg; div.style.color=tipo==='success'?'#27ae60':'#c0392b'; setTimeout(()=>div.innerHTML='',3000); }
+
+// ==================== EVENTOS ====================
+document.getElementById('cardEncuesta').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('cardJuego').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('volverMainEncuesta').onclick = () => mostrarPantalla('screenMain');
+document.getElementById('volverMainJuego').onclick = () => mostrarPantalla('screenMain');
+document.getElementById('volverEncuestaMenu').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('volverAdminMenu').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('volverJuegoMenu').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('volverJuegoParticipante').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('btnRealizarEncuesta').onclick = () => { respuestasEnc = { saber: {}, hacer: {}, ser: {} }; pasoEnc=1; cargarEncuestaUI(); mostrarPantalla('screenRealizarEncuesta'); };
+document.getElementById('btnAdminEncuesta').onclick = () => { if(auth.currentUser) { cargarEncuestasAdmin(); mostrarPantalla('screenAdminEncuesta'); } else { abrirLoginModal('admin'); } };
+document.getElementById('btnFacilitador').onclick = () => { if(auth.currentUser) { juegoCrearSesion(); juegoCargarLista(); mostrarPantalla('screenFacilitador'); } else { abrirLoginModal('facilitador'); } };
+document.getElementById('btnParticipante').onclick = () => { cargarDatosParticipante();mostrarPantalla('screenParticipante'); };
+document.getElementById('exportarExcelConsolidado').onclick = exportarExcelConsolidado;
+document.getElementById('logoutAdminBtn').onclick = logoutAdmin;
+document.getElementById('logoutFacilitadorBtn').onclick = logoutFacilitador;
+document.getElementById('filtroAdminEnc').oninput = (e) => renderizarAdminEnc(e.target.value.toLowerCase());
+document.getElementById('encBtnSiguiente').onclick = () => { if(validarPasoEnc() && pasoEnc<3){ pasoEnc++; actualizarPasosEnc(); } };
+document.getElementById('encBtnAnterior').onclick = () => { if(pasoEnc>1){ pasoEnc--; actualizarPasosEnc(); } };
+document.getElementById('encBtnEnviar').onclick = enviarEncuesta;
+document.getElementById('juegoDimension').onchange = juegoCargarLista;
+document.getElementById('juegoBuscar').oninput = juegoCargarLista;
+document.getElementById('juegoLanzarBtn').onclick = juegoLanzarVotacion;
+document.getElementById('juegoCerrarBtn').onclick = juegoCerrarVotacion;
+document.getElementById('copiarCodigoBtn').onclick = () => { if(juegoCodigo) navigator.clipboard.writeText(juegoCodigo); alert('Código copiado'); };
+document.getElementById('regenerarCodigoBtn').onclick = async () => { await juegoCrearSesion(); alert('Nuevo código generado'); };
+document.getElementById('exportarJuegoExcel').onclick = juegoExportarExcel;
+document.getElementById('exportarJuegoPDF').onclick = juegoExportarPDF;
+document.getElementById('limpiarJuegoHistorial').onclick = juegoLimpiarHistorial;
+document.getElementById('partUnirse').onclick = partUnirse;
+document.getElementById('partVotar1').onclick = () => partVotar(1);
+document.getElementById('partVotar2').onclick = () => partVotar(2);
+document.getElementById('partVotar3').onclick = () => partVotar(3);
+document.getElementById('partVotar4').onclick = () => partVotar(4);
+document.getElementById('darkModeToggle').onclick = () => { document.body.classList.toggle('dark'); localStorage.setItem('bloom_dark_mode', document.body.classList.contains('dark')); };
+if(localStorage.getItem('bloom_dark_mode') === 'true') document.body.classList.add('dark');
+// Cargar datos guardados al iniciar la encuesta
+document.getElementById('btnRealizarEncuesta').onclick = () => { 
+    respuestasEnc = { saber: {}, hacer: {}, ser: {} }; 
+    pasoEnc = 1; 
+    cargarEncuestaUI(); 
+    cargarDatosDocenteGuardados();  // ← Agregar esta línea
+    mostrarPantalla('screenRealizarEncuesta'); 
+};
+
+// Eventos para los botones de datos
+document.getElementById('btnGuardarDatos')?.addEventListener('click', guardarDatosDocente);
+document.getElementById('btnLimpiarDatos')?.addEventListener('click', limpiarDatosDocente);
+
+// Eventos para el facilitador
+document.getElementById('guardarDatosFacilitador')?.addEventListener('click', guardarDatosFacilitador);
+document.getElementById('limpiarDatosFacilitador')?.addEventListener('click', limpiarDatosFacilitador);
+
+// Modificar el botón del facilitador para cargar el nombre guardado
+document.getElementById('btnFacilitador').onclick = () => { 
+    if(auth.currentUser) { 
+        cargarDatosFacilitador();  // ← Cargar nombre guardado
+        juegoCrearSesion(); 
+        juegoCargarLista(); 
+        mostrarPantalla('screenFacilitador'); 
+         setTimeout(() => initRespuestasVotosCard(), 500);  // ← Agrega esta línea
+    } else { 
+        abrirLoginModal('facilitador'); 
+    } 
+};
+
+// Evento para limpiar datos del participante
+document.getElementById('partLimpiar')?.addEventListener('click', limpiarDatosParticipante);
+
+
+// Autenticación
+auth.onAuthStateChanged(async (user) => {
+    if (user && lastAction) {
+        if (lastAction === 'admin') {
+            await cargarEncuestasAdmin();
+            mostrarPantalla('screenAdminEncuesta');
+        } else if (lastAction === 'facilitador') {
+            await juegoCrearSesion();
+            juegoCargarLista();
+            mostrarPantalla('screenFacilitador');
+        }
+        lastAction = null;
+    }
+});
+
+
+// ==================== FEEDBACK PARA EL DOCENTE ====================
+
+let feedbackChartInstance = null;
+
+function mostrarFeedback(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestas) {
+    document.getElementById('feedbackAciertos').innerText = correctos;
+    document.getElementById('feedbackErrores').innerText = erroresLista.length;
+    document.getElementById('feedbackPorcentaje').innerText = `${porcentaje}%`;
+    
+    // CORRECCIÓN: Usar las mismas claves que en el bucle
+    const erroresPorDim = { "SABER": [], "HACER": [], "SER": [] };
+    erroresLista.forEach(e => {
+        // Asegurarse de que e.dimension existe y está en mayúsculas
+        const dim = e.dimension ? e.dimension.toUpperCase() : "";
+        if (dim === "SABER" || dim === "HACER" || dim === "SER") {
+            erroresPorDim[dim].push(e);
+        } else {
+            // Fallback: si no tiene dimensión o es diferente, asignar según el verbo
+            if (VERBOS_ENC.saber.includes(e.verbo)) erroresPorDim["SABER"].push(e);
+            else if (VERBOS_ENC.hacer.includes(e.verbo)) erroresPorDim["HACER"].push(e);
+            else if (VERBOS_ENC.ser.includes(e.verbo)) erroresPorDim["SER"].push(e);
+        }
+    });
+    
+    let htmlErrores = '';
+    for (let dim of ['SABER', 'HACER', 'SER']) {
+        if (erroresPorDim[dim] && erroresPorDim[dim].length > 0) {
+            const dimNombre = dim === 'SABER' ? '📚 DIMENSIÓN SABER' : (dim === 'HACER' ? '🛠️ DIMENSIÓN HACER' : '❤️ DIMENSIÓN SER');
+            htmlErrores += `<h4 style="margin-top: 0.8rem; font-size: 0.85rem;">${dimNombre}</h4>`;
+            erroresPorDim[dim].forEach(e => {
+                htmlErrores += `
+                    <div class="feedback-error-item">
+                        <div class="feedback-error-verbo">❌ ${e.verbo}</div>
+                        <div class="feedback-error-nivel">Respuesta: Nivel ${e.nivel} | Correcto: Nivel ${e.correcto}</div>
+                    </div>
+                `;
+            });
+        }
+    }
+    
+    if (erroresLista.length === 0) {
+        htmlErrores = '<p style="text-align: center; color: var(--green);">✅ ¡Excelente! No tuviste errores.</p>';
+    }
+    
+    document.getElementById('feedbackErroresLista').innerHTML = htmlErrores;
+    
+    // Gráfico
+    const ctx = document.getElementById('feedbackChart').getContext('2d');
+    if (feedbackChartInstance) feedbackChartInstance.destroy();
+    feedbackChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Aciertos', 'Errores'],
+            datasets: [{
+                data: [correctos, erroresLista.length],
+                backgroundColor: ['#22c55e', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.body).getPropertyValue('--text-primary') } } }
+        }
+    });
+    
+    // Botones de exportación
+    document.getElementById('feedbackExportarExcel').onclick = () => {
+        exportarFeedbackExcel(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestas);
+    };
+    document.getElementById('feedbackExportarPDF').onclick = () => {
+        exportarFeedbackPDF(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestas);
+    };
+    document.getElementById('feedbackCerrar').onclick = () => {
+        document.getElementById('feedbackModal').classList.remove('open');
+        mostrarPantalla('screenEncuestaMenu');
+    };
+    
+    document.getElementById('feedbackModal').classList.add('open');
+}
+
+
+function exportarFeedbackExcel(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestas) {
+    try {
+        const wb = XLSX.utils.book_new();
+        const data = [];
+        
+        data.push(['INFORME INDIVIDUAL - TAXONOMÍA DE BLOOM', '']);
+        data.push(['', '']);
+        
+        let institucion = 'No especificada';
+        let telefono = 'No especificado';
+        let correo = 'No especificado';
+        let fecha = new Date().toLocaleString();
+        
+        const datosGuardados = localStorage.getItem('bloom_datos_docente');
+        if (datosGuardados) {
+            try {
+                const docente = JSON.parse(datosGuardados);
+                institucion = docente.institucion || 'No especificada';
+                telefono = docente.telefono || 'No especificado';
+                correo = docente.correo || 'No especificado';
+            } catch(e) {}
+        }
+        
+        data.push(['Institución:', institucion]);
+        data.push(['Docente:', `${nombre} ${apellidos}`]);
+        data.push(['Correo:', correo]);
+        data.push(['Teléfono:', telefono]);
+        data.push(['Fecha:', fecha]);
+        data.push(['Puntaje Total:', `${correctos}/${total} (${porcentaje}%)`]);
+        data.push(['', '']);
+        
+        const VERBOS_LOCAL = {
+            saber: ["EVALUAR","ARGUMENTAR","JUSTIFICAR","DISEÑAR","FORMULAR","CREAR","INNOVAR","PLANIFICAR","CONCEBIR","APLICAR","ANALIZAR","COMPARAR","ORGANIZAR","DIFERENCIAR","CONTRASTAR","REVISAR","REFINAR","COMPRENDER","DESCRIBIR","EXPLICAR","INTERPRETAR","EJEMPLIFICAR","CLASIFICAR","RECORDAR","IDENTIFICAR","RECONOCER","DEFINIR","LISTAR","NOMBRAR"],
+            hacer: ["AUTOMATIZAR","OPTIMIZAR","TRANSFERIR","INNOVAR","TRAZAR ESTRATEGIAS","COMBINAR HERRAMIENTAS","COORDINAR","IMPLEMENTAR","INTEGRAR","PERFECCIONAR","APLICAR CON AUTONOMÍA","EJECUTAR","PRACTICAR","DEMOSTRAR","OPERAR","UTILIZAR CON APOYO","IMITAR","COPIAR","SEGUIR INSTRUCCIONES","MANIPULAR CON AYUDA"],
+            ser: ["INTERIORIZAR","LIDERAR","MODELAR","TRANSFORMAR","INFLUIR POSITIVAMENTE","VALIDAR ÉTICAMENTE","VALORAR","ARGUMENTAR","PROMOVER","ASUMIR RESPONSABILIDADES","SER CONSCIENTE","RESPONDER","PARTICIPAR","COLABORAR","RESPETAR","CUMPLIR","ATENDER","ESCUCHAR","ACEPTAR","MOSTRAR DISPOSICIÓN"]
+        };
+        
+        const NIVELES_LOCAL = {
+            "EVALUAR":4,"ARGUMENTAR":4,"JUSTIFICAR":4,"DISEÑAR":4,"FORMULAR":4,"CREAR":4,"INNOVAR":4,"PLANIFICAR":4,"CONCEBIR":4,"APLICAR":3,"ANALIZAR":3,"COMPARAR":3,"ORGANIZAR":3,"DIFERENCIAR":3,"CONTRASTAR":3,"REVISAR":3,"REFINAR":3,"COMPRENDER":2,"DESCRIBIR":2,"EXPLICAR":2,"INTERPRETAR":2,"EJEMPLIFICAR":2,"CLASIFICAR":2,"RECORDAR":1,"IDENTIFICAR":1,"RECONOCER":1,"DEFINIR":1,"LISTAR":1,"NOMBRAR":1,
+            "AUTOMATIZAR":4,"OPTIMIZAR":4,"TRANSFERIR":4,"TRAZAR ESTRATEGIAS":4,"COMBINAR HERRAMIENTAS":4,"COORDINAR":3,"IMPLEMENTAR":3,"INTEGRAR":3,"PERFECCIONAR":3,"APLICAR CON AUTONOMÍA":3,"EJECUTAR":2,"PRACTICAR":2,"DEMOSTRAR":2,"OPERAR":2,"UTILIZAR CON APOYO":2,"IMITAR":1,"COPIAR":1,"SEGUIR INSTRUCCIONES":1,"MANIPULAR CON AYUDA":1,
+            "INTERIORIZAR":4,"LIDERAR":4,"MODELAR":4,"TRANSFORMAR":4,"INFLUIR POSITIVAMENTE":4,"VALIDAR ÉTICAMENTE":4,"VALORAR":3,"PROMOVER":3,"ASUMIR RESPONSABILIDADES":3,"SER CONSCIENTE":3,"RESPONDER":2,"PARTICIPAR":2,"COLABORAR":2,"RESPETAR":2,"CUMPLIR":2,"ATENDER":1,"ESCUCHAR":1,"ACEPTAR":1,"MOSTRAR DISPOSICIÓN":1
+        };
+        
+        const stats = { SABER: { correctos: 0, respondidos: 0, total: VERBOS_LOCAL.saber.length }, HACER: { correctos: 0, respondidos: 0, total: VERBOS_LOCAL.hacer.length }, SER: { correctos: 0, respondidos: 0, total: VERBOS_LOCAL.ser.length } };
+        
+        for (let v of VERBOS_LOCAL.saber) { let n = respuestas?.saber?.[v]; if (n >= 1 && n <= 4) { stats.SABER.respondidos++; if (n === (NIVELES_LOCAL[v] || 0)) stats.SABER.correctos++; } }
+        for (let v of VERBOS_LOCAL.hacer) { let n = respuestas?.hacer?.[v]; if (n >= 1 && n <= 4) { stats.HACER.respondidos++; if (n === (NIVELES_LOCAL[v] || 0)) stats.HACER.correctos++; } }
+        for (let v of VERBOS_LOCAL.ser) { let n = respuestas?.ser?.[v]; if (n >= 1 && n <= 4) { stats.SER.respondidos++; if (n === (NIVELES_LOCAL[v] || 0)) stats.SER.correctos++; } }
+        
+        const pctS = stats.SABER.respondidos > 0 ? (stats.SABER.correctos / stats.SABER.respondidos * 100).toFixed(1) : 0;
+        const pH = stats.HACER.respondidos > 0 ? (stats.HACER.correctos / stats.HACER.respondidos * 100).toFixed(1) : 0;
+        const pSer = stats.SER.respondidos > 0 ? (stats.SER.correctos / stats.SER.respondidos * 100).toFixed(1) : 0;
+        
+        data.push(['📊 RESUMEN POR DIMENSIÓN', '']);
+        data.push([`SABER:`, `${stats.SABER.correctos}/${stats.SABER.respondidos} (sobre ${stats.SABER.total} verbos) → ${pctS}%`]);
+        data.push([`HACER:`, `${stats.HACER.correctos}/${stats.HACER.respondidos} (sobre ${stats.HACER.total} verbos) → ${pH}%`]);
+        data.push([`SER:`, `${stats.SER.correctos}/${stats.SER.respondidos} (sobre ${stats.SER.total} verbos) → ${pSer}%`]);
+        data.push(['', '']);
+        
+        data.push([`📚 DIMENSIÓN SABER`, `${stats.SABER.correctos}/${stats.SABER.respondidos} respondidos → ${pctS}%`]);
+        for (let v of VERBOS_LOCAL.saber) { let n = respuestas?.saber?.[v]; let c = NIVELES_LOCAL[v] || 0; 
+            if (n) { let estado = n === c ? '✅ Correcto' : '❌ Incorrecto'; data.push([v, `Respuesta: Nivel ${n} | Correcto: Nivel ${c} | ${estado}`, '']); 
+            } else { data.push([v, `⚠️ Sin respuesta | Correcto: Nivel ${c}`, '']); }
+        }
+        data.push(['', '', '']);
+        
+        data.push([`🛠️ DIMENSIÓN HACER`, `${stats.HACER.correctos}/${stats.HACER.respondidos} respondidos → ${pH}%`]);
+        for (let v of VERBOS_LOCAL.hacer) { let n = respuestas?.hacer?.[v]; let c = NIVELES_LOCAL[v] || 0; 
+            if (n) { let estado = n === c ? '✅ Correcto' : '❌ Incorrecto'; data.push([v, `Respuesta: Nivel ${n} | Correcto: Nivel ${c} | ${estado}`, '']); 
+            } else { data.push([v, `⚠️ Sin respuesta | Correcto: Nivel ${c}`, '']); }
+        }
+        data.push(['', '', '']);
+        
+        data.push([`❤️ DIMENSIÓN SER`, `${stats.SER.correctos}/${stats.SER.respondidos} respondidos → ${pSer}%`]);
+        for (let v of VERBOS_LOCAL.ser) { let n = respuestas?.ser?.[v]; let c = NIVELES_LOCAL[v] || 0; 
+            if (n) { let estado = n === c ? '✅ Correcto' : '❌ Incorrecto'; data.push([v, `Respuesta: Nivel ${n} | Correcto: Nivel ${c} | ${estado}`, '']); 
+            } else { data.push([v, `⚠️ Sin respuesta | Correcto: Nivel ${c}`, '']); }
+        }
+        
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        ws['!cols'] = [{ wch: 35 }, { wch: 65 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'Mi Resultado');
+        XLSX.writeFile(wb, `informe_${nombre}_${apellidos}.xlsx`);
+        
+        console.log("✅ Excel generado correctamente");
+    } catch(e) { 
+        console.error("Error:", e); 
+        alert("Error: " + e.message);
+    }
+}
+
+function exportarFeedbackPDF(nombre, apellidos, correctos, total, porcentaje, erroresLista, respuestas) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Informe de mi Encuesta - Taxonomía de Bloom", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Docente: ${nombre} ${apellidos}`, 14, 35);
+    doc.text(`Puntaje: ${correctos}/${total} (${porcentaje}%)`, 14, 45);
+    
+    let y = 60;
+    doc.setFontSize(11);
+    doc.text("📋 Errores cometidos:", 14, y);
+    y += 10;
+    
+    erroresLista.forEach(e => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(`❌ ${e.verbo} - Respuesta: Nivel ${e.nivel} (Correcto: ${e.correcto})`, 14, y);
+        y += 8;
+    });
+    
+    doc.save(`mi_resultado_${nombre}_${apellidos}.pdf`);
+}
+
+
+// ==================== guardar DATOS DEL DOCENTE ====================
+
+// Guardar datos del docente en localStorage
+function guardarDatosDocente() {
+    const nombre = document.getElementById('encNombre').value.trim();
+    const apellidos = document.getElementById('encApellidos').value.trim();
+    const institucion = document.getElementById('encInstitucion').value.trim();
+    const telefono = document.getElementById('encTelefono').value.trim();
+    const correo = document.getElementById('encCorreo').value.trim();
+    
+    if (!nombre || !apellidos || !institucion || !telefono || !correo) {
+        mostrarToast('⚠️ Completa todos los campos antes de guardar', '#e67e22');
+        return;
+    }
+    
+    const datosDocente = {
+        nombre, apellidos, institucion, telefono, correo,
+        guardadoEn: new Date().toISOString()
+    };
+    
+    localStorage.setItem('bloom_datos_docente', JSON.stringify(datosDocente));
+    
+    const resumen = `${nombre} ${apellidos} - ${institucion}`;
+    document.getElementById('datosResumen').innerHTML = `✅ ${resumen.length > 25 ? resumen.substring(0, 22) + '...' : resumen}`;
+    
+    const card = document.getElementById('datosDocenteCard');
+    card.classList.add('collapsed');
+    
+    mostrarToast('✅ Datos guardados correctamente', '#27ae60');
+}
+
+function cargarDatosDocenteGuardados() {
+    const guardado = localStorage.getItem('bloom_datos_docente');
+    if (guardado) {
+        try {
+            const datos = JSON.parse(guardado);
+            document.getElementById('encNombre').value = datos.nombre || '';
+            document.getElementById('encApellidos').value = datos.apellidos || '';
+            document.getElementById('encInstitucion').value = datos.institucion || '';
+            document.getElementById('encTelefono').value = datos.telefono || '';
+            document.getElementById('encCorreo').value = datos.correo || '';
+            
+            const resumen = `${datos.nombre || ''} ${datos.apellidos || ''} - ${datos.institucion || ''}`;
+            if (resumen.trim()) {
+                document.getElementById('datosResumen').innerHTML = `✅ ${resumen.length > 25 ? resumen.substring(0, 22) + '...' : resumen}`;
+            } else {
+                document.getElementById('datosResumen').innerHTML = 'Información personal';
+            }
+        } catch(e) {}
+    } else {
+        document.getElementById('datosResumen').innerHTML = 'Información personal';
+    }
+}
+
+// Cargar datos guardados del docente
+function cargarDatosDocenteGuardados() {
+    const guardado = localStorage.getItem('bloom_datos_docente');
+    if (guardado) {
+        try {
+            const datos = JSON.parse(guardado);
+            document.getElementById('encNombre').value = datos.nombre || '';
+            document.getElementById('encApellidos').value = datos.apellidos || '';
+            document.getElementById('encTelefono').value = datos.telefono || '';
+            document.getElementById('encCorreo').value = datos.correo || '';
+            
+            // Actualizar resumen
+            const resumen = `${datos.nombre || ''} ${datos.apellidos || ''}`.trim();
+            if (resumen) {
+                document.getElementById('datosResumen').innerHTML = `✅ ${resumen.length > 25 ? resumen.substring(0, 22) + '...' : resumen}`;
+            } else {
+                document.getElementById('datosResumen').innerHTML = 'Información personal';
+            }
+        } catch(e) {}
+    } else {
+        document.getElementById('datosResumen').innerHTML = 'Información personal';
+    }
+}
+
+// Limpiar todos los campos
+function limpiarDatosDocente() {
+    if (confirm('¿Estás seguro de limpiar todos los datos?')) {
+        document.getElementById('encNombre').value = '';
+        document.getElementById('encApellidos').value = '';
+        document.getElementById('encTelefono').value = '';
+        document.getElementById('encCorreo').value = '';
+        localStorage.removeItem('bloom_datos_docente');
+        document.getElementById('datosResumen').innerHTML = 'Información personal';
+        
+        // Expandir el acordeón para que pueda volver a ingresar datos
+        const card = document.getElementById('datosDocenteCard');
+        card.classList.remove('collapsed');
+        
+        mostrarToast('🗑️ Datos limpiados', '#e67e22');
+    }
+}
+
+// Mostrar toast de notificación
+function mostrarToast(mensaje, color) {
+    let toast = document.querySelector('.datos-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'datos-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.style.background = color;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+
+
+
+function toggleDatosCard() {
+    const card = document.getElementById('datosDocenteCard');
+    card.classList.toggle('collapsed');
+}
+
+
+// Guardar datos del facilitador (incluyendo institución)
+function guardarDatosFacilitador() {
+    const nombre = document.getElementById('facilitadorNombre').value.trim();
+    const institucion = document.getElementById('facInstitucion').value.trim();
+    
+    if (!nombre && !institucion) {
+        mostrarToastFacilitador('⚠️ Escribe al menos tu nombre o institución', '#e67e22');
+        return;
+    }
+    
+    const datosFacilitador = {
+        nombre: nombre || '',
+        institucion: institucion || '',
+        guardadoEn: new Date().toISOString()
+    };
+    
+    localStorage.setItem('bloom_facilitador_datos', JSON.stringify(datosFacilitador));
+    mostrarToastFacilitador('✅ Datos guardados correctamente', '#27ae60');
+}
+
+// Cargar datos del facilitador
+function cargarDatosFacilitador() {
+    const guardado = localStorage.getItem('bloom_facilitador_datos');
+    if (guardado) {
+        try {
+            const datos = JSON.parse(guardado);
+            if (document.getElementById('facilitadorNombre')) {
+                document.getElementById('facilitadorNombre').value = datos.nombre || '';
+            }
+            if (document.getElementById('facInstitucion')) {
+                document.getElementById('facInstitucion').value = datos.institucion || '';
+            }
+        } catch(e) {}
+    }
+}
+
+// Limpiar datos del facilitador
+function limpiarDatosFacilitador() {
+    if (confirm('¿Estás seguro de limpiar todos los datos?')) {
+        if (document.getElementById('facilitadorNombre')) {
+            document.getElementById('facilitadorNombre').value = '';
+        }
+        if (document.getElementById('facInstitucion')) {
+            document.getElementById('facInstitucion').value = '';
+        }
+        localStorage.removeItem('bloom_facilitador_datos');
+        mostrarToastFacilitador('🗑️ Datos limpiados', '#e67e22');
+    }
+}
+
+
+// Mostrar toast
+function mostrarToastFacilitador(mensaje, color) {
+    let toast = document.getElementById('facilitadorToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'facilitadorToast';
+        toast.className = 'facilitador-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.style.background = color;
+    toast.style.color = 'white';
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+
+
+// Limpiar datos del participante
+function limpiarDatosParticipante() {
+    if (confirm('¿Estás seguro de limpiar los datos?')) {
+        document.getElementById('partNombre').value = '';
+        document.getElementById('partCodigo').value = '';
+        localStorage.removeItem('bloom_participante_nombre');
+        localStorage.removeItem('bloom_participante_codigo');
+        mostrarToastParticipante('🗑️ Datos limpiados', '#e67e22');
+    }
+}
+
+// Cargar datos guardados del participante
+function cargarDatosParticipante() {
+    const nombreGuardado = localStorage.getItem('bloom_participante_nombre');
+    const codigoGuardado = localStorage.getItem('bloom_participante_codigo');
+    if (nombreGuardado) document.getElementById('partNombre').value = nombreGuardado;
+    if (codigoGuardado) document.getElementById('partCodigo').value = codigoGuardado;
+}
+
+// Guardar datos del participante al unirse
+function guardarDatosParticipante(nombre, codigo) {
+    localStorage.setItem('bloom_participante_nombre', nombre);
+    localStorage.setItem('bloom_participante_codigo', codigo);
+}
+
+// Mostrar toast para participante
+function mostrarToastParticipante(mensaje, color) {
+    let toast = document.getElementById('participanteToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'participanteToast';
+        toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:40px; font-size:0.85rem; font-weight:600; z-index:1000; opacity:0; transition:opacity 0.3s ease; pointer-events:none; white-space:nowrap;';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.style.background = color;
+    toast.style.color = 'white';
+    toast.classList.add('show');
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 3000);
+}
+
+// Modificar la función partUnirse para guardar datos
+const partUnirseOriginal = partUnirse;
+
+async function partUnirse() { 
+    const cod = document.getElementById('partCodigo').value.trim().toUpperCase(); 
+    const nom = document.getElementById('partNombre').value.trim(); 
+    if(!cod || cod.length !== 6){ mostrarToastParticipante('Código inválido (6 caracteres)', '#e67e22'); return; } 
+    if(!nom){ mostrarToastParticipante('Ingresa tu nombre', '#e67e22'); return; } 
+    
+    guardarDatosParticipante(nom, cod);
+    
+    const snap = await db.ref(`sesiones_bloom/${cod}`).once('value'); 
+    if(!snap.exists()){ mostrarToastParticipante('Código no encontrado', '#e67e22'); return; } 
+    const data = snap.val(); 
+    if(data.activa !== true){ mostrarToastParticipante('Sesión no activa', '#e67e22'); return; } 
+    
+    partNombre = nom; 
+    partSesionRef = db.ref(`sesiones_bloom/${cod}`); 
+    document.getElementById('partAreaJuego').style.display = 'block'; 
+    document.getElementById('participanteStatus').style.display = 'flex';
+    document.getElementById('participanteEstadoValor').innerHTML = '✅ Conectado';
+    document.getElementById('participanteEstadoValor').className = 'participante-status-value conectado';
+    document.getElementById('partUnirse').disabled = true; 
+    document.getElementById('partUnirse').textContent = '✅ Conectado';
+    
+    partSesionRef.on('value', sn => { 
+        const d = sn.val(); 
+        if(d && d.verboActual){ 
+            document.getElementById('partVerbo').textContent = d.verboActual; 
+            if(d.votacionAbierta){ 
+                document.getElementById('partEstado').textContent = '🔓 ¡Votación abierta!'; 
+                document.getElementById('partEstado').className = 'participante-estado abierta'; 
+                partYaVoto = false; 
+                partHabilitarBotones(true); 
+            } else { 
+                document.getElementById('partEstado').textContent = '🔒 Votación cerrada'; 
+                document.getElementById('partEstado').className = 'participante-estado cerrada'; 
+                partHabilitarBotones(false); 
+            } 
+        } 
+    }); 
+}
+
+// ==================== NUEVA TARJETA: RESPUESTAS DE DOCENTES POR NIVEL ====================
+
+// Variable para controlar el acordeón
+let respuestasNivelCardCollapsed = false;
+
+function toggleRespuestasNivelCard() {
+    const content = document.getElementById('respuestasNivelContent');
+    const arrow = document.getElementById('toggleRespuestasNivelArrow');
+    if (respuestasNivelCardCollapsed) {
+        content.style.display = 'block';
+        arrow.textContent = '▼';
+        respuestasNivelCardCollapsed = false;
+    } else {
+        content.style.display = 'none';
+        arrow.textContent = '▶';
+        respuestasNivelCardCollapsed = true;
+    }
+    localStorage.setItem('respuestas_nivel_collapsed', respuestasNivelCardCollapsed);
+}
+
+
+// Función principal para renderizar los docentes agrupados por nivel
+function renderizarRespuestasPorNivel() {
+    const gridContainer = document.getElementById('respGridNivel');
+    if (!gridContainer) return;
+    
+    if (!encuestasGuardadas || encuestasGuardadas.length === 0) {
+        gridContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No hay encuestas para mostrar</p>';
+        return;
+    }
+
+    // Contenedores por nivel (1=N1, 2=N2, 3=N3, 4=N4)
+    const niveles = {
+        1: { nombre: '🔴 NIVEL 1 (Recordar)', docentes: [], colorBg: '#fde8e8', colorText: '#c0392b', darkBg: '#4a1a1a', darkText: '#f87171' },
+        2: { nombre: '🟡 NIVEL 2 (Comprender)', docentes: [], colorBg: '#fef9c3', colorText: '#854d0e', darkBg: '#44370a', darkText: '#fde047' },
+        3: { nombre: '🔵 NIVEL 3 (Aplicar/Analizar)', docentes: [], colorBg: '#dbeafe', colorText: '#1d4ed8', darkBg: '#1e3a5f', darkText: '#60a5fa' },
+        4: { nombre: '🟢 NIVEL 4 (Evaluar/Crear)', docentes: [], colorBg: '#dcfce7', colorText: '#166534', darkBg: '#14362a', darkText: '#4ade80' }
+    };
+
+    // Recorrer todas las encuestas de todos los docentes
+    encuestasGuardadas.forEach(encuesta => {
+        const nombreCompleto = `${encuesta.nombre || ''} ${encuesta.apellidos || ''}`.trim() || 'Anónimo';
+        const institucion = encuesta.institucion || 'No especificada';
+        const respuestas = encuesta.respuestas || {};
+        
+        // Contar cuántas respuestas de cada nivel tuvo este docente
+        const conteoNiveles = { 1: 0, 2: 0, 3: 0, 4: 0 };
+        
+        // Procesar respuestas de todas las dimensiones
+        ['saber', 'hacer', 'ser'].forEach(dim => {
+            if (respuestas[dim]) {
+                Object.values(respuestas[dim]).forEach(nivel => {
+                    if (nivel >= 1 && nivel <= 4) conteoNiveles[nivel]++;
+                });
+            }
+        });
+        
+        // Determinar el nivel predominante
+        let nivelPredominante = 1;
+        let maxConteo = 0;
+        for (let i = 1; i <= 4; i++) {
+            if (conteoNiveles[i] > maxConteo) {
+                maxConteo = conteoNiveles[i];
+                nivelPredominante = i;
+            }
+        }
+        
+        const totalRespuestas = conteoNiveles[1] + conteoNiveles[2] + conteoNiveles[3] + conteoNiveles[4];
+        
+        if (totalRespuestas === 0) {
+            niveles[1].docentes.push({ nombre: nombreCompleto, institucion, detalle: 'Sin respuestas' });
+        } else {
+            niveles[nivelPredominante].docentes.push({ 
+                nombre: nombreCompleto, 
+                institucion, 
+                detalle: `Nivel predominante: N${nivelPredominante} (${maxConteo}/${totalRespuestas} respuestas)`
+            });
+        }
+    });
+
+    // Generar el HTML de las columnas
+    const modoOscuro = document.body.classList.contains('dark');
+    gridContainer.style.display = 'grid';
+    gridContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    gridContainer.style.gap = '1rem';
+    gridContainer.innerHTML = '';
+
+    for (let i = 1; i <= 4; i++) {
+        const nivel = niveles[i];
+        const colorBg = modoOscuro ? nivel.darkBg : nivel.colorBg;
+        const colorText = modoOscuro ? nivel.darkText : nivel.colorText;
+        
+        const columna = document.createElement('div');
+        columna.style.cssText = `
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        `;
+        
+        // Cabecera
+        const header = document.createElement('div');
+        header.style.cssText = `
+            background: ${colorBg};
+            color: ${colorText};
+            padding: 12px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-align: center;
+            letter-spacing: 0.5px;
+        `;
+        header.textContent = `${nivel.nombre} (${nivel.docentes.length})`;
+        columna.appendChild(header);
+        
+        // Cuerpo con lista de docentes
+        const body = document.createElement('div');
+        body.style.cssText = `padding: 8px; max-height: 400px; overflow-y: auto; flex: 1;`;
+        
+        if (nivel.docentes.length === 0) {
+            const vacio = document.createElement('div');
+            vacio.style.cssText = 'color: var(--text-muted); font-size: 0.75rem; text-align: center; padding: 20px;';
+            vacio.textContent = 'Sin docentes en este nivel';
+            body.appendChild(vacio);
+        } else {
+            nivel.docentes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            nivel.docentes.forEach(doc => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    padding: 8px 10px;
+                    margin: 4px 0;
+                    background: var(--card2);
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: 1px solid transparent;
+                `;
+                item.innerHTML = `
+                    <div style="font-weight: 700; font-size: 0.8rem; color: var(--blue);">${doc.nombre}</div>
+                    <div style="font-size: 0.65rem; color: var(--text-muted);">🏫 ${doc.institucion}</div>
+                    <div style="font-size: 0.6rem; color: var(--text-muted); margin-top: 4px;">📊 ${doc.detalle}</div>
+                `;
+                item.onmouseenter = () => {
+                    item.style.background = 'rgba(44,125,160,0.1)';
+                    item.style.borderColor = 'var(--blue)';
+                };
+                item.onmouseleave = () => {
+                    item.style.background = 'var(--card2)';
+                    item.style.borderColor = 'transparent';
+                };
+                // ✅ CORREGIDO: onclick para abrir historial del docente
+                item.onclick = () => abrirHistorialDocente(doc.nombre);
+                body.appendChild(item);
+            });
+        }
+        
+        columna.appendChild(body);
+        gridContainer.appendChild(columna);
+    }
+}
+   
+
+// Modificar la función cargarEncuestasAdmin original para que también renderice la nueva tarjeta
+// Buscar la función original y agregarle renderizarRespuestasPorNivel()
+// Por ahora, sobrescribimos la función
+const originalCargarAdmin = cargarEncuestasAdmin;
+cargarEncuestasAdmin = async function() {
+    await originalCargarAdmin();
+    setTimeout(() => renderizarRespuestasPorNivel(), 100);
+};
+
+// Restaurar estado del acordeón
+const savedStateNivel = localStorage.getItem('respuestas_nivel_collapsed');
+if (savedStateNivel === 'true') {
+    respuestasNivelCardCollapsed = true;
+    const content = document.getElementById('respuestasNivelContent');
+    const arrow = document.getElementById('toggleRespuestasNivelArrow');
+    if (content) content.style.display = 'none';
+    if (arrow) arrow.textContent = '▶';
+}
+
+// ==================== TARJETA DE RESPUESTAS POR VOTO EN VIVO ====================
+
+let respuestasVotosCardCollapsed = false;
+
+function toggleRespuestasVotosCard() {
+    const content = document.getElementById('respuestasVotosContent');
+    const arrow = document.getElementById('toggleRespuestasVotosArrow');
+    if (respuestasVotosCardCollapsed) {
+        content.style.display = 'block';
+        arrow.textContent = '▼';
+        respuestasVotosCardCollapsed = false;
+    } else {
+        content.style.display = 'none';
+        arrow.textContent = '▶';
+        respuestasVotosCardCollapsed = true;
+    }
+    localStorage.setItem('respuestas_votos_collapsed', respuestasVotosCardCollapsed);
+}
+
+// Función para renderizar los votantes agrupados por nivel
+// Función para renderizar los votantes agrupados por nivel
+function renderizarRespuestasPorVoto() {
+    const gridContainer = document.getElementById('respGridVotos');
+    if (!gridContainer) return;
+    
+    // Obtener los votos actuales de Firebase (de la sesión activa)
+    if (!juegoSesionRef) {
+        gridContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">No hay sesión activa. Inicia una sesión como facilitador.</p>';
+        return;
+    }
+    
+    // Escuchar cambios en los votos
+    juegoSesionRef.child('votos').on('value', (snap) => {
+        const votos = snap.val() || {};
+        
+        // Agrupar participantes por nivel votado
+        const grupos = { 1: [], 2: [], 3: [], 4: [] };
+        
+        Object.values(votos).forEach(voto => {
+            const nivel = voto.nivel;
+            const participante = voto.participante || 'Anónimo';
+            if (nivel >= 1 && nivel <= 4) {
+                grupos[nivel].push(participante);
+            }
+        });
+        
+        // Verificar si hay votos
+        const tieneVotos = grupos[1].length > 0 || grupos[2].length > 0 || grupos[3].length > 0 || grupos[4].length > 0;
+        
+        if (!tieneVotos) {
+            gridContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; width: 100%;">Aún no hay votos registrados. Los docentes votarán cuando lances un verbo.</p>';
+            return;
+        }
+        
+        // Configuración de colores por nivel
+        const nivelesConfig = {
+            1: { nombre: '🔴 NIVEL 1 (Recordar)', colorBg: '#fde8e8', colorText: '#c0392b', darkBg: '#4a1a1a', darkText: '#f87171' },
+            2: { nombre: '🟡 NIVEL 2 (Comprender)', colorBg: '#fef9c3', colorText: '#854d0e', darkBg: '#44370a', darkText: '#fde047' },
+            3: { nombre: '🔵 NIVEL 3 (Aplicar/Analizar)', colorBg: '#dbeafe', colorText: '#1d4ed8', darkBg: '#1e3a5f', darkText: '#60a5fa' },
+            4: { nombre: '🟢 NIVEL 4 (Evaluar/Crear)', colorBg: '#dcfce7', colorText: '#166534', darkBg: '#14362a', darkText: '#4ade80' }
+        };
+        
+        const modoOscuro = document.body.classList.contains('dark');
+        
+        // Generar las 4 columnas
+        gridContainer.style.display = 'grid';
+        gridContainer.style.gridTemplateColumns = 'repeat(4, 1fr)';
+        gridContainer.style.gap = '1rem';
+        gridContainer.innerHTML = '';
+        
+        for (let nivel = 1; nivel <= 4; nivel++) {
+            const config = nivelesConfig[nivel];
+            const colorBg = modoOscuro ? config.darkBg : config.colorBg;
+            const colorText = modoOscuro ? config.darkText : config.colorText;
+            const participantes = [...grupos[nivel]].sort();
+            
+            const columna = document.createElement('div');
+            columna.style.cssText = `
+                background: var(--card);
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+                display: flex;
+                flex-direction: column;
+            `;
+            
+            // Cabecera
+            const header = document.createElement('div');
+            header.style.cssText = `
+                background: ${colorBg};
+                color: ${colorText};
+                padding: 12px;
+                font-weight: 800;
+                font-size: 0.85rem;
+                text-align: center;
+                letter-spacing: 0.5px;
+            `;
+            header.textContent = `${config.nombre} (${participantes.length})`;
+            columna.appendChild(header);
+            
+            // Cuerpo con lista de participantes
+            const body = document.createElement('div');
+            body.style.cssText = `padding: 8px; max-height: 400px; overflow-y: auto; flex: 1;`;
+            
+            if (participantes.length === 0) {
+                const vacio = document.createElement('div');
+                vacio.style.cssText = 'color: var(--text-muted); font-size: 0.75rem; text-align: center; padding: 20px;';
+                vacio.textContent = 'Sin votos en este nivel';
+                body.appendChild(vacio);
+            } else {
+                participantes.forEach(participante => {
+                    const item = document.createElement('div');
+                    item.style.cssText = `
+                        padding: 8px 10px;
+                        margin: 4px 0;
+                        background: var(--card2);
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        border: 1px solid transparent;
+                    `;
+                    item.innerHTML = `
+                        <div style="font-weight: 700; font-size: 0.8rem; color: var(--blue);">${participante}</div>
+                        <div style="font-size: 0.6rem; color: var(--text-muted); margin-top: 4px;">Votó Nivel ${nivel}</div>
+                    `;
+                    item.onmouseenter = () => {
+                        item.style.background = 'rgba(44,125,160,0.1)';
+                        item.style.borderColor = 'var(--blue)';
+                    };
+                    item.onmouseleave = () => {
+                        item.style.background = 'var(--card2)';
+                        item.style.borderColor = 'transparent';
+                    };
+                    // ✅ CORREGIDO: onclick para abrir historial del docente
+                    item.onclick = () => abrirHistorialDocente(participante);
+                    body.appendChild(item);
+                });
+            }
+            
+            columna.appendChild(body);
+            gridContainer.appendChild(columna);
+        }
+    });
+}
+// Inicializar la tarjeta cuando se entra al facilitador
+function initRespuestasVotosCard() {
+    renderizarRespuestasPorVoto();
+}
+
+// Restaurar estado del acordeón
+const savedStateVotos = localStorage.getItem('respuestas_votos_collapsed');
+if (savedStateVotos === 'true') {
+    respuestasVotosCardCollapsed = true;
+    const content = document.getElementById('respuestasVotosContent');
+    const arrow = document.getElementById('toggleRespuestasVotosArrow');
+    if (content) content.style.display = 'none';
+    if (arrow) arrow.textContent = '▶';
+}
+
+
+
+// ==================== MODAL HISTORIAL DEL DOCENTE ====================
+
+function abrirHistorialDocente(nombreDocente) {
+   
+   // Evitar múltiples modales simultáneos
+    if (modalHistorialAbierto) {
+        console.log("⚠️ Modal ya abierto, ignorando:", nombreDocente);
+        return;
+    }
+    
+    console.log("📊 Abriendo historial de:", nombreDocente);
+    modalHistorialAbierto = true;
+   
+    const votosDocente = [];
+    let promesasPendientes = [];
+    
+    // 1. BUSCAR EN VOTOS ACTIVOS DE LA SESIÓN ACTUAL
+    if (juegoSesionRef) {
+        // Obtener datos actuales de la sesión primero
+        const promesaVerboActual = juegoSesionRef.child('verboActual').once('value');
+        const promesaNivelCorrecto = juegoSesionRef.child('nivelCorrecto').once('value');
+        const promesaVotosActivos = juegoSesionRef.child('votos').once('value');
+        
+        const promesaCombinada = Promise.all([promesaVerboActual, promesaNivelCorrecto, promesaVotosActivos]);
+        promesasPendientes.push(promesaCombinada);
+        
+        promesaCombinada.then(([verbSnap, nivelSnap, votosSnap]) => {
+            const verboActual = verbSnap.val() || '';
+            const nivelCorrecto = nivelSnap.val() || 0;
+            const votosActivos = votosSnap.val() || {};
+            
+            Object.entries(votosActivos).forEach(([key, voto]) => {
+                const participante = voto.participante || voto.nombre;
+                if (participante && participante.toLowerCase() === nombreDocente.toLowerCase()) {
+                    votosDocente.push({
+                        verbo: verboActual || 'Verbo actual',
+                        nivelCorrecto: nivelCorrecto,
+                        nivelVotado: voto.nivel,
+                        timestamp: voto.timestamp || Date.now()
+                    });
+                }
+            });
+            
+            // Después de procesar votos activos, buscar en historial cerrado
+            buscarEnHistorialCerrado();
+        }).catch(e => {
+            console.warn("Error leyendo votos activos:", e);
+            buscarEnHistorialCerrado();
+        });
+    } else {
+        buscarEnHistorialCerrado();
+    }
+    
+    function buscarEnHistorialCerrado() {
+        // 2. BUSCAR EN HISTORIAL DE PREGUNTAS CERRADAS
+        if (juegoHistorial && juegoHistorial.length > 0) {
+            juegoHistorial.forEach(pregunta => {
+                if (pregunta.votos && typeof pregunta.votos === 'object') {
+                    Object.entries(pregunta.votos).forEach(([key, voto]) => {
+                        const participante = voto.participante || voto.nombre;
+                        if (participante && participante.toLowerCase() === nombreDocente.toLowerCase()) {
+                            votosDocente.push({
+                                verbo: pregunta.verbo,
+                                nivelCorrecto: pregunta.nivelCorrecto,
+                                nivelVotado: voto.nivel,
+                                timestamp: voto.timestamp || pregunta.archivedAt || Date.now()
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Mostrar modal UNA SOLA VEZ con todos los votos recolectados
+        mostrarModalHistorialFinal(nombreDocente, votosDocente);
+    }
+}
+
+// Función separada para mostrar el modal (para evitar duplicación)
+function mostrarModalHistorialFinal(nombreDocente, votosDocente) {
+    console.log("📊 Mostrando historial para:", nombreDocente, "votos encontrados:", votosDocente.length);
+    
+    // Calcular estadísticas
+    const totalVotos = votosDocente.length;
+    const aciertos = votosDocente.filter(v => v.nivelVotado === v.nivelCorrecto).length;
+    const porcentaje = totalVotos > 0 ? Math.round((aciertos / totalVotos) * 100) : 0;
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(4px);
+        z-index: 20000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: var(--card);
+        border-radius: 24px;
+        padding: 1.5rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+    `;
+    
+    let historialHtml = `
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--blue);">📊 ${escapeHtml(nombreDocente)}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">Historial de votaciones</div>
+        </div>
+        <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.2rem;">
+            <div style="background: var(--card2); border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--blue);">${totalVotos}</div>
+                <div style="font-size: 0.65rem;">Votos</div>
+            </div>
+            <div style="background: #d4edda; border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #155724;">${aciertos}</div>
+                <div style="font-size: 0.65rem;">✅ Aciertos</div>
+            </div>
+            <div style="background: #f8d7da; border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #721c24;">${totalVotos - aciertos}</div>
+                <div style="font-size: 0.65rem;">❌ Errores</div>
+            </div>
+        </div>
+        <div style="font-size: 0.7rem; font-weight: 700; text-align: center; margin-bottom: 1rem; background: rgba(44,125,160,0.1); border-radius: 40px; padding: 6px; color: var(--blue);">
+            🎯 ${porcentaje}% de aciertos
+        </div>
+    `;
+    
+    if (totalVotos === 0) {
+        historialHtml += '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No hay votos registrados de este docente</p>';
+    } else {
+        historialHtml += `
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                    <thead>
+                        <tr style="background: var(--border);">
+                            <th style="padding: 8px; text-align: left;">Verbo</th>
+                            <th style="padding: 8px; text-align: center;">Votó</th>
+                            <th style="padding: 8px; text-align: center;">Correcto</th>
+                            <th style="padding: 8px; text-align: center;">✅</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${votosDocente.map(v => `
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 8px;">${escapeHtml(v.verbo)}</td>
+                                <td style="padding: 8px; text-align: center;"><strong>N${v.nivelVotado}</strong></td>
+                                <td style="padding: 8px; text-align: center;">N${v.nivelCorrecto}</td>
+                                <td style="padding: 8px; text-align: center;">${v.nivelVotado === v.nivelCorrecto ? '✅' : '❌'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    modalContent.innerHTML = `
+        <button class="close-historial-btn" style="position: absolute; top: 12px; right: 14px; background: var(--red); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-size: 1rem; cursor: pointer;">✕</button>
+        ${historialHtml}
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // CORRECCIÓN: Usar class en lugar de id para evitar conflictos
+    const closeBtn = modalContent.querySelector('.close-historial-btn');
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            modal.remove();
+            modalHistorialAbierto = false;
+        };
+    }
+    
+    // Cerrar al hacer clic fuera del modal
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            modalHistorialAbierto = false;
+        }
+    };
+}
+
+
+
+// Función helper para escapar HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+// ==================== CIERRE DE SESIÓN PARTICIPANTE ====================
+
+document.getElementById('salirParticipanteBtn')?.addEventListener('click', async () => {
+    console.log("🚪 Saliendo de la sesión de participante...");
+    
+    // Limpiar listener de Firebase si existe
+    if (partSesionRef) {
+        try {
+            // Eliminar el voto del participante actual si existe
+            if (partNombre) {
+                const votosSnap = await partSesionRef.child('votos').once('value');
+                const votos = votosSnap.val() || {};
+                for (let [key, voto] of Object.entries(votos)) {
+                    if (voto.participante === partNombre) {
+                        await partSesionRef.child('votos').child(key).remove();
+                        console.log("🗑️ Voto eliminado:", key);
+                    }
+                }
+            }
+            partSesionRef.off(); // Desconectar listener
+        } catch(e) {
+            console.warn("Error limpiando Firebase:", e);
+        }
+    }
+    
+    // Limpiar localStorage específico del participante
+    localStorage.removeItem('bloom_participante_nombre');
+    localStorage.removeItem('bloom_participante_codigo');
+    
+    // Limpiar variables globales
+    partSesionRef = null;
+    partNombre = '';
+    partYaVoto = false;
+    
+    // Resetear UI
+    document.getElementById('partAreaJuego').style.display = 'none';
+    document.getElementById('participanteStatus').style.display = 'none';
+    document.getElementById('partUnirse').disabled = false;
+    document.getElementById('partUnirse').textContent = '✅ Unirse a la sesión';
+    
+    // Limpiar campos del formulario
+    document.getElementById('partNombre').value = '';
+    document.getElementById('partCodigo').value = '';
+    
+    // Limpiar mensajes y estados
+    document.getElementById('partVerbo').textContent = '---';
+    document.getElementById('partEstado').textContent = '⏳ Esperando verbo...';
+    document.getElementById('partEstado').className = 'participante-estado esperando';
+    const msgDiv = document.getElementById('partMensaje');
+    if (msgDiv) {
+        msgDiv.style.display = 'none';
+        msgDiv.innerHTML = '';
+    }
+    
+    // Deshabilitar botones de voto
+    for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`partVotar${i}`);
+        if (btn) btn.disabled = true;
+    }
+    
+    // Mostrar pantalla del menú de juego
+    mostrarPantalla('screenJuegoMenu');
+    
+    console.log("✅ Sesión de participante cerrada correctamente");
+});
+// ==================== MOSTRAR HISTORIAL (CORREGIDO) ====================
+
+function mostrarModalHistorial(nombreDocente, votosDocente) {
+    console.log("📊 Mostrando modal para:", nombreDocente, "votos:", votosDocente.length);
+    
+    // Calcular estadísticas
+    const totalVotos = votosDocente.length;
+    const aciertos = votosDocente.filter(v => v.nivelVotado === v.nivelCorrecto).length;
+    const porcentaje = totalVotos > 0 ? Math.round((aciertos / totalVotos) * 100) : 0;
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(4px);
+        z-index: 20000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: var(--card);
+        border-radius: 24px;
+        padding: 1.5rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+    `;
+    
+    let historialHtml = `
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--blue);">📊 ${nombreDocente}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">Historial de votaciones</div>
+        </div>
+        <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.2rem;">
+            <div style="background: var(--card2); border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--blue);">${totalVotos}</div>
+                <div style="font-size: 0.65rem;">Votos</div>
+            </div>
+            <div style="background: #d4edda; border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #155724;">${aciertos}</div>
+                <div style="font-size: 0.65rem;">✅ Aciertos</div>
+            </div>
+            <div style="background: #f8d7da; border-radius: 16px; padding: 0.8rem; text-align: center; flex: 1;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #721c24;">${totalVotos - aciertos}</div>
+                <div style="font-size: 0.65rem;">❌ Errores</div>
+            </div>
+        </div>
+        <div style="font-size: 0.7rem; font-weight: 700; text-align: center; margin-bottom: 1rem; background: #e2edf2; border-radius: 40px; padding: 4px; color: var(--text-secondary);">
+            🎯 ${porcentaje}% de aciertos
+        </div>
+    `;
+    
+    if (totalVotos === 0) {
+        historialHtml += '<p style="text-align: center; color: var(--text-muted);">No hay votos registrados de este docente</p>';
+    } else {
+        historialHtml += `
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+                    <thead>
+                        <tr style="background: var(--border);">
+                            <th style="padding: 8px; text-align: left;">Verbo</th>
+                            <th style="padding: 8px; text-align: center;">Votó</th>
+                            <th style="padding: 8px; text-align: center;">Correcto</th>
+                            <th style="padding: 8px; text-align: center;">✅</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${votosDocente.map(v => `
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 8px;">${v.verbo}</td>
+                                <td style="padding: 8px; text-align: center;"><strong>N${v.nivelVotado}</strong></td>
+                                <td style="padding: 8px; text-align: center;">N${v.nivelCorrecto}</td>
+                                <td style="padding: 8px; text-align: center;">${v.nivelVotado === v.nivelCorrecto ? '✅' : '❌'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    modalContent.innerHTML = `
+        <button id="closeHistorialBtn" style="position: absolute; top: 12px; right: 14px; background: var(--red); border: none; border-radius: 50%; width: 30px; height: 30px; color: white; font-size: 1rem; cursor: pointer;">✕</button>
+        ${historialHtml}
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    document.getElementById('closeHistorialBtn').onclick = () => {
+        modal.remove();
+    };
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+</script>
+
+
+
+  
+</body>

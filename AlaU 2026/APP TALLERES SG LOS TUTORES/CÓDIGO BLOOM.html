@@ -1,0 +1,1090 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Taxonomía de Bloom · Sistema Completo</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at 20% 30%, rgba(44,125,160,.12), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(39,174,96,.1), transparent 40%),
+                linear-gradient(145deg, #e8f0f7, #d9e7f3);
+    min-height: 100vh;
+    color: #0f2b3d;
+}
+:root { --blue: #2c7da0; --green: #27ae60; --red: #c0392b; --orange: #e67e22; --purple: #8e44ad; --card: #fff; --border: #e2edf2; }
+body.dark { background: #0d1117; --card: #161b22; --border: #30363d; color: #e6edf3; }
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
+.topbar {
+    background: #0f2b3d;
+    color: white;
+    padding: 0.75rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
+body.dark .topbar { background: #010409; }
+.btn {
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn-primary { background: var(--blue); color: white; }
+.btn-success { background: var(--green); color: white; }
+.btn-danger { background: var(--red); color: white; }
+.btn-warning { background: var(--orange); color: white; }
+.btn-secondary { background: #6c757d; color: white; }
+.container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; width: 100%; }
+.role-cards { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 2rem; }
+.role-card {
+    flex: 1;
+    min-width: 250px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 24px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.45);
+}
+body.dark .role-card { background: rgba(22,27,34,0.85); }
+.role-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px rgba(0,0,0,0.15); }
+.rc-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+.rc-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 0.3rem; }
+.rc-desc { font-size: 0.75rem; color: #5a7a8a; }
+.card-modulo {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+}
+.modulo-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--blue);
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.modulo-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.modulo-buttons .btn { flex: 1; min-width: 140px; }
+.text-center { text-align: center; }
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.modal.open { display: flex; }
+.modal-content {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 1.5rem;
+    max-width: 550px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+.close-modal-btn { background: var(--red); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+form input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 40px;
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    background: var(--card);
+}
+.flex { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.card-title { font-size: 0.7rem; font-weight: 800; color: var(--blue); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+/* ========== DISEÑO DE FILAS TIPO TABLA ========== */
+.verbos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.verbo-fila {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+.verbo-fila:hover { transform: translateX(4px); }
+.verbo-etiqueta {
+    flex: 0 0 180px;
+    background: #e8f0fe;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px 12px;
+    border-left: 4px solid #2c7da0;
+}
+.verbo-etiqueta span {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #1e4a6b;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+}
+.niveles-contenedor {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 12px 16px;
+    border: 1px solid #e2edf2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+}
+body.dark .niveles-contenedor { background: #1c2430; border-color: #30363d; }
+.niveles-contenedor:hover { border-color: #2c7da0; box-shadow: 0 2px 8px rgba(44,125,160,0.1); }
+.niveles-grupo {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+.btn-nivel {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 12px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    color: #4a5568;
+}
+body.dark .btn-nivel { background: #21262d; border-color: #30363d; color: #e6edf3; }
+.btn-nivel:hover { background: #f0f4f8; border-color: #2c7da0; transform: translateY(-1px); }
+.btn-nivel.seleccionado {
+    background: linear-gradient(135deg, #2c7da0, #1e4a6b);
+    border-color: #2c7da0;
+    color: white;
+    box-shadow: 0 2px 8px rgba(44,125,160,0.3);
+}
+.btn-nivel[data-nivel="1"].seleccionado { background: linear-gradient(135deg, #c0392b, #e74c3c); border-color: #c0392b; }
+.btn-nivel[data-nivel="2"].seleccionado { background: linear-gradient(135deg, #d4a017, #f39c12); border-color: #d4a017; }
+.btn-nivel[data-nivel="3"].seleccionado { background: linear-gradient(135deg, #2980b9, #3498db); border-color: #2980b9; }
+.btn-nivel[data-nivel="4"].seleccionado { background: linear-gradient(135deg, #1e8449, #27ae60); border-color: #1e8449; }
+@media (max-width: 640px) {
+    .verbo-fila { flex-direction: column; gap: 10px; }
+    .verbo-etiqueta { flex: none; width: 100%; padding: 12px; }
+    .niveles-grupo { gap: 8px; }
+    .btn-nivel { min-width: 60px; padding: 8px 10px; font-size: 0.75rem; }
+}
+.verbos-grid {
+    max-height: 550px;
+    overflow-y: auto;
+    padding-right: 5px;
+    scrollbar-width: thin;
+}
+.verbos-grid::-webkit-scrollbar { width: 5px; }
+.verbos-grid::-webkit-scrollbar-track { background: #e2edf2; border-radius: 10px; }
+.verbos-grid::-webkit-scrollbar-thumb { background: #2c7da0; border-radius: 10px; }
+
+.step-indicator { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.step { padding: 8px 20px; border-radius: 40px; background: #f1f5f9; color: #64748b; font-weight: 600; }
+.step.active { background: var(--blue); color: white; }
+.step.completed { background: var(--green); color: white; }
+.progress-bar { height: 6px; background: #ddd; border-radius: 10px; margin-bottom: 1rem; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f1f5f9; }
+.bar-wrap { margin-bottom: 0.65rem; }
+.bar-label-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+.bar-track { background: var(--border); border-radius: 40px; height: 20px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 40px; transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.bar-fill span { font-size: 0.7rem; font-weight: 800; color: white; }
+.bf-n1 { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+.bf-n2 { background: linear-gradient(90deg, #d4a017, #f1c40f); }
+.bf-n3 { background: linear-gradient(90deg, #2980b9, #3498db); }
+.bf-n4 { background: linear-gradient(90deg, #1e8449, #27ae60); }
+.total-label { font-size: 0.8rem; text-align: right; margin-top: 0.5rem; font-weight: 600; }
+.pdf-container { display: flex; gap: 1rem; padding: 1rem; min-height: calc(100vh - 80px); }
+.pdf-left { flex: 2; background: var(--card); border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+.pdf-left-header { background: linear-gradient(135deg, #0f2b3d, #1e4a6b); color: white; padding: 1rem; text-align: center; }
+.verbo-display { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; }
+.verbo-grande { font-size: clamp(2rem, 6vw, 4rem); font-weight: 800; text-align: center; }
+.pdf-right { flex: 1; background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; }
+.panel-section { padding: 1rem; border-bottom: 1px solid var(--border); }
+.panel-title { font-size: 0.7rem; font-weight: 800; color: var(--blue); text-transform: uppercase; margin-bottom: 0.5rem; }
+.verbo-item-lista { padding: 8px; cursor: pointer; border-bottom: 1px solid var(--border); }
+.verbo-item-lista:hover { background: var(--border); }
+@media (max-width: 900px) { .pdf-container { flex-direction: column; } .verbo-grande { font-size: 2rem; } }
+
+/* Estilos para el detalle de respuestas en el modal */
+.respuesta-item {
+    padding: 8px;
+    margin: 4px 0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.respuesta-correcta { background: #d4edda; color: #155724; }
+.respuesta-incorrecta { background: #f8d7da; color: #721c24; }
+.respuesta-sin { background: #fff3cd; color: #856404; }
+</style>
+
+
+
+
+<div id="screenMain" class="screen active">
+    <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;">
+        <div style="font-size: 3.5rem;">📚</div>
+        <h1>Taxonomía de Bloom</h1>
+        <p>Sistema de evaluación y capacitación docente</p>
+        <div class="role-cards">
+            <div class="role-card" id="cardEncuesta"><div class="rc-icon">📝</div><div class="rc-title">Encuesta Individual</div><div class="rc-desc">Evaluación diagnóstica de conocimientos</div></div>
+            <div class="role-card" id="cardJuego"><div class="rc-icon">🎮</div><div class="rc-title">Juego Bloom</div><div class="rc-desc">Capacitación grupal · Clasifica verbos</div></div>
+        </div>
+        <button class="btn" id="darkModeToggle" style="margin-top: 2rem; background: var(--blue); color: white;">🌙 Modo Oscuro</button>
+    </div>
+</div>
+
+
+<div id="screenEncuestaMenu" class="screen">
+    <div class="topbar"><span>📝 Encuesta Individual</span><button class="btn" id="volverMainEncuesta" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container"><div class="card-modulo"><div class="modulo-title">📋 EVALUACIÓN DE CONOCIMIENTOS</div><p>Instrumento para evaluar la comprensión de la Taxonomía de Bloom</p><div class="modulo-buttons"><button id="btnRealizarEncuesta" class="btn btn-primary">📝 Realizar Encuesta</button><button id="btnAdminEncuesta" class="btn btn-warning">🔐 Panel Administrador</button></div></div></div>
+</div>
+
+
+<div id="screenJuegoMenu" class="screen">
+    <div class="topbar"><span>🎮 Juego Bloom</span><button class="btn" id="volverMainJuego" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container"><div class="card-modulo"><div class="modulo-title">🎯 CAPACITACIÓN GRUPAL</div><p>Los docentes clasifican verbos según su nivel. Los resultados muestran el conocimiento colectivo.</p><div class="modulo-buttons"><button id="btnFacilitador" class="btn btn-success">👨‍🏫 Facilitador</button><button id="btnParticipante" class="btn btn-primary">🎓 Participante</button></div><p style="margin-top:1rem; font-size:0.7rem;">💡 Los docentes son coautores de los resultados</p></div></div>
+</div>
+
+
+<div id="screenRealizarEncuesta" class="screen">
+    <div class="topbar"><span>📋 Encuesta Taxonomía</span><button class="btn" id="volverEncuestaMenu" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container">
+        <div class="card"><div class="card-title">👤 DATOS DEL DOCENTE</div><input type="text" id="encNombre" placeholder="Nombre"><input type="text" id="encApellidos" placeholder="Apellidos"><input type="tel" id="encTelefono" placeholder="Teléfono"><input type="email" id="encCorreo" placeholder="Correo electrónico"></div>
+        <div class="progress-bar"><div class="progress-fill" id="encProgress"></div></div>
+        <div class="step-indicator"><div class="step" id="step1Indicator">1. SABER</div><div class="step" id="step2Indicator">2. HACER</div><div class="step" id="step3Indicator">3. SER</div></div>
+        <div id="pasoSaberEnc"><div id="verbosSaberEnc" class="verbos-grid"></div></div>
+        <div id="pasoHacerEnc" style="display:none;"><div id="verbosHacerEnc" class="verbos-grid"></div></div>
+        <div id="pasoSerEnc" style="display:none;"><div id="verbosSerEnc" class="verbos-grid"></div></div>
+        <div class="flex" style="margin-top:1rem;"><button id="encBtnAnterior" class="btn" style="background:#6c757d; color:white; display:none;">◀ Anterior</button><button id="encBtnSiguiente" class="btn btn-primary">Siguiente ▶</button><button id="encBtnEnviar" class="btn btn-success" style="display:none;">📤 Enviar</button></div>
+    </div>
+</div>
+
+
+<div id="screenAdminEncuesta" class="screen">
+    <div class="topbar"><span>🔐 Administrador · Encuestas</span><div class="flex">
+        <button id="exportarExcelConsolidado" class="btn btn-success">📥 Exportar Excel Consolidado</button>
+        <button id="logoutAdminBtn" class="btn btn-danger">🚪 Cerrar sesión</button>
+        <button id="volverAdminMenu" class="btn btn-secondary" style="background: #6c757d;">← Volver</button>
+    </div></div>
+    <div class="container"><div class="filtros"><input type="text" id="filtroAdminEnc" placeholder="🔍 Buscar..."></div>
+    <div class="card"><div style="overflow-x:auto;"><table id="tablaAdminEnc"><thead><tr><th>Nombre</th><th>Apellidos</th><th>Correo</th><th>Fecha</th><th>Puntaje</th><th>Acciones</th></tr></thead><tbody id="adminEncBody"></tbody></table></div></div></div>
+</div>
+
+
+<div id="screenFacilitador" class="screen">
+    <div class="topbar"><span>👨‍🏫 Facilitador · Juego Bloom</span><div class="flex"><button id="logoutFacilitadorBtn" class="btn btn-danger">🚪 Cerrar sesión</button><button id="volverJuegoMenu" class="btn btn-secondary" style="background: #6c757d;">← Volver</button></div></div>
+    <div class="pdf-container">
+        <div class="pdf-left"><div class="pdf-left-header"><h2>🎯 VERBO EN EVALUACIÓN</h2></div><div class="verbo-display"><div class="verbo-grande" id="juegoVerboActual">---</div><div id="juegoNivelCorrecto" style="background:#a78bfa; color:white; padding:0.5rem 1rem; border-radius:40px; margin-top:0.5rem;">Nivel correcto: ---</div><div id="juegoEstadoVotacion" style="margin-top:1rem; padding:0.5rem; border-radius:12px;">⏳ Selecciona un verbo</div><div class="flex" style="margin-top:1rem;"><button id="juegoLanzarBtn" class="btn btn-success">▶️ Lanzar</button><button id="juegoCerrarBtn" class="btn btn-danger">🔒 Cerrar</button></div></div></div>
+        <div class="pdf-right">
+            <div class="panel-section"><div class="panel-title">🔑 CÓDIGO</div><div id="codigoDisplay" style="font-size:1.8rem; font-weight:800; letter-spacing:4px; text-align:center;">------</div><div class="flex" style="margin-top:0.5rem;"><button id="copiarCodigoBtn" class="btn btn-primary" style="flex:1;">📋 Copiar</button><button id="regenerarCodigoBtn" class="btn btn-warning" style="flex:1;">🔄 Nuevo</button></div></div>
+            <div class="panel-section"><div class="panel-title">📋 SELECCIONAR VERBO</div><select id="juegoDimension" style="width:100%; padding:8px; border-radius:40px;"><option value="saber">📘 SABER</option><option value="hacer">🛠️ HACER</option><option value="ser">❤️ SER</option></select><input type="text" id="juegoBuscar" placeholder="🔍 Buscar..." style="width:100%; margin-top:0.5rem; padding:8px; border-radius:40px;"><div id="juegoListaVerbos" style="max-height:200px; overflow-y:auto; margin-top:0.5rem;"></div></div>
+            <div class="panel-section"><div class="panel-title">📊 RESULTADOS</div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#e74c3c;">N1</span><span id="jCnt1">0</span></div><div class="bar-track"><div class="bar-fill bf-n1" id="jBar1" style="width:0%"><span id="jBar1P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#f39c12;">N2</span><span id="jCnt2">0</span></div><div class="bar-track"><div class="bar-fill bf-n2" id="jBar2" style="width:0%"><span id="jBar2P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#3498db;">N3</span><span id="jCnt3">0</span></div><div class="bar-track"><div class="bar-fill bf-n3" id="jBar3" style="width:0%"><span id="jBar3P"></span></div></div></div><div class="bar-wrap"><div class="bar-label-row"><span style="color:#27ae60;">N4</span><span id="jCnt4">0</span></div><div class="bar-track"><div class="bar-fill bf-n4" id="jBar4" style="width:0%"><span id="jBar4P"></span></div></div></div><div class="total-label">👥 Total: <span id="jTotalVotos">0</span></div></div>
+            <div class="panel-section"><div class="panel-title">📋 HISTORIAL</div><div style="max-height:150px; overflow-y:auto;"><table style="width:100%; font-size:0.7rem;"><tbody id="juegoHistorialBody"></tbody></table></div><div class="flex" style="margin-top:0.5rem;"><button id="exportarJuegoExcel" class="btn btn-success" style="flex:1;">📥 Excel</button><button id="exportarJuegoPDF" class="btn btn-danger" style="flex:1;">📄 PDF</button><button id="limpiarJuegoHistorial" class="btn btn-warning" style="flex:1;">🗑️ Limpiar</button></div></div>
+        </div>
+    </div>
+</div>
+
+
+<div id="screenParticipante" class="screen">
+    <div class="topbar"><span>🎓 Participante · Juego Bloom</span><button class="btn" id="volverJuegoParticipante" style="background: rgba(255,255,255,0.15);">← Volver</button></div>
+    <div class="container" style="max-width:600px;"><div class="card"><div class="card-title">👤 TUS DATOS</div><input type="text" id="partNombre" placeholder="Tu nombre completo"><input type="text" id="partCodigo" placeholder="Código de sesión (6 caracteres)"><button id="partUnirse" class="btn btn-primary" style="width:100%;">✅ Unirse</button></div>
+    <div id="partAreaJuego" style="display:none;"><div class="card" style="text-align:center;"><div style="font-size:0.8rem;">VERBO ACTUAL</div><div id="partVerbo" style="font-size:2rem; font-weight:800; margin:1rem;">---</div><div id="partEstado" class="btn" style="background:#6c757d; color:white;">⏳ Esperando...</div><div class="flex" style="justify-content:center; gap:1rem; margin:1rem;"><button id="partVotar1" class="btn" style="background:#e74c3c; color:white; width:70px; height:70px; font-size:1.5rem;">N1</button><button id="partVotar2" class="btn" style="background:#f39c12; color:white; width:70px; height:70px; font-size:1.5rem;">N2</button><button id="partVotar3" class="btn" style="background:#3498db; color:white; width:70px; height:70px; font-size:1.5rem;">N3</button><button id="partVotar4" class="btn" style="background:#27ae60; color:white; width:70px; height:70px; font-size:1.5rem;">N4</button></div><div id="partMensaje" style="font-size:0.8rem;"></div><p style="margin-top:1rem; font-size:0.7rem;">💡 Tu voto es parte del diagnóstico colectivo</p></div></div></div>
+</div>
+
+
+<div id="modalDetalleEncuesta" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalDetalleTitulo">Detalle de Respuestas</h3>
+            <button class="close-modal-btn" onclick="cerrarModalDetalle()">✕</button>
+        </div>
+        <div id="modalDetalleBody"></div>
+        <div style="margin-top: 1rem; text-align: center; display: flex; gap: 0.5rem; justify-content: center;">
+            <button id="btnExportarDocenteModal" class="btn btn-success">📥 Exportar Excel este docente</button>
+            <button class="btn btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="loginModalTitle">🔐 Acceso</h3>
+            <button class="close-modal-btn" onclick="cerrarLoginModal()">✕</button>
+        </div>
+        <form id="loginForm" onsubmit="event.preventDefault(); login()" autocomplete="off">
+            <input type="email" id="loginEmail" name="email" placeholder="Correo electrónico" autocomplete="email" required="">
+            <input type="password" id="loginPassword" name="password" placeholder="Contraseña" autocomplete="current-password" required="">
+            <button type="submit" class="btn btn-primary" style="width:100%;">Ingresar</button>
+        </form>
+        <div id="loginError" style="color: #c0392b; font-size: 0.8rem; margin-top: 0.5rem; text-align: center; display: none;"></div>
+    </div>
+</div>
+
+<script>
+// ==================== FIREBASE ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyCxFxPRL9TcqTs3a_1YOYWOE1hhbf-C8xc",
+    authDomain: "taxonomia-de-bloom.firebaseapp.com",
+    databaseURL: "https://taxonomia-de-bloom-default-rtdb.firebaseio.com",
+    projectId: "taxonomia-de-bloom",
+    storageBucket: "taxonomia-de-bloom.firebasestorage.app",
+    messagingSenderId: "201947408125",
+    appId: "1:201947408125:web:21ccd5a50c1d50f056c094"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
+// ==================== VARIABLES ====================
+let encuestasGuardadas = [];
+let lastAction = null;
+let juegoSesionRef = null, juegoCodigo = null, juegoVotos = {1:0,2:0,3:0,4:0}, juegoHistorial = [], juegoVerboActual = null, juegoNivelActual = null, juegoListenerVotos = null;
+let docenteActual = null;
+// ==================== NAVEGACIÓN ====================
+function mostrarPantalla(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+}
+
+// ==================== AUTENTICACIÓN ====================
+function abrirLoginModal(accion) {
+    lastAction = accion;
+    const title = accion === 'admin' ? '🔐 Acceso Administrador' : '👨‍🏫 Acceso Facilitador';
+    document.getElementById('loginModalTitle').innerText = title;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginModal').classList.add('open');
+}
+
+function cerrarLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
+
+async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+        cerrarLoginModal();
+    } catch (e) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerText = '❌ Correo o contraseña incorrectos';
+    }
+}
+
+function logoutAdmin() { auth.signOut().then(() => mostrarPantalla('screenEncuestaMenu')); }
+function logoutFacilitador() { auth.signOut().then(() => { if(juegoSesionRef) juegoSesionRef.update({ activa: false }); mostrarPantalla('screenJuegoMenu'); }); }
+
+// ==================== ENCUESTA: DATOS ====================
+const VERBOS_ENC = {
+    saber: ["EVALUAR","ARGUMENTAR","JUSTIFICAR","DISEÑAR","FORMULAR","CREAR","INNOVAR","PLANIFICAR","CONCEBIR","APLICAR","ANALIZAR","COMPARAR","ORGANIZAR","DIFERENCIAR","CONTRASTAR","REVISAR","REFINAR","COMPRENDER","DESCRIBIR","EXPLICAR","INTERPRETAR","EJEMPLIFICAR","CLASIFICAR","RECORDAR","IDENTIFICAR","RECONOCER","DEFINIR","LISTAR","NOMBRAR"],
+    hacer: ["AUTOMATIZAR","OPTIMIZAR","TRANSFERIR","INNOVAR","TRAZAR ESTRATEGIAS","COMBINAR HERRAMIENTAS","COORDINAR","IMPLEMENTAR","INTEGRAR","PERFECCIONAR","APLICAR CON AUTONOMÍA","EJECUTAR","PRACTICAR","DEMOSTRAR","OPERAR","UTILIZAR CON APOYO","IMITAR","COPIAR","SEGUIR INSTRUCCIONES","MANIPULAR CON AYUDA"],
+    ser: ["INTERIORIZAR","LIDERAR","MODELAR","TRANSFORMAR","INFLUIR POSITIVAMENTE","VALIDAR ÉTICAMENTE","VALORAR","ARGUMENTAR","PROMOVER","ASUMIR RESPONSABILIDADES","SER CONSCIENTE","RESPONDER","PARTICIPAR","COLABORAR","RESPETAR","CUMPLIR","ATENDER","ESCUCHAR","ACEPTAR","MOSTRAR DISPOSICIÓN"]
+};
+const NIVELES_CORRECTOS_ENC = {
+    "EVALUAR":4,"ARGUMENTAR":4,"JUSTIFICAR":4,"DISEÑAR":4,"FORMULAR":4,"CREAR":4,"INNOVAR":4,"PLANIFICAR":4,"CONCEBIR":4,"APLICAR":3,"ANALIZAR":3,"COMPARAR":3,"ORGANIZAR":3,"DIFERENCIAR":3,"CONTRASTAR":3,"REVISAR":3,"REFINAR":3,"COMPRENDER":2,"DESCRIBIR":2,"EXPLICAR":2,"INTERPRETAR":2,"EJEMPLIFICAR":2,"CLASIFICAR":2,"RECORDAR":1,"IDENTIFICAR":1,"RECONOCER":1,"DEFINIR":1,"LISTAR":1,"NOMBRAR":1,
+    "AUTOMATIZAR":4,"OPTIMIZAR":4,"TRANSFERIR":4,"TRAZAR ESTRATEGIAS":4,"COMBINAR HERRAMIENTAS":4,"COORDINAR":3,"IMPLEMENTAR":3,"INTEGRAR":3,"PERFECCIONAR":3,"APLICAR CON AUTONOMÍA":3,"EJECUTAR":2,"PRACTICAR":2,"DEMOSTRAR":2,"OPERAR":2,"UTILIZAR CON APOYO":2,"IMITAR":1,"COPIAR":1,"SEGUIR INSTRUCCIONES":1,"MANIPULAR CON AYUDA":1,
+    "INTERIORIZAR":4,"LIDERAR":4,"MODELAR":4,"TRANSFORMAR":4,"INFLUIR POSITIVAMENTE":4,"VALIDAR ÉTICAMENTE":4,"VALORAR":3,"PROMOVER":3,"ASUMIR RESPONSABILIDADES":3,"SER CONSCIENTE":3,"RESPONDER":2,"PARTICIPAR":2,"COLABORAR":2,"RESPETAR":2,"CUMPLIR":2,"ATENDER":1,"ESCUCHAR":1,"ACEPTAR":1,"MOSTRAR DISPOSICIÓN":1
+};
+let respuestasEnc = { saber: {}, hacer: {}, ser: {} };
+let pasoEnc = 1;
+
+function renderizarVerbosEnc(dim, verbos, contId) {
+    const cont = document.getElementById(contId);
+    if (!cont) return;
+    cont.innerHTML = '';
+    verbos.forEach(verbo => {
+        const respuestaGuardada = respuestasEnc[dim][verbo] || null;
+        const fila = document.createElement('div');
+        fila.className = 'verbo-fila';
+        const etiqueta = document.createElement('div');
+        etiqueta.className = 'verbo-etiqueta';
+        etiqueta.innerHTML = `<span>${verbo}</span>`;
+        const contenedorNiveles = document.createElement('div');
+        contenedorNiveles.className = 'niveles-contenedor';
+        const grupoNiveles = document.createElement('div');
+        grupoNiveles.className = 'niveles-grupo';
+        for (let nivel = 1; nivel <= 4; nivel++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-nivel';
+            if (respuestaGuardada === nivel) btn.classList.add('seleccionado');
+            btn.setAttribute('data-nivel', nivel);
+            btn.textContent = `Nivel ${nivel}`;
+            btn.addEventListener('click', () => {
+                respuestasEnc[dim][verbo] = nivel;
+                const botones = fila.querySelectorAll('.btn-nivel');
+                botones.forEach(b => b.classList.remove('seleccionado'));
+                btn.classList.add('seleccionado');
+            });
+            grupoNiveles.appendChild(btn);
+        }
+        contenedorNiveles.appendChild(grupoNiveles);
+        fila.appendChild(etiqueta);
+        fila.appendChild(contenedorNiveles);
+        cont.appendChild(fila);
+    });
+}
+
+function cargarEncuestaUI() {
+    renderizarVerbosEnc('saber', VERBOS_ENC.saber, 'verbosSaberEnc');
+    renderizarVerbosEnc('hacer', VERBOS_ENC.hacer, 'verbosHacerEnc');
+    renderizarVerbosEnc('ser', VERBOS_ENC.ser, 'verbosSerEnc');
+    actualizarPasosEnc();
+}
+
+function actualizarPasosEnc() {
+    document.getElementById('pasoSaberEnc').style.display = pasoEnc === 1 ? 'block' : 'none';
+    document.getElementById('pasoHacerEnc').style.display = pasoEnc === 2 ? 'block' : 'none';
+    document.getElementById('pasoSerEnc').style.display = pasoEnc === 3 ? 'block' : 'none';
+    document.getElementById('encBtnAnterior').style.display = pasoEnc === 1 ? 'none' : 'inline-block';
+    document.getElementById('encBtnSiguiente').style.display = pasoEnc === 3 ? 'none' : 'inline-block';
+    document.getElementById('encBtnEnviar').style.display = pasoEnc === 3 ? 'inline-block' : 'none';
+    document.getElementById('encProgress').style.width = ((pasoEnc-1)/3*100) + (pasoEnc===3?33.33:0) + '%';
+    const steps = ['step1Indicator','step2Indicator','step3Indicator'];
+    steps.forEach((id,i) => { const el = document.getElementById(id); if(el) { if(i+1 === pasoEnc) { el.classList.add('active'); el.classList.remove('completed'); } else if(i+1 < pasoEnc) { el.classList.remove('active'); el.classList.add('completed'); } else { el.classList.remove('active','completed'); } } });
+}
+
+function validarPasoEnc() { 
+    const dim = {1:'saber',2:'hacer',3:'ser'}[pasoEnc];
+    for (let v of VERBOS_ENC[dim]) if (!respuestasEnc[dim][v]) { alert(`Por favor, responde: ${v}`); return false; }
+    return true; 
+}
+
+async function enviarEncuesta() {
+    if (!validarPasoEnc()) return;
+    const nombre = document.getElementById('encNombre').value.trim(), apellidos = document.getElementById('encApellidos').value.trim(), telefono = document.getElementById('encTelefono').value.trim(), correo = document.getElementById('encCorreo').value.trim();
+    if (!nombre || !apellidos || !correo) { alert('Completa tus datos'); return; }
+    let correctos=0, total=0;
+    for (let dim of ['saber','hacer','ser']) for (let [v,n] of Object.entries(respuestasEnc[dim])) { total++; if (NIVELES_CORRECTOS_ENC[v] === n) correctos++; }
+    const porcentaje = total ? Math.round(correctos/total*100) : 0;
+    await db.ref('encuestas').push().set({ nombre, apellidos, telefono, correo, fecha: new Date().toISOString(), respuestas: JSON.parse(JSON.stringify(respuestasEnc)), puntaje: correctos, totalPreguntas: total, porcentaje });
+    alert(`✅ Encuesta enviada! Puntaje: ${correctos}/${total} (${porcentaje}%)`);
+    mostrarPantalla('screenEncuestaMenu');
+}
+
+// ==================== ENCUESTA: ADMIN ====================
+async function cargarEncuestasAdmin() { 
+    const snap = await db.ref('encuestas').once('value'); 
+    encuestasGuardadas = Object.values(snap.val() || {}); 
+    renderizarAdminEnc(); 
+}
+
+function renderizarAdminEnc(filtro='') { 
+    const tbody=document.getElementById('adminEncBody'); 
+    if(!tbody) return; 
+    let f=encuestasGuardadas.filter(e=>!filtro||e.nombre?.toLowerCase().includes(filtro)||e.apellidos?.toLowerCase().includes(filtro)||e.correo?.toLowerCase().includes(filtro)); 
+    tbody.innerHTML=f.map((e,idx)=>`<tr>
+        <td>${e.nombre||''}】?
+        <td>${e.apellidos||''}】?
+        <td>${e.correo||''}】?
+        <td>${new Date(e.fecha).toLocaleDateString()}】?
+        <td>${e.puntaje}/${e.totalPreguntas} (${e.porcentaje}%)】?
+        <td><button class="btn btn-primary" style="padding:4px 12px;" onclick="verDetalleEncuesta(${idx})">Ver</button>】?
+    </table>`).join(''); 
+}
+
+// ========== FUNCIÓN PARA VER DETALLE DE RESPUESTAS DEL DOCENTE ==========
+let encuestaActual = null;  // Variable global para la encuesta actual
+
+window.verDetalleEncuesta = function(idx) {
+    encuestaActual = encuestasGuardadas[idx];  // Guardar referencia
+    const encuesta = encuestaActual;
+    if (!encuesta) return;
+    
+    document.getElementById('modalDetalleTitulo').innerHTML = `📋 ${encuesta.nombre} ${encuesta.apellidos}`;
+    
+    let html = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: var(--card2); border-radius: 12px;">
+            <p><strong>📧 Correo:</strong> ${encuesta.correo || 'No especificado'}</p>
+            <p><strong>📱 Teléfono:</strong> ${encuesta.telefono || 'No especificado'}</p>
+            <p><strong>📅 Fecha:</strong> ${new Date(encuesta.fecha).toLocaleString()}</p>
+            <p><strong>🎯 Puntaje:</strong> ${encuesta.puntaje}/${encuesta.totalPreguntas} (${encuesta.porcentaje}%)</p>
+        </div>
+    `;
+    
+    for (let dim of ['saber', 'hacer', 'ser']) {
+        const dimNombre = dim.toUpperCase();
+        const dimIcono = dim === 'saber' ? '📚' : dim === 'hacer' ? '🛠️' : '❤️';
+        html += `<h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">${dimIcono} DIMENSIÓN ${dimNombre}</h4>`;
+        html += `<div style="margin-bottom: 1rem;">`;
+        
+        const respuestasDim = encuesta.respuestas?.[dim] || {};
+        if (Object.keys(respuestasDim).length === 0) {
+            html += `<p style="color: #666;">No hay respuestas registradas</p>`;
+        } else {
+            for (let [verbo, nivel] of Object.entries(respuestasDim)) {
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                let clase = 'respuesta-incorrecta';
+                let icono = '❌';
+                if (nivel === correcto) {
+                    clase = 'respuesta-correcta';
+                    icono = '✅';
+                } else if (!nivel) {
+                    clase = 'respuesta-sin';
+                    icono = '⚠️';
+                }
+                html += `
+                    <div class="respuesta-item ${clase}">
+                        <span><strong>${verbo}</strong></span>
+                        <span>${icono} Respuesta: Nivel ${nivel || '?'} | Correcto: Nivel ${correcto}</span>
+                    </div>
+                `;
+            }
+        }
+        html += `</div>`;
+    }
+    
+    document.getElementById('modalDetalleBody').innerHTML = html;
+    document.getElementById('modalDetalleEncuesta').classList.add('open');
+};
+
+// Evento para el botón del modal
+document.getElementById('btnExportarDocenteModal')?.addEventListener('click', () => {
+    if (encuestaActual) {
+        exportarExcelDocente(encuestaActual);
+    } else {
+        alert('No hay datos para exportar');
+    }
+});
+
+function cerrarModalDetalle() {
+    document.getElementById('modalDetalleEncuesta').classList.remove('open');
+}
+
+
+
+// ==================== INICIO DESCARGAS EXCEL ====================
+
+async function juegoExportarExcel() {
+    if (!juegoHistorial.length) {
+        alert('No hay datos para exportar');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    
+    // Crear datos para el Excel
+    const exportData = juegoHistorial.map(h => ({
+        'Verbo': h.verbo,
+        'Nivel Correcto': h.nivelCorrecto,
+        'Votos N1': h.votos[1] || 0,
+        'Votos N2': h.votos[2] || 0,
+        'Votos N3': h.votos[3] || 0,
+        'Votos N4': h.votos[4] || 0,
+        'Total Votos': h.totalVotos || 0,
+        'Aciertos': h.aciertos || 0,
+        '% Aciertos': h.porcentaje || 0
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Juego Bloom');
+    
+    XLSX.writeFile(wb, `juego_bloom_${new Date().toISOString().slice(0,19)}.xlsx`);
+}
+
+function exportarExcelDocente(encuesta) {
+    if (!encuesta) {
+        alert('No hay datos del docente para exportar');
+        return;
+    }
+    
+    const wb = XLSX.utils.book_new();
+    const data = [];
+    
+    // Encabezado con formato Tipo/Valor
+    data.push({ 'Tipo': 'INFORME INDIVIDUAL - TAXONOMÍA DE BLOOM', 'Valor': '' });
+    data.push({ 'Tipo': 'Docente', 'Valor': `${encuesta.nombre} ${encuesta.apellidos}` });
+    data.push({ 'Tipo': 'Correo', 'Valor': encuesta.correo || 'No especificado' });
+    data.push({ 'Tipo': 'Teléfono', 'Valor': encuesta.telefono || 'No especificado' });
+    data.push({ 'Tipo': 'Fecha', 'Valor': encuesta.fecha ? new Date(encuesta.fecha).toLocaleString() : '' });
+    
+    // Calcular totales
+    let correctos = 0;
+    let totalRespondidos = 0;
+    
+    for (let dim of ['saber', 'hacer', 'ser']) {
+        for (let verbo of VERBOS_ENC[dim]) {
+            const nivel = encuesta.respuestas?.[dim]?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                totalRespondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) correctos++;
+            }
+        }
+    }
+    
+    const porcentajeGeneral = totalRespondidos > 0 ? ((correctos / totalRespondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'Puntaje Total', 'Valor': `${correctos}/${totalRespondidos} (${porcentajeGeneral}%)` });
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Calcular estadísticas por dimensión
+    const stats = { SABER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.saber.length }, 
+                    HACER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.hacer.length }, 
+                    SER: { correctos: 0, respondidos: 0, total: VERBOS_ENC.ser.length } };
+    
+    for (let verbo of VERBOS_ENC.saber) {
+        const nivel = encuesta.respuestas?.saber?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.SABER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.SABER.correctos++;
+        }
+    }
+    
+    for (let verbo of VERBOS_ENC.hacer) {
+        const nivel = encuesta.respuestas?.hacer?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.HACER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.HACER.correctos++;
+        }
+    }
+    
+    for (let verbo of VERBOS_ENC.ser) {
+        const nivel = encuesta.respuestas?.ser?.[verbo];
+        if (nivel && nivel >= 1 && nivel <= 4) {
+            stats.SER.respondidos++;
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel === correcto) stats.SER.correctos++;
+        }
+    }
+    
+    // Resumen por dimensión
+    data.push({ 'Tipo': '📊 RESUMEN POR DIMENSIÓN', 'Valor': '' });
+    
+    const pctSaber = stats.SABER.respondidos > 0 ? ((stats.SABER.correctos / stats.SABER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'SABER', 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} (sobre ${stats.SABER.total} verbos) → ${pctSaber}%` });
+    
+    const pctHacer = stats.HACER.respondidos > 0 ? ((stats.HACER.correctos / stats.HACER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'HACER', 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} (sobre ${stats.HACER.total} verbos) → ${pctHacer}%` });
+    
+    const pctSer = stats.SER.respondidos > 0 ? ((stats.SER.correctos / stats.SER.respondidos) * 100).toFixed(1) : 0;
+    data.push({ 'Tipo': 'SER', 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} (sobre ${stats.SER.total} verbos) → ${pctSer}%` });
+    
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión SABER
+    data.push({ 'Tipo': `📚 DIMENSIÓN SABER`, 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} respondidos → ${pctSaber}%` });
+    for (let verbo of VERBOS_ENC.saber) {
+        const nivel = encuesta.respuestas?.saber?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión HACER
+    data.push({ 'Tipo': `🛠️ DIMENSIÓN HACER`, 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} respondidos → ${pctHacer}%` });
+    for (let verbo of VERBOS_ENC.hacer) {
+        const nivel = encuesta.respuestas?.hacer?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    data.push({ 'Tipo': '', 'Valor': '' });
+    
+    // Dimensión SER
+    data.push({ 'Tipo': `❤️ DIMENSIÓN SER`, 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} respondidos → ${pctSer}%` });
+    for (let verbo of VERBOS_ENC.ser) {
+        const nivel = encuesta.respuestas?.ser?.[verbo];
+        const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+        if (nivel) {
+            const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+            data.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+        } else {
+            data.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+        }
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [{ wch: 35 }, { wch: 65 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Informe Individual');
+    XLSX.writeFile(wb, `informe_${encuesta.nombre}_${encuesta.apellidos}.xlsx`);
+}
+
+function exportarExcelConsolidado() {
+    if (!encuestasGuardadas.length) { 
+        alert('No hay datos para exportar'); 
+        return; 
+    }
+    
+    const wb = XLSX.utils.book_new();
+    
+    // ==================== HOJA 1: RESUMEN GLOBAL POR VERBO ====================
+    const resumenVerbos = [];
+    
+    for (let dim of ['SABER', 'HACER', 'SER']) {
+        resumenVerbos.push({ 
+            'Verbo': `📊 DIMENSIÓN ${dim}`, 
+            'Nivel Correcto': '', 
+            '%N1': '', 
+            '%N2': '', 
+            '%N3': '', 
+            '%N4': '', 
+            'Predominante': '' 
+        });
+        
+        const dimKey = dim.toLowerCase();
+        const verbosDim = VERBOS_ENC[dimKey] || [];
+        
+        for (let verbo of verbosDim) {
+            const nivelCorrecto = NIVELES_CORRECTOS_ENC[verbo] || 1;
+            
+            let totalRespuestas = 0;
+            let conteos = { 1: 0, 2: 0, 3: 0, 4: 0 };
+            
+            encuestasGuardadas.forEach(encuesta => {
+                const respuestasDim = encuesta.respuestas?.[dimKey] || {};
+                const nivel = respuestasDim[verbo];
+                if (nivel && nivel >= 1 && nivel <= 4) {
+                    totalRespuestas++;
+                    conteos[nivel]++;
+                }
+            });
+            
+            const pct1 = totalRespuestas > 0 ? ((conteos[1] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct2 = totalRespuestas > 0 ? ((conteos[2] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct3 = totalRespuestas > 0 ? ((conteos[3] / totalRespuestas) * 100).toFixed(1) : 0;
+            const pct4 = totalRespuestas > 0 ? ((conteos[4] / totalRespuestas) * 100).toFixed(1) : 0;
+            
+            const niveles = [parseFloat(pct1), parseFloat(pct2), parseFloat(pct3), parseFloat(pct4)];
+            const maxIndex = niveles.indexOf(Math.max(...niveles));
+            const predominante = maxIndex + 1;
+            
+            resumenVerbos.push({
+                'Verbo': verbo,
+                'Nivel Correcto': `Nivel ${nivelCorrecto}`,
+                '%N1': `${pct1}%`,
+                '%N2': `${pct2}%`,
+                '%N3': `${pct3}%`,
+                '%N4': `${pct4}%`,
+                'Predominante': `Nivel ${predominante}`
+            });
+        }
+        
+        resumenVerbos.push({ 
+            'Verbo': '', 
+            'Nivel Correcto': '', 
+            '%N1': '', 
+            '%N2': '', 
+            '%N3': '', 
+            '%N4': '', 
+            'Predominante': '' 
+        });
+    }
+    
+    const wsResumen = XLSX.utils.json_to_sheet(resumenVerbos);
+    wsResumen['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Global por Verbo');
+    
+    // ==================== HOJAS POR CADA DOCENTE ====================
+    encuestasGuardadas.forEach(encuesta => {
+        const dataDocente = [];
+        
+        // Encabezado con formato Tipo/Valor (como en el informe individual)
+        dataDocente.push({ 'Tipo': 'INFORME INDIVIDUAL - TAXONOMÍA DE BLOOM', 'Valor': '' });
+        dataDocente.push({ 'Tipo': 'Docente', 'Valor': `${encuesta.nombre} ${encuesta.apellidos}` });
+        dataDocente.push({ 'Tipo': 'Correo', 'Valor': encuesta.correo || 'No especificado' });
+        dataDocente.push({ 'Tipo': 'Teléfono', 'Valor': encuesta.telefono || 'No especificado' });
+        dataDocente.push({ 'Tipo': 'Fecha', 'Valor': encuesta.fecha ? new Date(encuesta.fecha).toLocaleString() : '' });
+        
+        // Calcular total de verbos REALES (70 = 30 SABER + 20 HACER + 20 SER)
+        const totalSaberReal = VERBOS_ENC.saber.length;  // 30
+        const totalHacerReal = VERBOS_ENC.hacer.length;  // 20
+        const totalSerReal = VERBOS_ENC.ser.length;      // 20
+        const totalGeneralReal = totalSaberReal + totalHacerReal + totalSerReal;  // 70
+        
+        // Obtener respuestas reales del docente
+        let correctos = 0;
+        let totalRespondidos = 0;
+        
+        for (let dim of ['saber', 'hacer', 'ser']) {
+            for (let verbo of VERBOS_ENC[dim]) {
+                const nivel = encuesta.respuestas?.[dim]?.[verbo];
+                if (nivel && nivel >= 1 && nivel <= 4) {
+                    totalRespondidos++;
+                    const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                    if (nivel === correcto) correctos++;
+                }
+            }
+        }
+        
+        const porcentajeGeneral = totalRespondidos > 0 ? ((correctos / totalRespondidos) * 100).toFixed(1) : 0;
+        dataDocente.push({ 'Tipo': 'Puntaje Total', 'Valor': `${correctos}/${totalRespondidos} (${porcentajeGeneral}%)` });
+        dataDocente.push({ 'Tipo': '', 'Valor': '' });
+        
+        // Calcular estadísticas por dimensión (usando totales REALES de cada dimensión)
+        const stats = { SABER: { correctos: 0, total: totalSaberReal, respondidos: 0 }, 
+                        HACER: { correctos: 0, total: totalHacerReal, respondidos: 0 }, 
+                        SER: { correctos: 0, total: totalSerReal, respondidos: 0 } };
+        
+        for (let verbo of VERBOS_ENC.saber) {
+            const nivel = encuesta.respuestas?.saber?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.SABER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.SABER.correctos++;
+            }
+        }
+        
+        for (let verbo of VERBOS_ENC.hacer) {
+            const nivel = encuesta.respuestas?.hacer?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.HACER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.HACER.correctos++;
+            }
+        }
+        
+        for (let verbo of VERBOS_ENC.ser) {
+            const nivel = encuesta.respuestas?.ser?.[verbo];
+            if (nivel && nivel >= 1 && nivel <= 4) {
+                stats.SER.respondidos++;
+                const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+                if (nivel === correcto) stats.SER.correctos++;
+            }
+        }
+        
+        // Resumen por dimensión
+        dataDocente.push({ 'Tipo': '📊 RESUMEN POR DIMENSIÓN', 'Valor': '' });
+        
+        const pctSaber = stats.SABER.respondidos > 0 ? ((stats.SABER.correctos / stats.SABER.respondidos) * 100).toFixed(1) : 0;
+        dataDocente.push({ 'Tipo': 'SABER', 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} (sobre ${stats.SABER.total} verbos) → ${pctSaber}%` });
+        
+        const pctHacer = stats.HACER.respondidos > 0 ? ((stats.HACER.correctos / stats.HACER.respondidos) * 100).toFixed(1) : 0;
+        dataDocente.push({ 'Tipo': 'HACER', 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} (sobre ${stats.HACER.total} verbos) → ${pctHacer}%` });
+        
+        const pctSer = stats.SER.respondidos > 0 ? ((stats.SER.correctos / stats.SER.respondidos) * 100).toFixed(1) : 0;
+        dataDocente.push({ 'Tipo': 'SER', 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} (sobre ${stats.SER.total} verbos) → ${pctSer}%` });
+        
+        dataDocente.push({ 'Tipo': '', 'Valor': '' });
+        
+        // Dimensión SABER
+        dataDocente.push({ 'Tipo': `📚 DIMENSIÓN SABER`, 'Valor': `${stats.SABER.correctos}/${stats.SABER.respondidos} respondidos → ${pctSaber}%` });
+        for (let verbo of VERBOS_ENC.saber) {
+            const nivel = encuesta.respuestas?.saber?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            let estado = '❌ Sin responder';
+            if (nivel) {
+                estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+            } else {
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+            }
+        }
+        dataDocente.push({ 'Tipo': '', 'Valor': '' });
+        
+        // Dimensión HACER
+        dataDocente.push({ 'Tipo': `🛠️ DIMENSIÓN HACER`, 'Valor': `${stats.HACER.correctos}/${stats.HACER.respondidos} respondidos → ${pctHacer}%` });
+        for (let verbo of VERBOS_ENC.hacer) {
+            const nivel = encuesta.respuestas?.hacer?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel) {
+                const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+            } else {
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+            }
+        }
+        dataDocente.push({ 'Tipo': '', 'Valor': '' });
+        
+        // Dimensión SER
+        dataDocente.push({ 'Tipo': `❤️ DIMENSIÓN SER`, 'Valor': `${stats.SER.correctos}/${stats.SER.respondidos} respondidos → ${pctSer}%` });
+        for (let verbo of VERBOS_ENC.ser) {
+            const nivel = encuesta.respuestas?.ser?.[verbo];
+            const correcto = NIVELES_CORRECTOS_ENC[verbo] || 0;
+            if (nivel) {
+                const estado = nivel === correcto ? '✅ Correcto' : '❌ Incorrecto';
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `Respuesta: Nivel ${nivel} | Correcto: Nivel ${correcto} | ${estado}` });
+            } else {
+                dataDocente.push({ 'Tipo': verbo, 'Valor': `⚠️ Sin respuesta | Correcto: Nivel ${correcto}` });
+            }
+        }
+        
+        const wsDocente = XLSX.utils.json_to_sheet(dataDocente);
+        wsDocente['!cols'] = [{ wch: 35 }, { wch: 65 }];
+        
+        let nombreHoja = `${encuesta.nombre} ${encuesta.apellidos}`.substring(0, 31);
+        nombreHoja = nombreHoja.replace(/[\\/*?:\[\]]/g, '');
+        XLSX.utils.book_append_sheet(wb, wsDocente, nombreHoja);
+    });
+    
+    const nombreArchivo = `consolidado_bloom_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+}
+
+// ==================== FINAL DESCARGAS EXCEL ====================
+
+// ==================== JUEGO ====================
+function construirListaVerbos() {
+    const lista = [];
+    for (let dim in VERBOS_ENC) for (let verbo of VERBOS_ENC[dim]) lista.push({ verbo, dimension: dim, nivelCorrecto: NIVELES_CORRECTOS_ENC[verbo] || 1 });
+    return lista;
+}
+const VERBOS_JUEGO = construirListaVerbos();
+
+function juegoGenerarCodigo() { const c='BCDFGHJKMNPQRSTVWXYZ23456789'; let r=''; for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
+async function juegoCrearSesion() { juegoCodigo = juegoGenerarCodigo(); juegoSesionRef = db.ref(`sesiones_bloom/${juegoCodigo}`); await juegoSesionRef.set({ creada: Date.now(), activa: true, codigo: juegoCodigo, verboActual: null, nivelCorrecto: null, votacionAbierta: false, historial: [] }); await juegoSesionRef.child('votos').remove(); document.getElementById('codigoDisplay').textContent = juegoCodigo; }
+async function juegoCargarLista() { const dim = document.getElementById('juegoDimension').value; const busqueda = document.getElementById('juegoBuscar').value.toLowerCase(); let f = VERBOS_JUEGO.filter(v => v.dimension === dim); if (busqueda) f = f.filter(v => v.verbo.toLowerCase().includes(busqueda)); document.getElementById('juegoListaVerbos').innerHTML = f.map(v => `<div class="verbo-item-lista" onclick="juegoSeleccionarVerbo('${v.verbo}', ${v.nivelCorrecto})"><div style="font-weight:600;">${v.verbo}</div><div style="font-size:0.7rem;">Nivel correcto: ${v.nivelCorrecto}</div></div>`).join(''); }
+window.juegoSeleccionarVerbo = function(v, n) { juegoVerboActual = v; juegoNivelActual = n; document.getElementById('juegoVerboActual').textContent = v; document.getElementById('juegoNivelCorrecto').innerHTML = `Nivel correcto: ${n}`; document.getElementById('juegoEstadoVotacion').innerHTML = '📌 Verbo seleccionado'; };
+async function juegoLanzarVotacion() { if (!juegoVerboActual) { alert('Selecciona un verbo'); return; } if (!juegoSesionRef) await juegoCrearSesion(); await juegoSesionRef.update({ verboActual: juegoVerboActual, nivelCorrecto: juegoNivelActual, votacionAbierta: true }); await juegoSesionRef.child('votos').remove(); juegoVotos = {1:0,2:0,3:0,4:0}; juegoActualizarBarras(); document.getElementById('juegoEstadoVotacion').innerHTML = '🔓 ¡VOTACIÓN ABIERTA!'; juegoIniciarEscucha(); }
+async function juegoCerrarVotacion() { if (!juegoSesionRef) return; await juegoSesionRef.update({ votacionAbierta: false }); const total = juegoVotos[1]+juegoVotos[2]+juegoVotos[3]+juegoVotos[4]; const aciertos = juegoVotos[juegoNivelActual]||0; const pct = total>0?Math.round(aciertos/total*100):0; juegoHistorial.unshift({ verbo: juegoVerboActual, nivelCorrecto: juegoNivelActual, votos: {...juegoVotos}, total, aciertos, porcentaje: pct }); await juegoSesionRef.child('historial').set(juegoHistorial); juegoRenderizarHistorial(); document.getElementById('juegoEstadoVotacion').innerHTML = `🔒 Cerrada. ${pct}% acertaron`; }
+function juegoIniciarEscucha() { if (juegoListenerVotos) juegoSesionRef.child('votos').off('value', juegoListenerVotos); juegoListenerVotos = juegoSesionRef.child('votos').on('value', snap => { const votos = snap.val() || {}; juegoVotos = {1:0,2:0,3:0,4:0}; Object.values(votos).forEach(v => { if (v.nivel >=1 && v.nivel <=4) juegoVotos[v.nivel]++; }); juegoActualizarBarras(); }); }
+function juegoActualizarBarras() { const total = juegoVotos[1]+juegoVotos[2]+juegoVotos[3]+juegoVotos[4]; const max = Math.max(juegoVotos[1],juegoVotos[2],juegoVotos[3],juegoVotos[4],1); for(let i=1;i<=4;i++){ const pct = Math.round(juegoVotos[i]/max*100); const disp = total>0?Math.round(juegoVotos[i]/total*100)+'%':''; const bar=document.getElementById(`jBar${i}`); if(bar) bar.style.width=pct+'%'; const cnt=document.getElementById(`jCnt${i}`); if(cnt) cnt.textContent=juegoVotos[i]; const pSpan=document.getElementById(`jBar${i}P`); if(pSpan) pSpan.textContent=juegoVotos[i]>0?disp:''; } document.getElementById('jTotalVotos').textContent=total; }
+function juegoRenderizarHistorial() { const tbody = document.getElementById('juegoHistorialBody'); if(!tbody) return; tbody.innerHTML = juegoHistorial.map(h => `<tr><td>${h.verbo}</td><td>Nivel ${h.nivelCorrecto}</td><td>${h.porcentaje}%</td></tr>`).join(''); }
+async function juegoExportarExcel() { if(!juegoHistorial.length){alert('No hay datos');return;} const ws=XLSX.utils.json_to_sheet(juegoHistorial.map(h=>({Verbo:h.verbo,'Nivel Correcto':h.nivelCorrecto,'Votos N1':h.votos[1],'Votos N2':h.votos[2],'Votos N3':h.votos[3],'Votos N4':h.votos[4],'% Aciertos':h.porcentaje}))); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Juego Bloom'); XLSX.writeFile(wb,`juego_bloom_${new Date().toISOString().slice(0,19)}.xlsx`); }
+async function juegoExportarPDF() { const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.text("Informe Juego Bloom",14,20); doc.text(`Fecha: ${new Date().toLocaleString()}`,14,30); doc.autoTable({head:[["Verbo","Nivel","N1","N2","N3","N4","%"]],body:juegoHistorial.map(h=>[h.verbo,h.nivelCorrecto,h.votos[1],h.votos[2],h.votos[3],h.votos[4],`${h.porcentaje}%`]),startY:45,styles:{fontSize:8}}); doc.save(`juego_bloom_${new Date().toISOString().slice(0,10)}.pdf`); }
+async function juegoLimpiarHistorial() { if(confirm('¿Limpiar historial?')){ juegoHistorial=[]; if(juegoSesionRef) await juegoSesionRef.child('historial').set([]); juegoRenderizarHistorial(); } }
+
+// ==================== PARTICIPANTE ====================
+let partSesionRef = null, partNombre = '', partYaVoto = false;
+async function partUnirse() { 
+    const cod=document.getElementById('partCodigo').value.trim().toUpperCase(); 
+    const nom=document.getElementById('partNombre').value.trim(); 
+    if(!cod||cod.length!==6){alert('Código inválido');return;} 
+    if(!nom){alert('Ingresa tu nombre');return;} 
+    const snap=await db.ref(`sesiones_bloom/${cod}`).once('value'); 
+    if(!snap.exists()){alert('Código no encontrado');return;} 
+    const data=snap.val(); 
+    if(data.activa!==true){alert('Sesión no activa');return;} 
+    partNombre=nom; 
+    partSesionRef=db.ref(`sesiones_bloom/${cod}`); 
+    document.getElementById('partAreaJuego').style.display='block'; 
+    document.getElementById('partUnirse').disabled=true; 
+    partSesionRef.on('value',sn=>{ 
+        const d=sn.val(); 
+        if(d&&d.verboActual){ 
+            document.getElementById('partVerbo').textContent=d.verboActual; 
+            if(d.votacionAbierta){ 
+                document.getElementById('partEstado').textContent='🔓 ¡Votación abierta!'; 
+                document.getElementById('partEstado').style.background='#27ae60'; 
+                partYaVoto=false; 
+                partHabilitarBotones(true); 
+            } else { 
+                document.getElementById('partEstado').textContent='🔒 Votación cerrada'; 
+                document.getElementById('partEstado').style.background='#6c757d'; 
+                partHabilitarBotones(false); 
+            } 
+        } 
+    }); 
+}
+function partHabilitarBotones(h){ ['partVotar1','partVotar2','partVotar3','partVotar4'].forEach(id=>{ const btn=document.getElementById(id); if(btn) btn.disabled=!h||partYaVoto; }); }
+async function partVotar(nivel){ 
+    if(partYaVoto){partMostrarMsg('Ya votaste','error');return;} 
+    if(!partSesionRef){partMostrarMsg('No hay sesión','error');return;} 
+    const key=`${partNombre.replace(/[^a-z0-9]/gi,'_')}_${Date.now()}`; 
+    await partSesionRef.child('votos').child(key).set({participante:partNombre,nivel:nivel,timestamp:Date.now()}); 
+    partYaVoto=true; 
+    partHabilitarBotones(false); 
+    partMostrarMsg(`✅ Voto registrado: Nivel ${nivel}`,'success'); 
+}
+function partMostrarMsg(msg,tipo){ const div=document.getElementById('partMensaje'); div.innerHTML=msg; div.style.color=tipo==='success'?'#27ae60':'#c0392b'; setTimeout(()=>div.innerHTML='',3000); }
+
+// ==================== EVENTOS ====================
+document.getElementById('cardEncuesta').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('cardJuego').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('volverMainEncuesta').onclick = () => mostrarPantalla('screenMain');
+document.getElementById('volverMainJuego').onclick = () => mostrarPantalla('screenMain');
+document.getElementById('volverEncuestaMenu').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('volverAdminMenu').onclick = () => mostrarPantalla('screenEncuestaMenu');
+document.getElementById('volverJuegoMenu').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('volverJuegoParticipante').onclick = () => mostrarPantalla('screenJuegoMenu');
+document.getElementById('btnRealizarEncuesta').onclick = () => { respuestasEnc = { saber: {}, hacer: {}, ser: {} }; pasoEnc=1; cargarEncuestaUI(); mostrarPantalla('screenRealizarEncuesta'); };
+document.getElementById('btnAdminEncuesta').onclick = () => { if(auth.currentUser) { cargarEncuestasAdmin(); mostrarPantalla('screenAdminEncuesta'); } else { abrirLoginModal('admin'); } };
+document.getElementById('btnFacilitador').onclick = () => { if(auth.currentUser) { juegoCrearSesion(); juegoCargarLista(); mostrarPantalla('screenFacilitador'); } else { abrirLoginModal('facilitador'); } };
+document.getElementById('btnParticipante').onclick = () => mostrarPantalla('screenParticipante');
+document.getElementById('exportarExcelConsolidado').onclick = exportarExcelConsolidado;
+document.getElementById('logoutAdminBtn').onclick = logoutAdmin;
+document.getElementById('logoutFacilitadorBtn').onclick = logoutFacilitador;
+document.getElementById('filtroAdminEnc').oninput = (e) => renderizarAdminEnc(e.target.value.toLowerCase());
+document.getElementById('encBtnSiguiente').onclick = () => { if(validarPasoEnc() && pasoEnc<3){ pasoEnc++; actualizarPasosEnc(); } };
+document.getElementById('encBtnAnterior').onclick = () => { if(pasoEnc>1){ pasoEnc--; actualizarPasosEnc(); } };
+document.getElementById('encBtnEnviar').onclick = enviarEncuesta;
+document.getElementById('juegoDimension').onchange = juegoCargarLista;
+document.getElementById('juegoBuscar').oninput = juegoCargarLista;
+document.getElementById('juegoLanzarBtn').onclick = juegoLanzarVotacion;
+document.getElementById('juegoCerrarBtn').onclick = juegoCerrarVotacion;
+document.getElementById('copiarCodigoBtn').onclick = () => { if(juegoCodigo) navigator.clipboard.writeText(juegoCodigo); alert('Código copiado'); };
+document.getElementById('regenerarCodigoBtn').onclick = async () => { await juegoCrearSesion(); alert('Nuevo código generado'); };
+document.getElementById('exportarJuegoExcel').onclick = juegoExportarExcel;
+document.getElementById('exportarJuegoPDF').onclick = juegoExportarPDF;
+document.getElementById('limpiarJuegoHistorial').onclick = juegoLimpiarHistorial;
+document.getElementById('partUnirse').onclick = partUnirse;
+document.getElementById('partVotar1').onclick = () => partVotar(1);
+document.getElementById('partVotar2').onclick = () => partVotar(2);
+document.getElementById('partVotar3').onclick = () => partVotar(3);
+document.getElementById('partVotar4').onclick = () => partVotar(4);
+document.getElementById('darkModeToggle').onclick = () => { document.body.classList.toggle('dark'); localStorage.setItem('bloom_dark_mode', document.body.classList.contains('dark')); };
+if(localStorage.getItem('bloom_dark_mode') === 'true') document.body.classList.add('dark');
+
+// Autenticación
+auth.onAuthStateChanged(async (user) => {
+    if (user && lastAction) {
+        if (lastAction === 'admin') {
+            await cargarEncuestasAdmin();
+            mostrarPantalla('screenAdminEncuesta');
+        } else if (lastAction === 'facilitador') {
+            await juegoCrearSesion();
+            juegoCargarLista();
+            mostrarPantalla('screenFacilitador');
+        }
+        lastAction = null;
+    }
+});
+</script>

@@ -1,0 +1,4643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE-RUTA LATAM - Sistema Fractal de Aprendizaje</title>
+<!-- SheetJS para manejo de Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js para gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+      
+<style>
+:root {
+  --bg: #020617;
+  --panel: #0f172a;
+  --card: #111827;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15);
+  --ok: #22c55e;
+  --warn: #f97316;
+  --danger: #ef4444;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+  --saber: #3b82f6;
+  --hacer: #10b981;
+  --ser: #8b5cf6;
+  --transicion: #f59e0b;
+  --primaria: #ef4444;
+  --secundaria: #8b5cf6;
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  letter-spacing: .03em;
+}
+
+.subtitle {
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+.current-student {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.current-student strong {
+  color: var(--accent);
+}
+
+.student-management {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Sistema de pestañas */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Botones */
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: rgba(56,189,248,.25);
+}
+
+.btn-success {
+  background: rgba(34,197,94,.1);
+  color: var(--ok);
+}
+
+.btn-success:hover {
+  background: rgba(34,197,94,.2);
+}
+
+.btn-danger {
+  background: rgba(239,68,68,.1);
+  color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: rgba(239,68,68,.2);
+}
+
+.btn-warning {
+  background: rgba(249,115,22,.1);
+  color: var(--warn);
+}
+
+.btn-warning:hover {
+  background: rgba(249,115,22,.2);
+}
+
+/* Formularios */
+.estudiante-form {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Área de carga */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* Tarjetas de dimensiones */
+.dimensions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.dimension-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.dimension-card.saber {
+  border-left: 4px solid var(--saber);
+}
+
+.dimension-card.hacer {
+  border-left: 4px solid var(--hacer);
+}
+
+.dimension-card.ser {
+  border-left: 4px solid var(--ser);
+}
+
+.dimension-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.dimension-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dimension-icon {
+  font-size: 1.5rem;
+}
+
+.dimension-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Anillos de progreso */
+.progress-ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) 0deg, transparent 0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  position: relative;
+}
+
+.progress-ring-inner {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.progress-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.progress-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Lista de estudiantes */
+.estudiantes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.estudiante-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.estudiante-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.estudiante-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.estudiante-info {
+  margin-bottom: 12px;
+}
+
+.estudiante-nombre {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.estudiante-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.progreso-dimensiones {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.dimension-mini {
+  flex: 1;
+  text-align: center;
+}
+
+.dimension-mini .progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.dimension-mini .progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.dimension-mini.saber .progress-fill { background: var(--saber); }
+.dimension-mini.hacer .progress-fill { background: var(--hacer); }
+.dimension-mini.ser .progress-fill { background: var(--ser); }
+
+/* Modales */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(2,6,23,0.8);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+/* Tablas */
+.table-container {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  background: var(--card);
+  color: var(--muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+.data-table tr:hover {
+  background: var(--accent-soft);
+}
+
+/* Gráficos */
+.chart-container {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin: 16px 0;
+  height: 300px;
+  position: relative;
+}
+
+.chart-title {
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+/* Alertas y notificaciones */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  border-left: 4px solid;
+}
+
+.alert-warning {
+  background: rgba(249,115,22,.1);
+  border-left-color: var(--warn);
+  color: var(--warn);
+}
+
+.alert-success {
+  background: rgba(34,197,94,.1);
+  border-left-color: var(--ok);
+  color: var(--ok);
+}
+
+.alert-danger {
+  background: rgba(239,68,68,.1);
+  border-left-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Filtros y controles */
+.filters-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  min-width: 120px;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.badge-success {
+  background: rgba(34,197,94,.1);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.badge-warning {
+  background: rgba(249,115,22,.1);
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.badge-danger {
+  background: rgba(239,68,68,.1);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Dashboard cards */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.dashboard-card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.dashboard-card .value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.dashboard-card .label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dimensions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .estudiantes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    text-align: left;
+  }
+}
+
+/* Estilos para elementos faltantes */
+#estudiantesList {
+  min-height: 200px;
+}
+
+#importPreview {
+  display: none;
+  margin-top: 20px;
+}
+
+#previewTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#previewTable th, #previewTable td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+#previewTable th {
+  background: var(--card);
+  color: var(--muted);
+}
+</style>              
+</head>
+<body>
+
+<!-- Modal para detalles de dimensión -->
+<div id="modalDimension" class="modal">
+  <div class="modal-content" style="max-width: 800px;">
+    <button class="modal-close" onclick="cerrarModal('modalDimension')">×</button>
+    <h3 id="modalDimensionTitle">Detalles de Dimensión</h3>
+    <div id="modalDimensionContent"></div>
+  </div>
+</div>
+
+<!-- Modal para reportes -->
+<div id="modalReportes" class="modal">
+  <div class="modal-content" style="max-width: 1000px;">
+    <button class="modal-close" onclick="cerrarModal('modalReportes')">×</button>
+    <h3>📊 Generador de Reportes</h3>
+    <div id="modalReportesContent"></div>
+  </div>
+</div>
+
+<!-- Modal para configuración -->
+<div id="modalConfiguracion" class="modal">
+  <div class="modal-content" style="max-width: 600px;">
+    <button class="modal-close" onclick="cerrarModal('modalConfiguracion')">×</button>
+    <h3>⚙️ Configuración del Sistema</h3>
+    <div id="modalConfiguracionContent"></div>
+  </div>
+</div>
+
+<!-- Modal para alertas -->
+<div id="modalAlertas" class="modal">
+  <div class="modal-content" style="max-width: 700px;">
+    <button class="modal-close" onclick="cerrarModal('modalAlertas')">×</button>
+    <h3>🚨 Sistema de Alertas</h3>
+    <div id="modalAlertasContent"></div>
+  </div>
+</div>
+
+<header>
+  <div class="title-block">
+    <h1>🎯 Sistema Fractal de Aprendizaje - SITE-RUTA LATAM</h1>
+    <div class="subtitle">
+      Migración académica en 3 dimensiones (Saber-Hacer-Ser) • Articulado con DBA 2016
+    </div>
+    <div class="current-student">
+      <span>Estudiante actual:</span>
+      <strong id="currentStudentName">Selecciona un estudiante</strong>
+      <span id="currentPeriodo" class="badge" style="margin-left: 8px;">Periodo 1</span>
+    </div>
+  </div>
+  
+  <div class="student-management">
+    <button class="btn btn-success" id="btnManageStudents">
+      👥 Gestionar Estudiantes
+    </button>
+    <button class="btn" id="btnReports">
+      📊 Generar Reportes
+    </button>
+    <button class="btn" id="btnAlertas">
+      🚨 Ver Alertas
+    </button>
+    <button class="btn" id="btnSettings">
+      ⚙️ Configuración
+    </button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1;">
+  
+<!-- Panel de Gestión de Estudiantes -->
+<div id="studentsPanel" class="tab-pane active">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista" onclick="cambiarPestaña('lista')">📋 Lista de Estudiantes</button>
+    <button class="tab-btn" data-tab="registro" onclick="cambiarPestaña('registro')">👤 Registro Manual</button>
+    <button class="tab-btn" data-tab="importar" onclick="cambiarPestaña('importar')">📤 Importar desde Excel</button>
+    <button class="tab-btn" data-tab="plantilla" onclick="cambiarPestaña('plantilla')">📋 Descargar Plantilla</button>
+    <button class="tab-btn" data-tab="dashboard" onclick="cambiarPestaña('dashboard')">📈 Dashboard Institucional</button>
+  </div>
+
+  <!-- Pestaña: Lista de Estudiantes -->
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="filtroGrado">Filtrar por grado</label>
+        <select id="filtroGrado" onchange="aplicarFiltros()">
+          <option value="todos">Todos los grados</option>
+          <option value="transicion">Transición</option>
+          <option value="1">1° Primaria</option>
+          <option value="2">2° Primaria</option>
+          <option value="3">3° Primaria</option>
+          <option value="4">4° Primaria</option>
+          <option value="5">5° Primaria</option>
+          <option value="6">6° Secundaria</option>
+          <option value="7">7° Secundaria</option>
+          <option value="8">8° Secundaria</option>
+          <option value="9">9° Secundaria</option>
+          <option value="10">10° Secundaria</option>
+          <option value="11">11° Secundaria</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroGrupo">Filtrar por grupo</label>
+        <select id="filtroGrupo" onchange="aplicarFiltros()">
+          <option value="todos">Todos los grupos</option>
+          <!-- Los grupos se cargan dinámicamente -->
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroDimension">Filtrar por dimensión</label>
+        <select id="filtroDimension" onchange="aplicarFiltros()">
+          <option value="todas">Todas las dimensiones</option>
+          <option value="saber">Saber</option>
+          <option value="hacer">Hacer</option>
+          <option value="ser">Ser</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroPeriodo">Período académico</label>
+        <select id="filtroPeriodo">
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filtroBusqueda">Buscar estudiante</label>
+        <input type="text" id="filtroBusqueda" placeholder="Nombre, código o documento..." oninput="aplicarFiltros()">
+      </div>
+    </div>
+    
+    <div id="estudiantesList" class="estudiantes-grid">
+      <!-- Los estudiantes se cargan dinámicamente aquí -->
+    </div>
+  </div>
+
+  <!-- Pestaña: Registro Manual -->
+  <div id="registro" class="tab-pane">
+    <form id="formEstudianteManual" class="estudiante-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="codigo">Código Estudiante *</label>
+          <input type="text" id="codigo" name="codigo" required placeholder="Ej: 2024-001" pattern="[0-9]{4}-[0-9]{3}">
+        </div>
+
+        <div class="form-group">
+          <label for="nombres">Nombres *</label>
+          <input type="text" id="nombres" name="nombres" required placeholder="María Alejandra">
+        </div>
+
+        <div class="form-group">
+          <label for="apellidos">Apellidos *</label>
+          <input type="text" id="apellidos" name="apellidos" required placeholder="Gómez Rodríguez">
+        </div>
+
+        <div class="form-group">
+          <label for="documento">Documento *</label>
+          <input type="text" id="documento" name="documento" required placeholder="123456789">
+        </div>
+
+        <div class="form-group">
+          <label for="grado">Grado *</label>
+          <select id="grado" name="grado" required onchange="actualizarGrupos()">
+            <option value="">Seleccionar grado</option>
+            <option value="transicion">Transición</option>
+            <option value="1">1° Primaria</option>
+            <option value="2">2° Primaria</option>
+            <option value="3">3° Primaria</option>
+            <option value="4">4° Primaria</option>
+            <option value="5">5° Primaria</option>
+            <option value="6">6° Secundaria</option>
+            <option value="7">7° Secundaria</option>
+            <option value="8">8° Secundaria</option>
+            <option value="9">9° Secundaria</option>
+            <option value="10">10° Secundaria</option>
+            <option value="11">11° Secundaria</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="grupo">Grupo *</label>
+          <select id="grupo" name="grupo" required>
+            <option value="">Seleccionar grupo</option>
+            <!-- Los grupos se cargan dinámicamente según el grado -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="jornada">Jornada *</label>
+          <select id="jornada" name="jornada" required>
+            <option value="">Seleccionar jornada</option>
+            <option value="MAÑANA">Mañana</option>
+            <option value="TARDE">Tarde</option>
+            <option value="NOCTURNA">Nocturna</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="director_grupo">Director de Grupo</label>
+          <input type="text" id="director_grupo" name="director_grupo" placeholder="Nombre del director de grupo">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button type="submit" class="btn btn-success">
+          💾 Guardar Estudiante
+        </button>
+        <button type="button" class="btn" onclick="limpiarFormulario()">
+          🗑️ Limpiar Formulario
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Pestaña: Importar desde Excel -->
+  <div id="importar" class="tab-pane">
+    <div class="estudiante-form">
+      <h3 style="margin-bottom: 16px;">📤 Importar Estudiantes desde Excel</h3>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Selecciona un archivo Excel con la estructura de la plantilla para importar estudiantes de forma masiva.
+      </p>
+      
+      <div class="upload-area" id="dropZone">
+        <input type="file" id="archivoExcel" accept=".xlsx, .xls" style="display: none;">
+        <div class="upload-icon">📁</div>
+        <h4>Arrastra tu archivo Excel aquí o haz clic para seleccionar</h4>
+        <p style="color: var(--muted); font-size: 0.9rem;">
+          Formatos soportados: .xlsx, .xls
+        </p>
+      </div>
+      
+      <div id="importPreview" style="display: none;">
+        <div id="importSummary"></div>
+        <div class="table-container">
+          <table id="previewTable" class="data-table"></table>
+        </div>
+        
+        <div style="display: flex; gap: 8px; margin-top: 20px;">
+          <button class="btn btn-success" onclick="confirmarImportacion()">
+            ✅ Confirmar Importación
+          </button>
+          <button class="btn btn-danger" onclick="cancelarImportacion()">
+            ❌ Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestaña: Descargar Plantilla -->
+  <div id="plantilla" class="tab-pane">
+    <div class="estudiante-form">
+      <h3 style="margin-bottom: 16px;">📋 Descargar Plantilla de Importación</h3>
+      <p style="color: var(--muted); margin-bottom: 20px;">
+        Descarga la plantilla Excel para cargar estudiantes de forma masiva. La plantilla incluye las columnas necesarias y ejemplos de formato.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <div style="background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+          <h4 style="margin: 0 0 12px 0;">📝 Plantilla Completa</h4>
+          <p style="color: var(--muted); margin-bottom: 16px;">
+            Incluye todas las columnas posibles con ejemplos y formato validado.
+          </p>
+          <button class="btn btn-success" onclick="descargarPlantillaCompleta()" style="width: 100%; justify-content: center;">
+            📥 Descargar Plantilla Completa
+          </button>
+        </div>
+        
+        <div style="background: var(--panel); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+          <h4 style="margin: 0 0 12px 0;">⚡ Plantilla Mínima</h4>
+          <p style="color: var(--muted); margin-bottom: 16px;">
+            Solo las columnas obligatorias para una importación rápida.
+          </p>
+          <button class="btn" onclick="descargarPlantillaMinima()" style="width: 100%; justify-content: center;">
+            📥 Descargar Plantilla Mínima
+          </button>
+        </div>
+      </div>
+      
+      <div style="background: var(--accent-soft); padding: 16px; border-radius: 8px;">
+        <h4 style="margin: 0 0 12px 0;">📋 Columnas Obligatorias</h4>
+        <ul style="color: var(--muted); margin-bottom: 12px; padding-left: 20px;">
+          <li><strong>CODIGO:</strong> Formato AAAA-NNN (Ej: 2024-001)</li>
+          <li><strong>NOMBRES:</strong> Nombres completos del estudiante</li>
+          <li><strong>APELLIDOS:</strong> Apellidos completos</li>
+          <li><strong>DOCUMENTO:</strong> Número de documento de identidad</li>
+          <li><strong>GRADO:</strong> transicion, 1, 2, 3, ..., 11</li>
+          <li><strong>GRUPO:</strong> Formato grado-grupo (Ej: 5-2)</li>
+          <li><strong>JORNADA:</strong> MAÑANA, TARDE, NOCTURNA</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestaña: Dashboard Institucional -->
+  <div id="dashboard" class="tab-pane">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="dashboardGrado">Filtrar por grado</label>
+        <select id="dashboardGrado" onchange="actualizarDashboard()">
+          <option value="todos">Todos los grados</option>
+          <option value="transicion">Transición</option>
+          <option value="1">1° Primaria</option>
+          <option value="2">2° Primaria</option>
+          <option value="3">3° Primaria</option>
+          <option value="4">4° Primaria</option>
+          <option value="5">5° Primaria</option>
+          <option value="6">6° Secundaria</option>
+          <option value="7">7° Secundaria</option>
+          <option value="8">8° Secundaria</option>
+          <option value="9">9° Secundaria</option>
+          <option value="10">10° Secundaria</option>
+          <option value="11">11° Secundaria</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="dashboardPeriodo">Período académico</label>
+        <select id="dashboardPeriodo" onchange="actualizarDashboard()">
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Métricas Principales -->
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <div class="value" id="metricTotalEstudiantes">0</div>
+        <div class="label">Total Estudiantes</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="value" id="metricProgresoPromedio">0%</div>
+        <div class="label">Progreso Promedio</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="value" id="metricCompletados">0</div>
+        <div class="label">Completados</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="value" id="metricEnRiesgo">0</div>
+        <div class="label">En Riesgo</div>
+      </div>
+    </div>
+
+    <!-- Gráficos del Dashboard -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 20px;">
+      <div class="chart-container">
+        <div class="chart-title">📊 Distribución por Dimensiones</div>
+        <canvas id="chartDimensiones"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">📈 Progreso por Grado</div>
+        <canvas id="chartGrados"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">📅 Evolución Temporal</div>
+        <canvas id="chartEvolucion"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-title">🚨 Análisis de Riesgo</div>
+        <canvas id="chartRiesgo"></canvas>
+      </div>
+    </div>
+
+    <!-- Ranking de Grupos -->
+    <div class="chart-container">
+      <div class="chart-title">🏆 Ranking de Grupos</div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Grupo</th>
+              <th>Progreso Promedio</th>
+              <th>Saber</th>
+              <th>Hacer</th>
+              <th>Ser</th>
+              <th>Estudiantes</th>
+            </tr>
+          </thead>
+          <tbody id="tablaRankingBody">
+            <!-- Los datos se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Panel de Progreso del Estudiante -->
+  <div id="progressPanel" class="tab-pane" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <h2 id="studentProgressTitle">Progreso del Estudiante</h2>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn" onclick="volverALista()">← Volver a la lista</button>
+        <button class="btn btn-success" onclick="generarReporteIndividual()">
+          📄 Reporte Individual (Excel)
+        </button>
+      </div>
+    </div>
+
+    <!-- Información del Estudiante -->
+    <div style="background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div>
+          <div style="font-size: 0.9rem; color: var(--muted);">Código</div>
+          <div style="font-weight: 600;" id="infoCodigo">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.9rem; color: var(--muted);">Documento</div>
+          <div style="font-weight: 600;" id="infoDocumento">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.9rem; color: var(--muted);">Grado y Grupo</div>
+          <div style="font-weight: 600;" id="infoGradoGrupo">-</div>
+        </div>
+        <div>
+          <div style="font-size: 0.9rem; color: var(--muted);">Jornada</div>
+          <div style="font-weight: 600;" id="infoJornada">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de Período -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="selectorPeriodo">Período académico</label>
+        <select id="selectorPeriodo">
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="selectorDimension">Filtrar por dimensión</label>
+        <select id="selectorDimension">
+          <option value="todas">Todas las dimensiones</option>
+          <option value="saber">Saber</option>
+          <option value="hacer">Hacer</option>
+          <option value="ser">Ser</option>
+        </select>
+      </div>
+
+      <button class="btn" onclick="actualizarVistaProgreso()" style="align-self: flex-end;">
+        🔄 Actualizar Vista
+      </button>
+    </div>
+
+    <!-- Alertas del Estudiante -->
+    <div id="alertasEstudiante" style="margin-bottom: 20px;">
+      <!-- Alertas se generarán aquí -->
+    </div>
+
+    <!-- Vista de Dimensiones -->
+    <div class="dimensions-grid">
+      <div class="dimension-card saber">
+        <div class="dimension-header">
+          <div class="dimension-icon">📚</div>
+          <div class="dimension-title">DIMENSIÓN SABER</div>
+        </div>
+        <div class="progress-ring" id="saberProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="saberProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('saber')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9</div>
+          <div>Micromigraciones: <span id="saberMicromigraciones">0/9</span></div>
+          <div>Nivel actual: <span id="saberNivel">Fundamentación</span></div>
+        </div>
+      </div>
+
+      <div class="dimension-card hacer">
+        <div class="dimension-header">
+          <div class="dimension-icon">🛠️</div>
+          <div class="dimension-title">DIMENSIÓN HACER</div>
+        </div>
+        <div class="progress-ring" id="hacerProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="hacerProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('hacer')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9</div>
+          <div>Micromigraciones: <span id="hacerMicromigraciones">0/9</span></div>
+          <div>Nivel actual: <span id="hacerNivel">Ejecución</span></div>
+        </div>
+      </div>
+
+      <div class="dimension-card ser">
+        <div class="dimension-header">
+          <div class="dimension-icon">🌟</div>
+          <div class="dimension-title">DIMENSIÓN SER</div>
+        </div>
+        <div class="progress-ring" id="serProgressRing">
+          <div class="progress-ring-inner">
+            <div class="progress-value" id="serProgressValue">0%</div>
+            <div class="progress-label">Progreso</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <button class="btn" onclick="abrirDetalleDimension('ser')">
+            👁️ Ver Detalles
+          </button>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>DBA relacionados: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9</div>
+          <div>Micromigraciones: <span id="serMicromigraciones">0/9</span></div>
+          <div>Nivel actual: <span id="serNivel">Autoconocimiento</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progreso General -->
+    <div style="background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-top: 20px;">
+      <h3 style="margin-bottom: 16px;">📊 Progreso General del Período</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--saber);" id="generalSaber">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Saber</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--hacer);" id="generalHacer">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Hacer</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--ser);" id="generalSer">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Dimensión Ser</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 2rem; font-weight: bold; color: var(--accent);" id="generalTotal">0%</div>
+          <div style="color: var(--muted); font-size: 0.8rem;">Progreso Total</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Progreso Individual -->
+    <div class="chart-container">
+      <div class="chart-title">📈 Evolución del Aprendizaje</div>
+      <canvas id="chartProgresoIndividual" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Recomendaciones -->
+    <div style="background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-top: 20px;">
+      <h3 style="margin-bottom: 16px;">💡 Recomendaciones de Aprendizaje</h3>
+      <div id="recomendacionesContenido">
+        <p style="color: var(--muted);">Cargando recomendaciones personalizadas...</p>
+      </div>
+    </div>
+  </div>
+
+
+</main>
+
+<script>
+
+// ===============================
+// CONFIGURACIÓN Y CONSTANTES
+// ===============================
+const STUDENTS_STORAGE_KEY = 'siteRuta_students';
+const SYSTEM_CONFIG_KEY = 'siteRuta_config';
+const BACKUP_HISTORY_KEY = 'siteRuta_backups';
+let estudiantes = [];
+let estudianteActual = null;
+let periodoActual = 1;
+let configuracionSistema = {};
+let importacionPendiente = null;
+
+// Configuración por defecto del sistema
+const configuracionPorDefecto = {
+  periodos: 4,
+  sistemaPeriodos: 'cuatrimestral',
+  añoLectivo: new Date().getFullYear(),
+  fechaInicio: `${new Date().getFullYear()}-01-15`,
+  fechaFin: `${new Date().getFullYear()}-11-15`,
+  dimensiones: {
+    saber: { peso: 0.4, color: '#3b82f6' },
+    hacer: { peso: 0.35, color: '#10b981' },
+    ser: { peso: 0.25, color: '#8b5cf6' }
+  },
+  criteriosRiesgo: {
+    progresoMinimo: 40,
+    inactividadDias: 30,
+    desbalanceMaximo: 30
+  },
+  notificaciones: {
+    alertasRiesgo: true,
+    recordatorios: true,
+    reportesAutomaticos: false
+  }
+};
+
+// Estructura completa de dimensiones y micromigraciones
+const dimensionesData = {
+  saber: {
+    nombre: "Saber",
+    icono: "📚",
+    color: "--saber",
+    descripcion: "Desarrollo del conocimiento conceptual y comprensión de contenidos",
+    niveles: [
+      {
+        codigo: "S1",
+        nombre: "Fundamentación Conceptual",
+        descripcion: "Comprensión básica de conceptos y relaciones simples",
+        pasos: [
+          { 
+            codigo: "S1.1", 
+            titulo: "Identificación de conceptos clave del DBA", 
+            dba: "1.1",
+            evidencia: "Lista de conceptos identificados y definidos",
+            producto: "Mapa conceptual básico",
+            criterio: "Identifica al menos 5 conceptos clave"
+          },
+          { 
+            codigo: "S1.2", 
+            titulo: "Comprensión de relaciones simples entre conceptos", 
+            dba: "1.2",
+            evidencia: "Ejemplos de relaciones identificadas",
+            producto: "Esquema de relaciones conceptuales",
+            criterio: "Establece 3 relaciones entre conceptos"
+          },
+          { 
+            codigo: "S1.3", 
+            titulo: "Aplicación de conceptos en contextos conocidos", 
+            dba: "1.3",
+            evidencia: "Ejercicios resueltos correctamente",
+            producto: "Portafolio de aplicaciones básicas",
+            criterio: "Aplica conceptos en 3 situaciones diferentes"
+          }
+        ]
+      },
+      {
+        codigo: "S2", 
+        nombre: "Profundización Conceptual",
+        descripcion: "Análisis de relaciones complejas y transferencia de conocimiento",
+        pasos: [
+          { 
+            codigo: "S2.1", 
+            titulo: "Análisis de relaciones complejas entre conceptos", 
+            dba: "1.4",
+            evidencia: "Diagramas de relaciones complejas",
+            producto: "Mapa conceptual avanzado",
+            criterio: "Analiza relaciones en sistemas complejos"
+          },
+          { 
+            codigo: "S2.2", 
+            titulo: "Transferencia de conocimiento a nuevos contextos", 
+            dba: "1.5",
+            evidencia: "Aplicaciones en contextos novedosos",
+            producto: "Caso de aplicación transferido",
+            criterio: "Transfiere conocimiento a 2 contextos nuevos"
+          },
+          { 
+            codigo: "S2.3", 
+            titulo: "Integración interdisciplinar de conceptos", 
+            dba: "1.6",
+            evidencia: "Conexiones entre diferentes áreas",
+            producto: "Proyecto interdisciplinar",
+            criterio: "Integra conceptos de 2 disciplinas diferentes"
+          }
+        ]
+      },
+      {
+        codigo: "S3",
+        nombre: "Aplicación Avanzada", 
+        descripcion: "Resolución de problemas complejos y generación de nuevo conocimiento",
+        pasos: [
+          { 
+            codigo: "S3.1", 
+            titulo: "Resolución de problemas complejos no rutinarios", 
+            dba: "1.7",
+            evidencia: "Problemas complejos resueltos",
+            producto: "Portafolio de soluciones avanzadas",
+            criterio: "Resuelve 3 problemas complejos"
+          },
+          { 
+            codigo: "S3.2", 
+            titulo: "Generación de hipótesis y predicciones", 
+            dba: "1.8",
+            evidencia: "Hipótesis formuladas y validadas",
+            producto: "Reporte de investigación pequeña",
+            criterio: "Formula y prueba 2 hipótesis"
+          },
+          { 
+            codigo: "S3.3", 
+            titulo: "Creación de nuevo conocimiento o productos", 
+            dba: "1.9",
+            evidencia: "Productos originales creados",
+            producto: "Producto de creación propia",
+            criterio: "Crea un producto original demostrable"
+          }
+        ]
+      }
+    ]
+  },
+  hacer: {
+    nombre: "Hacer",
+    icono: "🛠️",
+    color: "--hacer",
+    descripcion: "Desarrollo de habilidades procedimentales y aplicación práctica",
+    niveles: [
+      {
+        codigo: "H1",
+        nombre: "Ejecución Básica",
+        descripcion: "Seguimiento de procedimientos y resolución de problemas rutinarios",
+        pasos: [
+          { 
+            codigo: "H1.1", 
+            titulo: "Seguimiento de protocolos establecidos", 
+            dba: "2.1",
+            evidencia: "Protocolos aplicados secuencialmente",
+            producto: "Checklist de procedimientos",
+            criterio: "Sigue 3 protocolos diferentes correctamente"
+          },
+          { 
+            codigo: "H1.2", 
+            titulo: "Aplicación de procedimientos básicos", 
+            dba: "2.2",
+            evidencia: "Procedimientos ejecutados correctamente",
+            producto: "Registro de ejecuciones",
+            criterio: "Ejecuta 4 procedimientos básicos"
+          },
+          { 
+            codigo: "H1.3", 
+            titulo: "Resolución de problemas rutinarios", 
+            dba: "2.3",
+            evidencia: "Problemas rutinarios resueltos",
+            producto: "Bitácora de soluciones",
+            criterio: "Resuelve 5 problemas rutinarios"
+          }
+        ]
+      },
+      {
+        codigo: "H2",
+        nombre: "Aplicación Estratégica",
+        descripcion: "Adaptación de procedimientos y diseño de soluciones",
+        pasos: [
+          { 
+            codigo: "H2.1", 
+            titulo: "Adaptación de procedimientos a contextos específicos", 
+            dba: "2.4",
+            evidencia: "Procedimientos adaptados contextualmente",
+            producto: "Protocolo adaptado",
+            criterio: "Adapta 2 procedimientos a nuevos contextos"
+          },
+          { 
+            codigo: "H2.2", 
+            titulo: "Diseño de soluciones a problemas identificados", 
+            dba: "2.5",
+            evidencia: "Soluciones diseñadas y documentadas",
+            producto: "Plan de solución",
+            criterio: "Diseña soluciones para 3 problemas"
+          },
+          { 
+            codigo: "H2.3", 
+            titulo: "Optimización de procesos y procedimientos", 
+            dba: "2.6",
+            evidencia: "Procesos mejorados documentados",
+            producto: "Propuesta de optimización",
+            criterio: "Optimiza 2 procesos existentes"
+          }
+        ]
+      },
+      {
+        codigo: "H3",
+        nombre: "Innovación",
+        descripcion: "Creación de nuevos procedimientos y desarrollo de innovaciones",
+        pasos: [
+          { 
+            codigo: "H3.1", 
+            titulo: "Creación de procedimientos originales", 
+            dba: "2.7",
+            evidencia: "Procedimientos nuevos creados",
+            producto: "Manual de procedimiento nuevo",
+            criterio: "Crea 2 procedimientos originales"
+          },
+          { 
+            codigo: "H3.2", 
+            titulo: "Desarrollo de prototipos y modelos", 
+            dba: "2.8",
+            evidencia: "Prototipos funcionales desarrollados",
+            producto: "Prototipo funcional",
+            criterio: "Desarrolla 1 prototipo funcional"
+          },
+          { 
+            codigo: "H3.3", 
+            titulo: "Implementación de soluciones innovadoras", 
+            dba: "2.9",
+            evidencia: "Innovaciones implementadas y evaluadas",
+            producto: "Caso de implementación innovadora",
+            criterio: "Implementa 1 solución innovadora"
+          }
+        ]
+      }
+    ]
+  },
+  ser: {
+    nombre: "Ser",
+    icono: "🌟", 
+    color: "--ser",
+    descripcion: "Desarrollo de actitudes, valores y competencias socioemocionales",
+    niveles: [
+      {
+        codigo: "P1",
+        nombre: "Autoconocimiento",
+        descripcion: "Reconocimiento personal y desarrollo de hábitos básicos",
+        pasos: [
+          { 
+            codigo: "P1.1", 
+            titulo: "Reconocimiento de fortalezas y áreas de mejora", 
+            dba: "3.1",
+            evidencia: "Autorreflexión escrita o grabada",
+            producto: "Diario de autoconocimiento",
+            criterio: "Identifica 3 fortalezas y 3 áreas de mejora"
+          },
+          { 
+            codigo: "P1.2", 
+            titulo: "Identificación de intereses y motivaciones", 
+            dba: "3.2",
+            evidencia: "Mapa de intereses y motivaciones",
+            producto: "Plan personal de intereses",
+            criterio: "Identifica 5 intereses principales"
+          },
+          { 
+            codigo: "P1.3", 
+            titulo: "Desarrollo de hábitos de estudio básicos", 
+            dba: "3.3",
+            evidencia: "Registro de tiempos y métodos de estudio",
+            producto: "Planificador personal de estudio",
+            criterio: "Mantiene hábitos de estudio por 2 semanas"
+          }
+        ]
+      },
+      {
+        codigo: "P2",
+        nombre: "Autorregulación",
+        descripcion: "Gestión emocional, del tiempo y perseverancia en retos",
+        pasos: [
+          { 
+            codigo: "P2.1", 
+            titulo: "Gestión efectiva del tiempo", 
+            dba: "3.4",
+            evidencia: "Planificación y cumplimiento de horarios",
+            producto: "Agenda personal gestionada",
+            criterio: "Cumple el 80% de su planificación semanal"
+          },
+          { 
+            codigo: "P2.2", 
+            titulo: "Control y manejo emocional en situaciones desafiantes", 
+            dba: "3.5",
+            evidencia: "Registro de manejo emocional",
+            producto: "Bitácora emocional",
+            criterio: "Demuestra control emocional en 3 situaciones"
+          },
+          { 
+            codigo: "P2.3", 
+            titulo: "Perseverancia en la resolución de retos complejos", 
+            dba: "3.6",
+            evidencia: "Evidencias de persistencia en retos",
+            producto: "Caso de perseverancia documentado",
+            criterio: "Persevera en al menos 2 retos complejos"
+          }
+        ]
+      },
+      {
+        codigo: "P3",
+        nombre: "Liderazgo y Colaboración",
+        descripcion: "Trabajo en equipo, comunicación efectiva e iniciativa",
+        pasos: [
+          { 
+            codigo: "P3.1", 
+            titulo: "Trabajo colaborativo efectivo en equipo", 
+            dba: "3.7",
+            evidencia: "Participación en proyectos grupales",
+            producto: "Evaluación de trabajo en equipo",
+            criterio: "Participa activamente en 3 proyectos grupales"
+          },
+          { 
+            codigo: "P3.2", 
+            titulo: "Comunicación asertiva y efectiva", 
+            dba: "3.8",
+            evidencia: "Ejemplos de comunicación efectiva",
+            producto: "Portafolio de comunicaciones",
+            criterio: "Demuestra comunicación asertiva en 5 situaciones"
+          },
+          { 
+            codigo: "P3.3", 
+            titulo: "Iniciativa y emprendimiento en proyectos", 
+            dba: "3.9",
+            evidencia: "Proyectos emprendidos por iniciativa propia",
+            producto: "Proyecto de emprendimiento personal",
+            criterio: "Lidera 1 proyecto por iniciativa propia"
+          }
+        ]
+      }
+    ]
+  }
+};
+
+// ===============================
+// FUNCIONES DE INICIALIZACIÓN
+// ===============================
+
+// Cargar datos del sistema
+function cargarDatosSistema() {
+  try {
+    // Cargar estudiantes
+    const estudiantesGuardados = localStorage.getItem(STUDENTS_STORAGE_KEY);
+    estudiantes = estudiantesGuardados ? JSON.parse(estudiantesGuardados) : [];
+    
+    // Cargar configuración
+    const configGuardada = localStorage.getItem(SYSTEM_CONFIG_KEY);
+    configuracionSistema = configGuardada ? JSON.parse(configGuardada) : configuracionPorDefecto;
+    
+    console.log('Sistema cargado:', {
+      estudiantes: estudiantes.length,
+      configuracion: configuracionSistema
+    });
+  } catch (error) {
+    console.error('Error cargando datos del sistema:', error);
+    estudiantes = [];
+    configuracionSistema = configuracionPorDefecto;
+  }
+}
+
+// Guardar datos del sistema
+function guardarDatosSistema() {
+  try {
+    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(estudiantes));
+    localStorage.setItem(SYSTEM_CONFIG_KEY, JSON.stringify(configuracionSistema));
+  } catch (error) {
+    console.error('Error guardando datos:', error);
+    alert('Error al guardar los datos. Verifique el almacenamiento disponible.');
+  }
+}
+
+// ===============================
+// GESTIÓN DE ESTUDIANTES
+// ===============================
+
+// Generar ID único para estudiante
+function generarIdUnico() {
+  return 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Inicializar progreso por períodos
+function inicializarProgresoPeriodos() {
+  const periodos = {};
+  for (let i = 1; i <= configuracionSistema.periodos; i++) {
+    periodos[i] = {
+      saber: { progreso: 0, micromigraciones: {} },
+      hacer: { progreso: 0, micromigraciones: {} },
+      ser: { progreso: 0, micromigraciones: {} },
+      fechaActualizacion: new Date().toISOString()
+    };
+    
+    // Inicializar todas las micromigraciones como no completadas
+    Object.keys(dimensionesData).forEach(dimension => {
+      dimensionesData[dimension].niveles.forEach(nivel => {
+        nivel.pasos.forEach(paso => {
+          periodos[i][dimension].micromigraciones[paso.codigo] = {
+            completada: false,
+            fechaCompletacion: null,
+            evidencia: '',
+            observaciones: ''
+          };
+        });
+      });
+    });
+  }
+  return periodos;
+}
+
+// Registrar nuevo estudiante
+function registrarEstudiante(datos) {
+  // Validaciones
+  if (estudiantes.find(est => est.datos_basicos.codigo === datos.codigo)) {
+    throw new Error('Ya existe un estudiante con ese código');
+  }
+  
+  if (estudiantes.find(est => est.datos_basicos.documento === datos.documento)) {
+    throw new Error('Ya existe un estudiante con ese documento');
+  }
+
+  const nuevoEstudiante = {
+    id: generarIdUnico(),
+    datos_basicos: {
+      codigo: datos.codigo,
+      nombres: datos.nombres,
+      apellidos: datos.apellidos,
+      documento: datos.documento,
+      fecha_nacimiento: datos.fecha_nacimiento || '',
+      genero: datos.genero || '',
+      contacto: {
+        telefono: datos.telefono || '',
+        email: datos.email || '',
+        direccion: datos.direccion || ''
+      }
+    },
+    ubicacion_academica: {
+      grado: datos.grado,
+      grupo: datos.grupo,
+      jornada: datos.jornada,
+      director_grupo: datos.director_grupo || '',
+      año_lectivo: configuracionSistema.añoLectivo,
+      periodo_actual: 1
+    },
+    progreso_academico: {
+      periodos: inicializarProgresoPeriodos(),
+      historial_migraciones: []
+    },
+    fecha_registro: new Date().toISOString(),
+    activo: true
+  };
+  
+  estudiantes.push(nuevoEstudiante);
+  guardarDatosSistema();
+  return nuevoEstudiante;
+}
+
+// Generar grupos disponibles según grado
+function generarGruposDisponibles(grado) {
+  if (grado === 'transicion') {
+    return ['transicion-A', 'transicion-B', 'transicion-C'];
+  }
+  
+  const grupos = [];
+  for (let i = 1; i <= 3; i++) {
+    grupos.push(`${grado}-${i}`);
+  }
+  return grupos;
+}
+
+// ===============================
+// CÁLCULO DE PROGRESOS Y MÉTRICAS
+// ===============================
+
+// Calcular progreso de un estudiante en un período
+function calcularProgresoEstudiante(estudiante, periodo) {
+  const progresoPeriodo = estudiante.progreso_academico.periodos[periodo];
+  
+  const calcularProgresoDimension = (dimension) => {
+    const micromigraciones = progresoPeriodo[dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v.completada).length;
+    return total > 0 ? Math.round((completadas / total) * 100) : 0;
+  };
+  
+  const progresoSaber = calcularProgresoDimension('saber');
+  const progresoHacer = calcularProgresoDimension('hacer');
+  const progresoSer = calcularProgresoDimension('ser');
+  
+  // Calcular progreso total ponderado
+  const pesos = configuracionSistema.dimensiones;
+  const progresoTotal = Math.round(
+    (progresoSaber * pesos.saber.peso) + 
+    (progresoHacer * pesos.hacer.peso) + 
+    (progresoSer * pesos.ser.peso)
+  );
+  
+  return {
+    saber: progresoSaber,
+    hacer: progresoHacer,
+    ser: progresoSer,
+    total: progresoTotal
+  };
+}
+
+
+
+// Calcular métricas institucionales
+function calcularMetricasInstitucionales(filtroGrado = 'todos', periodo = 1) {
+  let estudiantesFiltrados = estudiantes.filter(est => est.activo);
+  
+  if (filtroGrado !== 'todos') {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.ubicacion_academica.grado === filtroGrado
+    );
+  }
+  
+  const totalEstudiantes = estudiantesFiltrados.length;
+  
+  if (totalEstudiantes === 0) {
+    return {
+      totalEstudiantes: 0,
+      progresoPromedio: 0,
+      estudiantesCompletados: 0,
+      estudiantesRiesgo: 0,
+      distribucionDimensiones: { saber: 0, hacer: 0, ser: 0 },
+      porGrado: {},
+      alertas: []
+    };
+  }
+  
+  let progresoTotal = 0;
+  let estudiantesCompletados = 0;
+  let estudiantesRiesgo = 0;
+  let sumaSaber = 0, sumaHacer = 0, sumaSer = 0;
+  
+  const progresoPorGrado = {};
+  
+  estudiantesFiltrados.forEach(estudiante => {
+    const progreso = calcularProgresoEstudiante(estudiante, periodo);
+    
+    if (progreso) {
+      progresoTotal += progreso.total;
+      sumaSaber += progreso.saber;
+      sumaHacer += progreso.hacer;
+      sumaSer += progreso.ser;
+      
+      // Contar completados (100% en todas las dimensiones)
+      if (progreso.saber === 100 && progreso.hacer === 100 && progreso.ser === 100) {
+        estudiantesCompletados++;
+      }
+      
+      // Identificar estudiantes en riesgo
+      if (progreso.total < configuracionSistema.criteriosRiesgo.progresoMinimo) {
+        estudiantesRiesgo++;
+      }
+      
+      // Agrupar por grado
+      const grado = estudiante.ubicacion_academica.grado;
+      if (!progresoPorGrado[grado]) {
+        progresoPorGrado[grado] = { total: 0, count: 0 };
+      }
+      progresoPorGrado[grado].total += progreso.total;
+      progresoPorGrado[grado].count++;
+    }
+  });
+  
+  // Calcular promedios por grado
+  Object.keys(progresoPorGrado).forEach(grado => {
+    if (progresoPorGrado[grado].count > 0) {
+      progresoPorGrado[grado] = Math.round(progresoPorGrado[grado].total / progresoPorGrado[grado].count);
+    } else {
+      progresoPorGrado[grado] = 0;
+    }
+  });
+  
+  return {
+    totalEstudiantes,
+    progresoPromedio: totalEstudiantes > 0 ? Math.round(progresoTotal / totalEstudiantes) : 0,
+    estudiantesCompletados,
+    estudiantesRiesgo,
+    distribucionDimensiones: {
+      saber: totalEstudiantes > 0 ? Math.round(sumaSaber / totalEstudiantes) : 0,
+      hacer: totalEstudiantes > 0 ? Math.round(sumaHacer / totalEstudiantes) : 0,
+      ser: totalEstudiantes > 0 ? Math.round(sumaSer / totalEstudiantes) : 0
+    },
+    porGrado: progresoPorGrado
+  };
+}
+
+// ===============================
+// SISTEMA DE IMPORTACIÓN/EXPORTACIÓN
+// ===============================
+
+// Descargar plantilla completa
+function descargarPlantillaCompleta() {
+  const plantilla = {
+    instrucciones: {
+      titulo: "PLANTILLA DE CARGA MASIVA DE ESTUDIANTES",
+      descripcion: "Complete los datos de los estudiantes según las especificaciones",
+      columnas_obligatorias: [
+        "CODIGO: Formato AAAA-NNN (Ej: 2024-001)",
+        "NOMBRES: Nombres completos del estudiante",
+        "APELLIDOS: Apellidos completos",
+        "DOCUMENTO: Número de documento de identidad",
+        "GRADO: transicion, 1, 2, 3, ..., 11",
+        "GRUPO: Formato grado-grupo (Ej: 5-2)",
+        "JORNADA: MAÑANA, TARDE, NOCTURNA"
+      ],
+      columnas_opcionales: [
+        "FECHA_NACIMIENTO: Formato AAAA-MM-DD",
+        "GENERO: M (Masculino), F (Femenino)",
+        "DIRECTOR_GRUPO: Nombre del director de grupo",
+        "TELEFONO: Número de contacto",
+        "EMAIL: Correo electrónico",
+        "DIRECCION: Dirección de residencia"
+      ]
+    },
+    datos_ejemplo: [
+      {
+        CODIGO: "2024-001",
+        NOMBRES: "María Alejandra",
+        APELLIDOS: "Gómez Rodríguez",
+        DOCUMENTO: "123456789",
+        FECHA_NACIMIENTO: "2010-05-15",
+        GENERO: "F",
+        GRADO: "5",
+        GRUPO: "5-2",
+        JORNADA: "MAÑANA",
+        DIRECTOR_GRUPO: "Carlos Mendoza",
+        TELEFONO: "3001234567",
+        EMAIL: "maria.gomez@colegio.edu.co",
+        DIRECCION: "Calle 123 #45-67"
+      },
+      {
+        CODIGO: "2024-002",
+        NOMBRES: "Juan Carlos",
+        APELLIDOS: "Pérez López",
+        DOCUMENTO: "987654321",
+        FECHA_NACIMIENTO: "2010-08-20",
+        GENERO: "M",
+        GRADO: "3",
+        GRUPO: "3-1",
+        JORNADA: "TARDE",
+        DIRECTOR_GRUPO: "Ana López",
+        TELEFONO: "3017654321",
+        EMAIL: "juan.perez@colegio.edu.co",
+        DIRECCION: "Carrera 45 #67-89"
+      }
+    ]
+  };
+  
+  // Convertir a Excel
+  const ws = XLSX.utils.json_to_sheet(plantilla.datos_ejemplo);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "ESTUDIANTES");
+  
+  // Agregar hoja de instrucciones
+  const instruccionesData = [
+    ["INSTRUCCIONES DE CARGA"],
+    [""],
+    ["COLUMNAS OBLIGATORIAS:"],
+    ...plantilla.instrucciones.columnas_obligatorias.map(col => [col]),
+    [""],
+    ["COLUMNAS OPCIONALES:"],
+    ...plantilla.instrucciones.columnas_opcionales.map(col => [col])
+  ];
+  
+  const wsInst = XLSX.utils.aoa_to_sheet(instruccionesData);
+  XLSX.utils.book_append_sheet(wb, wsInst, "INSTRUCCIONES");
+  
+  // Descargar
+  XLSX.writeFile(wb, `plantilla_estudiantes_${configuracionSistema.añoLectivo}.xlsx`);
+}
+
+// Descargar plantilla mínima
+function descargarPlantillaMinima() {
+  const datosEjemplo = [
+    {
+      CODIGO: "2024-001",
+      NOMBRES: "María Alejandra",
+      APELLIDOS: "Gómez Rodríguez",
+      DOCUMENTO: "123456789",
+      GRADO: "5",
+      GRUPO: "5-2",
+      JORNADA: "MAÑANA"
+    },
+    {
+      CODIGO: "2024-002", 
+      NOMBRES: "Juan Carlos",
+      APELLIDOS: "Pérez López",
+      DOCUMENTO: "987654321",
+      GRADO: "3",
+      GRUPO: "3-1",
+      JORNADA: "TARDE"
+    }
+  ];
+  
+  const ws = XLSX.utils.json_to_sheet(datosEjemplo);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "ESTUDIANTES");
+  XLSX.writeFile(wb, `plantilla_minima_estudiantes_${configuracionSistema.añoLectivo}.xlsx`);
+}
+
+// Procesar archivo de importación
+function procesarArchivoImportacion(archivo) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        
+        const resultados = {
+          exitosos: [],
+          errores: [],
+          total: jsonData.length
+        };
+        
+        jsonData.forEach((fila, index) => {
+          try {
+            // Validar campos obligatorios
+            const camposObligatorios = ['CODIGO', 'NOMBRES', 'APELLIDOS', 'DOCUMENTO', 'GRADO', 'GRUPO', 'JORNADA'];
+            const camposFaltantes = camposObligatorios.filter(campo => !fila[campo]);
+            
+            if (camposFaltantes.length > 0) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: `Campos obligatorios faltantes: ${camposFaltantes.join(', ')}`,
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar formato de código
+            if (!/^\d{4}-\d{3}$/.test(fila.CODIGO)) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: 'Formato de código inválido. Debe ser AAAA-NNN',
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar que no exista el código
+            if (estudiantes.find(est => est.datos_basicos.codigo === fila.CODIGO)) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: 'El código ya existe en el sistema',
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar que no exista el documento
+            if (estudiantes.find(est => est.datos_basicos.documento === fila.DOCUMENTO)) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: 'El documento ya existe en el sistema',
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar grado
+            const gradosValidos = ['transicion', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+            if (!gradosValidos.includes(fila.GRADO.toString())) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: 'Grado inválido. Valores permitidos: transicion, 1, 2, ..., 11',
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar grupo
+            const gruposValidos = generarGruposDisponibles(fila.GRADO.toString());
+            if (!gruposValidos.includes(fila.GRUPO)) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: `Grupo inválido para el grado ${fila.GRADO}. Grupos permitidos: ${gruposValidos.join(', ')}`,
+                datos: fila
+              });
+              return;
+            }
+            
+            // Validar jornada
+            const jornadasValidas = ['MAÑANA', 'TARDE', 'NOCTURNA'];
+            if (!jornadasValidas.includes(fila.JORNADA)) {
+              resultados.errores.push({
+                fila: index + 2,
+                error: 'Jornada inválida. Valores permitidos: MAÑANA, TARDE, NOCTURNA',
+                datos: fila
+              });
+              return;
+            }
+            
+            // Si pasa todas las validaciones, agregar a exitosos
+            resultados.exitosos.push({
+              codigo: fila.CODIGO,
+              nombres: fila.NOMBRES,
+              apellidos: fila.APELLIDOS,
+              documento: fila.DOCUMENTO.toString(),
+              fecha_nacimiento: fila.FECHA_NACIMIENTO || '',
+              genero: fila.GENERO || '',
+              grado: fila.GRADO.toString(),
+              grupo: fila.GRUPO,
+              jornada: fila.JORNADA,
+              director_grupo: fila.DIRECTOR_GRUPO || '',
+              telefono: fila.TELEFONO || '',
+              email: fila.EMAIL || '',
+              direccion: fila.DIRECCION || ''
+            });
+            
+          } catch (error) {
+            resultados.errores.push({
+              fila: index + 2,
+              error: `Error procesando fila: ${error.message}`,
+              datos: fila
+            });
+          }
+        });
+        
+        resolve(resultados);
+      } catch (error) {
+        reject(new Error(`Error leyendo archivo: ${error.message}`));
+      }
+    };
+    
+    reader.onerror = function() {
+      reject(new Error('Error al leer el archivo'));
+    };
+    
+    reader.readAsArrayBuffer(archivo);
+  });
+}
+
+// ===============================
+// SISTEMA DE VISUALIZACIÓN Y UI
+// ===============================
+
+// Variables globales para los gráficos
+let chartDimensiones = null;
+let chartGrados = null;
+let chartEvolucion = null;
+let chartRiesgo = null;
+let chartProgresoIndividual = null;
+
+// Actualizar lista de estudiantes
+function actualizarListaEstudiantes() {
+  const lista = document.getElementById('estudiantesList');
+  const filtroGrado = document.getElementById('filtroGrado')?.value || 'todos';
+  const filtroGrupo = document.getElementById('filtroGrupo')?.value || 'todos';
+  const filtroDimension = document.getElementById('filtroDimension')?.value || 'todas';
+  const filtroBusqueda = document.getElementById('filtroBusqueda')?.value.toLowerCase() || '';
+  
+  // Filtrar estudiantes
+  let estudiantesFiltrados = estudiantes.filter(est => est.activo);
+  
+  if (filtroGrado !== 'todos') {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.ubicacion_academica.grado === filtroGrado
+    );
+  }
+  
+  if (filtroGrupo !== 'todos') {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.ubicacion_academica.grupo === filtroGrupo
+    );
+  }
+  
+  if (filtroBusqueda) {
+    estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+      est.datos_basicos.nombres.toLowerCase().includes(filtroBusqueda) ||
+      est.datos_basicos.apellidos.toLowerCase().includes(filtroBusqueda) ||
+      est.datos_basicos.codigo.toLowerCase().includes(filtroBusqueda) ||
+      est.datos_basicos.documento.includes(filtroBusqueda)
+    );
+  }
+  
+  // Renderizar estudiantes
+  lista.innerHTML = '';
+  
+  if (estudiantesFiltrados.length === 0) {
+    lista.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--muted);">
+        <div style="font-size: 3rem; margin-bottom: 16px;">👥</div>
+        <h3>No hay estudiantes que coincidan con los filtros</h3>
+        <p>Intenta con otros criterios de búsqueda</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Ordenar por progreso si se filtró por dimensión
+  if (filtroDimension !== 'todas') {
+    estudiantesFiltrados.sort((a, b) => {
+      const progresoA = calcularProgresoEstudiante(a, periodoActual)[filtroDimension];
+      const progresoB = calcularProgresoEstudiante(b, periodoActual)[filtroDimension];
+      return progresoB - progresoA;
+    });
+  }
+  
+  estudiantesFiltrados.forEach(estudiante => {
+    const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+    const alertas = generarAlertasEstudiante(estudiante, periodoActual);
+    const tieneAlertas = alertas.length > 0;
+    
+    const card = document.createElement('div');
+    card.className = `estudiante-card ${estudianteActual?.id === estudiante.id ? 'active' : ''}`;
+    card.innerHTML = `
+      <div class="estudiante-info">
+        <div class="estudiante-nombre">
+          ${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}
+          ${tieneAlertas ? ' 🚨' : ''}
+        </div>
+        <div class="estudiante-meta">
+          ${estudiante.datos_basicos.codigo} • ${estudiante.ubicacion_academica.grupo}
+          ${estudiante.ubicacion_academica.director_grupo ? '• ' + estudiante.ubicacion_academica.director_grupo : ''}
+        </div>
+      </div>
+      
+      <div class="progreso-dimensiones">
+        <div class="dimension-mini saber">
+          <div style="font-size: 0.7rem;">📚 ${progreso.saber}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.saber}%"></div>
+          </div>
+        </div>
+        <div class="dimension-mini hacer">
+          <div style="font-size: 0.7rem;">🛠️ ${progreso.hacer}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.hacer}%"></div>
+          </div>
+        </div>
+        <div class="dimension-mini ser">
+          <div style="font-size: 0.7rem;">🌟 ${progreso.ser}%</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progreso.ser}%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 4px; margin-top: 8px;">
+        <button class="btn" onclick="seleccionarEstudiante('${estudiante.id}')" style="flex: 1;">
+          👁️ Ver Progreso
+        </button>
+        ${tieneAlertas ? '<span class="badge badge-danger" style="font-size: 0.7rem; padding: 2px 6px;">⚠️</span>' : ''}
+      </div>
+    `;
+    
+    lista.appendChild(card);
+  });
+}
+
+// Actualizar vista de progreso del estudiante
+function actualizarVistaProgreso() {
+  if (!estudianteActual) return;
+  
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+  const nivelSaber = determinarNivelDimension(progreso.saber);
+  const nivelHacer = determinarNivelDimension(progreso.hacer);
+  const nivelSer = determinarNivelDimension(progreso.ser);
+  
+  // Actualizar información básica
+  document.getElementById('currentStudentName').textContent = 
+    `${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+  
+  document.getElementById('currentPeriodo').textContent = `Periodo ${periodoActual}`;
+  
+  document.getElementById('studentProgressTitle').textContent = 
+    `Progreso de ${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+  
+  // Actualizar información del estudiante
+  document.getElementById('infoCodigo').textContent = estudianteActual.datos_basicos.codigo;
+  document.getElementById('infoDocumento').textContent = estudianteActual.datos_basicos.documento;
+  document.getElementById('infoGradoGrupo').textContent = 
+    `${estudianteActual.ubicacion_academica.grado} • ${estudianteActual.ubicacion_academica.grupo}`;
+  document.getElementById('infoJornada').textContent = estudianteActual.ubicacion_academica.jornada;
+  
+  // Actualizar anillos de progreso
+  actualizarAnilloProgreso('saber', progreso.saber);
+  actualizarAnilloProgreso('hacer', progreso.hacer);
+  actualizarAnilloProgreso('ser', progreso.ser);
+  
+  // Actualizar niveles
+  document.getElementById('saberNivel').textContent = nivelSaber.nombre;
+  document.getElementById('hacerNivel').textContent = nivelHacer.nombre;
+  document.getElementById('serNivel').textContent = nivelSer.nombre;
+  
+  // Actualizar valores generales
+  document.getElementById('generalSaber').textContent = `${progreso.saber}%`;
+  document.getElementById('generalHacer').textContent = `${progreso.hacer}%`;
+  document.getElementById('generalSer').textContent = `${progreso.ser}%`;
+  document.getElementById('generalTotal').textContent = `${progreso.total}%`;
+  
+  // Actualizar contadores de micromigraciones
+  actualizarContadoresMicromigraciones();
+  
+  // Actualizar alertas
+  actualizarAlertasEstudiante();
+  
+  // Actualizar recomendaciones
+  actualizarRecomendaciones();
+  
+  // Actualizar gráfico de progreso individual
+  actualizarGraficoProgresoIndividual();
+}
+
+// Actualizar anillo de progreso visual
+function actualizarAnilloProgreso(dimension, porcentaje) {
+  const ring = document.getElementById(`${dimension}ProgressRing`);
+  const valueElement = document.getElementById(`${dimension}ProgressValue`);
+  
+  if (ring && valueElement) {
+    const color = getComputedStyle(document.documentElement).getPropertyValue(dimensionesData[dimension].color);
+    ring.style.background = `conic-gradient(${color} 0deg, ${color} ${porcentaje * 3.6}deg, transparent ${porcentaje * 3.6}deg)`;
+    valueElement.textContent = `${porcentaje}%`;
+  }
+}
+
+// Actualizar contadores de micromigraciones
+function actualizarContadoresMicromigraciones() {
+  if (!estudianteActual) return;
+  
+  Object.keys(dimensionesData).forEach(dimension => {
+    const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v.completada).length;
+    
+    const elemento = document.getElementById(`${dimension}Micromigraciones`);
+    if (elemento) {
+      elemento.textContent = `${completadas}/${total}`;
+    }
+  });
+}
+
+// ===============================
+// SISTEMA DE ALERTAS
+// ===============================
+
+// Generar alertas para un estudiante
+function generarAlertasEstudiante(estudiante, periodo) {
+  const alertas = [];
+  const progreso = calcularProgresoEstudiante(estudiante, periodo);
+  const ultimaActualizacion = new Date(estudiante.progreso_academico.periodos[periodo].fechaActualizacion);
+  const diasInactivo = Math.floor((new Date() - ultimaActualizacion) / (1000 * 60 * 60 * 24));
+  
+  // Alerta por bajo progreso general
+  if (progreso.total < configuracionSistema.criteriosRiesgo.progresoMinimo) {
+    alertas.push({
+      tipo: 'riesgo',
+      titulo: 'Bajo progreso académico',
+      mensaje: `Progreso general del ${progreso.total}% está por debajo del mínimo requerido (${configuracionSistema.criteriosRiesgo.progresoMinimo}%)`,
+      dimension: 'general',
+      prioridad: 'alta'
+    });
+  }
+  
+  // Alerta por inactividad
+  if (diasInactivo > configuracionSistema.criteriosRiesgo.inactividadDias) {
+    alertas.push({
+      tipo: 'inactividad',
+      titulo: 'Inactividad prolongada',
+      mensaje: `Sin actualizaciones por ${diasInactivo} días`,
+      dimension: 'general',
+      prioridad: 'media'
+    });
+  }
+  
+  // Alertas por desbalance entre dimensiones
+  const promedios = [progreso.saber, progreso.hacer, progreso.ser];
+  const maximo = Math.max(...promedios);
+  const minimo = Math.min(...promedios);
+  
+  if (maximo - minimo > configuracionSistema.criteriosRiesgo.desbalanceMaximo) {
+    alertas.push({
+      tipo: 'desbalance',
+      titulo: 'Desbalance en el desarrollo',
+      mensaje: `Gran diferencia entre dimensiones (${maximo}% vs ${minimo}%)`,
+      dimension: 'general',
+      prioridad: 'media'
+    });
+  }
+  
+  // Alertas por dimensiones específicas
+  Object.keys(progreso).forEach(dimension => {
+    if (dimension !== 'total' && progreso[dimension] < 30) {
+      alertas.push({
+        tipo: 'dimension_baja',
+        titulo: `Bajo progreso en ${dimensionesData[dimension].nombre}`,
+        mensaje: `Progreso del ${progreso[dimension]}% en ${dimensionesData[dimension].nombre}`,
+        dimension: dimension,
+        prioridad: 'alta'
+      });
+    }
+  });
+  
+  return alertas;
+}
+
+// Actualizar alertas del estudiante actual
+function actualizarAlertasEstudiante() {
+  const contenedor = document.getElementById('alertasEstudiante');
+  if (!estudianteActual) {
+    contenedor.innerHTML = '';
+    return;
+  }
+  
+  const alertas = generarAlertasEstudiante(estudianteActual, periodoActual);
+  
+  if (alertas.length === 0) {
+    contenedor.innerHTML = `
+      <div class="alert alert-success">
+        ✅ El estudiante muestra un progreso adecuado en todas las dimensiones
+      </div>
+    `;
+    return;
+  }
+  
+  contenedor.innerHTML = alertas.map(alerta => `
+    <div class="alert ${alerta.prioridad === 'alta' ? 'alert-danger' : 'alert-warning'}">
+      <strong>${alerta.titulo}</strong><br>
+      ${alerta.mensaje}
+    </div>
+  `).join('');
+}
+
+// ===============================
+// SISTEMA DE RECOMENDACIONES
+// ===============================
+
+// Generar recomendaciones personalizadas
+function actualizarRecomendaciones() {
+  const contenedor = document.getElementById('recomendacionesContenido');
+  if (!estudianteActual) {
+    contenedor.innerHTML = '<p style="color: var(--muted);">Selecciona un estudiante para ver recomendaciones</p>';
+    return;
+  }
+  
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+  const alertas = generarAlertasEstudiante(estudianteActual, periodoActual);
+  const recomendaciones = [];
+  
+  // Recomendaciones basadas en el progreso
+  if (progreso.total < 50) {
+    recomendaciones.push({
+      icono: '🎯',
+      titulo: 'Enfoque en objetivos prioritarios',
+      descripcion: 'Identifica las micromigraciones más críticas y establece metas semanales alcanzables.'
+    });
+  }
+  
+  if (progreso.saber < progreso.hacer && progreso.saber < progreso.ser) {
+    recomendaciones.push({
+      icono: '📚',
+      titulo: 'Refuerzo conceptual',
+      descripcion: 'Dedica tiempo adicional a la comprensión de conceptos fundamentales a través de ejercicios prácticos.'
+    });
+  }
+  
+  if (progreso.hacer < progreso.saber && progreso.hacer < progreso.ser) {
+    recomendaciones.push({
+      icono: '🛠️',
+      titulo: 'Práctica procedimental',
+      descripcion: 'Realiza ejercicios de aplicación práctica y resolución de problemas en contextos reales.'
+    });
+  }
+  
+  if (progreso.ser < progreso.saber && progreso.ser < progreso.hacer) {
+    recomendaciones.push({
+      icono: '🌟',
+      titulo: 'Desarrollo actitudinal',
+      descripcion: 'Participa en actividades grupales y desarrolla habilidades de autorregulación y colaboración.'
+    });
+  }
+  
+  // Recomendaciones basadas en alertas
+  alertas.forEach(alerta => {
+    if (alerta.tipo === 'inactividad') {
+      recomendaciones.push({
+        icono: '⏰',
+        titulo: 'Reactivar participación',
+        descripcion: 'Establece un plan de trabajo semanal con hitos específicos para retomar el ritmo de aprendizaje.'
+      });
+    }
+    
+    if (alerta.dimension === 'saber') {
+      recomendaciones.push({
+        icono: '🧠',
+        titulo: 'Estrategias de aprendizaje',
+        descripcion: 'Utiliza mapas conceptuales, resúmenes y técnicas de estudio activo para mejorar la comprensión.'
+      });
+    }
+  });
+  
+  // Recomendación general de éxito
+  if (progreso.total >= 80) {
+    recomendaciones.push({
+      icono: '🚀',
+      titulo: 'Preparación para el siguiente nivel',
+      descripcion: 'Excelente progreso. Considera actividades de ampliación y profundización en tus áreas de interés.'
+    });
+  }
+  
+  if (recomendaciones.length === 0) {
+    recomendaciones.push({
+      icono: '💡',
+      titulo: 'Mantenimiento del progreso',
+      descripcion: 'Continúa con tu plan de trabajo actual y establece nuevos desafíos para mantener la motivación.'
+    });
+  }
+  
+  contenedor.innerHTML = recomendaciones.map(rec => `
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; padding: 16px; background: var(--panel); border-radius: 8px; border-left: 4px solid var(--accent);">
+      <div style="font-size: 1.5rem;">${rec.icono}</div>
+      <div>
+        <div style="font-weight: 600; margin-bottom: 4px;">${rec.titulo}</div>
+        <div style="color: var(--muted); font-size: 0.9rem;">${rec.descripcion}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===============================
+// SISTEMA DE GRÁFICOS Y REPORTES
+// ===============================
+
+// Actualizar dashboard institucional
+function actualizarDashboard() {
+  const filtroGrado = document.getElementById('dashboardGrado').value;
+  const periodo = parseInt(document.getElementById('dashboardPeriodo').value);
+  const metricas = calcularMetricasInstitucionales(filtroGrado, periodo);
+  
+  // Actualizar métricas principales
+  document.getElementById('metricTotalEstudiantes').textContent = metricas.totalEstudiantes;
+  document.getElementById('metricProgresoPromedio').textContent = `${metricas.progresoPromedio}%`;
+  document.getElementById('metricCompletados').textContent = metricas.estudiantesCompletados;
+  document.getElementById('metricEnRiesgo').textContent = metricas.estudiantesRiesgo;
+  
+  // Actualizar gráficos con manejo de errores
+  try {
+    actualizarGraficoDimensiones(metricas);
+  } catch (error) {
+    console.error('Error actualizando gráfico de dimensiones:', error);
+  }
+  
+  try {
+    actualizarGraficoGrados(metricas);
+  } catch (error) {
+    console.error('Error actualizando gráfico de grados:', error);
+  }
+  
+  try {
+    actualizarGraficoEvolucion();
+  } catch (error) {
+    console.error('Error actualizando gráfico de evolución:', error);
+  }
+  
+  try {
+    actualizarGraficoRiesgo(metricas);
+  } catch (error) {
+    console.error('Error actualizando gráfico de riesgo:', error);
+  }
+  
+  try {
+    actualizarTablaRanking(metricas);
+  } catch (error) {
+    console.error('Error actualizando tabla de ranking:', error);
+  }
+}
+
+// Función para limpiar todos los gráficos
+function limpiarGraficos() {
+  const charts = [chartDimensiones, chartGrados, chartEvolucion, chartRiesgo, chartProgresoIndividual];
+  
+  charts.forEach(chart => {
+    if (chart) {
+      try {
+        chart.destroy();
+      } catch (error) {
+        console.warn('Error destruyendo gráfico:', error);
+      }
+    }
+  });
+  
+  // Resetear variables
+  chartDimensiones = null;
+  chartGrados = null;
+  chartEvolucion = null;
+  chartRiesgo = null;
+  chartProgresoIndividual = null;
+}
+
+// Actualizar gráfico de dimensiones
+function actualizarGraficoDimensiones(metricas) {
+  const ctx = document.getElementById('chartDimensiones');
+  if (!ctx) return;
+  
+  // Destruir gráfico anterior si existe
+  if (chartDimensiones) {
+    chartDimensiones.destroy();
+  }
+  
+  chartDimensiones = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Saber', 'Hacer', 'Ser'],
+      datasets: [{
+        data: [
+          metricas.distribucionDimensiones.saber || 0,
+          metricas.distribucionDimensiones.hacer || 0,
+          metricas.distribucionDimensiones.ser || 0
+        ],
+        backgroundColor: [
+          getComputedStyle(document.documentElement).getPropertyValue('--saber'),
+          getComputedStyle(document.documentElement).getPropertyValue('--hacer'),
+          getComputedStyle(document.documentElement).getPropertyValue('--ser')
+        ],
+        borderWidth: 2,
+        borderColor: '#020617'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#e5e7eb',
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${context.raw}%`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Actualizar gráfico de progreso por grado
+function actualizarGraficoGrados(metricas) {
+  const ctx = document.getElementById('chartGrados');
+  if (!ctx) return;
+  
+  const grados = Object.keys(metricas.porGrado || {}).sort();
+  const progresos = grados.map(grado => metricas.porGrado[grado] || 0);
+  
+  // Destruir gráfico anterior si existe
+  if (chartGrados) {
+    chartGrados.destroy();
+  }
+  
+  // Si no hay datos, mostrar gráfico vacío
+  if (grados.length === 0) {
+    chartGrados = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Sin datos'],
+        datasets: [{
+          label: 'Progreso Promedio (%)',
+          data: [0],
+          backgroundColor: '#9ca3af'
+        }]
+      },
+      options: getChartOptions()
+    });
+    return;
+  }
+  
+  chartGrados = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: grados.map(g => g === 'transicion' ? 'Trans.' : `${g}°`),
+      datasets: [{
+        label: 'Progreso Promedio (%)',
+        data: progresos,
+        backgroundColor: grados.map((grado, index) => {
+          if (grado === 'transicion') return '#f59e0b';
+          if (parseInt(grado) <= 5) return '#ef4444';
+          return '#8b5cf6';
+        }),
+        borderWidth: 1,
+        borderColor: '#1f2937'
+      }]
+    },
+    options: getChartOptions()
+  });
+}
+
+// Actualizar gráfico de evolución temporal
+function actualizarGraficoEvolucion() {
+  const ctx = document.getElementById('chartEvolucion');
+  if (!ctx) return;
+  
+  // Datos de ejemplo para la evolución
+  const periodos = ['Periodo 1', 'Periodo 2', 'Periodo 3', 'Periodo 4'];
+  const datosSaber = [45, 60, 75, 82];
+  const datosHacer = [35, 55, 70, 78];
+  const datosSer = [50, 65, 72, 80];
+  
+  // Destruir gráfico anterior si existe
+  if (chartEvolucion) {
+    chartEvolucion.destroy();
+  }
+  
+  chartEvolucion = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: periodos,
+      datasets: [
+        {
+          label: 'Saber',
+          data: datosSaber,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--saber'),
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Hacer',
+          data: datosHacer,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--hacer'),
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Ser',
+          data: datosSer,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ser'),
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    },
+    options: getChartOptions(true)
+  });
+}
+
+// Actualizar gráfico de análisis de riesgo
+function actualizarGraficoRiesgo(metricas) {
+  const ctx = document.getElementById('chartRiesgo');
+  if (!ctx) return;
+  
+  // Datos reales basados en las métricas
+  const estudiantesRiesgo = metricas.estudiantesRiesgo || 0;
+  const estudiantesCompletados = metricas.estudiantesCompletados || 0;
+  const estudiantesTotales = metricas.totalEstudiantes || 1;
+  const estudiantesNormales = estudiantesTotales - estudiantesRiesgo - estudiantesCompletados;
+  
+  const nivelesRiesgo = ['Sin riesgo', 'En riesgo', 'Completados'];
+  const estudiantesPorRiesgo = [
+    estudiantesNormales,
+    estudiantesRiesgo,
+    estudiantesCompletados
+  ];
+  
+  // Destruir gráfico anterior si existe
+  if (chartRiesgo) {
+    chartRiesgo.destroy();
+  }
+  
+  chartRiesgo = new Chart(ctx, {
+    type: 'polarArea',
+    data: {
+      labels: nivelesRiesgo,
+      datasets: [{
+        data: estudiantesPorRiesgo,
+        backgroundColor: [
+          '#22c55e',  // Sin riesgo - verde
+          '#ef4444',  // En riesgo - rojo
+          '#3b82f6'   // Completados - azul
+        ],
+        borderWidth: 2,
+        borderColor: '#020617'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#e5e7eb',
+            font: {
+              size: 11
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${context.raw} estudiantes`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Actualizar tabla de ranking de grupos
+function actualizarTablaRanking(metricas) {
+  const tbody = document.getElementById('tablaRankingBody');
+  
+  // Calcular ranking de grupos
+  const grupos = {};
+  estudiantes.filter(est => est.activo).forEach(estudiante => {
+    const grupo = estudiante.ubicacion_academica.grupo;
+    if (!grupos[grupo]) {
+      grupos[grupo] = {
+        estudiantes: [],
+        progresoTotal: 0
+      };
+    }
+    grupos[grupo].estudiantes.push(estudiante);
+  });
+  
+  // Calcular promedios por grupo
+  const ranking = Object.keys(grupos).map(grupo => {
+    const progresos = grupos[grupo].estudiantes.map(est => 
+      calcularProgresoEstudiante(est, periodoActual)
+    );
+    
+    const promedioTotal = Math.round(progresos.reduce((sum, p) => sum + p.total, 0) / progresos.length);
+    const promedioSaber = Math.round(progresos.reduce((sum, p) => sum + p.saber, 0) / progresos.length);
+    const promedioHacer = Math.round(progresos.reduce((sum, p) => sum + p.hacer, 0) / progresos.length);
+    const promedioSer = Math.round(progresos.reduce((sum, p) => sum + p.ser, 0) / progresos.length);
+    
+    return {
+      grupo,
+      promedioTotal,
+      promedioSaber,
+      promedioHacer,
+      promedioSer,
+      totalEstudiantes: grupos[grupo].estudiantes.length
+    };
+  });
+  
+  // Ordenar por progreso total
+  ranking.sort((a, b) => b.promedioTotal - a.promedioTotal);
+  
+  // Renderizar tabla
+  tbody.innerHTML = ranking.map((item, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td><strong>${item.grupo}</strong></td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-weight: 600; color: var(--accent);">${item.promedioTotal}%</div>
+          <div style="height: 6px; background: var(--border); border-radius: 3px; flex: 1;">
+            <div style="height: 100%; width: ${item.promedioTotal}%; background: var(--accent); border-radius: 3px;"></div>
+          </div>
+        </div>
+      </td>
+      <td>${item.promedioSaber}%</td>
+      <td>${item.promedioHacer}%</td>
+      <td>${item.promedioSer}%</td>
+      <td>${item.totalEstudiantes}</td>
+    </tr>
+  `).join('');
+}
+
+// Actualizar gráfico de progreso individual
+function actualizarGraficoProgresoIndividual() {
+  if (!estudianteActual) return;
+  
+  const ctx = document.getElementById('chartProgresoIndividual');
+  if (!ctx) return;
+  
+  const periodos = [1, 2, 3, 4];
+  
+  const datosSaber = periodos.map(p => {
+    const progreso = calcularProgresoEstudiante(estudianteActual, p);
+    return progreso ? progreso.saber : 0;
+  });
+  
+  const datosHacer = periodos.map(p => {
+    const progreso = calcularProgresoEstudiante(estudianteActual, p);
+    return progreso ? progreso.hacer : 0;
+  });
+  
+  const datosSer = periodos.map(p => {
+    const progreso = calcularProgresoEstudiante(estudianteActual, p);
+    return progreso ? progreso.ser : 0;
+  });
+  
+  // Destruir gráfico anterior si existe
+  if (chartProgresoIndividual) {
+    chartProgresoIndividual.destroy();
+  }
+  
+  chartProgresoIndividual = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: periodos.map(p => `Periodo ${p}`),
+      datasets: [
+        {
+          label: 'Saber',
+          data: datosSaber,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--saber'),
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.3,
+          fill: false
+        },
+        {
+          label: 'Hacer',
+          data: datosHacer,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--hacer'),
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.3,
+          fill: false
+        },
+        {
+          label: 'Ser',
+          data: datosSer,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ser'),
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          tension: 0.3,
+          fill: false
+        }
+      ]
+    },
+    options: getChartOptions(true)
+  });
+}
+
+// Función auxiliar para opciones de gráficos
+function getChartOptions(isLineChart = false) {
+  const baseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          color: '#9ca3af'
+        },
+        grid: {
+          color: '#1f2937'
+        }
+      },
+      x: {
+        ticks: {
+          color: '#9ca3af'
+        },
+        grid: {
+          color: '#1f2937'
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        labels: {
+          color: '#e5e7eb'
+        }
+      }
+    }
+  };
+  
+  if (isLineChart) {
+    return baseOptions;
+  }
+  
+  // Para gráficos de barras, ocultar la leyenda si solo hay un dataset
+  return {
+    ...baseOptions,
+    plugins: {
+      ...baseOptions.plugins,
+      legend: {
+        display: false
+      }
+    }
+  };
+}
+
+// ===============================
+// SISTEMA DE MODALES Y NAVEGACIÓN
+// ===============================
+
+// Abrir modal de dimensión
+function abrirDetalleDimension(dimension) {
+  if (!estudianteActual) return;
+  
+  const modal = document.getElementById('modalDimension');
+  const titulo = document.getElementById('modalDimensionTitle');
+  const contenido = document.getElementById('modalDimensionContent');
+  
+  const datosDimension = dimensionesData[dimension];
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual)[dimension];
+  const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+  
+  titulo.textContent = `Detalles de ${datosDimension.nombre} - ${progreso}% completado`;
+  
+  let html = `
+    <div style="margin-bottom: 20px;">
+      <div style="color: var(--muted); font-size: 0.9rem;">${datosDimension.descripcion}</div>
+    </div>
+    
+    <div style="display: grid; gap: 16px;">
+  `;
+  
+  datosDimension.niveles.forEach(nivel => {
+    html += `
+      <div style="background: var(--card); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h4 style="margin: 0; color: var(--text);">${nivel.nombre}</h4>
+            <div style="color: var(--muted); font-size: 0.8rem;">${nivel.descripcion}</div>
+          </div>
+          <div class="badge">
+            ${nivel.pasos.filter(p => micromigraciones[p.codigo].completada).length}/${nivel.pasos.length}
+          </div>
+        </div>
+        
+        <div style="display: grid; gap: 8px;">
+    `;
+    
+    nivel.pasos.forEach(paso => {
+      const completada = micromigraciones[paso.codigo].completada;
+      html += `
+        <div style="display: flex; gap: 12px; padding: 12px; background: ${completada ? 'rgba(34,197,94,0.1)' : 'var(--panel)'}; border-radius: 6px; border-left: 4px solid ${completada ? 'var(--ok)' : 'var(--border)'};">
+          <div style="display: flex; align-items: start; gap: 8px; min-width: 0; flex: 1;">
+            <div>
+              <input type="checkbox" ${completada ? 'checked' : ''} 
+                     onchange="toggleMicromigracion('${dimension}', '${paso.codigo}', this.checked)"
+                     style="accent-color: var(--accent); cursor: pointer;">
+            </div>
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-weight: 600; color: ${completada ? 'var(--ok)' : 'var(--text)'}; margin-bottom: 4px;">
+                ${paso.titulo}
+              </div>
+              <div style="color: var(--muted); font-size: 0.8rem; margin-bottom: 4px;">
+                <strong>DBA:</strong> ${paso.dba} | <strong>Producto:</strong> ${paso.producto}
+              </div>
+              <div style="color: var(--muted); font-size: 0.75rem;">
+                <strong>Evidencia:</strong> ${paso.evidencia}
+              </div>
+              <div style="color: var(--muted); font-size: 0.75rem;">
+                <strong>Criterio:</strong> ${paso.criterio}
+              </div>
+              ${micromigraciones[paso.codigo].evidencia ? `
+                <div style="color: var(--accent); font-size: 0.75rem; margin-top: 4px;">
+                  <strong>Evidencia registrada:</strong> ${micromigraciones[paso.codigo].evidencia}
+                </div>
+              ` : ''}
+              ${micromigraciones[paso.codigo].observaciones ? `
+                <div style="color: var(--muted); font-size: 0.75rem; margin-top: 2px;">
+                  <strong>Observaciones:</strong> ${micromigraciones[paso.codigo].observaciones}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `
+    </div>
+    
+    <div style="margin-top: 20px; padding: 16px; background: var(--accent-soft); border-radius: 8px;">
+      <h4 style="margin: 0 0 8px 0;">📝 Agregar evidencia para múltiples micromigraciones</h4>
+      <div style="display: grid; gap: 8px;">
+        <div>
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Evidencia general</label>
+          <input type="text" id="evidenciaGeneral" placeholder="Describa la evidencia..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Observaciones</label>
+          <textarea id="observacionesGenerales" placeholder="Observaciones adicionales..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); height: 60px;"></textarea>
+        </div>
+        <button class="btn btn-success" onclick="aplicarEvidenciaGeneral('${dimension}')" style="justify-content: center;">
+          💾 Aplicar a todas las seleccionadas
+        </button>
+      </div>
+    </div>
+  `;
+  
+  contenido.innerHTML = html;
+  modal.classList.add('active');
+}
+
+// Toggle de micromigración
+function toggleMicromigracion(dimension, codigo, completada) {
+  if (!estudianteActual) return;
+  
+  estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones[codigo].completada = completada;
+  
+  if (completada) {
+    estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones[codigo].fechaCompletacion = new Date().toISOString();
+    
+    // Registrar en historial
+    estudianteActual.progreso_academico.historial_migraciones.push({
+      fecha: new Date().toISOString(),
+      tipo: 'intranivel',
+      dimension: dimension,
+      codigo: codigo,
+      accion: 'completada',
+      periodo: periodoActual
+    });
+  }
+  
+  // Recalcular progreso
+  const progresoDimension = calcularProgresoEstudiante(estudianteActual, periodoActual)[dimension];
+  estudianteActual.progreso_academico.periodos[periodoActual][dimension].progreso = progresoDimension;
+  estudianteActual.progreso_academico.periodos[periodoActual].fechaActualizacion = new Date().toISOString();
+  
+  guardarDatosSistema();
+  actualizarVistaProgreso();
+}
+
+// Aplicar evidencia general
+function aplicarEvidenciaGeneral(dimension) {
+  if (!estudianteActual) return;
+  
+  const evidencia = document.getElementById('evidenciaGeneral').value;
+  const observaciones = document.getElementById('observacionesGenerales').value;
+  
+  Object.keys(estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones).forEach(codigo => {
+    const micromigracion = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones[codigo];
+    if (micromigracion.completada) {
+      if (evidencia) micromigracion.evidencia = evidencia;
+      if (observaciones) micromigracion.observaciones = observaciones;
+    }
+  });
+  
+  guardarDatosSistema();
+  abrirDetalleDimension(dimension); // Recargar el modal
+}
+
+// Cerrar modal
+function cerrarModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Abrir modal de reportes
+function abrirModalReportes() {
+  const modal = document.getElementById('modalReportes');
+  const contenido = document.getElementById('modalReportesContent');
+  
+  contenido.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+      <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+        <h4 style="margin: 0 0 12px 0;">📊 Reporte Institucional</h4>
+        <p style="color: var(--muted); margin-bottom: 16px;">Reporte completo del progreso de todos los estudiantes</p>
+        <button class="btn btn-success" onclick="generarReporteInstitucional()" style="width: 100%; justify-content: center;">
+          📄 Generar Reporte
+        </button>
+      </div>
+      
+      <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+        <h4 style="margin: 0 0 12px 0;">👥 Reporte por Grupo</h4>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Seleccionar grupo</label>
+          <select id="reporteGrupo" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+            ${[...new Set(estudiantes.filter(e => e.activo).map(e => e.ubicacion_academica.grupo))].map(grupo => 
+              `<option value="${grupo}">${grupo}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <button class="btn" onclick="generarReporteGrupo()" style="width: 100%; justify-content: center;">
+          📊 Generar Reporte
+        </button>
+      </div>
+      
+      <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+        <h4 style="margin: 0 0 12px 0;">🎯 Reporte de Alertas</h4>
+        <p style="color: var(--muted); margin-bottom: 16px;">Listado de estudiantes que requieren atención</p>
+        <button class="btn btn-warning" onclick="generarReporteAlertas()" style="width: 100%; justify-content: center;">
+          🚨 Generar Reporte
+        </button>
+      </div>
+    </div>
+    
+    <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+      <h4 style="margin: 0 0 12px 0;">📈 Reporte Personalizado</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Grado</label>
+          <select id="reportePersonalizadoGrado" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+            <option value="todos">Todos los grados</option>
+            ${[...new Set(estudiantes.filter(e => e.activo).map(e => e.ubicacion_academica.grado))].sort().map(grado => 
+              `<option value="${grado}">${grado}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Dimensión</label>
+          <select id="reportePersonalizadoDimension" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+            <option value="todas">Todas las dimensiones</option>
+            <option value="saber">Saber</option>
+            <option value="hacer">Hacer</option>
+            <option value="ser">Ser</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 4px; font-size: 0.8rem; color: var(--muted);">Progreso mínimo</label>
+          <input type="number" id="reportePersonalizadoProgresoMin" min="0" max="100" value="0" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); color: var(--text);">
+        </div>
+      </div>
+      <button class="btn" onclick="generarReportePersonalizado()" style="width: 100%; justify-content: center;">
+        🔧 Generar Reporte Personalizado
+      </button>
+    </div>
+  `;
+  
+  modal.classList.add('active');
+}
+
+// Generar reporte individual
+function generarReporteIndividual() {
+  if (!estudianteActual) return;
+  
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+  const alertas = generarAlertasEstudiante(estudianteActual, periodoActual);
+  
+  const reporte = {
+    tipo: 'individual',
+    fecha: new Date().toISOString(),
+    estudiante: {
+      codigo: estudianteActual.datos_basicos.codigo,
+      nombre: `${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`,
+      grado: estudianteActual.ubicacion_academica.grado,
+      grupo: estudianteActual.ubicacion_academica.grupo
+    },
+    periodo: periodoActual,
+    progreso: progreso,
+    alertas: alertas,
+    dimensiones: {}
+  };
+  
+  // Agregar detalle por dimensión
+  Object.keys(dimensionesData).forEach(dimension => {
+    const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+    const completadas = Object.values(micromigraciones).filter(m => m.completada).length;
+    const total = Object.keys(micromigraciones).length;
+    
+    reporte.dimensiones[dimension] = {
+      progreso: progreso[dimension],
+      completadas: completadas,
+      total: total,
+      nivel: determinarNivelDimension(progreso[dimension]).nombre
+    };
+  });
+  
+  // Descargar como JSON
+  const blob = new Blob([JSON.stringify(reporte, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reporte_${estudianteActual.datos_basicos.codigo}_p${periodoActual}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  alert('✅ Reporte individual generado exitosamente');
+}
+
+
+
+// ===============================
+// FUNCIONES PARA REPORTES EXCEL
+// ===============================
+
+// Función para generar reporte individual en Excel
+function generarReporteIndividualExcel() {
+    if (!estudianteActual) {
+        alert('❌ No hay estudiante seleccionado');
+        return;
+    }
+
+    const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+    const alertas = generarAlertasEstudiante(estudianteActual, periodoActual);
+    
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Hoja 1: Resumen del estudiante
+    const resumenData = [
+        ['REPORTE INDIVIDUAL DE PROGRESO ACADÉMICO'],
+        ['Sistema Fractal de Aprendizaje - SITE-RUTA LATAM'],
+        [''],
+        ['INFORMACIÓN DEL ESTUDIANTE'],
+        ['Código:', estudianteActual.datos_basicos.codigo],
+        ['Nombre completo:', `${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`],
+        ['Documento:', estudianteActual.datos_basicos.documento],
+        ['Grado y Grupo:', `${estudianteActual.ubicacion_academica.grado} - ${estudianteActual.ubicacion_academica.grupo}`],
+        ['Jornada:', estudianteActual.ubicacion_academica.jornada],
+        ['Director de grupo:', estudianteActual.ubicacion_academica.director_grupo || 'No asignado'],
+        ['Período académico:', `Periodo ${periodoActual}`],
+        ['Fecha de generación:', new Date().toLocaleDateString()],
+        [''],
+        ['PROGRESO GENERAL'],
+        ['Dimensión Saber:', `${progreso.saber}%`],
+        ['Dimensión Hacer:', `${progreso.hacer}%`],
+        ['Dimensión Ser:', `${progreso.ser}%`],
+        ['PROGRESO TOTAL:', `${progreso.total}%`],
+        [''],
+        ['NIVELES ALCANZADOS'],
+        ['Saber:', determinarNivelDimension(progreso.saber).nombre],
+        ['Hacer:', determinarNivelDimension(progreso.hacer).nombre],
+        ['Ser:', determinarNivelDimension(progreso.ser).nombre]
+    ];
+    
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen");
+
+    // Hoja 2: Detalle por dimensiones
+    const detalleDimensiones = [];
+    
+    // Encabezados
+    detalleDimensiones.push(['DIMENSIÓN', 'MICROMIGRACIÓN', 'DBA', 'PRODUCTO', 'ESTADO', 'FECHA COMPLETACIÓN', 'EVIDENCIA', 'OBSERVACIONES']);
+    
+    Object.keys(dimensionesData).forEach(dimension => {
+        const datosDimension = dimensionesData[dimension];
+        const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+        
+        datosDimension.niveles.forEach(nivel => {
+            nivel.pasos.forEach(paso => {
+                const micromigracion = micromigraciones[paso.codigo];
+                detalleDimensiones.push([
+                    datosDimension.nombre,
+                    paso.titulo,
+                    paso.dba,
+                    paso.producto,
+                    micromigracion.completada ? 'COMPLETADA' : 'PENDIENTE',
+                    micromigracion.completada ? new Date(micromigracion.fechaCompletacion).toLocaleDateString() : 'N/A',
+                    micromigracion.evidencia || 'Sin evidencia',
+                    micromigracion.observaciones || 'Sin observaciones'
+                ]);
+            });
+        });
+    });
+    
+    const wsDetalle = XLSX.utils.aoa_to_sheet(detalleDimensiones);
+    XLSX.utils.book_append_sheet(wb, wsDetalle, "Detalle Dimensiones");
+
+    // Hoja 3: Alertas y recomendaciones
+    const alertasData = [
+        ['ALERTAS Y RECOMENDACIONES'],
+        [''],
+        ['ALERTAS ACTIVAS:', alertas.length > 0 ? 'SI' : 'NO']
+    ];
+    
+    if (alertas.length > 0) {
+        alertasData.push(['']);
+        alertasData.push(['TIPO', 'TÍTULO', 'MENSAJE', 'DIMENSIÓN', 'PRIORIDAD']);
+        alertas.forEach(alerta => {
+            alertasData.push([
+                alerta.tipo,
+                alerta.titulo,
+                alerta.mensaje,
+                alerta.dimension,
+                alerta.prioridad
+            ]);
+        });
+    } else {
+        alertasData.push(['ESTADO:', 'Sin alertas activas - Progreso adecuado']);
+    }
+    
+    alertasData.push(['']);
+    alertasData.push(['RECOMENDACIONES GENERALES:']);
+    
+    // Agregar recomendaciones basadas en el progreso
+    if (progreso.total < 50) {
+        alertasData.push(['- Enfoque en objetivos prioritarios y establecimiento de metas semanales']);
+    }
+    if (progreso.saber < 40) {
+        alertasData.push(['- Refuerzo en actividades de comprensión conceptual']);
+    }
+    if (progreso.hacer < 40) {
+        alertasData.push(['- Práctica adicional en ejercicios procedimentales']);
+    }
+    if (progreso.ser < 40) {
+        alertasData.push(['- Participación en actividades colaborativas y de autorregulación']);
+    }
+    if (progreso.total >= 80) {
+        alertasData.push(['- Excelente progreso. Considerar actividades de ampliación']);
+    }
+    
+    const wsAlertas = XLSX.utils.aoa_to_sheet(alertasData);
+    XLSX.utils.book_append_sheet(wb, wsAlertas, "Alertas");
+
+    // Hoja 4: Estadísticas detalladas
+    const estadisticasData = [
+        ['ESTADÍSTICAS DETALLADAS'],
+        [''],
+        ['RESUMEN POR DIMENSIÓN'],
+        ['Dimensión', 'Progreso', 'Completadas', 'Totales', 'Porcentaje']
+    ];
+    
+    Object.keys(dimensionesData).forEach(dimension => {
+        const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+        const total = Object.keys(micromigraciones).length;
+        const completadas = Object.values(micromigraciones).filter(m => m.completada).length;
+        const porcentaje = Math.round((completadas / total) * 100);
+        
+        estadisticasData.push([
+            dimensionesData[dimension].nombre,
+            `${porcentaje}%`,
+            completadas,
+            total,
+            `${porcentaje}%`
+        ]);
+    });
+    
+    estadisticasData.push(['']);
+    estadisticasData.push(['EVOLUCIÓN POR PERÍODOS']);
+    estadisticasData.push(['Período', 'Saber', 'Hacer', 'Ser', 'Total']);
+    
+    // Calcular progreso para todos los periodos
+    for (let p = 1; p <= 4; p++) {
+        const prog = calcularProgresoEstudiante(estudianteActual, p);
+        estadisticasData.push([
+            `Periodo ${p}`,
+            `${prog.saber}%`,
+            `${prog.hacer}%`,
+            `${prog.ser}%`,
+            `${prog.total}%`
+        ]);
+    }
+    
+    const wsEstadisticas = XLSX.utils.aoa_to_sheet(estadisticasData);
+    XLSX.utils.book_append_sheet(wb, wsEstadisticas, "Estadísticas");
+
+    // Generar nombre del archivo
+    const nombreArchivo = `Reporte_${estudianteActual.datos_basicos.codigo}_P${periodoActual}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    
+    // Descargar el archivo
+    XLSX.writeFile(wb, nombreArchivo);
+    
+    alert(`✅ Reporte individual (Excel) generado exitosamente: ${nombreArchivo}`);
+}
+
+// Reemplazar la función existente generarReporteIndividual para que use Excel
+function generarReporteIndividual() {
+    generarReporteIndividualExcel();
+}
+
+// Función auxiliar para determinar nivel (si no existe)
+function determinarNivelDimension(progreso) {
+    if (progreso >= 90) return { nombre: "Avanzado" };
+    if (progreso >= 70) return { nombre: "Intermedio" };
+    if (progreso >= 50) return { nombre: "Básico" };
+    return { nombre: "Inicial" };
+}
+// ===============================
+// FUNCIONES DE NAVEGACIÓN PRINCIPALES
+// ===============================
+
+// Cambiar entre pestañas FUNCIÓN CORREGIDA
+function cambiarPestaña(pestañaId) {
+  console.log('Cambiando a pestaña:', pestañaId);
+  
+  // Ocultar solo las pestañas dentro del panel de estudiantes
+  const panelesEstudiantes = document.querySelectorAll('#studentsPanel .tab-pane');
+  panelesEstudiantes.forEach(pane => {
+    pane.style.display = 'none';
+  });
+  
+  // Mostrar la pestaña seleccionada
+  const pestañaActiva = document.getElementById(pestañaId);
+  if (pestañaActiva) {
+    pestañaActiva.style.display = 'block';
+  }
+  
+  // Actualizar botones activos
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Activar el botón clickeado
+  const botonActivo = document.querySelector(`.tab-btn[data-tab="${pestañaId}"]`);
+  if (botonActivo) {
+    botonActivo.classList.add('active');
+  }
+  
+  // Si es dashboard, actualizar después de cambiar
+  if (pestañaId === 'dashboard') {
+    setTimeout(() => {
+      try {
+        actualizarDashboard();
+      } catch (error) {
+        console.warn('Error actualizando dashboard:', error);
+      }
+    }, 300);
+  }
+}
+// Actualizar grupos según grado seleccionado
+function actualizarGrupos() {
+  const grado = document.getElementById('grado').value;
+  const grupoSelect = document.getElementById('grupo');
+  
+  grupoSelect.innerHTML = '<option value="">Seleccionar grupo</option>';
+  
+  if (grado) {
+    const grupos = generarGruposDisponibles(grado);
+    grupos.forEach(grupo => {
+      const option = document.createElement('option');
+      option.value = grupo;
+      option.textContent = grupo;
+      grupoSelect.appendChild(option);
+    });
+  }
+}
+
+// Aplicar filtros
+function aplicarFiltros() {
+  actualizarListaEstudiantes();
+}
+
+// Volver a la lista
+function volverALista() {
+  document.getElementById('studentsPanel').style.display = 'block';
+  document.getElementById('progressPanel').style.display = 'none';
+  actualizarListaEstudiantes();
+}
+
+// Limpiar formulario
+function limpiarFormulario() {
+  document.getElementById('formEstudianteManual').reset();
+  document.getElementById('grupo').innerHTML = '<option value="">Seleccionar grupo</option>';
+}
+
+// ===============================
+// MANEJO DE ARCHIVOS DE IMPORTACIÓN
+// ===============================
+
+// Configurar zona de drop
+function configurarZonaDrop() {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('archivoExcel');
+  
+  if (!dropZone || !fileInput) {
+    console.warn('Elementos de zona de drop no encontrados');
+    return;
+  }
+  
+  dropZone.addEventListener('click', () => fileInput.click());
+  
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+  
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      manejarArchivoSeleccionado(files[0]);
+    }
+  });
+  
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      manejarArchivoSeleccionado(e.target.files[0]);
+    }
+  });
+}
+
+// Manejar archivo seleccionado
+async function manejarArchivoSeleccionado(archivo) {
+  try {
+    const resultado = await procesarArchivoImportacion(archivo);
+    importacionPendiente = resultado;
+    mostrarPreviewImportacion(resultado);
+  } catch (error) {
+    alert(`❌ Error: ${error.message}`);
+  }
+}
+
+// Mostrar preview de importación
+function mostrarPreviewImportacion(resultado) {
+  const preview = document.getElementById('importPreview');
+  const tabla = document.getElementById('previewTable');
+  const summary = document.getElementById('importSummary');
+  
+  if (!preview || !tabla || !summary) {
+    console.warn('Elementos de preview no encontrados');
+    return;
+  }
+  
+  // Mostrar resumen
+  summary.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0;">
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--ok);">${resultado.exitosos.length}</div>
+        <div style="color: var(--muted);">Registros válidos</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--danger);">${resultado.errores.length}</div>
+        <div style="color: var(--muted);">Errores</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">${resultado.total}</div>
+        <div style="color: var(--muted);">Total procesados</div>
+      </div>
+    </div>
+  `;
+  
+  // Mostrar tabla de preview (primeros 10 registros)
+  const datosPreview = resultado.exitosos.slice(0, 10);
+  if (datosPreview.length > 0) {
+    const headers = Object.keys(datosPreview[0]);
+    let tablaHTML = `
+      <thead>
+        <tr>
+          ${headers.map(header => `<th>${header}</th>`).join('')}
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+    
+    datosPreview.forEach(registro => {
+      tablaHTML += `
+        <tr>
+          ${headers.map(header => `<td>${registro[header]}</td>`).join('')}
+          <td><span class="badge badge-success">✅ Válido</span></td>
+        </tr>
+      `;
+    });
+    
+    tablaHTML += '</tbody>';
+    tabla.innerHTML = tablaHTML;
+  }
+  
+  // Mostrar errores si los hay
+  if (resultado.errores.length > 0) {
+    summary.innerHTML += `
+      <div class="alert alert-warning">
+        <strong>Se encontraron ${resultado.errores.length} errores:</strong>
+        <div style="max-height: 200px; overflow-y: auto; margin-top: 8px;">
+          ${resultado.errores.map(error => `
+            <div style="font-size: 0.8rem; padding: 4px 0; border-bottom: 1px solid var(--border);">
+              <strong>Fila ${error.fila}:</strong> ${error.error}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  preview.style.display = 'block';
+}
+
+// Confirmar importación
+function confirmarImportacion() {
+  if (!importacionPendiente) return;
+  
+  importacionPendiente.exitosos.forEach(datos => {
+    try {
+      registrarEstudiante(datos);
+    } catch (error) {
+      console.error('Error registrando estudiante:', error);
+    }
+  });
+  
+  alert(`✅ ${importacionPendiente.exitosos.length} estudiantes importados exitosamente`);
+  cancelarImportacion();
+  actualizarListaEstudiantes();
+}
+
+// Cancelar importación
+function cancelarImportacion() {
+  const preview = document.getElementById('importPreview');
+  const fileInput = document.getElementById('archivoExcel');
+  
+  if (preview) preview.style.display = 'none';
+  if (fileInput) fileInput.value = '';
+  importacionPendiente = null;
+}
+
+// ===============================
+// INICIALIZACIÓN CORREGIDA
+// ===============================
+
+function inicializarAplicacion() {
+  console.log('🚀 Iniciando sistema...');
+  
+  try {
+    // 1. Cargar datos del sistema
+    cargarDatosSistema();
+    console.log('📊 Datos cargados:', estudiantes.length, 'estudiantes');
+    
+    // 2. Configurar eventos después de que el DOM esté listo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', configurarEventosDespuesDeCarga);
+    } else {
+      setTimeout(configurarEventosDespuesDeCarga, 100);
+    }
+    
+  } catch (error) {
+    console.error('💥 Error crítico en inicialización:', error);
+  }
+}
+
+function configurarEventosDespuesDeCarga() {
+  try {
+    console.log('🎯 Configurando eventos...');
+    
+    // Verificar que los elementos existan antes de agregar event listeners
+    const elementosRequeridos = [
+      'grado', 'filtroGrado', 'filtroGrupo', 'filtroPeriodo',
+      'selectorPeriodo', 'btnReports', 'btnAlertas', 'btnSettings',
+      'formEstudianteManual'
+    ];
+    
+    elementosRequeridos.forEach(id => {
+      const elemento = document.getElementById(id);
+      if (!elemento) {
+        console.warn(`⚠️ Elemento no encontrado: ${id}`);
+      }
+    });
+    
+    // Configurar eventos solo si los elementos existen
+    configurarEventosCondicionales();
+    
+    // Inicializar interfaz
+    setTimeout(() => {
+      try {
+        actualizarListaEstudiantes();
+        console.log('📋 Lista de estudiantes actualizada');
+        
+        // Intentar inicializar dashboard después de un delay
+        setTimeout(() => {
+          try {
+            if (document.getElementById('chartDimensiones')) {
+              actualizarDashboard();
+              console.log('📈 Dashboard inicializado');
+            }
+          } catch (error) {
+            console.warn('⚠️ Error en dashboard:', error);
+          }
+        }, 500);
+        
+      } catch (error) {
+        console.error('❌ Error inicializando interfaz:', error);
+      }
+    }, 200);
+    
+    console.log('✅ Sistema configurado correctamente');
+    
+  } catch (error) {
+    console.error('💥 Error configurando eventos:', error);
+  }
+}
+
+function configurarEventosCondicionales() {
+  // Configurar solo los elementos que existen
+  
+  const gradoSelect = document.getElementById('grado');
+  if (gradoSelect) {
+    gradoSelect.addEventListener('change', actualizarGrupos);
+  }
+  
+  const filtroGrado = document.getElementById('filtroGrado');
+  if (filtroGrado) {
+    filtroGrado.addEventListener('change', actualizarListaEstudiantes);
+  }
+  
+  const filtroGrupo = document.getElementById('filtroGrupo');
+  if (filtroGrupo) {
+    filtroGrupo.addEventListener('change', actualizarListaEstudiantes);
+  }
+  
+  const filtroPeriodo = document.getElementById('filtroPeriodo');
+  if (filtroPeriodo) {
+    filtroPeriodo.addEventListener('change', function() {
+      periodoActual = parseInt(this.value);
+      actualizarListaEstudiantes();
+      if (estudianteActual) {
+        actualizarVistaProgreso();
+      }
+    });
+  }
+  
+  const selectorPeriodo = document.getElementById('selectorPeriodo');
+  if (selectorPeriodo) {
+    selectorPeriodo.addEventListener('change', function() {
+      periodoActual = parseInt(this.value);
+      actualizarVistaProgreso();
+    });
+  }
+  
+  // Configurar botones principales
+  const btnReports = document.getElementById('btnReports');
+  if (btnReports) {
+    btnReports.addEventListener('click', abrirModalReportes);
+  }
+  
+  const btnAlertas = document.getElementById('btnAlertas');
+  if (btnAlertas) {
+    btnAlertas.addEventListener('click', abrirModalAlertas);
+  }
+  
+  const btnSettings = document.getElementById('btnSettings');
+  if (btnSettings) {
+    btnSettings.addEventListener('click', abrirModalConfiguracion);
+  }
+  
+  // Configurar formulario
+  const formEstudiante = document.getElementById('formEstudianteManual');
+  if (formEstudiante) {
+    formEstudiante.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const datos = {
+        codigo: formData.get('codigo'),
+        nombres: formData.get('nombres'),
+        apellidos: formData.get('apellidos'),
+        documento: formData.get('documento'),
+        grado: formData.get('grado'),
+        grupo: formData.get('grupo'),
+        jornada: formData.get('jornada'),
+        director_grupo: formData.get('director_grupo')
+      };
+      
+      try {
+        registrarEstudiante(datos);
+        alert('✅ Estudiante registrado exitosamente');
+        limpiarFormulario();
+        actualizarListaEstudiantes();
+        cambiarPestaña('lista');
+      } catch (error) {
+        alert('❌ Error registrando estudiante: ' + error.message);
+      }
+    });
+  }
+  
+  // Configurar pestañas
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      cambiarPestaña(this.dataset.tab);
+    });
+  });
+  
+  // Configurar zona de drop
+  configurarZonaDrop();
+}
+
+
+
+// ===============================
+// FUNCIONES COMPLETAS PARA REPORTES
+// ===============================
+
+function abrirModalAlertas() {
+    const modal = document.getElementById('modalAlertas');
+    const contenido = document.getElementById('modalAlertasContent');
+    
+    // Obtener todas las alertas de todos los estudiantes
+    const todasLasAlertas = [];
+    estudiantes.filter(e => e.activo).forEach(estudiante => {
+        const alertasEstudiante = generarAlertasEstudiante(estudiante, periodoActual);
+        alertasEstudiante.forEach(alerta => {
+            todasLasAlertas.push({
+                estudiante: `${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}`,
+                codigo: estudiante.datos_basicos.codigo,
+                grado: estudiante.ubicacion_academica.grado,
+                grupo: estudiante.ubicacion_academica.grupo,
+                ...alerta
+            });
+        });
+    });
+    
+    // Ordenar por prioridad (alta primero)
+    todasLasAlertas.sort((a, b) => {
+        const prioridades = { 'alta': 3, 'media': 2, 'baja': 1 };
+        return prioridades[b.prioridad] - prioridades[a.prioridad];
+    });
+    
+    let html = `
+        <div style="margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--danger);">${todasLasAlertas.length}</div>
+                    <div style="color: var(--muted);">Total Alertas</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--warn);">${todasLasAlertas.filter(a => a.prioridad === 'alta').length}</div>
+                    <div style="color: var(--muted);">Alertas Críticas</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">${new Set(todasLasAlertas.map(a => a.codigo)).size}</div>
+                    <div style="color: var(--muted);">Estudiantes con Alertas</div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (todasLasAlertas.length === 0) {
+        html += `
+            <div class="alert alert-success">
+                ✅ No hay alertas activas en el sistema. Todos los estudiantes muestran progreso adecuado.
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Prioridad</th>
+                            <th>Estudiante</th>
+                            <th>Grado/Grupo</th>
+                            <th>Tipo</th>
+                            <th>Mensaje</th>
+                            <th>Dimensión</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        todasLasAlertas.forEach(alerta => {
+            const colorPrioridad = alerta.prioridad === 'alta' ? 'danger' : alerta.prioridad === 'media' ? 'warning' : 'accent';
+            html += `
+                <tr>
+                    <td><span class="badge badge-${colorPrioridad}">${alerta.prioridad.toUpperCase()}</span></td>
+                    <td><strong>${alerta.estudiante}</strong><br><small>${alerta.codigo}</small></td>
+                    <td>${alerta.grado}-${alerta.grupo}</td>
+                    <td>${alerta.tipo}</td>
+                    <td>${alerta.mensaje}</td>
+                    <td>${alerta.dimension}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-warning" onclick="generarReporteAlertas()" style="width: 100%; justify-content: center;">
+                    🚨 Descargar Reporte Completo de Alertas
+                </button>
+            </div>
+        `;
+    }
+    
+    contenido.innerHTML = html;
+    modal.classList.add('active');
+}
+
+function abrirModalConfiguracion() {
+    alert('⚙️ Módulo de configuración en desarrollo...');
+}
+
+function generarReporteInstitucional() {
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Hoja 1: Resumen institucional
+    const metricas = calcularMetricasInstitucionales('todos', periodoActual);
+    
+    const resumenData = [
+        ['REPORTE INSTITUCIONAL - SISTEMA FRACTAL DE APRENDIZAJE'],
+        [`Año Lectivo: ${configuracionSistema.añoLectivo} - Periodo: ${periodoActual}`],
+        ['Fecha de generación:', new Date().toLocaleDateString()],
+        [''],
+        ['MÉTRICAS INSTITUCIONALES'],
+        ['Total estudiantes activos:', metricas.totalEstudiantes],
+        ['Progreso promedio institucional:', `${metricas.progresoPromedio}%`],
+        ['Estudiantes completados:', metricas.estudiantesCompletados],
+        ['Estudiantes en riesgo:', metricas.estudiantesRiesgo],
+        [''],
+        ['PROGRESO POR DIMENSIONES'],
+        ['Dimensión Saber:', `${metricas.distribucionDimensiones.saber}%`],
+        ['Dimensión Hacer:', `${metricas.distribucionDimensiones.hacer}%`],
+        ['Dimensión Ser:', `${metricas.distribucionDimensiones.ser}%`],
+        [''],
+        ['LISTA COMPLETA DE ESTUDIANTES'],
+        ['Código', 'Nombre Completo', 'Grado', 'Grupo', 'Progreso Total', 'Saber', 'Hacer', 'Ser', 'Alertas']
+    ];
+    
+    // Agregar datos de todos los estudiantes
+    estudiantes.filter(e => e.activo).forEach(estudiante => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+        const alertas = generarAlertasEstudiante(estudiante, periodoActual);
+        
+        resumenData.push([
+            estudiante.datos_basicos.codigo,
+            `${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}`,
+            estudiante.ubicacion_academica.grado,
+            estudiante.ubicacion_academica.grupo,
+            `${progreso.total}%`,
+            `${progreso.saber}%`,
+            `${progreso.hacer}%`,
+            `${progreso.ser}%`,
+            alertas.length
+        ]);
+    });
+    
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen Institucional");
+    
+    // Hoja 2: Análisis por grupos
+    const gruposData = [
+        ['ANÁLISIS POR GRUPOS'],
+        ['Grupo', 'Total Estudiantes', 'Progreso Promedio', 'Saber', 'Hacer', 'Ser', 'En Riesgo']
+    ];
+    
+    const grupos = {};
+    estudiantes.filter(e => e.activo).forEach(est => {
+        const grupo = est.ubicacion_academica.grupo;
+        if (!grupos[grupo]) grupos[grupo] = { estudiantes: [], progresos: [] };
+        grupos[grupo].estudiantes.push(est);
+    });
+    
+    Object.keys(grupos).forEach(grupo => {
+        const progresos = grupos[grupo].estudiantes.map(est => 
+            calcularProgresoEstudiante(est, periodoActual)
+        );
+        
+        const promedioTotal = Math.round(progresos.reduce((sum, p) => sum + p.total, 0) / progresos.length);
+        const promedioSaber = Math.round(progresos.reduce((sum, p) => sum + p.saber, 0) / progresos.length);
+        const promedioHacer = Math.round(progresos.reduce((sum, p) => sum + p.hacer, 0) / progresos.length);
+        const promedioSer = Math.round(progresos.reduce((sum, p) => sum + p.ser, 0) / progresos.length);
+        
+        const enRiesgo = grupos[grupo].estudiantes.filter(est => {
+            const progreso = calcularProgresoEstudiante(est, periodoActual);
+            return progreso.total < configuracionSistema.criteriosRiesgo.progresoMinimo;
+        }).length;
+        
+        gruposData.push([
+            grupo,
+            grupos[grupo].estudiantes.length,
+            `${promedioTotal}%`,
+            `${promedioSaber}%`,
+            `${promedioHacer}%`,
+            `${promedioSer}%`,
+            enRiesgo
+        ]);
+    });
+    
+    const wsGrupos = XLSX.utils.aoa_to_sheet(gruposData);
+    XLSX.utils.book_append_sheet(wb, wsGrupos, "Análisis por Grupos");
+    
+    // Descargar archivo
+    const nombreArchivo = `Reporte_Institucional_P${periodoActual}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+    
+    alert(`✅ Reporte institucional generado: ${metricas.totalEstudiantes} estudiantes`);
+}
+
+function generarReporteGrupo() {
+    const grupoSeleccionado = document.getElementById('reporteGrupo').value;
+    if (!grupoSeleccionado) {
+        alert('❌ Por favor selecciona un grupo');
+        return;
+    }
+    
+    const estudiantesGrupo = estudiantes.filter(e => 
+        e.activo && e.ubicacion_academica.grupo === grupoSeleccionado
+    );
+    
+    if (estudiantesGrupo.length === 0) {
+        alert(`❌ No hay estudiantes en el grupo ${grupoSeleccionado}`);
+        return;
+    }
+    
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Hoja 1: Resumen del grupo
+    const resumenData = [
+        [`REPORTE DEL GRUPO ${grupoSeleccionado}`],
+        [`Periodo: ${periodoActual} - Fecha: ${new Date().toLocaleDateString()}`],
+        [''],
+        ['RESUMEN DEL GRUPO'],
+        ['Total estudiantes:', estudiantesGrupo.length],
+        ['Director de grupo:', estudiantesGrupo[0].ubicacion_academica.director_grupo || 'No asignado'],
+        ['Jornada:', estudiantesGrupo[0].ubicacion_academica.jornada],
+        [''],
+        ['ESTUDIANTES DEL GRUPO'],
+        ['Código', 'Nombre Completo', 'Documento', 'Progreso Total', 'Saber', 'Hacer', 'Ser', 'Estado']
+    ];
+    
+    let progresoTotalGrupo = 0;
+    
+    estudiantesGrupo.forEach(estudiante => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+        const alertas = generarAlertasEstudiante(estudiante, periodoActual);
+        progresoTotalGrupo += progreso.total;
+        
+        const estado = alertas.length > 0 ? '⚠️ Con alertas' : '✅ Normal';
+        
+        resumenData.push([
+            estudiante.datos_basicos.codigo,
+            `${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}`,
+            estudiante.datos_basicos.documento,
+            `${progreso.total}%`,
+            `${progreso.saber}%`,
+            `${progreso.hacer}%`,
+            `${progreso.ser}%`,
+            estado
+        ]);
+    });
+    
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, `Grupo ${grupoSeleccionado}`);
+    
+    // Hoja 2: Alertas del grupo
+    const alertasData = [
+        [`ALERTAS DEL GRUPO ${grupoSeleccionado}`],
+        [''],
+        ['ESTUDIANTES CON ALERTAS']
+    ];
+    
+    const estudiantesConAlertas = estudiantesGrupo.filter(est => 
+        generarAlertasEstudiante(est, periodoActual).length > 0
+    );
+    
+    if (estudiantesConAlertas.length > 0) {
+        alertasData.push(['Código', 'Nombre', 'Total Alertas', 'Alertas Críticas']);
+        
+        estudiantesConAlertas.forEach(est => {
+            const alertas = generarAlertasEstudiante(est, periodoActual);
+            const criticas = alertas.filter(a => a.prioridad === 'alta').length;
+            
+            alertasData.push([
+                est.datos_basicos.codigo,
+                `${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}`,
+                alertas.length,
+                criticas
+            ]);
+        });
+    } else {
+        alertasData.push(['No hay estudiantes con alertas en este grupo']);
+    }
+    
+    const wsAlertas = XLSX.utils.aoa_to_sheet(alertasData);
+    XLSX.utils.book_append_sheet(wb, wsAlertas, "Alertas del Grupo");
+    
+    // Descargar archivo
+    const nombreArchivo = `Reporte_Grupo_${grupoSeleccionado}_P${periodoActual}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+    
+    alert(`✅ Reporte del grupo ${grupoSeleccionado} generado: ${estudiantesGrupo.length} estudiantes`);
+}
+
+function generarReporteAlertas() {
+    // Obtener todas las alertas
+    const todasLasAlertas = [];
+    estudiantes.filter(e => e.activo).forEach(estudiante => {
+        const alertasEstudiante = generarAlertasEstudiante(estudiante, periodoActual);
+        alertasEstudiante.forEach(alerta => {
+            todasLasAlertas.push({
+                estudiante: `${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}`,
+                codigo: estudiante.datos_basicos.codigo,
+                grado: estudiante.ubicacion_academica.grado,
+                grupo: estudiante.ubicacion_academica.grupo,
+                ...alerta
+            });
+        });
+    });
+    
+    if (todasLasAlertas.length === 0) {
+        alert('ℹ️ No hay alertas activas en el sistema');
+        return;
+    }
+    
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Hoja 1: Resumen de alertas
+    const resumenData = [
+        ['REPORTE DE ALERTAS - SISTEMA FRACTAL DE APRENDIZAJE'],
+        [`Periodo: ${periodoActual} - Fecha: ${new Date().toLocaleDateString()}`],
+        [''],
+        ['RESUMEN DE ALERTAS'],
+        ['Total alertas activas:', todasLasAlertas.length],
+        ['Estudiantes con alertas:', new Set(todasLasAlertas.map(a => a.codigo)).size],
+        ['Alertas de alta prioridad:', todasLasAlertas.filter(a => a.prioridad === 'alta').length],
+        ['Alertas de media prioridad:', todasLasAlertas.filter(a => a.prioridad === 'media').length],
+        [''],
+        ['DETALLE DE ALERTAS'],
+        ['Prioridad', 'Estudiante', 'Código', 'Grado/Grupo', 'Tipo de Alerta', 'Dimensión', 'Mensaje', 'Fecha Detección']
+    ];
+    
+    // Ordenar por prioridad
+    const prioridades = { 'alta': 3, 'media': 2, 'baja': 1 };
+    todasLasAlertas.sort((a, b) => prioridades[b.prioridad] - prioridades[a.prioridad]);
+    
+    todasLasAlertas.forEach(alerta => {
+        resumenData.push([
+            alerta.prioridad.toUpperCase(),
+            alerta.estudiante,
+            alerta.codigo,
+            `${alerta.grado}-${alerta.grupo}`,
+            alerta.tipo,
+            alerta.dimension,
+            alerta.mensaje,
+            new Date().toLocaleDateString()
+        ]);
+    });
+    
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Alertas Activas");
+    
+    // Hoja 2: Estudiantes con alertas
+    const estudiantesData = [
+        ['ESTUDIANTES CON ALERTAS'],
+        ['Código', 'Nombre', 'Grado/Grupo', 'Total Alertas', 'Alertas Alta', 'Alertas Media']
+    ];
+    
+    const estudiantesConAlertas = {};
+    todasLasAlertas.forEach(alerta => {
+        if (!estudiantesConAlertas[alerta.codigo]) {
+            estudiantesConAlertas[alerta.codigo] = {
+                estudiante: alerta.estudiante,
+                gradoGrupo: `${alerta.grado}-${alerta.grupo}`,
+                total: 0,
+                alta: 0,
+                media: 0
+            };
+        }
+        
+        estudiantesConAlertas[alerta.codigo].total++;
+        if (alerta.prioridad === 'alta') estudiantesConAlertas[alerta.codigo].alta++;
+        if (alerta.prioridad === 'media') estudiantesConAlertas[alerta.codigo].media++;
+    });
+    
+    Object.values(estudiantesConAlertas).forEach(est => {
+        estudiantesData.push([
+            est.estudiante.split(' ')[0], // código aproximado
+            est.estudiante,
+            est.gradoGrupo,
+            est.total,
+            est.alta,
+            est.media
+        ]);
+    });
+    
+    const wsEstudiantes = XLSX.utils.aoa_to_sheet(estudiantesData);
+    XLSX.utils.book_append_sheet(wb, wsEstudiantes, "Estudiantes con Alertas");
+    
+    // Descargar archivo
+    const nombreArchivo = `Reporte_Alertas_P${periodoActual}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+    
+    alert(`✅ Reporte de alertas generado: ${todasLasAlertas.length} alertas activas`);
+}
+
+function generarReportePersonalizado() {
+    const gradoFiltro = document.getElementById('reportePersonalizadoGrado').value;
+    const dimensionFiltro = document.getElementById('reportePersonalizadoDimension').value;
+    const progresoMin = parseInt(document.getElementById('reportePersonalizadoProgresoMin').value) || 0;
+
+    // Filtrar estudiantes
+    let estudiantesFiltrados = estudiantes.filter(e => e.activo);
+
+    // Filtrar por grado
+    if (gradoFiltro !== 'todos') {
+        estudiantesFiltrados = estudiantesFiltrados.filter(e => 
+            e.ubicacion_academica.grado === gradoFiltro
+        );
+    }
+
+    // Filtrar por progreso
+    const estudiantesFinal = estudiantesFiltrados.filter(estudiante => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+        
+        if (dimensionFiltro === 'todas') {
+            return progreso.total >= progresoMin;
+        }
+        return progreso[dimensionFiltro] >= progresoMin;
+    });
+
+    if (estudiantesFinal.length === 0) {
+        alert('ℹ️ No se encontraron estudiantes que coincidan con los criterios de filtro.');
+        return;
+    }
+
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new();
+    
+    // Hoja 1: Resumen del reporte personalizado
+    const resumenData = [
+        ['REPORTE PERSONALIZADO - SISTEMA FRACTAL DE APRENDIZAJE'],
+        ['Fecha de generación:', new Date().toLocaleDateString()],
+        ['Criterios aplicados:'],
+        ['Grado:', gradoFiltro === 'todos' ? 'Todos los grados' : gradoFiltro],
+        ['Dimensión:', dimensionFiltro === 'todas' ? 'Todas las dimensiones' : dimensionFiltro],
+        ['Progreso mínimo:', `${progresoMin}%`],
+        ['Total de estudiantes:', estudiantesFinal.length],
+        [''],
+        ['LISTA DE ESTUDIANTES FILTRADOS'],
+        ['Código', 'Nombre Completo', 'Grado', 'Grupo', 'Progreso Total', 'Saber', 'Hacer', 'Ser', 'Alertas']
+    ];
+
+    // Agregar datos de estudiantes
+    estudiantesFinal.forEach(estudiante => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+        const alertas = generarAlertasEstudiante(estudiante, periodoActual);
+        
+        resumenData.push([
+            estudiante.datos_basicos.codigo,
+            `${estudiante.datos_basicos.nombres} ${estudiante.datos_basicos.apellidos}`,
+            estudiante.ubicacion_academica.grado,
+            estudiante.ubicacion_academica.grupo,
+            `${progreso.total}%`,
+            `${progreso.saber}%`,
+            `${progreso.hacer}%`,
+            `${progreso.ser}%`,
+            alertas.length
+        ]);
+    });
+
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Estudiantes Filtrados");
+
+    // Hoja 2: Análisis estadístico
+    const analisisData = [
+        ['ANÁLISIS ESTADÍSTICO DEL FILTRO'],
+        [''],
+        ['RESUMEN ESTADÍSTICO'],
+        ['Total estudiantes filtrados:', estudiantesFinal.length],
+        ['Promedio progreso total:', `${calcularPromedio(estudiantesFinal, 'total')}%`],
+        ['Promedio Saber:', `${calcularPromedio(estudiantesFinal, 'saber')}%`],
+        ['Promedio Hacer:', `${calcularPromedio(estudiantesFinal, 'hacer')}%`],
+        ['Promedio Ser:', `${calcularPromedio(estudiantesFinal, 'ser')}%`],
+        [''],
+        ['DISTRIBUCIÓN POR GRADO']
+    ];
+
+    // Calcular distribución por grado
+    const distribucionGrado = {};
+    estudiantesFinal.forEach(est => {
+        const grado = est.ubicacion_academica.grado;
+        distribucionGrado[grado] = (distribucionGrado[grado] || 0) + 1;
+    });
+
+    analisisData.push(['Grado', 'Cantidad', 'Porcentaje']);
+    Object.keys(distribucionGrado).forEach(grado => {
+        const porcentaje = Math.round((distribucionGrado[grado] / estudiantesFinal.length) * 100);
+        analisisData.push([grado, distribucionGrado[grado], `${porcentaje}%`]);
+    });
+
+    const wsAnalisis = XLSX.utils.aoa_to_sheet(analisisData);
+    XLSX.utils.book_append_sheet(wb, wsAnalisis, "Análisis");
+
+    // Generar y descargar archivo
+    const nombreArchivo = `Reporte_Personalizado_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, nombreArchivo);
+    
+    alert(`✅ Reporte personalizado generado: ${estudiantesFinal.length} estudiantes encontrados`);
+}
+
+// Función auxiliar para calcular promedios
+function calcularPromedio(estudiantesFiltrados, dimension) {
+    if (estudiantesFiltrados.length === 0) return 0;
+    
+    const suma = estudiantesFiltrados.reduce((total, estudiante) => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodoActual);
+        return total + progreso[dimension];
+    }, 0);
+    
+    return Math.round(suma / estudiantesFiltrados.length);
+}
+
+// Función auxiliar para calcular métricas institucionales (si no existe)
+function calcularMetricasInstitucionales(filtroGrado = 'todos', periodo = 1) {
+    let estudiantesFiltrados = estudiantes.filter(est => est.activo);
+    
+    if (filtroGrado !== 'todos') {
+        estudiantesFiltrados = estudiantesFiltrados.filter(est => 
+            est.ubicacion_academica.grado === filtroGrado
+        );
+    }
+    
+    const totalEstudiantes = estudiantesFiltrados.length;
+    
+    if (totalEstudiantes === 0) {
+        return {
+            totalEstudiantes: 0,
+            progresoPromedio: 0,
+            estudiantesCompletados: 0,
+            estudiantesRiesgo: 0,
+            distribucionDimensiones: { saber: 0, hacer: 0, ser: 0 }
+        };
+    }
+    
+    let progresoTotal = 0;
+    let estudiantesCompletados = 0;
+    let estudiantesRiesgo = 0;
+    let sumaSaber = 0, sumaHacer = 0, sumaSer = 0;
+    
+    estudiantesFiltrados.forEach(estudiante => {
+        const progreso = calcularProgresoEstudiante(estudiante, periodo);
+        
+        if (progreso) {
+            progresoTotal += progreso.total;
+            sumaSaber += progreso.saber;
+            sumaHacer += progreso.hacer;
+            sumaSer += progreso.ser;
+            
+            // Completados (100% en todo)
+            if (progreso.saber === 100 && progreso.hacer === 100 && progreso.ser === 100) {
+                estudiantesCompletados++;
+            }
+            
+            // En riesgo
+            if (progreso.total < 40) {
+                estudiantesRiesgo++;
+            }
+        }
+    });
+    
+    return {
+        totalEstudiantes,
+        progresoPromedio: Math.round(progresoTotal / totalEstudiantes),
+        estudiantesCompletados,
+        estudiantesRiesgo,
+        distribucionDimensiones: {
+            saber: Math.round(sumaSaber / totalEstudiantes),
+            hacer: Math.round(sumaHacer / totalEstudiantes),
+            ser: Math.round(sumaSer / totalEstudiantes)
+        }
+    };
+}
+
+
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', inicializarAplicacion);
+
+
+// ===============================
+// FUNCIONES PARA EL PANEL DE PROGRESO
+// ===============================
+
+// Seleccionar estudiante para ver su progreso
+function seleccionarEstudiante(estudianteId) {
+  estudianteActual = estudiantes.find(est => est.id === estudianteId);
+  if (estudianteActual) {
+    // Cambiar a vista de progreso
+    document.getElementById('studentsPanel').style.display = 'none';
+    document.getElementById('progressPanel').style.display = 'block';
+    
+    actualizarVistaProgreso();
+  }
+}
+
+// Volver a la lista de estudiantes
+function volverALista() {
+  document.getElementById('studentsPanel').style.display = 'block';
+  document.getElementById('progressPanel').style.display = 'none';
+  actualizarListaEstudiantes();
+}
+
+// Actualizar vista de progreso del estudiante
+function actualizarVistaProgreso() {
+  if (!estudianteActual) return;
+  
+  // Actualizar información básica
+  document.getElementById('currentStudentName').textContent = 
+    `${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+  
+  document.getElementById('studentProgressTitle').textContent = 
+    `Progreso de ${estudianteActual.datos_basicos.nombres} ${estudianteActual.datos_basicos.apellidos}`;
+  
+  // Actualizar información del estudiante
+  document.getElementById('infoCodigo').textContent = estudianteActual.datos_basicos.codigo;
+  document.getElementById('infoDocumento').textContent = estudianteActual.datos_basicos.documento;
+  document.getElementById('infoGradoGrupo').textContent = 
+    `${estudianteActual.ubicacion_academica.grado} • ${estudianteActual.ubicacion_academica.grupo}`;
+  document.getElementById('infoJornada').textContent = estudianteActual.ubicacion_academica.jornada;
+  
+  // Calcular progresos
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual);
+  
+  // Actualizar anillos de progreso
+  actualizarAnilloProgreso('saber', progreso.saber);
+  actualizarAnilloProgreso('hacer', progreso.hacer);
+  actualizarAnilloProgreso('ser', progreso.ser);
+  
+  // Actualizar valores generales
+  document.getElementById('generalSaber').textContent = `${progreso.saber}%`;
+  document.getElementById('generalHacer').textContent = `${progreso.hacer}%`;
+  document.getElementById('generalSer').textContent = `${progreso.ser}%`;
+  document.getElementById('generalTotal').textContent = `${progreso.total}%`;
+  
+  // Actualizar contadores de micromigraciones
+  actualizarContadoresMicromigraciones();
+}
+
+// Actualizar anillo de progreso visual
+function actualizarAnilloProgreso(dimension, porcentaje) {
+  const ring = document.getElementById(`${dimension}ProgressRing`);
+  const valueElement = document.getElementById(`${dimension}ProgressValue`);
+  
+  if (ring && valueElement) {
+    const color = getComputedStyle(document.documentElement).getPropertyValue(`--${dimension}`);
+    ring.style.background = `conic-gradient(${color} 0deg, ${color} ${porcentaje * 3.6}deg, transparent ${porcentaje * 3.6}deg)`;
+    valueElement.textContent = `${porcentaje}%`;
+  }
+}
+
+// Actualizar contadores de micromigraciones
+function actualizarContadoresMicromigraciones() {
+  if (!estudianteActual) return;
+  
+  Object.keys(dimensionesData).forEach(dimension => {
+    const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v.completada).length;
+    
+    const elemento = document.getElementById(`${dimension}Micromigraciones`);
+    if (elemento) {
+      elemento.textContent = `${completadas}/${total}`;
+    }
+  });
+}
+
+// Abrir modal de dimensión para ver/editar micromigraciones
+function abrirDetalleDimension(dimension) {
+  if (!estudianteActual) return;
+  
+  const modal = document.getElementById('modalDimension');
+  const titulo = document.getElementById('modalDimensionTitle');
+  const contenido = document.getElementById('modalDimensionContent');
+  
+  const datosDimension = dimensionesData[dimension];
+  const progreso = calcularProgresoEstudiante(estudianteActual, periodoActual)[dimension];
+  const micromigraciones = estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones;
+  
+  titulo.textContent = `Detalles de ${datosDimension.nombre} - ${progreso}% completado`;
+  
+  let html = `
+    <div style="margin-bottom: 20px;">
+      <div style="color: var(--muted); font-size: 0.9rem;">${datosDimension.descripcion}</div>
+    </div>
+    
+    <div style="display: grid; gap: 16px;">
+  `;
+  
+  datosDimension.niveles.forEach(nivel => {
+    html += `
+      <div style="background: var(--card); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h4 style="margin: 0; color: var(--text);">${nivel.nombre}</h4>
+            <div style="color: var(--muted); font-size: 0.8rem;">${nivel.descripcion}</div>
+          </div>
+          <div class="badge">
+            ${nivel.pasos.filter(p => micromigraciones[p.codigo].completada).length}/${nivel.pasos.length}
+          </div>
+        </div>
+        
+        <div style="display: grid; gap: 8px;">
+    `;
+    
+    nivel.pasos.forEach(paso => {
+      const completada = micromigraciones[paso.codigo].completada;
+      html += `
+        <div style="display: flex; gap: 12px; padding: 12px; background: ${completada ? 'rgba(34,197,94,0.1)' : 'var(--panel)'}; border-radius: 6px; border-left: 4px solid ${completada ? 'var(--ok)' : 'var(--border)'};">
+          <div style="display: flex; align-items: start; gap: 8px; min-width: 0; flex: 1;">
+            <div>
+              <input type="checkbox" ${completada ? 'checked' : ''} 
+                     onchange="toggleMicromigracion('${dimension}', '${paso.codigo}', this.checked)"
+                     style="accent-color: var(--accent); cursor: pointer;">
+            </div>
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-weight: 600; color: ${completada ? 'var(--ok)' : 'var(--text)'}; margin-bottom: 4px;">
+                ${paso.titulo}
+              </div>
+              <div style="color: var(--muted); font-size: 0.8rem; margin-bottom: 4px;">
+                <strong>DBA:</strong> ${paso.dba} | <strong>Producto:</strong> ${paso.producto}
+              </div>
+              <div style="color: var(--muted); font-size: 0.75rem;">
+                <strong>Evidencia:</strong> ${paso.evidencia}
+              </div>
+              <div style="color: var(--muted); font-size: 0.75rem;">
+                <strong>Criterio:</strong> ${paso.criterio}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `</div>`;
+  
+  contenido.innerHTML = html;
+  modal.classList.add('active');
+}
+
+// Toggle de micromigración (marcar como completada/incompleta)
+function toggleMicromigracion(dimension, codigo, completada) {
+  if (!estudianteActual) return;
+  
+  estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones[codigo].completada = completada;
+  
+  if (completada) {
+    estudianteActual.progreso_academico.periodos[periodoActual][dimension].micromigraciones[codigo].fechaCompletacion = new Date().toISOString();
+  }
+  
+  // Recalcular progreso
+  const progresoDimension = calcularProgresoEstudiante(estudianteActual, periodoActual)[dimension];
+  estudianteActual.progreso_academico.periodos[periodoActual][dimension].progreso = progresoDimension;
+  estudianteActual.progreso_academico.periodos[periodoActual].fechaActualizacion = new Date().toISOString();
+  
+  guardarDatosSistema();
+  actualizarVistaProgreso();
+}
+
+// Cerrar modal
+function cerrarModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Función para calcular progreso (agregar si no existe)
+function calcularProgresoEstudiante(estudiante, periodo) {
+  const progresoPeriodo = estudiante.progreso_academico.periodos[periodo];
+  
+  const calcularProgresoDimension = (dimension) => {
+    const micromigraciones = progresoPeriodo[dimension].micromigraciones;
+    const total = Object.keys(micromigraciones).length;
+    const completadas = Object.values(micromigraciones).filter(v => v.completada).length;
+    return total > 0 ? Math.round((completadas / total) * 100) : 0;
+  };
+  
+  const progresoSaber = calcularProgresoDimension('saber');
+  const progresoHacer = calcularProgresoDimension('hacer');
+  const progresoSer = calcularProgresoDimension('ser');
+  
+  // Calcular progreso total (promedio simple)
+  const progresoTotal = Math.round((progresoSaber + progresoHacer + progresoSer) / 3);
+  
+  return {
+    saber: progresoSaber,
+    hacer: progresoHacer,
+    ser: progresoSer,
+    total: progresoTotal
+  };
+}
+
+
+</script>
+
+</body>
+</html>

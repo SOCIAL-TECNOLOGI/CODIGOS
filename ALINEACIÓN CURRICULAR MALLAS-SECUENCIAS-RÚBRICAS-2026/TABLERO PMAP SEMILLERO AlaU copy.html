@@ -1,0 +1,2649 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Semillero AlaU - Movilidad Competencial SITE-RUTA LATAM</title>
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+      
+<style>
+:root {
+  --bg: #020617; --panel: #0f172a; --card: #111827; --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15); --ok: #22c55e; --warn: #f97316;
+  --danger: #ef4444; --text: #e5e7eb; --muted: #9ca3af; --border: #1f2937;
+  --lc: #3b82f6; --mat: #10b981; --sociales: #f59e0b; --cn: #8b5cf6; --ingles: #ec4899;
+}
+
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color: var(--text); 
+  min-height: 100vh; 
+  display: flex; 
+  flex-direction: column;
+}
+
+/* ===== HEADER ===== */
+header {
+  padding: 16px 24px; 
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 12px; 
+  align-items: center; 
+  justify-content: space-between;
+}
+
+.title-block { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+}
+
+h1 { 
+  font-size: 1.4rem; 
+  letter-spacing: .03em; 
+}
+
+.subtitle { 
+  font-size: .85rem; 
+  color: var(--muted); 
+}
+
+.current-student {
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  margin-top: 8px;
+  font-size: 0.85rem; 
+  color: var(--muted);
+}
+
+.current-student strong { 
+  color: var(--accent); 
+}
+
+.student-management { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 8px; 
+  align-items: center; 
+}
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex; 
+  gap: 4px; 
+  margin-bottom: 16px; 
+  border-bottom: 1px solid var(--border); 
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 8px 16px; 
+  border: none; 
+  background: transparent; 
+  color: var(--muted);
+  cursor: pointer; 
+  border-bottom: 2px solid transparent; 
+  transition: all 0.2s ease; 
+  white-space: nowrap;
+}
+
+.tab-btn.active { 
+  color: var(--accent); 
+  border-bottom-color: var(--accent); 
+}
+
+.tab-pane { 
+  display: none; 
+}
+
+.tab-pane.active { 
+  display: block; 
+}
+
+/* ===== BOTONES ===== */
+.btn {
+  border: none; 
+  border-radius: 999px; 
+  padding: 8px 16px; 
+  font-size: 0.85rem; 
+  cursor: pointer;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 6px; 
+  background: var(--accent-soft);
+  color: var(--accent); 
+  transition: all 0.2s ease; 
+  text-decoration: none;
+}
+
+.btn:hover { 
+  background: rgba(56,189,248,.25); 
+}
+
+.btn-success { 
+  background: rgba(34,197,94,.1); 
+  color: var(--ok); 
+}
+
+.btn-success:hover { 
+  background: rgba(34,197,94,.2); 
+}
+
+.btn-danger { 
+  background: rgba(239,68,68,.1); 
+  color: var(--danger); 
+}
+
+.btn-danger:hover { 
+  background: rgba(239,68,68,.2); 
+}
+
+.btn-warning { 
+  background: rgba(249,115,22,.1); 
+  color: var(--warn); 
+}
+
+.btn-warning:hover { 
+  background: rgba(249,115,22,.2); 
+}
+
+/* ===== FORMULARIOS ===== */
+.estudiante-form { 
+  background: var(--card); 
+  padding: 20px; 
+  border-radius: 12px; 
+  border: 1px solid var(--border); 
+}
+
+.form-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 16px; 
+  margin-bottom: 20px; 
+}
+
+.form-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+}
+
+.form-group label { 
+  font-size: 0.85rem; 
+  color: var(--muted); 
+  font-weight: 500; 
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+  padding: 8px 12px; 
+  border-radius: 8px; 
+  border: 1px solid var(--border);
+  background: var(--panel); 
+  color: var(--text); 
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+  outline: none; 
+  border-color: var(--accent); 
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.full-width { 
+  grid-column: 1 / -1; 
+}
+
+/* ===== UPLOAD ===== */
+.upload-area {
+  border: 2px dashed var(--border); 
+  border-radius: 12px; 
+  padding: 40px 20px;
+  text-align: center; 
+  transition: all 0.3s ease; 
+  cursor: pointer;
+}
+
+.upload-area:hover, 
+.upload-area.dragover { 
+  border-color: var(--accent); 
+  background: var(--accent-soft); 
+}
+
+.upload-icon { 
+  font-size: 3rem; 
+  margin-bottom: 12px; 
+}
+
+/* ===== TABLAS ===== */
+.table-container { 
+  overflow-x: auto; 
+  margin: 16px 0; 
+}
+
+.data-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 0.85rem; 
+}
+
+.data-table th, 
+.data-table td { 
+  padding: 12px; 
+  text-align: left; 
+  border-bottom: 1px solid var(--border); 
+}
+
+.data-table th { 
+  background: var(--card); 
+  color: var(--muted); 
+  font-weight: 600; 
+  position: sticky; 
+  top: 0; 
+}
+
+.data-table tr:hover { 
+  background: var(--accent-soft); 
+}
+
+/* ===== CHART - VERSIÓN CORREGIDA ===== */
+.chart-container {
+  background: var(--card); 
+  padding: 16px; 
+  border-radius: 12px; 
+  border: 1px solid var(--border);
+  height: 280px; 
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container canvas {
+  max-height: 200px !important; 
+  width: auto !important;
+  margin: 0 auto;
+}
+
+.chart-title { 
+  margin-bottom: 8px; 
+  color: var(--muted); 
+  font-size: 0.95rem; 
+  text-align: center; 
+}
+
+/* ===== MODALES ===== */
+.modal {
+  display: none; 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  background: rgba(2,6,23,0.8); 
+  z-index: 1000; 
+  align-items: center; 
+  justify-content: center;
+}
+
+.modal.active { 
+  display: flex; 
+}
+
+.modal-content {
+  background: var(--panel); 
+  border-radius: 12px; 
+  padding: 24px; 
+  max-width: 90%;
+  max-height: 90%; 
+  overflow: auto; 
+  border: 1px solid var(--border); 
+  position: relative;
+}
+
+.modal-close { 
+  position: absolute; 
+  top: 16px; 
+  right: 16px; 
+  background: none; 
+  border: none; 
+  color: var(--muted); 
+  font-size: 1.5rem; 
+  cursor: pointer; 
+}
+
+.modal-close:hover { 
+  color: var(--text); 
+}
+
+/* ===== BADGES ===== */
+.badge { 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 4px; 
+  padding: 4px 8px; 
+  border-radius: 999px; 
+  font-size: 0.75rem; 
+  background: var(--accent-soft); 
+  color: var(--accent); 
+  border: 1px solid var(--accent); 
+}
+
+.badge-success { 
+  background: rgba(34,197,94,.1); 
+  color: var(--ok); 
+  border-color: var(--ok); 
+}
+
+.badge-warning { 
+  background: rgba(249,115,22,.1); 
+  color: var(--warn); 
+  border-color: var(--warn); 
+}
+
+.badge-danger { 
+  background: rgba(239,68,68,.1); 
+  color: var(--danger); 
+  border-color: var(--danger); 
+}
+
+/* ===== DASHBOARD - CORREGIDO ===== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.dashboard-card { 
+  background: var(--card); 
+  padding: 20px; 
+  border-radius: 12px; 
+  border: 1px solid var(--border); 
+  text-align: center; 
+}
+
+.dashboard-card .value { 
+  font-size: 2rem; 
+  font-weight: bold; 
+  margin-bottom: 8px; 
+}
+
+.dashboard-card .label { 
+  font-size: 0.85rem; 
+  color: var(--muted); 
+}
+
+/* ===== FILTROS ===== */
+.filters-row { 
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  flex-wrap: wrap; 
+  align-items: center; 
+}
+
+.filter-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+}
+
+.filter-group label { 
+  font-size: 0.8rem; 
+  color: var(--muted); 
+}
+
+.filter-group select, 
+.filter-group input { 
+  padding: 6px 10px; 
+  border-radius: 6px; 
+  border: 1px solid var(--border); 
+  background: var(--panel); 
+  color: var(--text); 
+  min-width: 120px; 
+}
+
+/* ===== ESTUDIANTES GRID ===== */
+.estudiantes-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+  gap: 12px; 
+  margin-top: 16px; 
+}
+
+.estudiante-card { 
+  background: var(--card); 
+  border-radius: 12px; 
+  padding: 16px; 
+  border: 1px solid var(--border); 
+  cursor: pointer; 
+  transition: all 0.3s ease; 
+}
+
+.estudiante-card:hover { 
+  transform: translateY(-2px); 
+  border-color: var(--accent); 
+}
+
+.estudiante-card.active { 
+  border-color: var(--accent); 
+  background: var(--accent-soft); 
+}
+
+.estudiante-info { 
+  margin-bottom: 12px; 
+}
+
+.estudiante-nombre { 
+  font-weight: 600; 
+  margin-bottom: 4px; 
+}
+
+.estudiante-meta { 
+  font-size: 0.8rem; 
+  color: var(--muted); 
+}
+
+/* ===== MATRIZ 3X4 ===== */
+.matriz-3x4 { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin: 10px 0; 
+  font-size: 0.8rem; 
+  background: var(--panel); 
+  border-radius: 8px; 
+  overflow: hidden; 
+}
+
+.matriz-3x4 th { 
+  background: var(--card); 
+  color: var(--muted); 
+  font-weight: 500; 
+  padding: 8px; 
+  text-align: center; 
+}
+
+.matriz-3x4 td { 
+  padding: 8px; 
+  text-align: center; 
+  border: 1px solid var(--border); 
+}
+
+.matriz-3x4 .competencia { 
+  text-align: left; 
+  font-weight: 500; 
+  background: var(--card); 
+}
+
+/* ===== COLORES DE ACIERTOS ===== */
+.acierto-alto { 
+  color: var(--ok); 
+  font-weight: bold; 
+}
+
+.acierto-medio { 
+  color: var(--warn); 
+  font-weight: bold; 
+}
+
+.acierto-bajo { 
+  color: var(--danger); 
+  font-weight: bold; 
+}
+
+/* ===== BORDES POR ÁREA ===== */
+.area-lc { 
+  border-left: 4px solid var(--lc); 
+}
+
+.area-mat { 
+  border-left: 4px solid var(--mat); 
+}
+
+.area-sociales { 
+  border-left: 4px solid var(--sociales); 
+}
+
+.area-cn { 
+  border-left: 4px solid var(--cn); 
+}
+
+.area-ingles { 
+  border-left: 4px solid var(--ingles); 
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-container {
+    height: 260px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Modales -->
+<div id="modalDimension" class="modal"><div class="modal-content" style="max-width: 800px;"><button class="modal-close" onclick="cerrarModal('modalDimension')">×</button><h3 id="modalDimensionTitle">Detalles de Competencia</h3><div id="modalDimensionContent"></div></div></div>
+<div id="modalReportes" class="modal"><div class="modal-content" style="max-width: 1000px;"><button class="modal-close" onclick="cerrarModal('modalReportes')">×</button><h3>📊 Generador de Reportes</h3><div id="modalReportesContent"></div></div></div>
+<div id="modalConfiguracion" class="modal"><div class="modal-content" style="max-width: 600px;"><button class="modal-close" onclick="cerrarModal('modalConfiguracion')">×</button><h3>⚙️ Configuración</h3><div id="modalConfiguracionContent"></div></div></div>
+<div id="modalAlertas" class="modal"><div class="modal-content" style="max-width: 700px;"><button class="modal-close" onclick="cerrarModal('modalAlertas')">×</button><h3>🚨 Alertas</h3><div id="modalAlertasContent"></div></div></div>
+
+<header>
+  <div class="title-block">
+    <h1>🎯 Semillero AlaU - Movilidad Competencial SITE-RUTA LATAM</h1>
+    <div class="subtitle">Diagnóstico N1–N4 | Matriz 3×4 | PMAP | Basado en Guía ICFES 2026-1</div>
+    <div class="current-student"><span>Estudiante actual:</span><strong id="currentStudentName">Selecciona un estudiante</strong></div>
+  </div>
+  <div class="student-management">
+    <button class="btn btn-success" id="btnManageStudents">👥 Gestionar Estudiantes</button>
+    <button class="btn" id="btnReports">📊 Reportes</button>
+    <button class="btn" id="btnAlertas">🚨 Alertas</button>
+    <button class="btn" id="btnSettings">⚙️ Configuración</button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1;">
+  
+<!-- Panel de Gestión de Estudiantes -->
+<div id="studentsPanel" class="tab-pane active">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista">📋 Lista del Semillero</button>
+    <button class="tab-btn" data-tab="registro">👤 Registro Manual</button>
+    <button class="tab-btn" data-tab="importar">📤 Importar desde Excel</button>
+    <button class="tab-btn" data-tab="plantilla">📋 Plantilla</button>
+    <button class="tab-btn" data-tab="dashboard">📈 Panel del Semillero</button>
+  </div>
+
+  <!-- Pestaña: Lista de Estudiantes -->
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>Filtrar por grado</label>
+        <select id="filtroGrado" onchange="aplicarFiltros()">
+          <option value="todos">Todos</option>
+          <option value="9">9°</option>
+          <option value="10">10°</option>
+          <option value="11">11°</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Filtrar por grupo</label>
+        <select id="filtroGrupo" onchange="aplicarFiltros()">
+          <option value="todos">Todos</option>
+          <option value="1">Grupo 1</option>
+          <option value="2">Grupo 2</option>
+          <option value="3">Grupo 3</option>
+          <option value="4">Grupo 4</option>
+          <option value="5">Grupo 5</option>
+          <option value="6">Grupo 6</option>
+          <option value="7">Grupo 7</option>
+          <option value="8">Grupo 8</option>
+          <option value="9">Grupo 9</option>
+          <option value="10">Grupo 10</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Buscar</label>
+        <input type="text" id="filtroBusqueda" placeholder="Nombre o código" onkeyup="aplicarFiltros()">
+      </div>
+    </div>
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+  </div>
+
+  <!-- Pestaña: Registro Manual -->
+  <div id="registro" class="tab-pane">
+    <form id="formEstudianteManual" class="estudiante-form">
+      <div class="form-grid">
+        <div class="form-group"><label>Código *</label><input type="text" id="codigo" required placeholder="Ej: 2024-001"></div>
+        <div class="form-group"><label>Nombres *</label><input type="text" id="nombres" required></div>
+        <div class="form-group"><label>Apellidos *</label><input type="text" id="apellidos" required></div>
+        <div class="form-group"><label>Documento *</label><input type="text" id="documento" required></div>
+        <div class="form-group"><label>Grado *</label>
+          <select id="grado" required>
+            <option value="9">9°</option>
+            <option value="10">10°</option>
+            <option value="11">11°</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Grupo *</label>
+          <select id="grupo" required>
+            <option value="1">Grupo 1</option>
+            <option value="2">Grupo 2</option>
+            <option value="3">Grupo 3</option>
+            <option value="4">Grupo 4</option>
+            <option value="5">Grupo 5</option>
+            <option value="6">Grupo 6</option>
+            <option value="7">Grupo 7</option>
+            <option value="8">Grupo 8</option>
+            <option value="9">Grupo 9</option>
+            <option value="10">Grupo 10</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Jornada *</label><select id="jornada"><option>MAÑANA</option><option>TARDE</option></select></div>
+      </div>
+      <button type="submit" class="btn btn-success">💾 Guardar</button>
+    </form>
+  </div>
+
+  <!-- Pestaña: Importar -->
+  <div id="importar" class="tab-pane">
+    <div class="estudiante-form">
+      <h3>📤 Importar desde Excel</h3>
+      <div class="upload-area" id="dropZone"><input type="file" id="archivoExcel" accept=".xlsx, .xls" style="display: none;"><div class="upload-icon">📁</div><h4>Arrastra tu archivo Excel aquí</h4></div>
+      <div id="importPreview" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Pestaña: Plantilla -->
+  <div id="plantilla" class="tab-pane">
+    <div class="estudiante-form">
+      <h3>📋 Descargar Plantilla</h3>
+      <button class="btn btn-success" onclick="descargarPlantillaCompleta()">📥 Plantilla Completa</button>
+    </div>
+  </div>
+
+  <!-- Pestaña: Panel del Semillero -->
+  <div id="dashboard" class="tab-pane">
+    <div class="filters-row">
+      <div class="filter-group"><label>Filtrar por grado</label><select id="dashboardGrado" onchange="actualizarDashboard()"><option value="todos">Todos</option><option value="9">9°</option><option value="10">10°</option><option value="11">11°</option></select></div>
+      <div class="filter-group"><label>Simulacro</label><select id="dashboardSimulacro" onchange="actualizarDashboard()"></select></div>
+    </div>
+    <div class="dashboard-grid">
+      <div class="dashboard-card"><div class="value" id="metricTotalEstudiantes">0</div><div class="label">Estudiantes</div></div>
+      <div class="dashboard-card"><div class="value" id="metricNivelMedio">-</div><div class="label">Nivel Medio</div></div>
+      <div class="dashboard-card"><div class="value" id="metricBrechaCritica">0%</div><div class="label">Brecha N2→N3</div></div>
+      <div class="dashboard-card"><div class="value" id="metricEnN1">0%</div><div class="label">En N1</div></div>
+    </div>
+
+    <!-- Gráficos corregidos - más pequeños y mejor posicionados -->
+    <div class="charts-row">
+      <div class="chart-container">
+        <div class="chart-title">📊 Distribución por Niveles</div>
+        <canvas id="chartNiveles"></canvas>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">📈 Migración N2→N3 por Área</div>
+        <canvas id="chartMigracion"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-container" style="height: auto; padding: 16px;">
+      <div class="chart-title">📋 Resultados por Área (% en N3 y N4)</div>
+      <table class="data-table" id="tablaResultadosArea">
+        <thead><tr><th>Área</th><th>N1</th><th>N2</th><th>N3</th><th>N4</th><th>% en N3+N4</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Panel de Progreso del Estudiante -->
+<!-- Panel de Progreso del Estudiante -->
+<div id="progressPanel" class="tab-pane" style="display: none;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <h2 id="studentProgressTitle">Perfil Cognitivo</h2>
+    <button class="btn" onclick="volverALista()">← Volver</button>
+    <button class="btn btn-success" onclick="generarReporteIndividual()">📄 Reporte PMAP (Excel)</button>
+  </div>
+  
+  <div class="dashboard-grid" style="grid-template-columns: repeat(4,1fr);">
+    <div class="dashboard-card"><span class="label">Código</span><div class="value" id="infoCodigo">-</div></div>
+    <div class="dashboard-card"><span class="label">Nivel Global</span><div class="value" id="infoNivelGlobal">-</div></div>
+    <div class="dashboard-card"><span class="label">Brecha</span><div class="value" id="infoBrecha">-</div></div>
+    <div class="dashboard-card"><span class="label">Simulacros</span><div class="value" id="infoSimulacros">0</div></div>
+  </div>
+
+  <!-- Filtro de área correctamente cerrado -->
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Ver matriz por área</label>
+      <select id="selectorAreaMatriz" onchange="mostrarMatrizArea()">
+        <option value="Lectura Crítica">📖 Lectura Crítica</option>
+        <option value="Matemáticas">🔢 Matemáticas</option>
+        <option value="Sociales">🏛️ Sociales y Ciudadanas</option>
+        <option value="Ciencias Naturales">🔬 Ciencias Naturales</option>
+        <option value="Inglés">🇬🇧 Inglés</option>
+      </select>
+    </div>
+  </div> <!-- Cierre correcto de filters-row -->
+
+  <!-- Contenedor de la matriz -->
+  <div id="matrizContainer" style="background: var(--card); padding: 20px; border-radius: 12px; margin: 20px 0;"></div>
+
+  <!-- PMAP Activo -->
+  <div style="background: var(--card); padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent);">
+    <h3>🧠 PMAP - Plan de Migración Activo</h3>
+    <div id="pmapContainer">Selecciona un estudiante para ver su PMAP.</div>
+  </div>
+</div> <!-- Cierre del progressPanel -->
+
+</main>
+
+
+<script>
+
+// ===============================
+// CONSTANTES Y CONFIGURACIÓN
+// ===============================
+const STUDENTS_STORAGE_KEY = 'semilleroAlaU_students';
+
+// ===============================
+// MATRIZ DE COMPETENCIAS ICFES 2026-1
+// ===============================
+const competenciasICFES = {
+  "Matemáticas": {
+    tipo: "competencias",
+    estructura: {
+      "C1": {
+        nombre: "Interpretación y representación",
+        afirmacion: "Comprende y transforma la información cuantitativa y esquemática presentada en distintos formatos.",
+        evidencias: [
+          "1.1 Da cuenta de las características básicas de la información presentada en diferentes formatos, como series, gráficas, tablas y esquemas.",
+          "1.2 Transforma la representación de una o más piezas de información."
+        ],
+        peso: "34%"
+      },
+      "C2": {
+        nombre: "Formulación y ejecución",
+        afirmacion: "Frente a un problema que involucre información matemática, plantea y ejecuta estrategias para resolverlo.",
+        evidencias: [
+          "2.1 Diseña planes para la solución de problemas que involucran información matemática.",
+          "2.2 Ejecuta o sigue estrategias para solucionar problemas que involucran información matemática.",
+          "2.3 Resuelve un problema que involucra información matemática."
+        ],
+        peso: "43%"
+      },
+      "C3": {
+        nombre: "Argumentación",
+        afirmacion: "Valida procedimientos y estrategias matemáticas utilizadas para dar solución a problemas.",
+        evidencias: [
+          "3.1 Plantea afirmaciones que sustentan o refutan una interpretación dada a la información disponible en el marco de la solución de un problema.",
+          "3.2 Argumenta a favor o en contra de un procedimiento para resolver un problema a la luz de criterios presentados o establecidos.",
+          "3.3 Establece la validez o pertinencia de una solución propuesta a un problema dado."
+        ],
+        peso: "23%"
+      }
+    }
+  },
+  
+  "Lectura Crítica": {
+    tipo: "procesos",
+    estructura: {
+      "P1": {
+        nombre: "Identificar y entender contenidos locales",
+        afirmacion: "Identifica y entiende los contenidos locales que conforman un texto.",
+        evidencias: [
+          "1.1 Entiende el significado de los elementos locales que constituyen un texto.",
+          "1.2 Identifica los eventos narrados de manera explícita en un texto (literario, descriptivo, caricatura o cómic) y los personajes involucrados (si los hay)."
+        ],
+        peso: "25%"
+      },
+      "P2": {
+        nombre: "Comprender la articulación del texto",
+        afirmacion: "Comprende cómo se articulan las partes de un texto para darle un sentido global.",
+        evidencias: [
+          "2.1 Comprende la estructura formal de un texto y la función de sus partes.",
+          "2.2 Identifica y caracteriza las diferentes voces o situaciones presentes en un texto.",
+          "2.3 Comprende las relaciones entre diferentes partes o enunciados de un texto.",
+          "2.4 Identifica y caracteriza las ideas o afirmaciones presentes en un texto informativo.",
+          "2.5 Identifica el tipo de relación existente entre diferentes elementos de un texto (discontinuo)."
+        ],
+        peso: "42%"
+      },
+      "P3": {
+        nombre: "Reflexionar y evaluar el contenido",
+        afirmacion: "Reflexiona a partir de un texto y evalúa su contenido.",
+        evidencias: [
+          "3.1 Establece la validez e implicaciones de un enunciado de un texto (argumentativo o expositivo).",
+          "3.2 Establece relaciones entre un texto y otros textos o enunciados.",
+          "3.3 Reconoce contenidos valorativos presentes en un texto.",
+          "3.4 Reconoce las estrategias discursivas en un texto.",
+          "3.5 Contextualiza adecuadamente un texto o la información contenida en este."
+        ],
+        peso: "33%"
+      }
+    }
+  },
+  
+  "Sociales": {
+    tipo: "competencias",
+    estructura: {
+      "C1": {
+        nombre: "Pensamiento social",
+        afirmacion1: "Comprende modelos conceptuales, sus características y contextos de aplicación.",
+        afirmacion2: "Comprende dimensiones espaciales y temporales de eventos, problemáticas y prácticas sociales.",
+        evidencias: [
+          "1.1 Identifica y usa conceptos sociales básicos (económicos, políticos, culturales y geográficos).",
+          "1.2 Conoce el modelo de Estado Social de Derecho y su aplicación en Colombia.",
+          "1.3 Conoce la organización del Estado: funciones y alcances de las ramas del poder y de los organismos de control.",
+          "1.4 Conoce los mecanismos que los ciudadanos tienen a su disposición para participar activamente en la democracia.",
+          "2.1 Localiza en el tiempo y en el espacio eventos históricos y prácticas sociales.",
+          "2.2 Relaciona dimensiones históricas y geográficas de eventos y problemáticas sociales.",
+          "2.3 Relaciona problemáticas o prácticas sociales con características del espacio geográfico."
+        ],
+        peso: "30%"
+      },
+      "C2": {
+        nombre: "Interpretación y análisis de perspectivas",
+        afirmacion3: "Contextualiza y evalúa usos de fuentes y argumentos.",
+        afirmacion4: "Comprende perspectivas de distintos actores y grupos sociales.",
+        evidencias: [
+          "3.1 Inscribe una fuente primaria dada en un contexto económico, político o cultural.",
+          "3.2 Evalúa posibilidades y limitaciones del uso de una fuente para apoyar argumentos o explicaciones.",
+          "3.3 Devela prejuicios e intenciones en enunciados o argumentos.",
+          "4.1 Reconoce y compara perspectivas de actores y grupos sociales.",
+          "4.2 Reconoce que las cosmovisiones, ideologías y roles sociales influyen en diferentes argumentos, posiciones y conductas.",
+          "4.3 Establece relaciones entre las perspectivas de los individuos en una situación conflictiva y las propuestas de solución."
+        ],
+        peso: "40%"
+      },
+      "C3": {
+        nombre: "Pensamiento reflexivo y sistémico",
+        afirmacion5: "Evalúa usos sociales de las ciencias sociales.",
+        afirmacion6: "Comprende que los problemas y sus soluciones involucran distintas dimensiones.",
+        evidencias: [
+          "5.1 Analiza modelos conceptuales y sus usos en decisiones sociales.",
+          "6.1 Establece relaciones que hay entre dimensiones presentes en una situación problemática.",
+          "6.2 Analiza los efectos en distintas dimensiones que tendría una posible intervención."
+        ],
+        peso: "30%"
+      }
+    }
+  },
+  
+  "Ciencias Naturales": {
+    tipo: "competencias",
+    estructura: {
+      "C1": {
+        nombre: "Explicación de fenómenos",
+        afirmaciones: ["Analiza el potencial del uso de recursos naturales o artefactos", "Explica cómo ocurren fenómenos de la naturaleza", "Modela fenómenos de la naturaleza"],
+        peso: "30%"
+      },
+      "C2": {
+        nombre: "Uso comprensivo del conocimiento científico",
+        afirmaciones: ["Asocia fenómenos naturales con conceptos", "Identifica las características de fenómenos naturales"],
+        peso: "30%"
+      },
+      "C3": {
+        nombre: "Indagación",
+        afirmaciones: ["Comprende que a partir de la investigación científica se construyen explicaciones", "Deriva conclusiones", "Observa y relaciona patrones", "Utiliza habilidades de pensamiento"],
+        peso: "40%"
+      }
+    },
+    distribucion: {
+      biologico: "30%",
+      fisico: "30%",
+      quimico: "30%",
+      cts: "10%"
+    }
+  },
+  
+  "Inglés": {
+    tipo: "partes",
+    estructura: {
+      "Parte 1": { descripcion: "Relacionar descripciones con palabras", peso: "11%" },
+      "Parte 2": { descripcion: "Propósito comunicativo de avisos", peso: "11%" },
+      "Parte 3": { descripcion: "Intervención en conversaciones", peso: "11%" },
+      "Parte 4": { descripcion: "Completar textos con palabras", peso: "18%" },
+      "Parte 5": { descripcion: "Seleccionar paráfrasis correcta", peso: "16%" },
+      "Parte 6": { descripcion: "Preguntas sobre intención del autor", peso: "11%" },
+      "Parte 7": { descripcion: "Completar textos (opción múltiple)", peso: "22%" }
+    },
+    niveles: ["Pre A1", "A1", "A2", "B1"]
+  }
+};
+
+// ===============================
+// BANCO DE ÍTEMS
+// ===============================
+// ===============================
+// BANCO DE ÍTEMS AMPLIADO
+// ===============================
+const itemBanco = [
+  // Lectura Crítica - 9 ítems (3 por competencia)
+  { id: "LC-P1-N1-001", area: "Lectura Crítica", proceso: "P1", nivel: "N1", microhabilidad: "Localizar información explícita", microrutina: "Subrayado dirigido", respuestaCorrecta: "B" },
+  { id: "LC-P1-N2-002", area: "Lectura Crítica", proceso: "P1", nivel: "N2", microhabilidad: "Parafrasear información", microrutina: "Reformulación", respuestaCorrecta: "C" },
+  { id: "LC-P1-N3-003", area: "Lectura Crítica", proceso: "P1", nivel: "N3", microhabilidad: "Inferir significado contextual", microrutina: "Lectura inferencial", respuestaCorrecta: "A" },
+  { id: "LC-P2-N1-004", area: "Lectura Crítica", proceso: "P2", nivel: "N1", microhabilidad: "Identificar estructura textual", microrutina: "Reconocimiento de partes", respuestaCorrecta: "D" },
+  { id: "LC-P2-N2-005", area: "Lectura Crítica", proceso: "P2", nivel: "N2", microhabilidad: "Relacionar ideas explícitas", microrutina: "Conexión de párrafos", respuestaCorrecta: "B" },
+  { id: "LC-P2-N3-006", area: "Lectura Crítica", proceso: "P2", nivel: "N3", microhabilidad: "Comprender relaciones implícitas", microrutina: "Análisis de conectores", respuestaCorrecta: "C" },
+  { id: "LC-P3-N2-007", area: "Lectura Crítica", proceso: "P3", nivel: "N2", microhabilidad: "Identificar intención comunicativa", microrutina: "Análisis de propósito", respuestaCorrecta: "A" },
+  { id: "LC-P3-N3-008", area: "Lectura Crítica", proceso: "P3", nivel: "N3", microhabilidad: "Evaluar argumentos", microrutina: "Debate estructurado", respuestaCorrecta: "B" },
+  { id: "LC-P3-N4-009", area: "Lectura Crítica", proceso: "P3", nivel: "N4", microhabilidad: "Reflexionar sobre el contenido", microrutina: "Análisis crítico", respuestaCorrecta: "D" },
+
+  // Matemáticas - 9 ítems (3 por competencia)
+  { id: "MT-C1-N1-010", area: "Matemáticas", competencia: "C1", nivel: "N1", microhabilidad: "Leer información explícita", microrutina: "Lectura de gráficos", respuestaCorrecta: "D" },
+  { id: "MT-C1-N2-011", area: "Matemáticas", competencia: "C1", nivel: "N2", microhabilidad: "Interpretar datos en tablas", microrutina: "Análisis de tablas", respuestaCorrecta: "A" },
+  { id: "MT-C1-N3-012", area: "Matemáticas", competencia: "C1", nivel: "N3", microhabilidad: "Transformar representaciones", microrutina: "Conversión gráfico-tabla", respuestaCorrecta: "C" },
+  { id: "MT-C2-N1-013", area: "Matemáticas", competencia: "C2", nivel: "N1", microhabilidad: "Identificar operaciones básicas", microrutina: "Reconocimiento de operaciones", respuestaCorrecta: "B" },
+  { id: "MT-C2-N2-014", area: "Matemáticas", competencia: "C2", nivel: "N2", microhabilidad: "Aplicar procedimientos simples", microrutina: "Solución guiada", respuestaCorrecta: "A" },
+  { id: "MT-C2-N3-015", area: "Matemáticas", competencia: "C2", nivel: "N3", microhabilidad: "Resolver problemas de varios pasos", microrutina: "Estrategias de solución", respuestaCorrecta: "D" },
+  { id: "MT-C3-N2-016", area: "Matemáticas", competencia: "C3", nivel: "N2", microhabilidad: "Justificar razonamientos", microrutina: "Argumentación simple", respuestaCorrecta: "C" },
+  { id: "MT-C3-N3-017", area: "Matemáticas", competencia: "C3", nivel: "N3", microhabilidad: "Validar procedimientos", microrutina: "Análisis de errores", respuestaCorrecta: "B" },
+  { id: "MT-C3-N4-018", area: "Matemáticas", competencia: "C3", nivel: "N4", microhabilidad: "Argumentar críticamente", microrutina: "Debate matemático", respuestaCorrecta: "A" },
+
+  // Sociales - 9 ítems (3 por competencia)
+  { id: "SO-C1-N1-019", area: "Sociales", competencia: "C1", nivel: "N1", microhabilidad: "Identificar conceptos sociales", microrutina: "Línea de tiempo", respuestaCorrecta: "A" },
+  { id: "SO-C1-N2-020", area: "Sociales", competencia: "C1", nivel: "N2", microhabilidad: "Relacionar eventos históricos", microrutina: "Conexión temporal", respuestaCorrecta: "D" },
+  { id: "SO-C1-N3-021", area: "Sociales", competencia: "C1", nivel: "N3", microhabilidad: "Analizar procesos sociales", microrutina: "Análisis multicausal", respuestaCorrecta: "B" },
+  { id: "SO-C2-N1-022", area: "Sociales", competencia: "C2", nivel: "N1", microhabilidad: "Reconocer perspectivas", microrutina: "Identificación de posturas", respuestaCorrecta: "C" },
+  { id: "SO-C2-N2-023", area: "Sociales", competencia: "C2", nivel: "N2", microhabilidad: "Comparar puntos de vista", microrutina: "Balanza de Actores", respuestaCorrecta: "A" },
+  { id: "SO-C2-N3-024", area: "Sociales", competencia: "C2", nivel: "N3", microhabilidad: "Analizar conflictos de intereses", microrutina: "Análisis de actores", respuestaCorrecta: "D" },
+  { id: "SO-C3-N2-025", area: "Sociales", competencia: "C3", nivel: "N2", microhabilidad: "Identificar dimensiones", microrutina: "Reconocimiento de aspectos", respuestaCorrecta: "B" },
+  { id: "SO-C3-N3-026", area: "Sociales", competencia: "C3", nivel: "N3", microhabilidad: "Relacionar dimensiones", microrutina: "Árbol de efectos", respuestaCorrecta: "C" },
+  { id: "SO-C3-N4-027", area: "Sociales", competencia: "C3", nivel: "N4", microhabilidad: "Evaluar soluciones integrales", microrutina: "Análisis sistémico", respuestaCorrecta: "A" },
+
+  // Ciencias Naturales - 9 ítems (3 por competencia)
+  { id: "CN-C1-N1-028", area: "Ciencias Naturales", competencia: "C1", nivel: "N1", microhabilidad: "Identificar fenómenos", microrutina: "Observación", respuestaCorrecta: "B" },
+  { id: "CN-C1-N2-029", area: "Ciencias Naturales", competencia: "C1", nivel: "N2", microhabilidad: "Describir procesos", microrutina: "Descripción científica", respuestaCorrecta: "D" },
+  { id: "CN-C1-N3-030", area: "Ciencias Naturales", competencia: "C1", nivel: "N3", microhabilidad: "Explicar fenómenos naturales", microrutina: "Explicación causal", respuestaCorrecta: "A" },
+  { id: "CN-C2-N1-031", area: "Ciencias Naturales", competencia: "C2", nivel: "N1", microhabilidad: "Reconocer conceptos científicos", microrutina: "Identificación conceptual", respuestaCorrecta: "C" },
+  { id: "CN-C2-N2-032", area: "Ciencias Naturales", competencia: "C2", nivel: "N2", microhabilidad: "Relacionar conceptos", microrutina: "Conexión conceptual", respuestaCorrecta: "B" },
+  { id: "CN-C2-N3-033", area: "Ciencias Naturales", competencia: "C2", nivel: "N3", microhabilidad: "Aplicar conocimiento científico", microrutina: "Aplicación conceptual", respuestaCorrecta: "D" },
+  { id: "CN-C3-N2-034", area: "Ciencias Naturales", competencia: "C3", nivel: "N2", microhabilidad: "Interpretar datos", microrutina: "Lectura de resultados", respuestaCorrecta: "A" },
+  { id: "CN-C3-N3-035", area: "Ciencias Naturales", competencia: "C3", nivel: "N3", microhabilidad: "Formular hipótesis", microrutina: "Planteamiento de hipótesis", respuestaCorrecta: "C" },
+  { id: "CN-C3-N4-036", area: "Ciencias Naturales", competencia: "C3", nivel: "N4", microhabilidad: "Evaluar conclusiones", microrutina: "Contraste de evidencia", respuestaCorrecta: "B" },
+
+  // Inglés - 7 ítems (1 por parte, pero con diferentes niveles)
+  { id: "IN-P1-N1-037", area: "Inglés", parte: "Parte 1", nivel: "N1", microhabilidad: "Reconocer vocabulario básico", microrutina: "Emparejamiento", respuestaCorrecta: "B" },
+  { id: "IN-P2-N2-038", area: "Inglés", parte: "Parte 2", nivel: "N2", microhabilidad: "Comprender avisos", microrutina: "Lectura funcional", respuestaCorrecta: "A" },
+  { id: "IN-P3-N2-039", area: "Inglés", parte: "Parte 3", nivel: "N2", microhabilidad: "Completar conversaciones", microrutina: "Análisis contextual", respuestaCorrecta: "C" },
+  { id: "IN-P4-N2-040", area: "Inglés", parte: "Parte 4", nivel: "N2", microhabilidad: "Comprender contexto", microrutina: "Análisis de oraciones", respuestaCorrecta: "D" },
+  { id: "IN-P5-N3-041", area: "Inglés", parte: "Parte 5", nivel: "N3", microhabilidad: "Seleccionar paráfrasis", microrutina: "Interpretación textual", respuestaCorrecta: "B" },
+  { id: "IN-P6-N3-042", area: "Inglés", parte: "Parte 6", nivel: "N3", microhabilidad: "Inferir intención comunicativa", microrutina: "Lectura inferencial", respuestaCorrecta: "C" },
+  { id: "IN-P7-N4-043", area: "Inglés", parte: "Parte 7", nivel: "N4", microhabilidad: "Comprender textos complejos", microrutina: "Análisis global", respuestaCorrecta: "A" }
+];
+// ===============================
+// MODELO DE ESTUDIANTE Y DATOS
+// ===============================
+let estudiantes = [];
+let estudianteActual = null;
+
+const simulacroEjemplo = {
+  id: "SIM-2026-03-15",
+  fecha: "2026-03-15",
+  tipo: "diagnostico",
+  items: itemBanco.map(i => i.id),
+  resultados: {
+    "est_001": {
+      respuestas: {
+        // Generar respuestas automáticamente con algunos aciertos y errores
+        ...Object.fromEntries(itemBanco.map((item, index) => {
+          // Aleatoriamente 70% de aciertos, 30% errores
+          const acierto = Math.random() < 0.7;
+          return [item.id, { 
+            respuesta: item.respuestaCorrecta, 
+            acierto: acierto 
+          }];
+        }))
+      }
+    }
+  }
+};
+// ===============================
+// FUNCIONES DE INICIALIZACIÓN Y PERSISTENCIA
+// ===============================
+function cargarDatosSistema() {
+  const guardados = localStorage.getItem(STUDENTS_STORAGE_KEY);
+  if (guardados) {
+    estudiantes = JSON.parse(guardados);
+  } else {
+    estudiantes = [{
+      id: "est_001",
+      datos_basicos: { codigo: "2024-001", nombres: "Ana", apellidos: "Gómez", documento: "123" },
+      ubicacion_academica: { grado: "11", grupo: "11-1", jornada: "MAÑANA" },
+      semillero: {
+        simulacros: ["SIM-2026-03-15"],
+        ultimoDiagnostico: null,
+        pmap: { objetivo: "", planDeAccion: [], microhabilidadesLogradas: [] }
+      }
+    }];
+    guardarDatosSistema();
+  }
+  estudiantes.forEach(est => calcularDiagnosticoEstudiante(est));
+}
+
+function guardarDatosSistema() {
+  localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(estudiantes));
+}
+
+// ===============================
+// MOTOR ANALÍTICO
+// ===============================
+function determinarNivelPorAciertos(porcentajeN3, porcentajeN4) {
+  if (porcentajeN4 >= 50) return "N4";
+  if (porcentajeN3 >= 60) return "N3";
+  if (porcentajeN3 >= 30) return "N2";
+  return "N1";
+}
+
+function crearEstructuraCompetencia() {
+  return {
+    N1: { aciertos: 0, total: 0, porcentaje: 0 },
+    N2: { aciertos: 0, total: 0, porcentaje: 0 },
+    N3: { aciertos: 0, total: 0, porcentaje: 0 },
+    N4: { aciertos: 0, total: 0, porcentaje: 0 }
+  };
+}
+
+function calcularMatriz3x4(estudianteId, simulacroId) {
+  const estudiante = estudiantes.find(e => e.id === estudianteId);
+  if (!estudiante) return null;
+  const resultadosSim = simulacroEjemplo.resultados[estudianteId];
+  if (!resultadosSim) return null;
+
+  const matriz = {};
+
+  itemBanco.forEach(item => {
+    if (!resultadosSim.respuestas[item.id]) return;
+    const acierto = resultadosSim.respuestas[item.id].acierto;
+    const area = item.area;
+    let competenciaKey = item.competencia || item.proceso || item.parte || "General";
+    const nivel = item.nivel;
+
+    if (!matriz[area]) matriz[area] = {};
+    if (!matriz[area][competenciaKey]) matriz[area][competenciaKey] = crearEstructuraCompetencia();
+
+    matriz[area][competenciaKey][nivel].total++;
+    if (acierto) matriz[area][competenciaKey][nivel].aciertos++;
+  });
+
+  Object.keys(matriz).forEach(area => {
+    Object.keys(matriz[area]).forEach(comp => {
+      ['N1', 'N2', 'N3', 'N4'].forEach(nivel => {
+        let datos = matriz[area][comp][nivel];
+        if (datos) {
+          datos.porcentaje = datos.total > 0 ? Math.round((datos.aciertos / datos.total) * 100) : 0;
+        }
+      });
+    });
+  });
+
+  return matriz;
+}
+
+function calcularDiagnosticoEstudiante(estudiante) {
+  const matriz = calcularMatriz3x4(estudiante.id, "SIM-2026-03-15");
+  if (!matriz) return;
+
+  let totalN3 = 0, totalN4 = 0, totalItemsN3 = 0, totalItemsN4 = 0;
+  const diagnostico = {
+    fecha: simulacroEjemplo.fecha,
+    nivelGlobal: "N2",
+    brechaPrioritaria: "N2-N3",
+    matrizResultados: matriz,
+    metricasArea: {},
+    competenciasCriticas: []
+  };
+
+  Object.keys(matriz).forEach(area => {
+    let aciertosN3 = 0, itemsN3 = 0, aciertosN4 = 0, itemsN4 = 0;
+    
+    Object.keys(matriz[area]).forEach(comp => {
+      aciertosN3 += matriz[area][comp].N3.aciertos || 0;
+      itemsN3 += matriz[area][comp].N3.total || 0;
+      aciertosN4 += matriz[area][comp].N4.aciertos || 0;
+      itemsN4 += matriz[area][comp].N4.total || 0;
+      
+      if (matriz[area][comp].N3.total > 0 && matriz[area][comp].N3.porcentaje < 40) {
+        diagnostico.competenciasCriticas.push({
+          area: area,
+          competencia: comp,
+          porcentaje: matriz[area][comp].N3.porcentaje
+        });
+      }
+    });
+    
+    totalN3 += aciertosN3; totalItemsN3 += itemsN3;
+    totalN4 += aciertosN4; totalItemsN4 += itemsN4;
+    
+    diagnostico.metricasArea[area] = {
+      pctN3: itemsN3 > 0 ? Math.round((aciertosN3 / itemsN3) * 100) : 0,
+      pctN4: itemsN4 > 0 ? Math.round((aciertosN4 / itemsN4) * 100) : 0
+    };
+  });
+
+  const pctGlobalN3 = totalItemsN3 > 0 ? (totalN3 / totalItemsN3) * 100 : 0;
+  const pctGlobalN4 = totalItemsN4 > 0 ? (totalN4 / totalItemsN4) * 100 : 0;
+  diagnostico.nivelGlobal = determinarNivelPorAciertos(pctGlobalN3, pctGlobalN4);
+
+  if (pctGlobalN3 < 40) diagnostico.brechaPrioritaria = "N2-N3";
+  else if (pctGlobalN4 < 30) diagnostico.brechaPrioritaria = "N3-N4";
+  else diagnostico.brechaPrioritaria = "N4+";
+
+  estudiante.semillero.ultimoDiagnostico = diagnostico;
+  estudiante.semillero.pmap = generarPMAP(estudiante);
+  guardarDatosSistema();
+}
+
+function generarPMAP(estudiante) {
+  const diag = estudiante.semillero.ultimoDiagnostico;
+  if (!diag) return { objetivo: "Sin diagnóstico", planDeAccion: [] };
+
+  const plan = [];
+  
+  if (diag.competenciasCriticas.length > 0) {
+    diag.competenciasCriticas.slice(0, 3).forEach(critica => {
+      let microrutina = "";
+      if (critica.area === "Lectura Crítica") microrutina = "Análisis de discurso";
+      else if (critica.area === "Matemáticas") microrutina = "Análisis de errores";
+      else if (critica.area === "Sociales") microrutina = "Balanza de Actores";
+      else if (critica.area === "Ciencias Naturales") microrutina = "Contraste de evidencia";
+      else microrutina = "Práctica focalizada";
+      
+      plan.push({
+        area: critica.area,
+        competencia: critica.competencia,
+        microhabilidad: `Fortalecer competencia ${critica.competencia}`,
+        microrutina: microrutina,
+        frecuencia: "3/semana"
+      });
+    });
+  } else if (diag.brechaPrioritaria === "N2-N3") {
+    plan.push({ area: "General", microhabilidad: "Inferir relaciones causales", microrutina: "Árbol de efectos", frecuencia: "3/semana" });
+  } else if (diag.brechaPrioritaria === "N3-N4") {
+    plan.push({ area: "General", microhabilidad: "Evaluar argumentos", microrutina: "Debate estructurado", frecuencia: "2/semana" });
+  }
+
+  return {
+    objetivo: `Migrar de ${diag.nivelGlobal} a ${diag.brechaPrioritaria.split('-')[1] || diag.brechaPrioritaria}`,
+    planDeAccion: plan
+  };
+}
+
+// ===============================
+// FUNCIONES DE INTERFAZ
+// ===============================
+function aplicarFiltros() {
+  const grado = document.getElementById('filtroGrado').value;
+  const grupo = document.getElementById('filtroGrupo').value;
+  const busqueda = document.getElementById('filtroBusqueda').value.toLowerCase();
+  
+  const estudiantesFiltrados = estudiantes.filter(e => {
+    if (grado !== 'todos' && e.ubicacion_academica.grado !== grado) return false;
+    if (grupo !== 'todos') {
+      const grupoActual = e.ubicacion_academica.grupo.split('-')[1];
+      if (grupoActual !== grupo) return false;
+    }
+    if (busqueda && !`${e.datos_basicos.nombres} ${e.datos_basicos.apellidos} ${e.datos_basicos.codigo}`.toLowerCase().includes(busqueda)) return false;
+    return true;
+  });
+  
+  mostrarEstudiantesFiltrados(estudiantesFiltrados);
+}
+
+function mostrarEstudiantesFiltrados(lista) {
+  const container = document.getElementById('estudiantesList');
+  if (!container) return;
+  
+  container.innerHTML = lista.map(est => {
+    const nivel = est.semillero?.ultimoDiagnostico?.nivelGlobal || 'N/D';
+    return `
+      <div class="estudiante-card" onclick="seleccionarEstudiante('${est.id}')">
+        <div class="estudiante-nombre">${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}</div>
+        <div class="estudiante-meta">${est.datos_basicos.codigo} • Nivel: <strong>${nivel}</strong></div>
+        <div class="estudiante-meta">Grado ${est.ubicacion_academica.grado} • Grupo ${est.ubicacion_academica.grupo}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function actualizarListaEstudiantes() {
+  mostrarEstudiantesFiltrados(estudiantes);
+}
+
+function seleccionarEstudiante(id) {
+  estudianteActual = estudiantes.find(e => e.id === id);
+  if (estudianteActual) {
+    document.getElementById('studentsPanel').style.display = 'none';
+    document.getElementById('progressPanel').style.display = 'block';
+    actualizarVistaProgreso();
+  }
+}
+
+function actualizarVistaProgreso() {
+  if (!estudianteActual) return;
+  const est = estudianteActual;
+  const diag = est.semillero.ultimoDiagnostico;
+
+  document.getElementById('currentStudentName').textContent = `${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}`;
+  document.getElementById('infoCodigo').textContent = est.datos_basicos.codigo;
+  document.getElementById('infoNivelGlobal').textContent = diag?.nivelGlobal || 'N/D';
+  document.getElementById('infoBrecha').textContent = diag?.brechaPrioritaria || 'N/D';
+  document.getElementById('infoSimulacros').textContent = est.semillero.simulacros.length;
+
+  mostrarMatrizArea();
+  mostrarPMAP();
+}
+
+function mostrarMatrizArea() {
+  if (!estudianteActual || !estudianteActual.semillero.ultimoDiagnostico) return;
+  
+  const area = document.getElementById('selectorAreaMatriz').value;
+  const matrizResultados = estudianteActual.semillero.ultimoDiagnostico.matrizResultados[area];
+  
+  if (!matrizResultados) {
+    document.getElementById('matrizContainer').innerHTML = `<p>No hay datos para ${area}</p>`;
+    return;
+  }
+
+  // ============================================
+  // MATRIZ CANÓNICA DE MICROHABILIDADES POR ÁREA
+  // Basada en la Guía Saber 11 2026-1
+  // ============================================
+  
+  // Paleta de colores por competencia (distintos para cada una)
+  const coloresCompetencia = {
+    'Matemáticas': {
+      'C1': '#3b82f6', // Azul
+      'C2': '#f97316', // Naranja
+      'C3': '#10b981'  // Verde
+    },
+    'Lectura Crítica': {
+      'P1': '#8b5cf6', // Morado
+      'P2': '#ec4899', // Rosa
+      'P3': '#06b6d4'  // Cian
+    },
+    'Sociales': {
+      'C1': '#f59e0b', // Ámbar
+      'C2': '#6366f1', // Índigo
+      'C3': '#14b8a6'  // Verde azulado
+    },
+    'Ciencias Naturales': {
+      'C1': '#ef4444', // Rojo
+      'C2': '#3b82f6', // Azul
+      'C3': '#10b981'  // Verde (Indagación)
+    },
+    'Inglés': {
+      'Parte 1': '#f97316', // Naranja
+      'Parte 2': '#8b5cf6', // Morado
+      'Parte 3': '#ec4899', // Rosa
+      'Parte 4': '#06b6d4', // Cian
+      'Parte 5': '#f59e0b', // Ámbar
+      'Parte 6': '#6366f1', // Índigo
+      'Parte 7': '#14b8a6'  // Verde azulado
+    }
+  };
+  
+  const microhabilidadesPorArea = {
+    'Matemáticas': {
+      'C1': { // Interpretación y representación
+        nombre: 'C1: Interpretación y representación',
+        color: '#3b82f6',
+        niveles: [
+          { nivel: 'N1', micro: 'Leer datos explícitos en tablas y gráficas', rutina: 'Lectura guiada de tablas' },
+          { nivel: 'N1', micro: 'Identificar ejes, escalas y unidades', rutina: 'Rastreo de variables visuales' },
+          { nivel: 'N2', micro: 'Reconocer patrones numéricos o geométricos', rutina: 'Exploración secuencial de regularidades' },
+          { nivel: 'N2', micro: 'Transformar información de tabla a gráfica', rutina: 'Traducción entre representaciones' },
+          { nivel: 'N2', micro: 'Transformar información verbal a esquema', rutina: 'Modelado visual básico' },
+          { nivel: 'N2', micro: 'Comparar representaciones equivalentes', rutina: 'Comparación sistemática de formatos' },
+          { nivel: 'N2', micro: 'Identificar qué información permanece y cuál cambia al transformar', rutina: 'Conservación de información' },
+          { nivel: 'N2', micro: 'Interpretar tendencias crecientes, decrecientes o constantes', rutina: 'Lectura de comportamiento gráfico' }
+        ]
+      },
+      'C2': { // Formulación y ejecución
+        nombre: 'C2: Formulación y ejecución',
+        color: '#f97316',
+        niveles: [
+          { nivel: 'N2', micro: 'Identificar datos pertinentes', rutina: 'Filtrado de datos relevantes' },
+          { nivel: 'N2', micro: 'Reconocer la operación necesaria', rutina: 'Selección de operación' },
+          { nivel: 'N2', micro: 'Organizar información para resolver', rutina: 'Ordenamiento de datos del problema' },
+          { nivel: 'N3', micro: 'Diseñar un plan de solución', rutina: 'Esquema paso a paso' },
+          { nivel: 'N3', micro: 'Ejecutar un procedimiento correctamente', rutina: 'Resolución guiada por etapas' },
+          { nivel: 'N3', micro: 'Verificar coherencia del resultado', rutina: 'Comprobación del resultado' },
+          { nivel: 'N3', micro: 'Resolver problemas con varias etapas', rutina: 'Cadena de resolución' },
+          { nivel: 'N3', micro: 'Elegir entre varias estrategias posibles', rutina: 'Comparación de estrategias' }
+        ]
+      },
+      'C3': { // Argumentación
+        nombre: 'C3: Argumentación',
+        color: '#10b981',
+        niveles: [
+          { nivel: 'N3', micro: 'Sustentar por qué un procedimiento funciona', rutina: 'Justificación paso a paso' },
+          { nivel: 'N3', micro: 'Refutar un procedimiento incorrecto', rutina: 'Detección de error matemático' },
+          { nivel: 'N3', micro: 'Comparar dos procedimientos', rutina: 'Contraste de estrategias' },
+          { nivel: 'N4', micro: 'Establecer validez de una solución', rutina: 'Verificación crítica de solución' },
+          { nivel: 'N4', micro: 'Evaluar pertinencia de un método', rutina: 'Análisis de adecuación' },
+          { nivel: 'N4', micro: 'Modelar algebraicamente una situación', rutina: 'Traducción a expresión o ecuación' },
+          { nivel: 'N4', micro: 'Determinar suficiencia de información', rutina: 'Prueba de completitud' },
+          { nivel: 'N4', micro: 'Argumentar una decisión matemática', rutina: 'Defensa argumentativa' }
+        ]
+      }
+    },
+    
+    'Lectura Crítica': {
+      'P1': { // Identificar y entender contenidos locales
+        nombre: 'P1: Identificar y entender contenidos locales',
+        color: '#8b5cf6',
+        niveles: [
+          { nivel: 'N1', micro: 'Localizar información explícita', rutina: 'Subrayado focalizado' },
+          { nivel: 'N1', micro: 'Reconocer personajes o actores', rutina: 'Rastreo de referentes' },
+          { nivel: 'N1', micro: 'Identificar eventos narrados explícitamente', rutina: 'Secuencia de hechos' },
+          { nivel: 'N2', micro: 'Reconocer significado local de palabras o expresiones', rutina: 'Relectura contextual' },
+          { nivel: 'N2', micro: 'Identificar referentes pronominales simples', rutina: 'Encadenamiento referencial' },
+          { nivel: 'N2', micro: 'Reconocer información puntual en caricaturas o cómics', rutina: 'Lectura multimodal guiada' }
+        ]
+      },
+      'P2': { // Comprender la articulación de las partes
+        nombre: 'P2: Comprender la articulación de las partes',
+        color: '#ec4899',
+        niveles: [
+          { nivel: 'N2', micro: 'Identificar función de una parte del texto', rutina: '¿Qué hace este párrafo?' },
+          { nivel: 'N2', micro: 'Reconocer relación entre párrafos', rutina: 'Conectores y continuidad' },
+          { nivel: 'N2', micro: 'Identificar voces presentes en el texto', rutina: 'Mapa de voces' },
+          { nivel: 'N3', micro: 'Diferenciar tesis, ejemplo, explicación y conclusión', rutina: 'Separación funcional' },
+          { nivel: 'N3', micro: 'Reconstruir el sentido global del texto', rutina: 'Síntesis progresiva' },
+          { nivel: 'N3', micro: 'Identificar relación entre elementos discontinuos', rutina: 'Lectura de estructura no lineal' },
+          { nivel: 'N3', micro: 'Jerarquizar ideas principales y secundarias', rutina: 'Pirámide de ideas' },
+          { nivel: 'N3', micro: 'Reconocer cómo una parte modifica el sentido del conjunto', rutina: 'Ensamble textual' }
+        ]
+      },
+      'P3': { // Reflexionar y evaluar
+        nombre: 'P3: Reflexionar y evaluar',
+        color: '#06b6d4',
+        niveles: [
+          { nivel: 'N3', micro: 'Establecer validez de un enunciado', rutina: 'Verificación argumentativa' },
+          { nivel: 'N3', micro: 'Relacionar un texto con otro', rutina: 'Puente intertextual' },
+          { nivel: 'N3', micro: 'Reconocer contenidos valorativos', rutina: 'Caza de valoraciones' },
+          { nivel: 'N3', micro: 'Identificar estrategias discursivas', rutina: 'Análisis de intención retórica' },
+          { nivel: 'N4', micro: 'Contextualizar un texto', rutina: 'Ubicación histórico-discursiva' },
+          { nivel: 'N4', micro: 'Evaluar solidez de una generalización', rutina: '¿Un caso prueba la regla?' },
+          { nivel: 'N4', micro: 'Detectar sesgos o prejuicios', rutina: 'Caza de adjetivos' },
+          { nivel: 'N4', micro: 'Juzgar la fuerza de una estrategia argumentativa', rutina: 'Contraste de persuasión' }
+        ]
+      }
+    },
+    
+    'Sociales': {
+      'C1': { // Pensamiento social
+        nombre: 'C1: Pensamiento social',
+        color: '#f59e0b',
+        niveles: [
+          { nivel: 'N1', micro: 'Identificar conceptos sociales básicos', rutina: 'Glosario en contexto' },
+          { nivel: 'N1', micro: 'Reconocer instituciones del Estado', rutina: '¿Quién hace qué?' },
+          { nivel: 'N1', micro: 'Identificar mecanismos de participación', rutina: 'Clasificación de mecanismos' },
+          { nivel: 'N2', micro: 'Localizar hechos en tiempo y espacio', rutina: 'Línea de tiempo + mapa' },
+          { nivel: 'N2', micro: 'Relacionar evento y contexto geográfico', rutina: 'Mapa situacional' },
+          { nivel: 'N2', micro: 'Relacionar práctica social y espacio', rutina: 'Lectura territorial guiada' },
+          { nivel: 'N2', micro: 'Diferenciar dimensiones política, económica, cultural y geográfica', rutina: 'Cuadro de dimensiones' },
+          { nivel: 'N2', micro: 'Aplicar un concepto social a un caso', rutina: 'Caso–concepto' }
+        ]
+      },
+      'C2': { // Interpretación y análisis de perspectivas
+        nombre: 'C2: Interpretación y análisis de perspectivas',
+        color: '#6366f1',
+        niveles: [
+          { nivel: 'N3', micro: 'Ubicar una fuente en contexto', rutina: 'Ficha de contextualización' },
+          { nivel: 'N3', micro: 'Evaluar límites de una fuente', rutina: 'Balance fuente–alcance' },
+          { nivel: 'N4', micro: 'Develar prejuicios o intenciones', rutina: 'Caza de adjetivos / sesgos' },
+          { nivel: 'N3', micro: 'Reconocer perspectivas de actores', rutina: 'Balanza de actores' },
+          { nivel: 'N3', micro: 'Comparar perspectivas contrapuestas', rutina: 'Matriz de contraste' },
+          { nivel: 'N3', micro: 'Relacionar cosmovisión e interés', rutina: 'Perfil ideológico del actor' },
+          { nivel: 'N4', micro: 'Analizar propuestas de solución en conflicto', rutina: 'Mesa de negociación simulada' },
+          { nivel: 'N4', micro: 'Valorar la fuerza de un argumento social o político', rutina: 'Debate estructurado' }
+        ]
+      },
+      'C3': { // Pensamiento reflexivo y sistémico
+        nombre: 'C3: Pensamiento reflexivo y sistémico',
+        color: '#14b8a6',
+        niveles: [
+          { nivel: 'N3', micro: 'Analizar uso de modelos en decisiones sociales', rutina: 'Lectura de modelo aplicado' },
+          { nivel: 'N3', micro: 'Establecer relaciones entre dimensiones de una problemática', rutina: 'Mapa sistémico de dimensiones' },
+          { nivel: 'N3', micro: 'Analizar efectos de una intervención', rutina: 'Árbol de efectos' },
+          { nivel: 'N3', micro: 'Identificar efectos no deseados', rutina: 'Proyección de consecuencias' },
+          { nivel: 'N4', micro: 'Evaluar una decisión pública desde varias dimensiones', rutina: 'Matriz multicriterio' },
+          { nivel: 'N4', micro: 'Integrar variables sociales, económicas y políticas', rutina: 'Tejido de variables' },
+          { nivel: 'N4', micro: 'Valorar pertinencia de una solución', rutina: 'Análisis de viabilidad' },
+          { nivel: 'N4', micro: 'Pensar sistémicamente una problemática', rutina: 'Circuito causa–efecto social' }
+        ]
+      }
+    },
+    
+    'Ciencias Naturales': {
+      'C1': { // Explicación de fenómenos
+        nombre: 'C1: Explicación de fenómenos',
+        color: '#ef4444',
+        niveles: [
+          { nivel: 'N2', micro: 'Relacionar recurso/tecnología con efectos', rutina: 'Tabla efecto–impacto' },
+          { nivel: 'N3', micro: 'Explicar principios de salud individual y pública', rutina: 'Explicación aplicada' },
+          { nivel: 'N3', micro: 'Explicar fenómenos fisicoquímicos simples', rutina: 'Secuencia fenómeno–modelo' },
+          { nivel: 'N3', micro: 'Relacionar variables de sistemas físicos', rutina: 'Cadena de variables' },
+          { nivel: 'N3', micro: 'Analizar funcionamiento de ecosistemas', rutina: 'Red biótico–abiótica' },
+          { nivel: 'N3', micro: 'Analizar dinámica interna de organismos', rutina: 'Mapa funcional del organismo' },
+          { nivel: 'N3', micro: 'Usar modelos físicos para comprender un fenómeno', rutina: 'Traducción fenómeno–modelo' },
+          { nivel: 'N3', micro: 'Usar modelos químicos o biológicos para explicar', rutina: 'Emparejamiento modelo–caso' }
+        ]
+      },
+      'C2': { // Uso comprensivo del conocimiento científico
+        nombre: 'C2: Uso comprensivo del conocimiento científico',
+        color: '#3b82f6',
+        niveles: [
+          { nivel: 'N2', micro: 'Asociar fenómeno con concepto científico', rutina: 'Caso–concepto científico' },
+          { nivel: 'N2', micro: 'Relacionar componentes de circuitos con voltaje/corriente', rutina: 'Lectura de circuito guiada' },
+          { nivel: 'N2', micro: 'Identificar formas de energía y transformaciones', rutina: 'Rastreo de transformación energética' },
+          { nivel: 'N2', micro: 'Identificar fuerzas que actúan en un sistema', rutina: 'Despiece de fuerzas' },
+          { nivel: 'N2', micro: 'Establecer relaciones entre estructura y propiedades de la materia', rutina: 'Comparación estructura–propiedad' },
+          { nivel: 'N1-N2', micro: 'Diferenciar elementos, compuestos y mezclas', rutina: 'Clasificación química básica' },
+          { nivel: 'N2', micro: 'Reconocer cambios por explotación de recursos o tecnología', rutina: 'Lectura CTS guiada' },
+          { nivel: 'N2', micro: 'Identificar características de procesos biológicos o ecosistémicos', rutina: 'Observación funcional' }
+        ]
+      },
+      'C3': { // Indagación
+        nombre: 'C3: Indagación',
+        color: '#10b981',
+        niveles: [
+          { nivel: 'N3', micro: 'Reconocer qué pregunta puede responder una investigación', rutina: 'Ajuste pregunta–método' },
+          { nivel: 'N3', micro: 'Comprender importancia de la evidencia', rutina: 'Evidencia vs opinión' },
+          { nivel: 'N3', micro: 'Elaborar conclusiones respaldadas', rutina: 'Conclusión con soporte' },
+          { nivel: 'N4', micro: 'Determinar suficiencia de resultados', rutina: 'Prueba de suficiencia' },
+          { nivel: 'N3', micro: 'Hacer predicciones basadas en patrones', rutina: 'Proyección desde regularidades' },
+          { nivel: 'N3', micro: 'Interpretar datos en tablas, gráficas o diagramas', rutina: 'Lectura multiformato de datos' },
+          { nivel: 'N3', micro: 'Representar datos en tablas o gráficas', rutina: 'Traducción de datos' },
+          { nivel: 'N4', micro: 'Diseñar experimentos', rutina: 'Diseño experimental básico' },
+          { nivel: 'N4', micro: 'Elegir instrumentos adecuados', rutina: 'Selección de instrumento' },
+          { nivel: 'N3', micro: 'Registrar y clasificar información', rutina: 'Bitácora de investigación' },
+          { nivel: 'N4', micro: 'Usar información adicional para evaluar predicciones', rutina: 'Contraste ampliado de evidencia' },
+          { nivel: 'N3', micro: 'Comunicar proceso y resultados', rutina: 'Informe breve de investigación' }
+        ]
+      }
+    },
+    
+    'Inglés': {
+      'Parte 1': { // Reconocimiento de vocabulario
+        nombre: 'Parte 1: Reconocimiento de vocabulario',
+        color: '#f97316',
+        niveles: [
+          { nivel: 'N1', micro: 'Reconocer vocabulario básico', rutina: 'Matching palabra–imagen' },
+          { nivel: 'N2', micro: 'Asociar descripción con palabra', rutina: 'Search and match' },
+          { nivel: 'N2', micro: 'Identificar rasgos explícitos en una descripción', rutina: 'Highlight descriptors' }
+        ]
+      },
+      'Parte 2': { // Comprensión de avisos
+        nombre: 'Parte 2: Comprensión de avisos',
+        color: '#8b5cf6',
+        niveles: [
+          { nivel: 'N2', micro: 'Reconocer propósito comunicativo', rutina: 'What is this for?' },
+          { nivel: 'N2', micro: 'Ubicar contexto de un aviso', rutina: 'Where would you see this?' },
+          { nivel: 'N2', micro: 'Relacionar mensaje y lugar', rutina: 'Notice–context mapping' }
+        ]
+      },
+      'Parte 3': { // Pertinencia del lenguaje
+        nombre: 'Parte 3: Pertinencia del lenguaje',
+        color: '#ec4899',
+        niveles: [
+          { nivel: 'N2', micro: 'Elegir respuesta adecuada en diálogo', rutina: 'Dialogue completion' },
+          { nivel: 'N3', micro: 'Reconocer intención comunicativa', rutina: 'Intent spotting' },
+          { nivel: 'N3', micro: 'Ajustar lenguaje a contexto', rutina: 'Context–language fit' }
+        ]
+      },
+      'Parte 4': { // Uso gramatical
+        nombre: 'Parte 4: Uso gramatical',
+        color: '#06b6d4',
+        niveles: [
+          { nivel: 'N2', micro: 'Reconocer estructura gramatical correcta', rutina: 'Grammar selection' },
+          { nivel: 'N2', micro: 'Completar textos con forma adecuada', rutina: 'Cloze guided completion' },
+          { nivel: 'N2', micro: 'Relacionar gramática y significado', rutina: 'Form–meaning match' }
+        ]
+      },
+      'Parte 5': { // Comprensión lectora y paráfrasis
+        nombre: 'Parte 5: Comprensión lectora',
+        color: '#f59e0b',
+        niveles: [
+          { nivel: 'N2', micro: 'Identificar paráfrasis correcta', rutina: 'Paraphrase match' },
+          { nivel: 'N2', micro: 'Reconocer equivalencia semántica', rutina: 'Same meaning test' },
+          { nivel: 'N3', micro: 'Inferir respuesta desde reformulación', rutina: 'Rephrase and infer' }
+        ]
+      },
+      'Parte 6': { // Comprensión global
+        nombre: 'Parte 6: Comprensión global',
+        color: '#6366f1',
+        niveles: [
+          { nivel: 'N3', micro: 'Identificar intención del autor', rutina: 'Author’s purpose' },
+          { nivel: 'N3', micro: 'Reconocer idea global', rutina: 'Main idea scan' },
+          { nivel: 'N3', micro: 'Distinguir información general y particular', rutina: 'Global vs specific reading' }
+        ]
+      },
+      'Parte 7': { // Vocabulario en contexto
+        nombre: 'Parte 7: Vocabulario en contexto',
+        color: '#14b8a6',
+        niveles: [
+          { nivel: 'N2', micro: 'Seleccionar palabra adecuada por contexto', rutina: 'Contextual word fit' },
+          { nivel: 'N3', micro: 'Inferir significado de palabra por contexto', rutina: 'Context clue reading' },
+          { nivel: 'N3', micro: 'Mantener coherencia del texto completado', rutina: 'Coherence check' }
+        ]
+      }
+    }
+  };
+
+  // ============================================
+  // MOSTRAR TABLA DE RESULTADOS
+  // ============================================
+  
+  let html = `<h4>${area} - Resultados por competencia</h4>`;
+  html += `<table class="matriz-3x4" style="width:100%; border-collapse: collapse; margin:10px 0; font-size:0.85rem;">`;
+  html += `<thead><tr>
+    <th style="text-align:left; padding:8px; background:var(--card);">Competencia</th>
+    <th style="padding:8px; background:var(--card);">N1</th>
+    <th style="padding:8px; background:var(--card);">N2</th>
+    <th style="padding:8px; background:var(--card);">N3</th>
+    <th style="padding:8px; background:var(--card);">N4</th>
+  </tr></thead><tbody>`;
+  
+  // Obtener las competencias del área específica
+  const competenciasArea = microhabilidadesPorArea[area] || {};
+  
+  Object.keys(matrizResultados).sort().forEach(compKey => {
+    let nombreCompetencia = competenciasArea[compKey]?.nombre || compKey;
+    let colorCompetencia = competenciasArea[compKey]?.color || 'var(--accent)';
+    
+    html += `<tr>`;
+    html += `<td class="competencia" style="text-align:left; padding:8px; font-weight:500; background:var(--card); border-left: 4px solid ${colorCompetencia};">${nombreCompetencia}</td>`;
+    
+    ['N1','N2','N3','N4'].forEach(nivel => {
+      let pct = matrizResultados[compKey]?.[nivel]?.porcentaje || 0;
+      let clase = pct >= 70 ? 'acierto-alto' : (pct >= 40 ? 'acierto-medio' : 'acierto-bajo');
+      html += `<td style="padding:8px; text-align:center; border:1px solid var(--border);" class="${clase}">${pct}%</td>`;
+    });
+    
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  
+  // ============================================
+  // GENERAR RUTAS DE MIGRACIÓN POR COMPETENCIA
+  // Basado en resultados reales del simulacro
+  // ============================================
+  
+  html += `<h5 style="margin-top: 20px; margin-bottom: 15px; color: var(--accent);">🧠 Rutas de migración cognitiva por competencia</h5>`;
+  
+  // Analizar cada competencia individualmente
+  Object.keys(matrizResultados).sort().forEach(compKey => {
+    const competenciaData = microhabilidadesPorArea[area]?.[compKey];
+    if (!competenciaData) return;
+    
+    const nombreCompetencia = competenciaData.nombre;
+    const colorCompetencia = competenciaData.color || 'var(--accent)';
+    const pctN1 = matrizResultados[compKey]?.N1?.porcentaje || 0;
+    const pctN2 = matrizResultados[compKey]?.N2?.porcentaje || 0;
+    const pctN3 = matrizResultados[compKey]?.N3?.porcentaje || 0;
+    const pctN4 = matrizResultados[compKey]?.N4?.porcentaje || 0;
+    
+    // ========================================
+    // PASO 1: Determinar el nivel base y la brecha
+    // ========================================
+    
+    // Encontrar el nivel más alto con dominio (>=70%)
+    let nivelDominio = 'N1';
+    if (pctN4 >= 70) nivelDominio = 'N4';
+    else if (pctN3 >= 70) nivelDominio = 'N3';
+    else if (pctN2 >= 70) nivelDominio = 'N2';
+    else if (pctN1 >= 70) nivelDominio = 'N1';
+    
+    // Encontrar el siguiente nivel a alcanzar
+    let nivelMeta = '';
+    let mensajeEstado = '';
+    
+    if (nivelDominio === 'N1') {
+      nivelMeta = 'N2';
+      mensajeEstado = '📚 Nivel básico. Enfocado en fundamentos.';
+    } else if (nivelDominio === 'N2') {
+      nivelMeta = 'N3';
+      mensajeEstado = '📈 Nivel medio. Listo para análisis.';
+    } else if (nivelDominio === 'N3') {
+      nivelMeta = 'N4';
+      mensajeEstado = '🚀 Nivel avanzado. Cerca de la excelencia.';
+    } else if (nivelDominio === 'N4') {
+      nivelMeta = 'N4+';
+      mensajeEstado = '✅ Nivel excelente. Mantenimiento.';
+    }
+    
+    // Detectar brechas específicas
+    const brechas = [];
+    if (pctN2 >= 70 && pctN3 < 40) brechas.push('N2→N3');
+    if (pctN3 >= 70 && pctN4 < 40) brechas.push('N3→N4');
+    if (pctN1 >= 70 && pctN2 < 40) brechas.push('N1→N2');
+    
+    // ========================================
+    // PASO 2: Seleccionar microhabilidades según la brecha
+    // ========================================
+    
+    // Microhabilidades para el nivel actual (refuerzo)
+    const microsRefuerzo = competenciaData.niveles.filter(item => {
+      if (nivelDominio === 'N1' && (item.nivel === 'N1' || item.nivel.includes('N1'))) return true;
+      if (nivelDominio === 'N2' && (item.nivel === 'N2' || item.nivel.includes('N2'))) return true;
+      if (nivelDominio === 'N3' && (item.nivel === 'N3' || item.nivel.includes('N3'))) return true;
+      if (nivelDominio === 'N4' && (item.nivel === 'N4' || item.nivel.includes('N4'))) return true;
+      return false;
+    }).slice(0, 2);
+    
+    // Microhabilidades para el nivel meta (migración)
+    const microsMigracion = competenciaData.niveles.filter(item => {
+      if (nivelMeta === 'N2' && (item.nivel === 'N2' || item.nivel.includes('N2'))) return true;
+      if (nivelMeta === 'N3' && (item.nivel === 'N3' || item.nivel.includes('N3'))) return true;
+      if (nivelMeta === 'N4' && (item.nivel === 'N4' || item.nivel.includes('N4'))) return true;
+      return false;
+    }).slice(0, 2);
+    
+    // Microhabilidades para brechas específicas
+    const microsBrecha = [];
+    if (brechas.includes('N2→N3')) {
+      microsBrecha.push(...competenciaData.niveles.filter(item => item.nivel === 'N3').slice(0, 2));
+    }
+    if (brechas.includes('N3→N4')) {
+      microsBrecha.push(...competenciaData.niveles.filter(item => item.nivel === 'N4').slice(0, 2));
+    }
+    
+    // ========================================
+    // PASO 3: Generar HTML para esta competencia
+    // ========================================
+    
+    html += `
+      <div style="margin-bottom: 25px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 4px solid ${colorCompetencia};">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+          <span style="font-size: 1.2rem;">📌</span>
+          <strong style="font-size: 1.1rem; color: ${colorCompetencia};">${nombreCompetencia}</strong>
+        </div>
+        
+        <p style="color: var(--muted); margin-bottom: 5px;">${mensajeEstado}</p>
+        <p style="margin-bottom: 10px;"><strong>Nivel actual:</strong> ${nivelDominio} (N1: ${pctN1}%, N2: ${pctN2}%, N3: ${pctN3}%, N4: ${pctN4}%)</p>
+    `;
+    
+    // Mostrar brechas detectadas
+    if (brechas.length > 0) {
+      html += `
+        <div style="margin-bottom: 10px; padding: 8px; background: rgba(239,68,68,0.15); border-radius: 6px; border-left: 3px solid var(--danger);">
+          <p style="color: var(--danger); margin-bottom: 5px;"><strong>⚠️ Brecha detectada:</strong> ${brechas.join(', ')}</p>
+        </div>
+      `;
+    }
+    
+    // Mostrar microhabilidades de refuerzo (si aplica)
+    if (microsRefuerzo.length > 0 && nivelDominio !== 'N4') {
+      html += `
+        <div style="margin-top: 10px; padding: 10px; background: rgba(249,115,22,0.1); border-radius: 6px;">
+          <p style="color: var(--warn); margin-bottom: 5px;"><strong>📌 Reforzar nivel ${nivelDominio}:</strong></p>
+      `;
+      microsRefuerzo.forEach(item => {
+        html += `
+          <div style="margin-left: 15px; margin-bottom: 5px;">
+            <p>• <strong>Microhabilidad:</strong> ${item.micro}</p>
+            <p style="color: var(--muted); margin-left: 20px;">🔄 Microrutina: ${item.rutina}</p>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+    
+    // Mostrar microhabilidades de migración (prioritario)
+    if (microsMigracion.length > 0 && nivelMeta !== 'N4+') {
+      html += `
+        <div style="margin-top: 10px; padding: 10px; background: rgba(56,189,248,0.15); border-radius: 6px;">
+          <p style="color: var(--accent); margin-bottom: 5px;"><strong>🎯 Para alcanzar nivel ${nivelMeta}:</strong></p>
+      `;
+      microsMigracion.forEach(item => {
+        html += `
+          <div style="margin-left: 15px; margin-bottom: 5px;">
+            <p>• <strong>Microhabilidad:</strong> ${item.micro}</p>
+            <p style="color: var(--muted); margin-left: 20px;">🔄 Microrutina: ${item.rutina}</p>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+    
+    // Mostrar microhabilidades específicas para brechas
+    if (microsBrecha.length > 0) {
+      html += `
+        <div style="margin-top: 10px; padding: 10px; background: rgba(239,68,68,0.15); border-radius: 6px;">
+          <p style="color: var(--danger); margin-bottom: 5px;"><strong>⚠️ Microhabilidades para superar la brecha:</strong></p>
+      `;
+      microsBrecha.forEach(item => {
+        html += `
+          <div style="margin-left: 15px; margin-bottom: 5px;">
+            <p>• <strong>${item.micro}</strong></p>
+            <p style="color: var(--muted); margin-left: 20px;">🔄 Microrutina: ${item.rutina}</p>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+    
+    html += `</div>`;
+  });
+  
+  document.getElementById('matrizContainer').innerHTML = html;
+}
+
+function mostrarPMAP() {
+  if (!estudianteActual) return;
+  const pmap = estudianteActual.semillero.pmap;
+  let html = `<p><strong>Objetivo:</strong> ${pmap.objetivo}</p>`;
+  
+  if (pmap.planDeAccion.length > 0) {
+    html += `<ul>`;
+    pmap.planDeAccion.forEach(item => {
+      html += `<li style="margin-bottom: 10px;"><strong>${item.area}:</strong> ${item.microhabilidad} (${item.microrutina}) - <span style="color: var(--accent);">${item.frecuencia}</span></li>`;
+    });
+    html += `</ul>`;
+  } else {
+    html += `<p>No hay plan activo. Continúa con el trabajo actual.</p>`;
+  }
+  document.getElementById('pmapContainer').innerHTML = html;
+}
+
+function volverALista() {
+  document.getElementById('studentsPanel').style.display = 'block';
+  document.getElementById('progressPanel').style.display = 'none';
+  actualizarListaEstudiantes();
+}
+
+// ===============================
+// GESTIÓN DE ESTUDIANTES - REGISTRO MANUAL
+// ===============================
+function gestionarEstudiantes() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-tab="registro"]').classList.add('active');
+  document.querySelectorAll('#studentsPanel .tab-pane').forEach(p => p.style.display = 'none');
+  document.getElementById('registro').style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const formManual = document.getElementById('formEstudianteManual');
+  if (formManual) {
+    formManual.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nuevoId = 'est_' + Date.now() + Math.floor(Math.random() * 1000);
+      
+      const nuevoEstudiante = {
+        id: nuevoId,
+        datos_basicos: {
+          codigo: document.getElementById('codigo').value,
+          nombres: document.getElementById('nombres').value,
+          apellidos: document.getElementById('apellidos').value,
+          documento: document.getElementById('documento').value
+        },
+        ubicacion_academica: {
+          grado: document.getElementById('grado').value,
+          grupo: document.getElementById('grado').value + '-' + document.getElementById('grupo').value,
+          jornada: document.getElementById('jornada').value
+        },
+        semillero: {
+          simulacros: [],
+          ultimoDiagnostico: null,
+          pmap: { objetivo: "", planDeAccion: [], microhabilidadesLogradas: [] }
+        }
+      };
+      
+      estudiantes.push(nuevoEstudiante);
+      guardarDatosSistema();
+      this.reset();
+      
+      alert(`✅ Estudiante ${nuevoEstudiante.datos_basicos.nombres} ${nuevoEstudiante.datos_basicos.apellidos} registrado correctamente`);
+      
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-tab="lista"]').classList.add('active');
+      document.querySelectorAll('#studentsPanel .tab-pane').forEach(p => p.style.display = 'none');
+      document.getElementById('lista').style.display = 'block';
+      
+      actualizarListaEstudiantes();
+    });
+  }
+});
+
+// ===============================
+// REPORTES
+// ===============================
+function generarReporteIndividual() {
+  if (!estudianteActual) {
+    alert('Selecciona un estudiante primero');
+    return;
+  }
+  
+  const est = estudianteActual;
+  const diag = est.semillero.ultimoDiagnostico;
+  
+  if (!diag) {
+    alert('El estudiante no tiene diagnóstico disponible');
+    return;
+  }
+
+  // Crear libro de Excel
+  const wb = XLSX.utils.book_new();
+  
+  // ============================================
+  // HOJA 1: PORTADA Y RESUMEN EJECUTIVO
+  // ============================================
+  
+  const portadaData = [
+    ['🎯 SEMILLERO ALAU - REPORTE PMAP INDIVIDUAL'],
+    ['SITE-RUTA LATAM - PLAN DE MIGRACIÓN ACADÉMICA PROGRESIVA'],
+    [],
+    ['📋 DATOS DEL ESTUDIANTE'],
+    ['Código:', est.datos_basicos.codigo],
+    ['Nombres:', est.datos_basicos.nombres],
+    ['Apellidos:', est.datos_basicos.apellidos],
+    ['Documento:', est.datos_basicos.documento],
+    ['Grado:', est.ubicacion_academica.grado],
+    ['Grupo:', est.ubicacion_academica.grupo],
+    ['Jornada:', est.ubicacion_academica.jornada],
+    [],
+    ['📊 RESUMEN DE RESULTADOS'],
+    ['Fecha de diagnóstico:', diag.fecha],
+    ['Nivel global:', diag.nivelGlobal],
+    ['Brecha prioritaria:', diag.brechaPrioritaria],
+    ['Simulacros completados:', est.semillero.simulacros.length],
+    [],
+    ['📈 DISTRIBUCIÓN POR NIVELES (TODAS LAS ÁREAS)']
+  ];
+  
+  // Agregar resumen por área
+  const metricasArea = diag.metricasArea || {};
+  Object.keys(metricasArea).forEach(area => {
+    portadaData.push([`${area}: N3=${metricasArea[area].pctN3}%, N4=${metricasArea[area].pctN4}%`]);
+  });
+  
+  portadaData.push(
+    [],
+    ['📅 Fecha de generación:', new Date().toLocaleDateString()],
+    [],
+    ['🔍 Este reporte incluye:'],
+    ['• Resultados detallados por competencia'],
+    ['• Microhabilidades y microrutinas sugeridas'],
+    ['• Plan de migración personalizado'],
+    ['• Seguimiento PMAP'],
+    [],
+    ['* Basado en la Guía Saber 11 2026-1']
+  );
+  
+  const wsPortada = XLSX.utils.aoa_to_sheet(portadaData);
+  XLSX.utils.book_append_sheet(wb, wsPortada, "Portada");
+  
+  // ============================================
+  // HOJA 2: MATRIZ COMPETENCIAS ICFES (REFERENCIA)
+  // ============================================
+  
+  const competenciasData = [
+    ['📚 COMPETENCIAS ICFES 2026-1 - MARCO DE REFERENCIA'],
+    ['Basado en la Guía de Orientación Saber 11 2026-1'],
+    [],
+    ['MATEMÁTICAS'],
+    ['C1: Interpretación y representación (34%)', 'Comprende y transforma información cuantitativa y esquemática presentada en distintos formatos.'],
+    ['C2: Formulación y ejecución (43%)', 'Frente a un problema que involucre información matemática, plantea y ejecuta estrategias para resolverlo.'],
+    ['C3: Argumentación (23%)', 'Valida procedimientos y estrategias matemáticas utilizadas para dar solución a problemas.'],
+    [],
+    ['LECTURA CRÍTICA'],
+    ['P1: Identificar y entender contenidos locales (25%)', 'Identifica y entiende los contenidos locales que conforman un texto.'],
+    ['P2: Comprender la articulación del texto (42%)', 'Comprende cómo se articulan las partes de un texto para darle un sentido global.'],
+    ['P3: Reflexionar y evaluar el contenido (33%)', 'Reflexiona a partir de un texto y evalúa su contenido.'],
+    [],
+    ['SOCIALES Y CIUDADANAS'],
+    ['C1: Pensamiento social (30%)', 'Comprende modelos conceptuales, sus características y contextos de aplicación. Comprende dimensiones espaciales y temporales de eventos, problemáticas y prácticas sociales.'],
+    ['C2: Interpretación y análisis de perspectivas (40%)', 'Contextualiza y evalúa usos de fuentes y argumentos. Comprende perspectivas de distintos actores y grupos sociales.'],
+    ['C3: Pensamiento reflexivo y sistémico (30%)', 'Evalúa usos sociales de las ciencias sociales. Comprende que los problemas y sus soluciones involucran distintas dimensiones.'],
+    [],
+    ['CIENCIAS NATURALES'],
+    ['C1: Explicación de fenómenos (30%)', 'Analiza el potencial del uso de recursos naturales o artefactos. Explica cómo ocurren fenómenos de la naturaleza. Modela fenómenos de la naturaleza.'],
+    ['C2: Uso comprensivo del conocimiento científico (30%)', 'Asocia fenómenos naturales con conceptos. Identifica las características de fenómenos naturales.'],
+    ['C3: Indagación (40%)', 'Comprende que a partir de la investigación científica se construyen explicaciones. Deriva conclusiones. Observa y relaciona patrones.'],
+    [],
+    ['INGLÉS (MCER)'],
+    ['Parte 1 (11%): Reconocimiento de vocabulario', 'Relacionar descripciones con palabras'],
+    ['Parte 2 (11%): Propósito comunicativo', 'Comprensión de avisos y contextos'],
+    ['Parte 3 (11%): Pertinencia del lenguaje', 'Intervención en conversaciones'],
+    ['Parte 4 (18%): Uso gramatical', 'Completar textos con palabras'],
+    ['Parte 5 (16%): Comprensión lectora', 'Seleccionar paráfrasis correcta'],
+    ['Parte 6 (11%): Comprensión global', 'Preguntas sobre intención del autor'],
+    ['Parte 7 (22%): Vocabulario en contexto', 'Completar textos (opción múltiple)']
+  ];
+  
+  const wsCompetencias = XLSX.utils.aoa_to_sheet(competenciasData);
+  XLSX.utils.book_append_sheet(wb, wsCompetencias, "Competencias ICFES");
+  
+  // ============================================
+  // HOJA 3: RESULTADOS DETALLADOS POR ÁREA
+  // ============================================
+  
+  const resultadosData = [
+    ['📊 RESULTADOS DETALLADOS POR ÁREA Y COMPETENCIA'],
+    ['Estudiante:', `${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}`],
+    ['Código:', est.datos_basicos.codigo],
+    [],
+    ['ÁREA: MATEMÁTICAS'],
+    ['Competencia', 'N1', 'N2', 'N3', 'N4']
+  ];
+  
+  const matriz = diag.matrizResultados;
+  
+  // Agregar resultados de Matemáticas
+  if (matriz['Matemáticas']) {
+    Object.keys(matriz['Matemáticas']).forEach(comp => {
+      const datos = matriz['Matemáticas'][comp];
+      resultadosData.push([
+        comp,
+        datos.N1?.porcentaje || 0,
+        datos.N2?.porcentaje || 0,
+        datos.N3?.porcentaje || 0,
+        datos.N4?.porcentaje || 0
+      ]);
+    });
+  }
+  
+  resultadosData.push([], ['ÁREA: LECTURA CRÍTICA'], ['Competencia', 'N1', 'N2', 'N3', 'N4']);
+  
+  if (matriz['Lectura Crítica']) {
+    Object.keys(matriz['Lectura Crítica']).forEach(comp => {
+      const datos = matriz['Lectura Crítica'][comp];
+      resultadosData.push([
+        comp,
+        datos.N1?.porcentaje || 0,
+        datos.N2?.porcentaje || 0,
+        datos.N3?.porcentaje || 0,
+        datos.N4?.porcentaje || 0
+      ]);
+    });
+  }
+  
+  resultadosData.push([], ['ÁREA: SOCIALES Y CIUDADANAS'], ['Competencia', 'N1', 'N2', 'N3', 'N4']);
+  
+  if (matriz['Sociales']) {
+    Object.keys(matriz['Sociales']).forEach(comp => {
+      const datos = matriz['Sociales'][comp];
+      resultadosData.push([
+        comp,
+        datos.N1?.porcentaje || 0,
+        datos.N2?.porcentaje || 0,
+        datos.N3?.porcentaje || 0,
+        datos.N4?.porcentaje || 0
+      ]);
+    });
+  }
+  
+  resultadosData.push([], ['ÁREA: CIENCIAS NATURALES'], ['Competencia', 'N1', 'N2', 'N3', 'N4']);
+  
+  if (matriz['Ciencias Naturales']) {
+    Object.keys(matriz['Ciencias Naturales']).forEach(comp => {
+      const datos = matriz['Ciencias Naturales'][comp];
+      resultadosData.push([
+        comp,
+        datos.N1?.porcentaje || 0,
+        datos.N2?.porcentaje || 0,
+        datos.N3?.porcentaje || 0,
+        datos.N4?.porcentaje || 0
+      ]);
+    });
+  }
+  
+  resultadosData.push([], ['ÁREA: INGLÉS'], ['Competencia', 'N1', 'N2', 'N3', 'N4']);
+  
+  if (matriz['Inglés']) {
+    Object.keys(matriz['Inglés']).forEach(comp => {
+      const datos = matriz['Inglés'][comp];
+      resultadosData.push([
+        comp,
+        datos.N1?.porcentaje || 0,
+        datos.N2?.porcentaje || 0,
+        datos.N3?.porcentaje || 0,
+        datos.N4?.porcentaje || 0
+      ]);
+    });
+  }
+  
+  const wsResultados = XLSX.utils.aoa_to_sheet(resultadosData);
+  XLSX.utils.book_append_sheet(wb, wsResultados, "Resultados");
+  
+  // ============================================
+  // HOJA 4: PLAN DE MIGRACIÓN POR COMPETENCIA
+  // ============================================
+  
+  const migracionData = [
+    ['🧠 PLAN DE MIGRACIÓN COGNITIVA POR COMPETENCIA'],
+    ['Basado en la matriz canónica SITE-RUTA LATAM'],
+    [],
+    ['ÁREA', 'Competencia', 'Nivel actual', 'Nivel meta', 'Brecha detectada', 'Microhabilidades a desarrollar', 'Microrutinas sugeridas']
+  ];
+  
+  // Matriz canónica de microhabilidades (simplificada para el reporte)
+  const microsPorArea = {
+    'Matemáticas': {
+      'C1': { 
+        nombre: 'Interpretación y representación',
+        niveles: {
+          'N1': ['Leer datos explícitos', 'Identificar ejes y escalas'],
+          'N2': ['Reconocer patrones', 'Transformar representaciones', 'Interpretar tendencias'],
+          'N3': ['Comparar representaciones', 'Analizar transformaciones'],
+          'N4': ['Modelar algebraicamente', 'Argumentar decisiones']
+        },
+        rutinas: {
+          'N1': ['Lectura guiada', 'Rastreo visual'],
+          'N2': ['Exploración secuencial', 'Traducción entre formatos'],
+          'N3': ['Contraste sistemático', 'Conservación de información'],
+          'N4': ['Verificación crítica', 'Defensa argumentativa']
+        }
+      },
+      'C2': {
+        nombre: 'Formulación y ejecución',
+        niveles: {
+          'N2': ['Identificar datos', 'Reconocer operación', 'Organizar información'],
+          'N3': ['Diseñar plan', 'Ejecutar procedimiento', 'Verificar coherencia', 'Resolver problemas'],
+          'N4': ['Evaluar pertinencia', 'Modelar situaciones']
+        },
+        rutinas: {
+          'N2': ['Filtrado', 'Selección de operación', 'Ordenamiento'],
+          'N3': ['Esquema paso a paso', 'Resolución guiada', 'Comprobación'],
+          'N4': ['Análisis de adecuación', 'Traducción a expresión']
+        }
+      },
+      'C3': {
+        nombre: 'Argumentación',
+        niveles: {
+          'N3': ['Sustentar', 'Refutar', 'Comparar'],
+          'N4': ['Establecer validez', 'Evaluar método', 'Argumentar decisión']
+        },
+        rutinas: {
+          'N3': ['Justificación', 'Detección de error', 'Contraste'],
+          'N4': ['Verificación crítica', 'Análisis de adecuación', 'Defensa']
+        }
+      }
+    },
+    'Lectura Crítica': {
+      'P1': {
+        nombre: 'Identificar y entender contenidos locales',
+        niveles: {
+          'N1': ['Localizar información', 'Reconocer personajes', 'Identificar eventos'],
+          'N2': ['Reconocer significado', 'Identificar referentes', 'Leer caricaturas']
+        },
+        rutinas: {
+          'N1': ['Subrayado focalizado', 'Rastreo de referentes', 'Secuencia de hechos'],
+          'N2': ['Relectura contextual', 'Encadenamiento referencial', 'Lectura multimodal']
+        }
+      },
+      'P2': {
+        nombre: 'Comprender la articulación de las partes',
+        niveles: {
+          'N2': ['Identificar función', 'Reconocer relación', 'Identificar voces'],
+          'N3': ['Diferenciar tesis-ejemplo', 'Reconstruir sentido global', 'Jerarquizar ideas']
+        },
+        rutinas: {
+          'N2': ['Análisis de párrafos', 'Conectores y continuidad', 'Mapa de voces'],
+          'N3': ['Separación funcional', 'Síntesis progresiva', 'Pirámide de ideas']
+        }
+      },
+      'P3': {
+        nombre: 'Reflexionar y evaluar',
+        niveles: {
+          'N3': ['Establecer validez', 'Relacionar textos', 'Reconocer valoraciones', 'Identificar estrategias'],
+          'N4': ['Contextualizar', 'Evaluar generalizaciones', 'Detectar sesgos']
+        },
+        rutinas: {
+          'N3': ['Verificación argumentativa', 'Puente intertextual', 'Caza de valoraciones'],
+          'N4': ['Ubicación histórica', '¿Un caso prueba la regla?', 'Caza de adjetivos']
+        }
+      }
+    },
+    'Sociales': {
+      'C1': {
+        nombre: 'Pensamiento social',
+        niveles: {
+          'N1': ['Identificar conceptos', 'Reconocer instituciones', 'Identificar mecanismos'],
+          'N2': ['Localizar hechos', 'Relacionar evento-espacio', 'Diferenciar dimensiones']
+        },
+        rutinas: {
+          'N1': ['Glosario', '¿Quién hace qué?', 'Clasificación'],
+          'N2': ['Línea de tiempo', 'Mapa situacional', 'Cuadro de dimensiones']
+        }
+      },
+      'C2': {
+        nombre: 'Interpretación y análisis de perspectivas',
+        niveles: {
+          'N3': ['Ubicar fuente', 'Evaluar límites', 'Reconocer perspectivas'],
+          'N4': ['Develar prejuicios', 'Analizar soluciones', 'Valorar argumentos']
+        },
+        rutinas: {
+          'N3': ['Ficha de contexto', 'Balance fuente', 'Balanza de actores'],
+          'N4': ['Caza de adjetivos', 'Mesa de negociación', 'Debate']
+        }
+      },
+      'C3': {
+        nombre: 'Pensamiento reflexivo y sistémico',
+        niveles: {
+          'N3': ['Analizar modelos', 'Relacionar dimensiones', 'Analizar efectos'],
+          'N4': ['Evaluar decisiones', 'Integrar variables', 'Pensar sistémico']
+        },
+        rutinas: {
+          'N3': ['Lectura de modelo', 'Mapa sistémico', 'Árbol de efectos'],
+          'N4': ['Matriz multicriterio', 'Tejido de variables', 'Circuito causal']
+        }
+      }
+    },
+    'Ciencias Naturales': {
+      'C1': {
+        nombre: 'Explicación de fenómenos',
+        niveles: {
+          'N2': ['Relacionar recurso-efectos'],
+          'N3': ['Explicar principios', 'Explicar fenómenos', 'Relacionar variables', 'Analizar ecosistemas']
+        },
+        rutinas: {
+          'N2': ['Tabla efecto-impacto'],
+          'N3': ['Explicación aplicada', 'Secuencia modelo', 'Cadena de variables', 'Red biótico-abótica']
+        }
+      },
+      'C2': {
+        nombre: 'Uso comprensivo',
+        niveles: {
+          'N1-N2': ['Diferenciar elementos', 'Asociar fenómeno-concepto', 'Relacionar componentes', 'Identificar fuerzas']
+        },
+        rutinas: {
+          'N1-N2': ['Clasificación básica', 'Caso-concepto', 'Lectura de circuito', 'Despiece de fuerzas']
+        }
+      },
+      'C3': {
+        nombre: 'Indagación',
+        niveles: {
+          'N3': ['Reconocer preguntas', 'Comprender evidencia', 'Elaborar conclusiones', 'Interpretar datos'],
+          'N4': ['Determinar suficiencia', 'Diseñar experimentos', 'Elegir instrumentos']
+        },
+        rutinas: {
+          'N3': ['Ajuste pregunta-método', 'Evidencia vs opinión', 'Lectura multiformato'],
+          'N4': ['Prueba de suficiencia', 'Diseño experimental', 'Selección de instrumento']
+        }
+      }
+    },
+    'Inglés': {
+      'Parte 1': {
+        nombre: 'Reconocimiento de vocabulario',
+        niveles: {
+          'N1': ['Reconocer vocabulario básico'],
+          'N2': ['Asociar descripción', 'Identificar rasgos']
+        },
+        rutinas: {
+          'N1': ['Matching palabra-imagen'],
+          'N2': ['Search and match', 'Highlight descriptors']
+        }
+      },
+      'Parte 2': {
+        nombre: 'Comprensión de avisos',
+        niveles: {
+          'N2': ['Reconocer propósito', 'Ubicar contexto', 'Relacionar mensaje']
+        },
+        rutinas: {
+          'N2': ['What is this for?', 'Where would you see this?', 'Notice-context mapping']
+        }
+      },
+      'Parte 3': {
+        nombre: 'Pertinencia del lenguaje',
+        niveles: {
+          'N2': ['Elegir respuesta'],
+          'N3': ['Reconocer intención', 'Ajustar lenguaje']
+        },
+        rutinas: {
+          'N2': ['Dialogue completion'],
+          'N3': ['Intent spotting', 'Context-language fit']
+        }
+      },
+      'Parte 4': {
+        nombre: 'Uso gramatical',
+        niveles: {
+          'N2': ['Reconocer estructura', 'Completar textos', 'Relacionar gramática']
+        },
+        rutinas: {
+          'N2': ['Grammar selection', 'Cloze completion', 'Form-meaning match']
+        }
+      },
+      'Parte 5': {
+        nombre: 'Comprensión lectora',
+        niveles: {
+          'N2': ['Identificar paráfrasis', 'Reconocer equivalencia'],
+          'N3': ['Inferir respuesta']
+        },
+        rutinas: {
+          'N2': ['Paraphrase match', 'Same meaning test'],
+          'N3': ['Rephrase and infer']
+        }
+      },
+      'Parte 6': {
+        nombre: 'Comprensión global',
+        niveles: {
+          'N3': ['Identificar intención', 'Reconocer idea global', 'Distinguir general-particular']
+        },
+        rutinas: {
+          'N3': ["Author's purpose", 'Main idea scan', 'Global vs specific reading']
+        }
+      },
+      'Parte 7': {
+        nombre: 'Vocabulario en contexto',
+        niveles: {
+          'N2': ['Seleccionar palabra'],
+          'N3': ['Inferir significado', 'Mantener coherencia']
+        },
+        rutinas: {
+          'N2': ['Contextual word fit'],
+          'N3': ['Context clue reading', 'Coherence check']
+        }
+      }
+    }
+  };
+  
+  // Generar plan de migración para cada competencia crítica
+  const competenciasCriticas = diag.competenciasCriticas || [];
+  
+  if (competenciasCriticas.length > 0) {
+    competenciasCriticas.forEach(critica => {
+      const area = critica.area;
+      const compKey = critica.competencia;
+      const competenciaData = microsPorArea[area]?.[compKey];
+      
+      if (competenciaData) {
+        const pctN2 = matriz[area]?.[compKey]?.N2?.porcentaje || 0;
+        const pctN3 = matriz[area]?.[compKey]?.N3?.porcentaje || 0;
+        
+        let nivelActual = pctN2 >= 70 ? 'N2' : (pctN3 >= 70 ? 'N3' : 'N1');
+        let nivelMeta = nivelActual === 'N2' ? 'N3' : (nivelActual === 'N3' ? 'N4' : 'N2');
+        let brecha = nivelActual === 'N2' && pctN3 < 40 ? 'N2→N3' : (nivelActual === 'N3' && pctN4 < 40 ? 'N3→N4' : 'N1→N2');
+        
+        // Obtener microhabilidades y rutinas
+        let micros = competenciaData.niveles[nivelMeta] || [];
+        let rutinas = competenciaData.rutinas[nivelMeta] || [];
+        
+        migracionData.push([
+          area,
+          `${compKey}: ${competenciaData.nombre}`,
+          nivelActual,
+          nivelMeta,
+          brecha,
+          micros.join(', '),
+          rutinas.join(', ')
+        ]);
+      }
+    });
+  } else {
+    migracionData.push(['No se detectaron competencias críticas', '', '', '', '', '', '']);
+  }
+  
+  const wsMigracion = XLSX.utils.aoa_to_sheet(migracionData);
+  XLSX.utils.book_append_sheet(wb, wsMigracion, "Plan de Migración");
+  
+  // ============================================
+  // HOJA 5: PLAN DE ACCIÓN PMAP DETALLADO
+  // ============================================
+  
+  const pmapData = [
+    ['📋 PLAN DE ACCIÓN PMAP - PLAN DE MIGRACIÓN ACADÉMICA PROGRESIVA'],
+    [],
+    ['Objetivo general:', est.semillero.pmap?.objetivo || 'Migrar al siguiente nivel cognitivo'],
+    [],
+    ['ACCIONES ESPECÍFICAS POR COMPETENCIA'],
+    ['Competencia', 'Microhabilidad a desarrollar', 'Microrutina sugerida', 'Frecuencia', 'Duración estimada', 'Recursos necesarios', 'Evidencia de logro']
+  ];
+  
+  const pmap = est.semillero.pmap?.planDeAccion || [];
+  
+  if (pmap.length > 0) {
+    pmap.forEach(item => {
+      pmapData.push([
+        item.area ? `${item.area} - ${item.competencia || ''}` : 'General',
+        item.microhabilidad || '',
+        item.microrutina || '',
+        item.frecuencia || '3 veces por semana',
+        '20-30 minutos por sesión',
+        'Guías, textos, material didáctico',
+        'Respuestas correctas en ítems N3 del siguiente simulacro'
+      ]);
+    });
+  } else {
+    pmapData.push(['No hay plan de acción activo', '', '', '', '', '', '']);
+  }
+  
+  // Agregar sugerencias basadas en competencias críticas
+  if (competenciasCriticas.length > 0) {
+    pmapData.push([], ['🔍 RECOMENDACIONES ADICIONALES BASADAS EN RESULTADOS']);
+    competenciasCriticas.forEach(critica => {
+      const area = critica.area;
+      const compKey = critica.competencia;
+      const competenciaData = microsPorArea[area]?.[compKey];
+      
+      if (competenciaData) {
+        pmapData.push([
+          `${area} - ${compKey}: ${competenciaData.nombre}`,
+          `Prioridad alta: fortalecer nivel N3 (actual ${critica.porcentaje}%)`,
+          `Trabajar con microrutinas específicas de ${area}`,
+          'Diario',
+          '15-20 minutos',
+          'Material de práctica SITE-RUTA',
+          'Alcanzar mínimo 70% en nivel N3'
+        ]);
+      }
+    });
+  }
+  
+  const wsPmap = XLSX.utils.aoa_to_sheet(pmapData);
+  XLSX.utils.book_append_sheet(wb, wsPmap, "PMAP Detallado");
+  
+  // ============================================
+  // HOJA 6: SEGUIMIENTO Y REGISTRO PMAP
+  // ============================================
+  
+  const seguimientoData = [
+    ['📈 SEGUIMIENTO PMAP - REGISTRO DE PROGRESO'],
+    ['Estudiante:', `${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}`],
+    ['Código:', est.datos_basicos.codigo],
+    [],
+    ['INSTRUCCIONES:'],
+    ['• Registrar fecha de cada intervención'],
+    ['• Documentar actividades realizadas'],
+    ['• Marcar logros alcanzados'],
+    ['• Observar progreso en cada competencia'],
+    [],
+    ['REGISTRO DE INTERVENCIONES PEDAGÓGICAS'],
+    ['Fecha', 'Competencia trabajada', 'Microhabilidad', 'Microrutina aplicada', 'Actividad realizada', 'Observaciones', '¿Hubo progreso?']
+  ];
+  
+  // Agregar filas de ejemplo para seguimiento
+  seguimientoData.push(
+    [new Date().toLocaleDateString(), '', '', '', '', '', '']
+  );
+  
+  const wsSeguimiento = XLSX.utils.aoa_to_sheet(seguimientoData);
+  XLSX.utils.book_append_sheet(wb, wsSeguimiento, "Seguimiento PMAP");
+  
+  // ============================================
+  // HOJA 7: MICROHABILIDADES COMPLETAS POR ÁREA
+  // ============================================
+  
+  const microsData = [
+    ['📚 CATÁLOGO COMPLETO DE MICROHABILIDADES POR ÁREA'],
+    ['Basado en la matriz canónica SITE-RUTA LATAM v2.7'],
+    [],
+    ['MATEMÁTICAS'],
+    ['Competencia', 'Nivel', 'Microhabilidad', 'Microrutina']
+  ];
+  
+  // Agregar todas las microhabilidades de Matemáticas
+  Object.keys(microsPorArea['Matemáticas']).forEach(compKey => {
+    const comp = microsPorArea['Matemáticas'][compKey];
+    Object.keys(comp.niveles).forEach(nivel => {
+      const micros = comp.niveles[nivel];
+      const rutinas = comp.rutinas[nivel] || [];
+      micros.forEach((micro, index) => {
+        microsData.push([`${compKey}: ${comp.nombre}`, nivel, micro, rutinas[index] || '']);
+      });
+    });
+  });
+  
+  microsData.push([], ['LECTURA CRÍTICA'], ['Competencia', 'Nivel', 'Microhabilidad', 'Microrutina']);
+  
+  Object.keys(microsPorArea['Lectura Crítica']).forEach(compKey => {
+    const comp = microsPorArea['Lectura Crítica'][compKey];
+    Object.keys(comp.niveles).forEach(nivel => {
+      const micros = comp.niveles[nivel];
+      const rutinas = comp.rutinas[nivel] || [];
+      micros.forEach((micro, index) => {
+        microsData.push([`${compKey}: ${comp.nombre}`, nivel, micro, rutinas[index] || '']);
+      });
+    });
+  });
+  
+  microsData.push([], ['SOCIALES'], ['Competencia', 'Nivel', 'Microhabilidad', 'Microrutina']);
+  
+  Object.keys(microsPorArea['Sociales']).forEach(compKey => {
+    const comp = microsPorArea['Sociales'][compKey];
+    Object.keys(comp.niveles).forEach(nivel => {
+      const micros = comp.niveles[nivel];
+      const rutinas = comp.rutinas[nivel] || [];
+      micros.forEach((micro, index) => {
+        microsData.push([`${compKey}: ${comp.nombre}`, nivel, micro, rutinas[index] || '']);
+      });
+    });
+  });
+  
+  microsData.push([], ['CIENCIAS NATURALES'], ['Competencia', 'Nivel', 'Microhabilidad', 'Microrutina']);
+  
+  Object.keys(microsPorArea['Ciencias Naturales']).forEach(compKey => {
+    const comp = microsPorArea['Ciencias Naturales'][compKey];
+    Object.keys(comp.niveles).forEach(nivel => {
+      const micros = comp.niveles[nivel];
+      const rutinas = comp.rutinas[nivel] || [];
+      micros.forEach((micro, index) => {
+        microsData.push([`${compKey}: ${comp.nombre}`, nivel, micro, rutinas[index] || '']);
+      });
+    });
+  });
+  
+  microsData.push([], ['INGLÉS'], ['Competencia', 'Nivel', 'Microhabilidad', 'Microrutina']);
+  
+  Object.keys(microsPorArea['Inglés']).forEach(compKey => {
+    const comp = microsPorArea['Inglés'][compKey];
+    Object.keys(comp.niveles).forEach(nivel => {
+      const micros = comp.niveles[nivel];
+      const rutinas = comp.rutinas[nivel] || [];
+      micros.forEach((micro, index) => {
+        microsData.push([`${compKey}: ${comp.nombre}`, nivel, micro, rutinas[index] || '']);
+      });
+    });
+  });
+  
+  const wsMicros = XLSX.utils.aoa_to_sheet(microsData);
+  XLSX.utils.book_append_sheet(wb, wsMicros, "Microhabilidades");
+  
+  // ============================================
+  // HOJA 8: REGISTRO DE SIMULACROS
+  // ============================================
+  
+  const simulacrosData = [
+    ['📋 REGISTRO DE SIMULACROS REALIZADOS'],
+    [],
+    ['ID Simulacro', 'Fecha', 'Tipo', 'Resultados', 'Observaciones']
+  ];
+  
+  est.semillero.simulacros.forEach(simId => {
+    simulacrosData.push([simId, simulacroEjemplo.fecha, 'Diagnóstico', 'Ver resultados en hojas anteriores', '']);
+  });
+  
+  const wsSimulacros = XLSX.utils.aoa_to_sheet(simulacrosData);
+  XLSX.utils.book_append_sheet(wb, wsSimulacros, "Simulacros");
+  
+  // ============================================
+  // EXPORTAR ARCHIVO
+  // ============================================
+  
+  XLSX.writeFile(wb, `PMAP_COMPLETO_${est.datos_basicos.codigo}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  alert('✅ Reporte PMAP generado exitosamente con 8 hojas de trabajo');
+}
+
+// ===============================
+// DASHBOARD INSTITUCIONAL
+// ===============================
+function actualizarDashboard() {
+  const total = estudiantes.length;
+  const niveles = { N1:0, N2:0, N3:0, N4:0 };
+
+  estudiantes.forEach(e => {
+    const nivel = e.semillero?.ultimoDiagnostico?.nivelGlobal || 'N1';
+    niveles[nivel] = (niveles[nivel] || 0) + 1;
+  });
+
+  document.getElementById('metricTotalEstudiantes').textContent = total;
+  
+  let nivelMedio = 'N2';
+  let maxCount = 0;
+  Object.keys(niveles).forEach(n => {
+    if (niveles[n] > maxCount) {
+      maxCount = niveles[n];
+      nivelMedio = n;
+    }
+  });
+  document.getElementById('metricNivelMedio').textContent = nivelMedio;
+  
+  const estudiantesN2 = niveles.N2 || 0;
+  const totalConNivel = niveles.N1 + niveles.N2 + niveles.N3 + niveles.N4;
+  const brecha = totalConNivel > 0 ? Math.round((estudiantesN2 / totalConNivel) * 100) : 0;
+  document.getElementById('metricBrechaCritica').textContent = `${brecha}%`;
+  
+  const pctN1 = total > 0 ? Math.round((niveles.N1 / total) * 100) : 0;
+  document.getElementById('metricEnN1').textContent = `${pctN1}%`;
+
+  if (window.nivelesChart) window.nivelesChart.destroy();
+  if (window.migracionChart) window.migracionChart.destroy();
+
+  const ctx = document.getElementById('chartNiveles').getContext('2d');
+  window.nivelesChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { 
+      labels: ['N1', 'N2', 'N3', 'N4'], 
+      datasets: [{ 
+        data: [niveles.N1, niveles.N2, niveles.N3, niveles.N4], 
+        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#e5e7eb', font: { size: 11 } } }
+      },
+      cutout: '65%'
+    }
+  });
+
+  const ctx2 = document.getElementById('chartMigracion').getContext('2d');
+  window.migracionChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Lectura', 'Matemáticas', 'Sociales', 'C. Naturales', 'Inglés'],
+      datasets: [{
+        label: '% en N3',
+        data: [45, 62, 38, 71, 54],
+        backgroundColor: '#38bdf8'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, max: 100, grid: { color: '#1f2937' } } }
+    }
+  });
+
+  let tbody = '';
+  const areas = ['Lectura Crítica', 'Matemáticas', 'Sociales', 'Ciencias Naturales', 'Inglés'];
+  areas.forEach(area => {
+    const n1 = Math.floor(Math.random() * 20);
+    const n2 = Math.floor(Math.random() * 30) + 20;
+    const n3 = Math.floor(Math.random() * 30) + 30;
+    const n4 = 100 - n1 - n2 - n3;
+    const pctN3N4 = n3 + n4;
+    
+    tbody += `<tr>
+      <td>${area}</td>
+      <td>${n1}%</td>
+      <td>${n2}%</td>
+      <td>${n3}%</td>
+      <td>${n4}%</td>
+      <td><strong>${pctN3N4}%</strong></td>
+    </tr>`;
+  });
+  const tablaBody = document.querySelector('#tablaResultadosArea tbody');
+  if (tablaBody) tablaBody.innerHTML = tbody;
+}
+
+// ===============================
+// INICIALIZACIÓN DE LA APLICACIÓN
+// ===============================
+function inicializarAplicacion() {
+  cargarDatosSistema();
+  actualizarListaEstudiantes();
+  actualizarDashboard();
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      document.querySelectorAll('#studentsPanel .tab-pane').forEach(p => p.style.display = 'none');
+      const tabId = e.target.dataset.tab;
+      const tabElement = document.getElementById(tabId);
+      if (tabElement) tabElement.style.display = 'block';
+      if (tabId === 'dashboard') setTimeout(actualizarDashboard, 100);
+    });
+  });
+
+  const btnManage = document.getElementById('btnManageStudents');
+  if (btnManage) btnManage.addEventListener('click', gestionarEstudiantes);
+  
+  const btnReports = document.getElementById('btnReports');
+  if (btnReports) {
+    btnReports.addEventListener('click', () => {
+      if (estudianteActual) generarReporteIndividual();
+      else alert('Selecciona un estudiante primero');
+    });
+  }
+  
+  const btnAlertas = document.getElementById('btnAlertas');
+  if (btnAlertas) {
+    btnAlertas.addEventListener('click', () => {
+      alert('🚨 Sistema de alertas en desarrollo');
+    });
+  }
+  
+  const btnSettings = document.getElementById('btnSettings');
+  if (btnSettings) {
+    btnSettings.addEventListener('click', () => {
+      alert('⚙️ Configuración del sistema');
+    });
+  }
+}
+
+// ===============================
+// FUNCIONES AUXILIARES
+// ===============================
+function cerrarModal(id) { 
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('active'); 
+}
+
+function descargarPlantillaCompleta() { 
+  alert('📥 Función de descarga de plantilla - Próximamente disponible'); 
+}
+
+// Iniciar todo cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', inicializarAplicacion);
+
+
+</script>
+
+
+
+</body>
+</html>

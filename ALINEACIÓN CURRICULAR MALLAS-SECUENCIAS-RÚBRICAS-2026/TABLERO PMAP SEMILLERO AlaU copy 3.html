@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SITE–RUTA LATAM | V2 Local ZipGrade</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --bg:#020617;
+      --panel:#0f172a;
+      --card:#111827;
+      --accent:#38bdf8;
+      --accent-soft:rgba(56,189,248,.14);
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --chip:#1e293b;
+      --purple:#8b5cf6;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+      color:var(--text);
+      min-height:100vh;
+    }
+    header{
+      padding:18px 22px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter: blur(10px);
+    }
+    h1,h2,h3,h4{margin:0 0 10px}
+    .subtitle{color:var(--muted); font-size:.92rem}
+    main{padding:20px}
+    .grid{display:grid; gap:16px}
+    .grid-2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+    .grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.18);
+    }
+    .tabs{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin:0 0 18px;
+      border-bottom:1px solid var(--border);
+      padding-bottom:8px;
+    }
+    .tab-btn{
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      padding:10px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:.2s ease;
+      border:1px solid transparent;
+    }
+    .tab-btn.active{
+      color:var(--accent);
+      border-color:var(--accent);
+      background:var(--accent-soft);
+    }
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:12px;
+    }
+    .form-group{display:flex; flex-direction:column; gap:6px}
+    label{
+      font-size:.83rem;
+      color:var(--muted);
+      font-weight:600;
+    }
+    input,select,textarea{
+      width:100%;
+      background:var(--panel);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px 12px;
+      outline:none;
+    }
+    textarea{min-height:90px; resize:vertical}
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(56,189,248,.12);
+    }
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:10px 16px;
+      cursor:pointer;
+      color:var(--accent);
+      background:var(--accent-soft);
+      transition:.2s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+      text-decoration:none;
+    }
+    .btn:hover{background:rgba(56,189,248,.22)}
+    .btn-success{background:rgba(34,197,94,.12); color:var(--ok)}
+    .btn-warning{background:rgba(245,158,11,.14); color:var(--warn)}
+    .btn-danger{background:rgba(239,68,68,.12); color:var(--danger)}
+    .btn-purple{background:rgba(139,92,246,.14); color:#c4b5fd}
+    .row-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px}
+    .upload{
+      border:2px dashed var(--border);
+      border-radius:16px;
+      padding:26px;
+      text-align:center;
+      background:rgba(255,255,255,.02);
+      transition:.2s ease;
+      cursor:pointer;
+      display:block;
+    }
+    .upload:hover{border-color:var(--accent); background:var(--accent-soft)}
+    .metric-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+      gap:12px;
+    }
+    .metric{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+    }
+    .metric .value{
+      font-size:1.8rem;
+      font-weight:800;
+      margin-top:6px;
+    }
+    .small{font-size:.82rem; color:var(--muted)}
+    .table-wrap{overflow:auto; max-width:100%}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.85rem;
+      min-width:720px;
+    }
+    th,td{
+      border-bottom:1px solid var(--border);
+      padding:9px 10px;
+      text-align:center;
+      vertical-align:middle;
+    }
+    th{
+      background:var(--panel);
+      position:sticky;
+      top:0;
+      z-index:1;
+      color:var(--muted);
+      font-weight:700;
+    }
+    td.left, th.left{text-align:left}
+    .ok{background:rgba(34,197,94,.18)}
+    .bad{background:rgba(239,68,68,.18)}
+    .warn{background:rgba(245,158,11,.18)}
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:var(--chip);
+      color:var(--text);
+      border:1px solid var(--border);
+      font-size:.76rem;
+      white-space:nowrap;
+    }
+    .chip.ok{color:var(--ok); border-color:rgba(34,197,94,.35)}
+    .chip.warn{color:var(--warn); border-color:rgba(245,158,11,.35)}
+    .chip.bad{color:var(--danger); border-color:rgba(239,68,68,.35)}
+    .chart-box{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      height:330px;
+    }
+    .heat td{min-width:34px}
+    .heat .name-col{
+      position:sticky;
+      left:0;
+      background:var(--card);
+      z-index:2;
+      min-width:220px;
+      text-align:left;
+      font-weight:700;
+    }
+    .section-title{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .alert{
+      border-left:4px solid var(--accent);
+      background:var(--accent-soft);
+      padding:10px 12px;
+      border-radius:10px;
+      color:var(--text);
+      font-size:.9rem;
+    }
+    .muted{color:var(--muted)}
+    .hidden{display:none !important}
+    .sticky-tools{
+      position:sticky;
+      top:84px;
+      z-index:10;
+    }
+    .legend{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    @media(max-width:760px){
+      main{padding:14px}
+      .chart-box{height:280px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎯 SITE–RUTA LATAM | Motor a combustión V2 local (ZipGrade)</h1>
+    <div class="subtitle">
+      Diagnóstico, seguimiento, medición e intervención local • Excel ZipGrade real • Matriz 3×4 • intranivel • internivel • ZDR • ZDP • PMAP–SABER
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-carga">1. Carga y sesión</button>
+      <button class="tab-btn" data-tab="tab-mapeo">2. Mapeo artesanal</button>
+      <button class="tab-btn" data-tab="tab-analisis">3. Análisis del grupo</button>
+      <button class="tab-btn" data-tab="tab-estudiante">4. Análisis por estudiante</button>
+      <button class="tab-btn" data-tab="tab-comparativos">5. Comparativos</button>
+      <button class="tab-btn" data-tab="tab-sesiones">6. Sesiones guardadas</button>
+    </div>
+
+    <!-- TAB 1 -->
+    <section id="tab-carga" class="tab-pane active">
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="section-title">
+            <h3>Datos de la sesión diagnóstica</h3>
+            <span class="chip">localStorage activo</span>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Institución educativa</label>
+              <input id="institucion" type="text" placeholder="Ej. I.E. León de Greiff">
+            </div>
+            <div class="form-group">
+              <label>Grado</label>
+              <select id="grado">
+                <option value="9">9°</option>
+                <option value="10">10°</option>
+                <option value="11" selected>11°</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Grupo</label>
+              <select id="grupo">
+                <option value="1">Grupo 1</option>
+                <option value="2">Grupo 2</option>
+                <option value="3">Grupo 3</option>
+                <option value="4">Grupo 4</option>
+                <option value="5">Grupo 5</option>
+                <option value="6">Grupo 6</option>
+                <option value="7">Grupo 7</option>
+                <option value="8">Grupo 8</option>
+                <option value="9">Grupo 9</option>
+                <option value="10">Grupo 10</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input id="fechaSesion" type="date">
+            </div>
+            <div class="form-group">
+              <label>Área / Asignatura</label>
+              <select id="area">
+                <option value="MAT">Matemáticas</option>
+                <option value="LC">Lectura Crítica</option>
+                <option value="SOC">Sociales y Ciudadanas</option>
+                <option value="BIO">Biología</option>
+                <option value="FIS">Física</option>
+                <option value="QUI">Química</option>
+                <option value="CTS">CTS</option>
+                <option value="ING">Inglés</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Nombre del simulacro</label>
+              <input id="nombreSimulacro" type="text" placeholder="Ej. Diagnóstico 3x4 – Corte 1">
+            </div>
+            <div class="form-group">
+              <label>Total de preguntas</label>
+              <input id="totalPreguntas" type="number" value="12" min="1">
+            </div>
+            <div class="form-group">
+              <label>Quiz Name esperado (opcional)</label>
+              <input id="quizEsperado" type="text" placeholder="Ej. León de Greiff">
+            </div>
+          </div>
+
+          <div class="row-actions">
+            <button class="btn btn-purple" id="btnGenerarEstructura">⚙️ Generar estructura de mapeo</button>
+            <button class="btn btn-warning" id="btnReset">🧹 Reiniciar sesión actual</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h3>Cargar Excel ZipGrade</h3>
+            <span class="chip">formato real 0/1</span>
+          </div>
+          <label class="upload" for="excelInput">
+            <div style="font-size:2.2rem;margin-bottom:8px">📁</div>
+            <div><strong>Haz clic para seleccionar el Excel</strong></div>
+            <div class="small">Debe incluir First Name, Last Name, Num Questions, Num Correct, Percent Correct, Q1...Qn</div>
+          </label>
+          <input id="excelInput" type="file" accept=".xlsx,.xls" class="hidden">
+
+          <div id="excelResumen" class="alert hidden" style="margin-top:12px"></div>
+
+          <div class="row-actions">
+            <button class="btn btn-success" id="btnPreviewExcel">👁️ Vista previa Excel</button>
+            <button class="btn" id="btnIrMapeo">➡️ Ir a mapeo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Vista previa del Excel</h3>
+        <div id="previewExcel" class="table-wrap small muted">Todavía no se ha cargado ningún archivo.</div>
+      </div>
+    </section>
+
+    <!-- TAB 2 -->
+    <section id="tab-mapeo" class="tab-pane">
+      <div class="grid grid-2">
+        <div class="card sticky-tools">
+          <h3>Estructura del mapeo</h3>
+          <div class="small">
+            Como ZipGrade ya trae 0/1 por pregunta, aquí solo amarras cada pregunta a competencia/proceso/parte, nivel, componente, microhabilidad, microrutina y ruta.
+          </div>
+          <div class="row-actions">
+            <button class="btn" id="btnAutocompletar3x4">🧩 Autocompletar 3×4 estándar</button>
+            <button class="btn btn-success" id="btnProcesar">🚀 Procesar diagnóstico completo</button>
+          </div>
+          <div class="legend">
+            <span class="chip ok">dominio alto</span>
+            <span class="chip warn">consolidación</span>
+            <span class="chip bad">crítico</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Notas metodológicas</h3>
+          <div class="small">
+            En esta V2 local:
+            <br>• ZipGrade aporta la matriz binaria 0/1.
+            <br>• La lógica diagnóstica se monta sobre el mapeo artesanal.
+            <br>• La intervención se activa por microhabilidad + microrutina + ruta PMAP–SABER.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          <h3>Tabla de mapeo por pregunta</h3>
+          <span class="chip">motor local auditable</span>
+        </div>
+        <div class="table-wrap">
+          <table id="tablaMapeo">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Comp./Proc./Parte</th>
+                <th>Nivel</th>
+                <th>Componente</th>
+                <th>Microhabilidad</th>
+                <th>Microrutina</th>
+                <th>Nivel meta</th>
+                <th>Tipo de uso</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3 -->
+    <section id="tab-analisis" class="tab-pane">
+      <div class="metric-grid">
+        <div class="metric">
+          <div class="small">Estudiantes procesados</div>
+          <div class="value" id="mTotalEstudiantes">0</div>
+        </div>
+        <div class="metric">
+          <div class="small">Promedio de aciertos</div>
+          <div class="value" id="mPromedio">0%</div>
+        </div>
+        <div class="metric">
+          <div class="small">Nivel dominante del grupo</div>
+          <div class="value" id="mNivelGrupo">-</div>
+        </div>
+        <div class="metric">
+          <div class="small">Listos para transición</div>
+          <div class="value" id="mTransicion">0</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>Distribución de niveles</h3>
+          <div class="chart-box"><canvas id="chartNiveles"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Dificultad por pregunta (% error)</h3>
+          <div class="chart-box"><canvas id="chartPreguntas"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>Resumen del grupo</h3>
+          <div id="resumenGrupo" class="table-wrap"></div>
+        </div>
+        <div class="card">
+          <h3>Preguntas críticas</h3>
+          <div id="preguntasCriticas" class="table-wrap"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>Mapa de calor estudiante × pregunta</h3>
+        <div id="heatmap" class="table-wrap">Sin procesamiento.</div>
+      </div>
+    </section>
+
+    <!-- TAB 4 -->
+    <section id="tab-estudiante" class="tab-pane">
+      <div class="card">
+        <div class="section-title">
+          <h3>Análisis individual</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <select id="selectorEstudiante"></select>
+            <button class="btn" id="btnAnalizarEstudiante">🔎 Ver estudiante</button>
+          </div>
+        </div>
+        <div id="panelEstudiante" class="grid grid-2"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5 -->
+    <section id="tab-comparativos" class="tab-pane">
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Comparativo de grupos del mismo grado en la institución</h3>
+          <div id="comparativoGrupos" class="table-wrap"></div>
+        </div>
+        <div class="card">
+          <h3>Comparativo entre instituciones</h3>
+          <div id="comparativoInstituciones" class="table-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6 -->
+    <section id="tab-sesiones" class="tab-pane">
+      <div class="card">
+        <div class="section-title">
+          <h3>Sesiones guardadas localmente</h3>
+          <div class="row-actions">
+            <button class="btn" id="btnExportarSesiones">📤 Exportar JSON</button>
+            <button class="btn btn-danger" id="btnBorrarSesiones">🗑️ Borrar todo</button>
+          </div>
+        </div>
+        <div id="tablaSesiones" class="table-wrap"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "site_ruta_v2_zipgrade_sesiones";
+    let excelRows = [];
+    let students = [];
+    let itemMap = [];
+    let currentResults = null;
+    let chartNiveles = null;
+    let chartPreguntas = null;
+
+    const areaConfig = {
+      MAT: {
+        nombre: "Matemáticas",
+        levels: ["N1","N2","N3","N4"],
+        components: ["—"],
+        labels: ["C1","C2","C3"]
+      },
+      LC: {
+        nombre: "Lectura Crítica",
+        levels: ["N1","N2","N3","N4"],
+        components: ["—"],
+        labels: ["P1","P2","P3"]
+      },
+      SOC: {
+        nombre: "Sociales y Ciudadanas",
+        levels: ["N1","N2","N3","N4"],
+        components: ["—"],
+        labels: ["C1","C2","C3"]
+      },
+      BIO: {
+        nombre: "Biología",
+        levels: ["N1","N2","N3","N4"],
+        components: ["Biológico"],
+        labels: ["C1","C2","C3"]
+      },
+      FIS: {
+        nombre: "Física",
+        levels: ["N1","N2","N3","N4"],
+        components: ["Físico"],
+        labels: ["C1","C2","C3"]
+      },
+      QUI: {
+        nombre: "Química",
+        levels: ["N1","N2","N3","N4"],
+        components: ["Químico"],
+        labels: ["C1","C2","C3"]
+      },
+      CTS: {
+        nombre: "CTS",
+        levels: ["N1","N2","N3","N4"],
+        components: ["CTS"],
+        labels: ["C1","C2","C3"]
+      },
+      ING: {
+        nombre: "Inglés",
+        levels: ["PreA1","A1","A2","B1"],
+        components: ["—"],
+        labels: ["Parte 1","Parte 2","Parte 3","Parte 4","Parte 5","Parte 6","Parte 7"]
+      }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function saveSessions(sessions){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    }
+
+    function getSessions(){
+      try{
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      }catch{
+        return [];
+      }
+    }
+
+    function formatPercent(v){
+      return `${(v*100).toFixed(1)}%`;
+    }
+
+    function getCurrentSessionMeta(){
+      return {
+        institucion: $("institucion").value.trim(),
+        grado: $("grado").value,
+        grupo: $("grupo").value,
+        fecha: $("fechaSesion").value,
+        area: $("area").value,
+        areaNombre: areaConfig[$("area").value].nombre,
+        simulacro: $("nombreSimulacro").value.trim(),
+        totalPreguntas: Number($("totalPreguntas").value || 12),
+        quizEsperado: $("quizEsperado").value.trim()
+      };
+    }
+
+    function validateMeta(meta){
+      if(!meta.institucion) return "Debes escribir la institución.";
+      if(!meta.fecha) return "Debes seleccionar la fecha.";
+      if(!meta.simulacro) return "Debes escribir el nombre del simulacro.";
+      if(!meta.totalPreguntas || meta.totalPreguntas < 1) return "Total de preguntas inválido.";
+      return null;
+    }
+
+    function levelOrder(level){
+      const order = ["N1","N2","N3","N4","PreA1","A1","A2","B1"];
+      return order.indexOf(level);
+    }
+
+    function nextLevel(area, current){
+      const lv = areaConfig[area].levels;
+      const idx = lv.indexOf(current);
+      return idx >= 0 && idx < lv.length - 1 ? lv[idx + 1] : current;
+    }
+
+    function classifyMicroState(rate){
+      if(rate >= 0.70) return "dominada";
+      if(rate >= 0.40) return "débil";
+      return "crítica";
+    }
+
+    function calcStudentGlobalLevel(levelProgress, area){
+      const lv = areaConfig[area].levels;
+      let zdr = null;
+      let zdp = null;
+
+      for(const level of lv){
+        if((levelProgress[level] ?? 0) >= 0.70) zdr = level;
+      }
+
+      if(zdr){
+        const idx = lv.indexOf(zdr);
+        if(idx < lv.length - 1){
+          const candidate = lv[idx + 1];
+          const p = levelProgress[candidate] ?? 0;
+          if(p >= 0.40 && p < 0.70) zdp = candidate;
+        }
+      }else{
+        for(const level of lv){
+          const p = levelProgress[level] ?? 0;
+          if(p >= 0.40 && p < 0.70){
+            zdp = level;
+            break;
+          }
+        }
+      }
+
+      let dominant = lv[0];
+      let max = -1;
+      lv.forEach(level => {
+        if((levelProgress[level] ?? 0) > max){
+          max = levelProgress[level] ?? 0;
+          dominant = level;
+        }
+      });
+
+      return { dominant, zdr, zdp };
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        $(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    $("btnGenerarEstructura").addEventListener("click", () => {
+      const meta = getCurrentSessionMeta();
+      const err = validateMeta(meta);
+      if(err){ alert(err); return; }
+      generateItemMap(meta.area, meta.totalPreguntas);
+      renderMapTable();
+      alert("Estructura de mapeo generada.");
+    });
+
+    $("btnReset").addEventListener("click", () => {
+      excelRows = [];
+      students = [];
+      itemMap = [];
+      currentResults = null;
+      $("previewExcel").innerHTML = "Sesión reiniciada.";
+      $("excelResumen").classList.add("hidden");
+      $("excelResumen").textContent = "";
+      $("tablaMapeo").querySelector("tbody").innerHTML = "";
+      $("resumenGrupo").innerHTML = "";
+      $("preguntasCriticas").innerHTML = "";
+      $("heatmap").innerHTML = "Sin procesamiento.";
+      $("panelEstudiante").innerHTML = "";
+      $("selectorEstudiante").innerHTML = "";
+      if(chartNiveles) chartNiveles.destroy();
+      if(chartPreguntas) chartPreguntas.destroy();
+    });
+
+    $("btnIrMapeo").addEventListener("click", () => {
+      document.querySelector('[data-tab="tab-mapeo"]').click();
+    });
+
+    function generateItemMap(area, total){
+      const cfg = areaConfig[area];
+      itemMap = [];
+
+      if(area !== "ING"){
+        const pattern = [];
+        cfg.labels.forEach(label => {
+          cfg.levels.forEach(level => {
+            pattern.push({ competencia: label, nivel: level });
+          });
+        });
+        for(let i = 0; i < total; i++){
+          const p = pattern[i % pattern.length];
+          itemMap.push({
+            q: i + 1,
+            competencia: p.competencia,
+            nivel: p.nivel,
+            componente: cfg.components[0],
+            microhabilidad: `${area}_${p.nivel}_MH_${String((i%99)+1).padStart(3,"0")}`,
+            microrutina: `${area}_${p.nivel}_MR_${String((i%99)+1).padStart(3,"0")}`,
+            nivelMeta: nextLevel(area, p.nivel),
+            tipoUso: p.nivel === cfg.levels[cfg.levels.length-1] ? "consolidación intranivel" : "transición internivel"
+          });
+        }
+      } else {
+        const parts = cfg.labels;
+        const levels = cfg.levels;
+        for(let i = 0; i < total; i++){
+          const part = parts[i % parts.length];
+          const level = levels[i % levels.length];
+          itemMap.push({
+            q: i + 1,
+            competencia: part,
+            nivel: level,
+            componente: "—",
+            microhabilidad: `ING_${level.toUpperCase()}_MH_${String((i%99)+1).padStart(3,"0")}`,
+            microrutina: `ING_${level.toUpperCase()}_MR_${String((i%99)+1).padStart(3,"0")}`,
+            nivelMeta: nextLevel(area, level),
+            tipoUso: level === "B1" ? "consolidación intranivel" : "transición internivel"
+          });
+        }
+      }
+    }
+
+    function renderMapTable(){
+      const meta = getCurrentSessionMeta();
+      const cfg = areaConfig[meta.area];
+      const tbody = $("tablaMapeo").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      itemMap.forEach((it, idx) => {
+        const tr = document.createElement("tr");
+
+        const competenciaOptions = cfg.labels.map(v => `<option value="${v}" ${it.competencia===v?'selected':''}>${v}</option>`).join("");
+        const levelOptions = cfg.levels.map(v => `<option value="${v}" ${it.nivel===v?'selected':''}>${v}</option>`).join("");
+        const compOptions = cfg.components.map(v => `<option value="${v}" ${it.componente===v?'selected':''}>${v}</option>`).join("");
+        const tipoUsoOptions = ["consolidación intranivel","transición internivel"].map(v => `<option value="${v}" ${it.tipoUso===v?'selected':''}>${v}</option>`).join("");
+
+        tr.innerHTML = `
+          <td>${it.q}</td>
+          <td><select data-field="competencia" data-idx="${idx}">${competenciaOptions}</select></td>
+          <td><select data-field="nivel" data-idx="${idx}">${levelOptions}</select></td>
+          <td><select data-field="componente" data-idx="${idx}">${compOptions}</select></td>
+          <td><input data-field="microhabilidad" data-idx="${idx}" value="${it.microhabilidad}"></td>
+          <td><input data-field="microrutina" data-idx="${idx}" value="${it.microrutina}"></td>
+          <td><input data-field="nivelMeta" data-idx="${idx}" value="${it.nivelMeta}"></td>
+          <td><select data-field="tipoUso" data-idx="${idx}">${tipoUsoOptions}</select></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll("input,select").forEach(el => {
+        el.addEventListener("change", () => {
+          const idx = Number(el.dataset.idx);
+          itemMap[idx][el.dataset.field] = el.value;
+        });
+      });
+    }
+
+    $("btnAutocompletar3x4").addEventListener("click", () => {
+      const meta = getCurrentSessionMeta();
+      const total = Number($("totalPreguntas").value || 12);
+      generateItemMap(meta.area, total);
+      renderMapTable();
+    });
+
+    $("excelInput").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      try{
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        excelRows = XLSX.utils.sheet_to_json(ws, {defval:""});
+        if(!excelRows.length){
+          alert("El Excel no tiene filas legibles.");
+          return;
+        }
+
+        const preview = excelRows.slice(0,8);
+        renderExcelPreview(preview);
+        buildStudentsFromZipGrade(excelRows);
+
+        $("excelResumen").classList.remove("hidden");
+        $("excelResumen").innerHTML = `
+          Archivo leído correctamente.<br>
+          <strong>Filas:</strong> ${excelRows.length} ·
+          <strong>Estudiantes detectados:</strong> ${students.length} ·
+          <strong>Preguntas detectadas:</strong> ${getQuestionKeys(excelRows[0]).length}
+        `;
+      }catch(err){
+        alert("No se pudo leer el Excel: " + err.message);
+      }
+    });
+
+    function getQuestionKeys(row){
+      return Object.keys(row).filter(k => /^Q\d+$/i.test(String(k).trim()));
+    }
+
+function renderExcelPreview(rows){
+  if(!rows.length){
+    $("previewExcel").innerHTML = "Sin datos.";
+    return;
+  }
+
+  const allKeys = Object.keys(rows[0]);
+
+  let html = `<table><thead><tr>`;
+  allKeys.forEach((k, i) => {
+    html += `<th class="${i < 6 ? 'left' : ''}">${k}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    html += `<tr>`;
+    allKeys.forEach((k, i) => {
+      html += `<td class="${i < 6 ? 'left' : ''}">${r[k] ?? ""}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  $("previewExcel").innerHTML = html;
+}
+
+function buildStudentsFromZipGrade(rows){
+      students = rows.map((row, idx) => {
+        const first = String(row["First Name"] || "").trim();
+        const last = String(row["Last Name"] || "").trim();
+        const name = `${first} ${last}`.trim() || `Estudiante ${idx+1}`;
+        const qKeys = getQuestionKeys(row).sort((a,b) => Number(a.slice(1)) - Number(b.slice(1)));
+        const responses = qKeys.map(k => Number(row[k] || 0));
+        const numQuestions = Number(row["Num Questions"] || qKeys.length);
+        const numCorrect = Number(row["Num Correct"] || responses.reduce((a,b)=>a+b,0));
+        const percentCorrect = Number(row["Percent Correct"] || (numQuestions ? (numCorrect/numQuestions)*100 : 0));
+
+        return {
+          quizName: row["Quiz Name"] || "",
+          className: row["Class"] || "",
+          zipGradeId: row["ZipGrade ID"] || "",
+          externalId: row["External Id"] || "",
+          firstName: first,
+          lastName: last,
+          name,
+          numQuestions,
+          numCorrect,
+          percentCorrect,
+          keyVersion: row["Key Version"] || "",
+          responses
+        };
+      });
+    }
+
+    $("btnPreviewExcel").addEventListener("click", () => {
+      if(!excelRows.length){ alert("Primero carga el Excel."); return; }
+      renderExcelPreview(excelRows.slice(0,8));
+    });
+
+    $("btnProcesar").addEventListener("click", () => {
+      const meta = getCurrentSessionMeta();
+      const err = validateMeta(meta);
+      if(err){ alert(err); return; }
+      if(!students.length){ alert("Primero carga el Excel ZipGrade."); return; }
+      if(!itemMap.length){ alert("Primero genera la estructura de mapeo."); return; }
+
+      const detectedQ = students[0]?.responses?.length || 0;
+      if(itemMap.length !== detectedQ){
+        alert(`El mapeo tiene ${itemMap.length} preguntas y el Excel trae ${detectedQ}. Deben coincidir.`);
+        return;
+      }
+
+      currentResults = processSession(meta);
+      renderGroupAnalysis(currentResults);
+      renderStudentSelector(currentResults);
+      saveCurrentSession(currentResults);
+      renderComparatives();
+      renderSavedSessions();
+      document.querySelector('[data-tab="tab-analisis"]').click();
+    });
+
+    function processSession(meta){
+      const totalQuestions = itemMap.length;
+      const qStats = itemMap.map(it => ({
+        q: it.q,
+        competencia: it.competencia,
+        nivel: it.nivel,
+        componente: it.componente,
+        errors: 0,
+        correct: 0,
+        microhabilidad: it.microhabilidad,
+        microrutina: it.microrutina,
+        tipoUso: it.tipoUso
+      }));
+
+      const studentsResults = students.map(st => {
+        let correct = 0;
+        const cellMap = {};
+        const levelStats = {};
+        const microStates = {};
+        const microCounter = {};
+        const heat = [];
+
+        itemMap.forEach((mapItem, idx) => {
+          const ok = Number(st.responses[idx] || 0) === 1;
+          if(ok) correct++;
+          if(ok) qStats[idx].correct++;
+          else qStats[idx].errors++;
+
+          const cellKey = `${mapItem.competencia}|${mapItem.nivel}`;
+          if(!cellMap[cellKey]) cellMap[cellKey] = { aciertos:0, total:0 };
+          cellMap[cellKey].total++;
+          if(ok) cellMap[cellKey].aciertos++;
+
+          if(!levelStats[mapItem.nivel]) levelStats[mapItem.nivel] = { aciertos:0, total:0 };
+          levelStats[mapItem.nivel].total++;
+          if(ok) levelStats[mapItem.nivel].aciertos++;
+
+          if(!microCounter[mapItem.microhabilidad]){
+            microCounter[mapItem.microhabilidad] = {
+              aciertos:0,
+              total:0,
+              microrutina: mapItem.microrutina,
+              nivel: mapItem.nivel,
+              competencia: mapItem.competencia,
+              nivelMeta: mapItem.nivelMeta,
+              tipoUso: mapItem.tipoUso
+            };
+          }
+          microCounter[mapItem.microhabilidad].total++;
+          if(ok) microCounter[mapItem.microhabilidad].aciertos++;
+
+          heat.push({ q: mapItem.q, ok });
+        });
+
+        Object.keys(microCounter).forEach(mh => {
+          const data = microCounter[mh];
+          const rate = data.total ? data.aciertos / data.total : 0;
+          microStates[mh] = {
+            ...data,
+            tasa: rate,
+            estado: classifyMicroState(rate)
+          };
+        });
+
+        const levelProgress = {};
+        Object.keys(levelStats).forEach(level => {
+          const d = levelStats[level];
+          levelProgress[level] = d.total ? d.aciertos / d.total : 0;
+        });
+
+        const {dominant, zdr, zdp} = calcStudentGlobalLevel(levelProgress, meta.area);
+
+        const intranivel = Object.entries(levelProgress).map(([level,rate]) => ({
+          level, rate, status: rate < 0.40 ? "inicial" : rate < 0.70 ? "consolidación" : "listo"
+        }));
+
+        const internivel = (zdr && zdp) ? `${zdr} → ${zdp}` : zdr ? `${zdr} consolidado` : "sin consolidación";
+
+        const interventions = Object.entries(microStates)
+          .filter(([,v]) => v.estado !== "dominada")
+          .sort((a,b) => a[1].tasa - b[1].tasa)
+          .slice(0,8)
+          .map(([mh,v]) => ({
+            microhabilidad: mh,
+            estado: v.estado,
+            microrutina: v.microrutina,
+            competencia: v.competencia,
+            nivel: v.nivel,
+            nivelMeta: v.nivelMeta,
+            tipoUso: v.tipoUso,
+            pmapRuta: `${v.nivel} → ${v.nivelMeta}`
+          }));
+
+        return {
+          name: st.name,
+          firstName: st.firstName,
+          lastName: st.lastName,
+          zipGradeId: st.zipGradeId,
+          externalId: st.externalId,
+          correct,
+          totalQuestions,
+          percent: totalQuestions ? correct / totalQuestions : 0,
+          zipGradePercent: st.percentCorrect / 100,
+          heat,
+          cellMap,
+          levelProgress,
+          intranivel,
+          internivel,
+          zdr,
+          zdp,
+          dominant,
+          microStates,
+          interventions
+        };
+      });
+
+      const levelDistribution = {};
+      areaConfig[meta.area].levels.forEach(l => levelDistribution[l] = 0);
+      studentsResults.forEach(s => levelDistribution[s.dominant] = (levelDistribution[s.dominant] || 0) + 1);
+
+      const avg = studentsResults.length
+        ? studentsResults.reduce((a,b)=>a+b.percent,0)/studentsResults.length
+        : 0;
+
+      const readyTransition = studentsResults.filter(s => {
+        if(!s.zdr || !s.zdp) return false;
+        return (s.levelProgress[s.zdr] ?? 0) >= 0.70 && (s.levelProgress[s.zdp] ?? 0) >= 0.40;
+      }).length;
+
+      return {
+        meta,
+        itemMap: JSON.parse(JSON.stringify(itemMap)),
+        studentsResults,
+        qStats,
+        levelDistribution,
+        promedio: avg,
+        readyTransition
+      };
+    }
+
+    function saveCurrentSession(results){
+      const sessions = getSessions();
+      sessions.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        timestamp: new Date().toISOString(),
+        ...results
+      });
+      saveSessions(sessions);
+    }
+
+    function renderGroupAnalysis(results){
+      $("mTotalEstudiantes").textContent = results.studentsResults.length;
+      $("mPromedio").textContent = formatPercent(results.promedio);
+      $("mNivelGrupo").textContent = getDominantGroupLevel(results.levelDistribution);
+      $("mTransicion").textContent = `${results.readyTransition}`;
+
+      renderChartNiveles(results.levelDistribution, results.meta.area);
+      renderChartPreguntas(results.qStats, results.studentsResults.length);
+      renderResumenGrupo(results);
+      renderPreguntasCriticas(results);
+      renderHeatmap(results);
+    }
+
+    function getDominantGroupLevel(dist){
+      let max = -1, level = "-";
+      Object.entries(dist).forEach(([k,v]) => {
+        if(v > max){ max = v; level = k; }
+      });
+      return level;
+    }
+
+    function renderChartNiveles(dist, area){
+      const labels = areaConfig[area].levels;
+      const data = labels.map(l => dist[l] || 0);
+      if(chartNiveles) chartNiveles.destroy();
+      chartNiveles = new Chart($("chartNiveles"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Estudiantes",
+            data,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          scales:{
+            y:{ beginAtZero:true, ticks:{ color:"#94a3b8"}, grid:{color:"#1f2937"} },
+            x:{ ticks:{ color:"#94a3b8"}, grid:{color:"#1f2937"} }
+          },
+          plugins:{ legend:{ labels:{ color:"#e5e7eb" } } }
+        }
+      });
+    }
+
+    function renderChartPreguntas(qStats, totalStudents){
+      const labels = qStats.map(q => `P${q.q}`);
+      const data = qStats.map(q => totalStudents ? (q.errors / totalStudents)*100 : 0);
+      if(chartPreguntas) chartPreguntas.destroy();
+      chartPreguntas = new Chart($("chartPreguntas"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "% error",
+            data,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          scales:{
+            y:{ beginAtZero:true, max:100, ticks:{ color:"#94a3b8"}, grid:{color:"#1f2937"} },
+            x:{ ticks:{ color:"#94a3b8"}, grid:{color:"#1f2937"} }
+          },
+          plugins:{ legend:{ labels:{ color:"#e5e7eb" } } }
+        }
+      });
+    }
+
+    function renderResumenGrupo(results){
+      let html = `<table>
+        <thead><tr>
+          <th class="left">Estudiante</th>
+          <th>Aciertos</th>
+          <th>% recalculado</th>
+          <th>% ZipGrade</th>
+          <th>Nivel dominante</th>
+          <th>ZDR</th>
+          <th>ZDP</th>
+          <th>Internivel</th>
+        </tr></thead><tbody>`;
+
+      results.studentsResults.forEach(s => {
+        html += `<tr>
+          <td class="left">${s.name}</td>
+          <td>${s.correct}/${s.totalQuestions}</td>
+          <td>${formatPercent(s.percent)}</td>
+          <td>${formatPercent(s.zipGradePercent)}</td>
+          <td><span class="chip">${s.dominant}</span></td>
+          <td>${s.zdr || "—"}</td>
+          <td>${s.zdp || "—"}</td>
+          <td>${s.internivel}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("resumenGrupo").innerHTML = html;
+    }
+
+    function renderPreguntasCriticas(results){
+      const totalStudents = results.studentsResults.length || 1;
+      const sorted = [...results.qStats]
+        .map(q => ({...q, errorRate: q.errors / totalStudents}))
+        .sort((a,b) => b.errorRate - a.errorRate);
+
+      let html = `<table><thead><tr>
+        <th>Pregunta</th>
+        <th>Comp./Proc./Parte</th>
+        <th>Nivel</th>
+        <th>Componente</th>
+        <th>% error</th>
+        <th>Microhabilidad</th>
+        <th>Microrutina</th>
+      </tr></thead><tbody>`;
+
+      sorted.forEach(q => {
+        html += `<tr>
+          <td>P${q.q}</td>
+          <td>${q.competencia}</td>
+          <td>${q.nivel}</td>
+          <td>${q.componente}</td>
+          <td>${formatPercent(q.errorRate)}</td>
+          <td class="left">${q.microhabilidad}</td>
+          <td class="left">${q.microrutina}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("preguntasCriticas").innerHTML = html;
+    }
+
+    function renderHeatmap(results){
+      let html = `<table class="heat"><thead><tr><th class="name-col">Estudiante</th>`;
+      results.qStats.forEach(q => html += `<th>P${q.q}</th>`);
+      html += `</tr></thead><tbody>`;
+
+      results.studentsResults.forEach(st => {
+        html += `<tr><td class="name-col">${st.name}</td>`;
+        st.heat.forEach(h => {
+          html += `<td class="${h.ok ? 'ok' : 'bad'}">${h.ok ? "1" : "0"}</td>`;
+        });
+        html += `</tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("heatmap").innerHTML = html;
+    }
+
+    function renderStudentSelector(results){
+      const sel = $("selectorEstudiante");
+      sel.innerHTML = results.studentsResults.map((s,i) => `<option value="${i}">${s.name}</option>`).join("");
+    }
+
+    $("btnAnalizarEstudiante").addEventListener("click", () => {
+      if(!currentResults){ alert("Primero procesa la sesión."); return; }
+      const idx = Number($("selectorEstudiante").value || 0);
+      const student = currentResults.studentsResults[idx];
+      renderStudentPanel(student, currentResults.meta);
+      document.querySelector('[data-tab="tab-estudiante"]').click();
+    });
+
+    function renderStudentPanel(student, meta){
+      const matrixHtml = renderStudentMatrix(student, meta.area);
+      const intraHtml = renderIntranivelTable(student, meta.area);
+      const pmapHtml = renderInterventions(student);
+
+      $("panelEstudiante").innerHTML = `
+        <div class="card">
+          <h3>${student.name}</h3>
+          <div class="metric-grid">
+            <div class="metric"><div class="small">Aciertos</div><div class="value">${student.correct}</div></div>
+            <div class="metric"><div class="small">Nivel dominante</div><div class="value">${student.dominant}</div></div>
+            <div class="metric"><div class="small">ZDR</div><div class="value">${student.zdr || "—"}</div></div>
+            <div class="metric"><div class="small">ZDP</div><div class="value">${student.zdp || "—"}</div></div>
+          </div>
+          <div style="margin-top:14px">${matrixHtml}</div>
+        </div>
+
+        <div class="card">
+          <h3>Intranivel e internivel</h3>
+          ${intraHtml}
+          <div class="alert" style="margin-top:12px">
+            <strong>Internivel:</strong> ${student.internivel}
+          </div>
+        </div>
+
+        <div class="card" style="grid-column:1/-1">
+          <h3>Intervención local PMAP–SABER</h3>
+          ${pmapHtml}
+        </div>
+      `;
+    }
+
+    function renderStudentMatrix(student, area){
+      const cfg = areaConfig[area];
+      let html = `<table><thead><tr><th>Comp./Proc./Parte</th>`;
+      cfg.levels.forEach(l => html += `<th>${l}</th>`);
+      html += `</tr></thead><tbody>`;
+
+      cfg.labels.forEach(label => {
+        html += `<tr><td class="left"><strong>${label}</strong></td>`;
+        cfg.levels.forEach(level => {
+          const key = `${label}|${level}`;
+          const cell = student.cellMap[key] || {aciertos:0,total:0};
+          const rate = cell.total ? cell.aciertos / cell.total : 0;
+          const cls = rate >= 0.70 ? "ok" : rate >= 0.40 ? "warn" : "bad";
+          html += `<td class="${cls}">${cell.aciertos}/${cell.total}<br><span class="small">${formatPercent(rate)}</span></td>`;
+        });
+        html += `</tr>`;
+      });
+
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function renderIntranivelTable(student, area){
+      const levels = areaConfig[area].levels;
+      let html = `<table><thead><tr><th>Nivel</th><th>% dominio</th><th>Estado</th></tr></thead><tbody>`;
+      levels.forEach(level => {
+        const row = student.intranivel.find(x => x.level === level) || {rate:0,status:"inicial"};
+        const cls = row.rate >= 0.70 ? "ok" : row.rate >= 0.40 ? "warn" : "bad";
+        html += `<tr>
+          <td>${level}</td>
+          <td>${formatPercent(row.rate)}</td>
+          <td><span class="chip ${cls}">${row.status}</span></td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function renderInterventions(student){
+      if(!student.interventions.length){
+        return `<div class="alert">No hay microhabilidades críticas o débiles registradas.</div>`;
+      }
+      let html = `<table><thead><tr>
+        <th>Microhabilidad</th>
+        <th>Estado</th>
+        <th>Comp./Proc./Parte</th>
+        <th>Nivel</th>
+        <th>Microrutina</th>
+        <th>Nivel meta</th>
+        <th>Ruta PMAP</th>
+        <th>Uso</th>
+      </tr></thead><tbody>`;
+      student.interventions.forEach(i => {
+        const cls = i.estado === "crítica" ? "bad" : "warn";
+        html += `<tr>
+          <td class="left">${i.microhabilidad}</td>
+          <td><span class="chip ${cls}">${i.estado}</span></td>
+          <td>${i.competencia}</td>
+          <td>${i.nivel}</td>
+          <td class="left">${i.microrutina}</td>
+          <td>${i.nivelMeta}</td>
+          <td>${i.pmapRuta}</td>
+          <td>${i.tipoUso}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function renderComparatives(){
+      const sessions = getSessions();
+      renderInstitutionGroupCompare(sessions);
+      renderInstitutionCompare(sessions);
+    }
+
+    function renderInstitutionGroupCompare(sessions){
+      const rows = [];
+      sessions.forEach(s => {
+        rows.push({
+          institucion: s.meta.institucion,
+          grado: s.meta.grado,
+          grupo: s.meta.grupo,
+          area: s.meta.areaNombre,
+          promedio: s.promedio,
+          ...s.levelDistribution
+        });
+      });
+
+      rows.sort((a,b) =>
+        a.institucion.localeCompare(b.institucion) ||
+        String(a.grado).localeCompare(String(b.grado)) ||
+        String(a.grupo).localeCompare(String(b.grupo))
+      );
+
+      let html = `<table><thead><tr>
+        <th>Institución</th>
+        <th>Grado</th>
+        <th>Grupo</th>
+        <th>Área</th>`;
+
+      const levelsSet = new Set();
+      rows.forEach(r => Object.keys(r).forEach(k => {
+        if(["N1","N2","N3","N4","PreA1","A1","A2","B1"].includes(k)) levelsSet.add(k);
+      }));
+      const levelCols = [...levelsSet].sort((a,b) => levelOrder(a) - levelOrder(b));
+      levelCols.forEach(l => html += `<th>${l}</th>`);
+      html += `<th>Promedio</th></tr></thead><tbody>`;
+
+      rows.forEach(r => {
+        html += `<tr>
+          <td class="left">${r.institucion}</td>
+          <td>${r.grado}</td>
+          <td>${r.grupo}</td>
+          <td>${r.area}</td>`;
+        levelCols.forEach(l => html += `<td>${r[l] ?? 0}</td>`);
+        html += `<td>${formatPercent(r.promedio || 0)}</td></tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("comparativoGrupos").innerHTML = rows.length ? html : `<div class="small muted">Todavía no hay sesiones suficientes.</div>`;
+    }
+
+    function renderInstitutionCompare(sessions){
+      const grouped = {};
+      sessions.forEach(s => {
+        const key = `${s.meta.institucion}||${s.meta.areaNombre}`;
+        if(!grouped[key]){
+          grouped[key] = {
+            institucion: s.meta.institucion,
+            area: s.meta.areaNombre,
+            sesiones: 0,
+            promedioAcum: 0
+          };
+        }
+        grouped[key].sesiones++;
+        grouped[key].promedioAcum += s.promedio;
+      });
+
+      const rows = Object.values(grouped).map(g => ({
+        ...g,
+        promedio: g.sesiones ? g.promedioAcum / g.sesiones : 0
+      })).sort((a,b) => a.institucion.localeCompare(b.institucion) || a.area.localeCompare(b.area));
+
+      let html = `<table><thead><tr>
+        <th>Institución</th>
+        <th>Área</th>
+        <th>Sesiones</th>
+        <th>Promedio general</th>
+      </tr></thead><tbody>`;
+
+      rows.forEach(r => {
+        html += `<tr>
+          <td class="left">${r.institucion}</td>
+          <td>${r.area}</td>
+          <td>${r.sesiones}</td>
+          <td>${formatPercent(r.promedio)}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("comparativoInstituciones").innerHTML = rows.length ? html : `<div class="small muted">Todavía no hay sesiones suficientes.</div>`;
+    }
+
+    function renderSavedSessions(){
+      const sessions = getSessions();
+      if(!sessions.length){
+        $("tablaSesiones").innerHTML = `<div class="small muted">No hay sesiones guardadas.</div>`;
+        return;
+      }
+
+      let html = `<table><thead><tr>
+        <th>Fecha</th>
+        <th>Institución</th>
+        <th>Grado</th>
+        <th>Grupo</th>
+        <th>Área</th>
+        <th>Simulacro</th>
+        <th>Estudiantes</th>
+        <th>Promedio</th>
+      </tr></thead><tbody>`;
+
+      sessions.slice().reverse().forEach(s => {
+        html += `<tr>
+          <td>${s.meta.fecha}</td>
+          <td class="left">${s.meta.institucion}</td>
+          <td>${s.meta.grado}</td>
+          <td>${s.meta.grupo}</td>
+          <td>${s.meta.areaNombre}</td>
+          <td class="left">${s.meta.simulacro}</td>
+          <td>${s.studentsResults.length}</td>
+          <td>${formatPercent(s.promedio)}</td>
+        </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      $("tablaSesiones").innerHTML = html;
+    }
+
+    $("btnExportarSesiones").addEventListener("click", () => {
+      const sessions = getSessions();
+      const blob = new Blob([JSON.stringify(sessions, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "site_ruta_v2_zipgrade_sesiones.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    $("btnBorrarSesiones").addEventListener("click", () => {
+      if(!confirm("¿Seguro que deseas borrar todas las sesiones locales?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderSavedSessions();
+      renderComparatives();
+      alert("Sesiones borradas.");
+    });
+
+    function init(){
+      const today = new Date().toISOString().split("T")[0];
+      $("fechaSesion").value = today;
+      renderSavedSessions();
+      renderComparatives();
+      generateItemMap($("area").value, Number($("totalPreguntas").value));
+      renderMapTable();
+    }
+
+    $("area").addEventListener("change", () => {
+      generateItemMap($("area").value, Number($("totalPreguntas").value || 12));
+      renderMapTable();
+    });
+
+    $("totalPreguntas").addEventListener("change", () => {
+      generateItemMap($("area").value, Number($("totalPreguntas").value || 12));
+      renderMapTable();
+    });
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diagnóstico DCE – SITE–RUTA LATAM (Offline)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --card:#142447;
+      --text:#e8eefc;
+      --muted:#b6c3e6;
+      --accent:#7bd88f;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(123,216,143,.18), transparent),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(255,204,102,.14), transparent),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.35;
+    }
+    header{
+      padding:22px 18px 10px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      margin-top:6px;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+    .wrap{
+      max-width:1100px;
+      margin: 0 auto;
+      padding: 12px 18px 24px;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row.space{ justify-content: space-between; }
+    .pill{
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    select, button, input{
+      font: inherit;
+    }
+    select{
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 12px;
+      outline: none;
+    }
+    button{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .05s ease, background .15s ease;
+      user-select: none;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: scale(.98); }
+    .btn-accent{ border-color: rgba(123,216,143,.35); }
+    .btn-warn{ border-color: rgba(255,204,102,.35); }
+    .btn-danger{ border-color: rgba(255,107,107,.35); }
+    .big{
+      padding: 18px 14px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(20,36,71,.8), rgba(15,27,51,.7));
+      border: 1px solid var(--border);
+      margin-top: 12px;
+    }
+    .label{
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.3px;
+      text-transform: uppercase;
+    }
+    .verb{
+      margin-top: 8px;
+      font-size: 34px;
+      font-weight: 750;
+      letter-spacing: .3px;
+    }
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .vote-grid{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .vote-btn{
+      padding: 14px 10px;
+      border-radius: 14px;
+      font-weight: 700;
+      background: rgba(255,255,255,.06);
+    }
+    .vote-btn small{
+      display:block;
+      font-weight: 500;
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    .bar{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      border: 1px solid var(--border);
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(123,216,143,.9), rgba(255,204,102,.9));
+      transition: width .2s ease;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12.5px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .stat{
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+    .stat b{ font-size: 18px; }
+    .muted{ color: var(--muted); }
+    .ok{ color: var(--accent); font-weight: 700; }
+    .warn{ color: var(--warn); font-weight: 700; }
+    .danger{ color: var(--danger); font-weight: 700; }
+    .footer{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px 22px;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Diagnóstico DCE (Offline) — SITE–RUTA LATAM</h1>
+  <div class="subtitle">
+    Votación colectiva para <b>reconocer</b> y <b>identificar</b> niveles (N1–N4) por verbo en SABER–HACER–SER.
+    Sin internet. Sin “examen”. Con evidencia y reflexión.
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- PANEL PRINCIPAL -->
+  <section class="card">
+    <div class="row space">
+      <div class="row">
+        <span class="pill">Modo proyección</span>
+        <span class="pill">Diagnóstico PMAP docente</span>
+      </div>
+      <div class="row">
+        <label class="muted">Dimensión:</label>
+        <select id="dimension">
+          <option value="mixto">Mixto (SABER + HACER + SER)</option>
+          <option value="saber">SABER</option>
+          <option value="hacer">HACER</option>
+          <option value="ser">SER</option>
+        </select>
+
+        <label class="muted">Modo:</label>
+        <select id="modo">
+          <option value="aleatorio">Aleatorio</option>
+          <option value="secuencial">Secuencial</option>
+        </select>
+
+        <button class="btn-accent" id="btnNuevo">Nuevo verbo</button>
+      </div>
+    </div>
+
+    <div class="big" id="panelVerb">
+      <div class="label" id="etiqueta">VERBO</div>
+      <div class="verb" id="verboActual">—</div>
+      <div class="hint" id="contexto">
+        Guía: el grupo decide el nivel. Luego puedes revelar el “nivel según DATA” para provocar reflexión.
+      </div>
+
+      <div class="vote-grid">
+        <button class="vote-btn" data-n="1">Nivel 1<small>Reconocer / iniciar</small></button>
+        <button class="vote-btn" data-n="2">Nivel 2<small>Comprender / ejecutar</small></button>
+        <button class="vote-btn" data-n="3">Nivel 3<small>Analizar / calibrar</small></button>
+        <button class="vote-btn" data-n="4">Nivel 4<small>Argumentar / transferir</small></button>
+      </div>
+
+      <div style="margin-top:12px" class="row space">
+        <div class="row">
+          <button id="btnRevelar" class="btn-warn">Revelar nivel (según DATA)</button>
+          <button id="btnCerrar" class="btn-accent">Cerrar ítem (guardar)</button>
+          <button id="btnResetVotos" class="btn-danger">Reset votos</button>
+        </div>
+        <div class="row">
+          <span class="pill">Votos totales: <b id="votosTotales">0</b></span>
+          <span class="pill">Dimensión actual: <b id="dimActual">—</b></span>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="grid2">
+        <div class="stat">
+          <div class="label">Distribución de votos</div>
+          <div style="margin-top:8px">
+            <div class="row space"><span>N1</span><span class="muted" id="c1">0</span></div>
+            <div class="bar"><div id="b1"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N2</span><span class="muted" id="c2">0</span></div>
+            <div class="bar"><div id="b2"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N3</span><span class="muted" id="c3">0</span></div>
+            <div class="bar"><div id="b3"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N4</span><span class="muted" id="c4">0</span></div>
+            <div class="bar"><div id="b4"></div></div>
+          </div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Resultado del ítem</div>
+          <div style="margin-top:10px" class="muted">
+            <div>Voto dominante: <b id="dominante">—</b></div>
+            <div style="margin-top:6px">Nivel (según DATA): <b id="nivelData">—</b></div>
+            <div style="margin-top:6px">Estado: <b id="estado">Pendiente</b></div>
+          </div>
+          <div class="mono" id="notaReflexiva">
+            Nota PMAP: aquí NO buscamos “ganar”.
+            Buscamos evidenciar si el grupo reconoce el nivel del verbo.
+            Si hay discrepancia, es una evidencia de calibración pendiente.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL RESUMEN -->
+  <aside class="card">
+    <div class="row space">
+      <div>
+        <div class="label">Bitácora de ítems cerrados</div>
+        <div class="muted" style="margin-top:6px">
+          Cada cierre guarda: verbo, dimensión, voto dominante, nivel DATA, acierto.
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnExportCSV" class="btn-accent">Exportar CSV</button>
+        <button id="btnLimpiarTodo" class="btn-danger">Reiniciar todo</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="stat">
+        <div class="label">Progreso total</div>
+        <div style="margin-top:8px"><b id="tTotal">0</b> ítems</div>
+        <div class="muted" style="margin-top:6px">Aciertos (dominante vs DATA): <b id="tOk">0</b></div>
+        <div class="muted">Precisión global: <b id="tPct">0%</b></div>
+      </div>
+      <div class="stat">
+        <div class="label">Enfoque</div>
+        <div class="muted" style="margin-top:8px">
+          Recomendación: 10–15 verbos por sesión. Silencios breves. Cierre sin “producto”.
+        </div>
+      </div>
+    </div>
+
+    <div class="stat" style="margin-top:12px">
+      <div class="label">Precisión por dimensión</div>
+      <div class="muted" style="margin-top:8px">SABER: <b id="sPct">0%</b> ( <span id="sOk">0</span>/<span id="sTot">0</span> )</div>
+      <div class="muted">HACER: <b id="hPct">0%</b> ( <span id="hOk">0</span>/<span id="hTot">0</span> )</div>
+      <div class="muted">SER: <b id="rPct">0%</b> ( <span id="rOk">0</span>/<span id="rTot">0</span> )</div>
+    </div>
+
+    <div class="stat" style="margin-top:12px">
+      <div class="label">Registro</div>
+      <div class="mono" id="log">—</div>
+    </div>
+  </aside>
+</div>
+
+<div class="footer">
+  Referencias sugeridas (APA 7): Bloom et al. (1956); Schön (1983); Biggs & Tang (2011); Perrenoud (2004).
+</div>
+<script>
+/* =============== DATA SITE–RUTA LATAM (v1.0) =============== */
+const DATA = {
+  saber: {
+    1: ["Recordar", "Identificar", "Reconocer", "Nombrar", "Definir", "Listar"],
+    2: ["Comprender", "Describir", "Explicar", "Interpretar",
+      "Ejemplificar", "Clasificar", "Parafrasear", "Resumir"
+    ],
+    3: ["Aplicar", "Analizar", "Comparar", "Contrastar", "Diferenciar", "Organizar", "Revisar", "Establecer relaciones"],
+    4: ["Evaluar", "Argumentar", "Justificar", "Formular", "Diseñar (conceptual)",
+      "Crear", "Sintetizar", "Proponer soluciones", "Construir explicaciones", "Hipotetizar"
+    ]
+  },
+  hacer: {
+    1: ["Imitar", "Copiar", "Seguir instrucciones", "Manipular con ayuda", "Reproducir", "Ensayar (bajo supervisión)"],
+    2: ["Ejecutar", "Practicar", "Demostrar", "Operar", "Usar", "Manipular con control", "Registrar", "Medir", "Montar (con criterios)", "Desmontar (controlado)"],
+    3: ["Implementar", "Integrar (procedimental)",
+      "Coordinar", "Ajustar", "Calibrar", "Configurar", "Diagnosticar fallas", "Perfeccionar", "Supervisar procesos", "Ensamblar (autónomo)"
+    ],
+    4: ["Optimizar", "Automatizar", "Transferir", "Innovar (técnicamente)", "Prototipar", "Desarrollar procedimientos", "Simular", "Estandarizar", "Validar (funcionalidad técnica)", "Retroalimentar técnicamente", "Diseñar soluciones operativas"]
+  },
+  ser: {
+    1: ["Atender", "Escuchar", "Aceptar", "Mostrar disposición", "Reconocer emociones básicas", "Pedir apoyo"],
+    2: ["Participar", "Colaborar", "Respetar", "Cumplir acuerdos simples", "Responder adecuadamente", "Dialogar", "Aportar ideas", "Respetar turnos"],
+    3: ["Asumir responsabilidades", "Valorar diversas perspectivas", "Regular emociones", "Argumentar respetuosamente", "Tomar decisiones responsables", "Resolver conflictos simples", "Cumplir compromisos"],
+    4: ["Liderar procesos colaborativos", "Mediar conflictos con imparcialidad", "Facilitar participación", "Modelar comportamientos respetuosos", "Promover iniciativas colectivas", "Tomar decisiones considerando consecuencias", "Cuidar el entorno y a otros", "Interiorizar principios de convivencia"]
+  }
+};
+
+/* =============== RETROALIMENTACIÓN (OFFLINE) =============== */
+/*
+  Diseño: 4 niveles por dimensión:
+  - "Por qué" = rasgo distintivo del nivel (breve, no teoría larga)
+  - "Cómo se ve" = micro-evidencia observable (DCE)
+  - "Pregunta reflexiva" = Schön (profesional reflexivo)
+*/
+const FEEDBACK = {
+  saber: {
+    1: {
+      porque: "Se centra en reconocer o recuperar información explícita: nombrar, definir, listar, identificar.",
+      seVe: "El estudiante señala conceptos, recuerda datos o reconoce elementos sin explicar relaciones.",
+      pregunta: "¿Estoy pidiendo solo reconocimiento o ya exijo comprensión y explicación?"
+    },
+    2: {
+      porque: "Implica comprensión: describir, explicar e interpretar en sentido literal; clasificar y ejemplificar.",
+      seVe: "El estudiante explica con sus palabras, organiza ideas y da ejemplos coherentes.",
+      pregunta: "¿Mi evidencia exige explicar con sentido o solo repetir definiciones?"
+    },
+    3: {
+      porque: "Exige uso y análisis: aplicar, comparar, contrastar, diferenciar y establecer relaciones.",
+      seVe: "El estudiante resuelve situaciones nuevas, compara estrategias y justifica diferencias.",
+      pregunta: "¿La tarea obliga a analizar o solo a ejecutar un procedimiento conocido?"
+    },
+    4: {
+      porque: "Supone juicio y construcción: evaluar, argumentar, justificar, formular hipótesis o diseñar conceptualmente.",
+      seVe: "El estudiante defiende una postura con razones, propone explicaciones y evalúa alternativas.",
+      pregunta: "¿La evaluación permite argumentación real o solo marca respuestas correctas?"
+    }
+  },
+  hacer: {
+    1: {
+      porque: "Acción inicial dependiente: imitar, copiar, seguir instrucciones, ensayar con supervisión.",
+      seVe: "El estudiante reproduce un procedimiento cuando se le guía paso a paso.",
+      pregunta: "¿Estoy evaluando ejecución autónoma o solo seguimiento de instrucciones?"
+    },
+    2: {
+      porque: "Ejecución con control: ejecutar, demostrar, operar, medir y registrar con criterios básicos.",
+      seVe: "El estudiante aplica un procedimiento con control y registra datos de forma adecuada.",
+      pregunta: "¿La evidencia muestra control del procedimiento o solo finalización de la tarea?"
+    },
+    3: {
+      porque: "Ajuste y calibración: coordinar, ajustar, calibrar, configurar, diagnosticar fallas, supervisar procesos.",
+      seVe: "El estudiante detecta errores, corrige parámetros y mejora el desempeño del proceso.",
+      pregunta: "¿Estoy observando capacidad de ajuste o solo repetición del mismo proceso?"
+    },
+    4: {
+      porque: "Optimización y transferencia: automatizar, estandarizar, validar funcionalidad, prototipar y transferir.",
+      seVe: "El estudiante mejora un procedimiento, lo valida y puede enseñarlo o adaptarlo a otros contextos.",
+      pregunta: "¿La tarea permite transferir y optimizar, o se queda en ‘hacer bien’ lo mismo?"
+    }
+  },
+  ser: {
+    1: {
+      porque: "Disposición y regulación básica: atender, escuchar, pedir apoyo, reconocer emociones básicas.",
+      seVe: "El estudiante se mantiene disponible, escucha instrucciones y pide ayuda de manera adecuada.",
+      pregunta: "¿Estoy evaluando disposición observable o una ‘actitud’ subjetiva?"
+    },
+    2: {
+      porque: "Interacción social inicial: participar, colaborar, respetar turnos, cumplir acuerdos simples.",
+      seVe: "El estudiante aporta ideas, escucha a otros y cumple reglas básicas del trabajo en grupo.",
+      pregunta: "¿Tengo evidencia concreta de participación o solo impresión general?"
+    },
+    3: {
+      porque: "Responsabilidad y decisión: regular emociones, valorar perspectivas, argumentar respetuosamente, cumplir compromisos.",
+      seVe: "El estudiante sostiene acuerdos, toma decisiones responsables y maneja conflictos simples.",
+      pregunta: "¿La evidencia muestra decisiones responsables o solo ‘portarse bien’?"
+    },
+    4: {
+      porque: "Liderazgo ético y mediación: facilitar participación, mediar conflictos, promover iniciativas, considerar consecuencias.",
+      seVe: "El estudiante guía procesos colaborativos y cuida el entorno y a otros con acciones verificables.",
+      pregunta: "¿Estoy observando mediación y liderazgo o solo participación activa?"
+    }
+  }
+};
+
+/* =============== UTILIDADES =============== */
+const norm = (s) => (s || "")
+  .toString()
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/\s+/g," ")
+  .trim()
+  .toLowerCase();
+
+function allVerbsFor(dimension){
+  const out = [];
+  for (let lvl=1; lvl<=4; lvl++){
+    const arr = DATA[dimension]?.[lvl] || [];
+    for (const v of arr){
+      out.push({dimension, nivel:lvl, verbo:v});
+    }
+  }
+  return out;
+}
+
+function buildPool(dimension){
+  if (dimension === "mixto"){
+    return [
+      ...allVerbsFor("saber"),
+      ...allVerbsFor("hacer"),
+      ...allVerbsFor("ser")
+    ];
+  }
+  return allVerbsFor(dimension);
+}
+
+/* =============== ESTADO =============== */
+let pool = buildPool("mixto");
+let idx = -1;
+let current = null;
+let revealed = false;
+
+let votos = {1:0, 2:0, 3:0, 4:0};
+const historial = [];
+
+/* =============== UI HOOKS =============== */
+const elDim = document.getElementById("dimension");
+const elModo = document.getElementById("modo");
+const elNuevo = document.getElementById("btnNuevo");
+
+const elVerbo = document.getElementById("verboActual");
+const elDimActual = document.getElementById("dimActual");
+
+const elC1 = document.getElementById("c1");
+const elC2 = document.getElementById("c2");
+const elC3 = document.getElementById("c3");
+const elC4 = document.getElementById("c4");
+const elB1 = document.getElementById("b1");
+const elB2 = document.getElementById("b2");
+const elB3 = document.getElementById("b3");
+const elB4 = document.getElementById("b4");
+const elTot = document.getElementById("votosTotales");
+
+const elDominante = document.getElementById("dominante");
+const elNivelData = document.getElementById("nivelData");
+const elEstado = document.getElementById("estado");
+
+const elNota = document.getElementById("notaReflexiva");
+
+const elRevelar = document.getElementById("btnRevelar");
+const elCerrar = document.getElementById("btnCerrar");
+const elResetVotos = document.getElementById("btnResetVotos");
+
+const elLog = document.getElementById("log");
+
+const elTTotal = document.getElementById("tTotal");
+const elTOk = document.getElementById("tOk");
+const elTPct = document.getElementById("tPct");
+
+const elSOk = document.getElementById("sOk");
+const elSTot = document.getElementById("sTot");
+const elSPct = document.getElementById("sPct");
+
+const elHOk = document.getElementById("hOk");
+const elHTot = document.getElementById("hTot");
+const elHPct = document.getElementById("hPct");
+
+const elROk = document.getElementById("rOk");
+const elRTot = document.getElementById("rTot");
+const elRPct = document.getElementById("rPct");
+
+const elExportCSV = document.getElementById("btnExportCSV");
+const elLimpiarTodo = document.getElementById("btnLimpiarTodo");
+
+/* =============== RENDER =============== */
+function getDominante(){
+  const total = votos[1]+votos[2]+votos[3]+votos[4];
+  const max = Math.max(votos[1],votos[2],votos[3],votos[4]);
+  const ties = [1,2,3,4].filter(n => votos[n] === max && max > 0);
+  if (max === 0) return {dom:"—", total};
+  if (ties.length !== 1) return {dom:"Empate", total};
+  return {dom:"N"+ties[0], total};
+}
+
+function updateBars(){
+  const {dom, total} = getDominante();
+  elTot.textContent = total;
+
+  elC1.textContent = votos[1];
+  elC2.textContent = votos[2];
+  elC3.textContent = votos[3];
+  elC4.textContent = votos[4];
+
+  const pct = (n)=> total ? Math.round((votos[n]/total)*100) : 0;
+  elB1.style.width = pct(1)+"%";
+  elB2.style.width = pct(2)+"%";
+  elB3.style.width = pct(3)+"%";
+  elB4.style.width = pct(4)+"%";
+
+  elDominante.textContent = dom;
+
+  if (!current){
+    elEstado.textContent = "Pendiente";
+    elNivelData.textContent = "—";
+    return;
+  }
+  elNivelData.textContent = revealed ? ("N"+current.nivel) : "—";
+  elEstado.textContent = revealed ? "Revelado + retroalimentación" : "Pendiente";
+}
+
+function renderFeedback(){
+  if (!current || !revealed){
+    elNota.textContent =
+`Nota PMAP: aquí NO buscamos “ganar”.
+Buscamos evidenciar si el grupo reconoce el nivel del verbo.
+Si hay discrepancia, es una evidencia de calibración pendiente.`;
+    return;
+  }
+
+  const dim = current.dimension;
+  const lvl = current.nivel;
+  const fb = FEEDBACK?.[dim]?.[lvl];
+
+  const {dom} = getDominante();
+  const etiquetaAjuste =
+    (dom === "—" || dom === "Empate")
+      ? "Sin consenso aún → sostener con presencia."
+      : (dom === ("N"+lvl))
+        ? "Coincidencia con DATA → calibración alineada (por ahora)."
+        : "Diferencia con DATA → calibración pendiente (normal en diagnóstico).";
+
+  elNota.textContent =
+`RETROALIMENTACIÓN (DCE)
+Dimensión: ${dim.toUpperCase()} | Nivel DATA: N${lvl}
+
+¿POR QUÉ ESTÁ EN ESTE NIVEL?
+- ${fb.porque}
+
+¿CÓMO SE VE EN AULA (EVIDENCIA OBSERVABLE)?
+- ${fb.seVe}
+
+PREGUNTA DE REFLEXIÓN (Schön)
+- ${fb.pregunta}
+
+LECTURA PMAP DEL RESULTADO
+- ${etiquetaAjuste}`;
+}
+
+function updateSummary(){
+  const total = historial.length;
+  const ok = historial.filter(x=>x.acierto).length;
+  elTTotal.textContent = total;
+  elTOk.textContent = ok;
+  elTPct.textContent = total ? Math.round((ok/total)*100) + "%" : "0%";
+
+  const dims = ["saber","hacer","ser"];
+  for (const d of dims){
+    const tot = historial.filter(x=>x.dimension===d).length;
+    const okd = historial.filter(x=>x.dimension===d && x.acierto).length;
+    const pct = tot ? Math.round((okd/tot)*100)+"%" : "0%";
+    if (d==="saber"){ elSTot.textContent=tot; elSOk.textContent=okd; elSPct.textContent=pct; }
+    if (d==="hacer"){ elHTot.textContent=tot; elHOk.textContent=okd; elHPct.textContent=pct; }
+    if (d==="ser"){ elRTot.textContent=tot; elROk.textContent=okd; elRPct.textContent=pct; }
+  }
+
+  const last = historial.slice(-6).reverse().map(x=>{
+    const mark = x.acierto ? "OK" : "AJUSTAR";
+    return `${new Date(x.timestamp).toLocaleTimeString()} | ${x.dimension.toUpperCase()} | ${x.verbo} | voto:${x.votoDominante} | DATA:N${x.nivelData} | ${mark}`;
+  }).join("\n") || "—";
+  elLog.textContent = last;
+}
+
+function resetVotos(){
+  votos = {1:0,2:0,3:0,4:0};
+  revealed = false;
+  elNivelData.textContent = "—";
+  elEstado.textContent = "Pendiente";
+  updateBars();
+  renderFeedback();
+}
+
+function setCurrent(item){
+  current = item;
+  revealed = false;
+  resetVotos();
+  elVerbo.textContent = item.verbo;
+  elDimActual.textContent = item.dimension.toUpperCase();
+}
+
+/* =============== FLUJO =============== */
+function nuevoVerbo(){
+  const dimSel = elDim.value;
+  pool = buildPool(dimSel);
+
+  if (elModo.value === "secuencial"){
+    idx = (idx + 1) % pool.length;
+    setCurrent(pool[idx]);
+    return;
+  }
+  idx = Math.floor(Math.random() * pool.length);
+  setCurrent(pool[idx]);
+}
+
+function revelar(){
+  if (!current) return;
+  revealed = true;
+  elNivelData.textContent = "N" + current.nivel;
+  elEstado.textContent = "Revelado + retroalimentación";
+  updateBars();
+  renderFeedback();
+}
+
+function cerrarItem(){
+  if (!current) return;
+
+  const {dom, total} = getDominante();
+  const nivelData = current.nivel;
+  const acierto = (dom === ("N"+nivelData));
+
+  historial.push({
+    verbo: current.verbo,
+    dimension: current.dimension,
+    votoDominante: dom,
+    nivelData,
+    acierto,
+    votos: {...votos},
+    votosTotales: total,
+    timestamp: Date.now()
+  });
+
+  updateSummary();
+  nuevoVerbo();
+}
+
+function exportCSV(){
+  if (!historial.length){
+    alert("Aún no hay ítems cerrados para exportar.");
+    return;
+  }
+  const header = [
+    "timestamp","dimension","verbo","voto_dominante","nivel_data","acierto","votos_totales","v1","v2","v3","v4"
+  ];
+  const rows = historial.map(x=>[
+    new Date(x.timestamp).toISOString(),
+    x.dimension,
+    x.verbo.replaceAll('"','""'),
+    x.votoDominante,
+    "N"+x.nivelData,
+    x.acierto ? "SI" : "NO",
+    x.votosTotales,
+    x.votos[1], x.votos[2], x.votos[3], x.votos[4]
+  ]);
+  const csv = [header.join(","), ...rows.map(r=>{
+    r[2] = `"${r[2]}"`;
+    return r.join(",");
+  })].join("\n");
+
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "diagnostico_dce_siteruta_offline.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function reiniciarTodo(){
+  if (!confirm("¿Reiniciar todo? Se borrará el historial.")) return;
+  historial.length = 0;
+  idx = -1;
+  current = null;
+  revealed = false;
+  resetVotos();
+  elVerbo.textContent = "—";
+  elDimActual.textContent = "—";
+  updateSummary();
+}
+
+/* =============== EVENTOS =============== */
+elNuevo.addEventListener("click", nuevoVerbo);
+elRevelar.addEventListener("click", revelar);
+elCerrar.addEventListener("click", cerrarItem);
+elResetVotos.addEventListener("click", resetVotos);
+elExportCSV.addEventListener("click", exportCSV);
+elLimpiarTodo.addEventListener("click", reiniciarTodo);
+
+document.querySelectorAll(".vote-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    if (!current) return;
+    const n = Number(btn.getAttribute("data-n"));
+    votos[n] += 1;
+    updateBars();
+    if (revealed) renderFeedback(); // si ya revelaste, se actualiza lectura PMAP
+  });
+});
+
+// iniciar
+nuevoVerbo();
+updateSummary();
+renderFeedback();
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SITE-RUTA LATAM – Generador Adaptativo de Cuestionarios</title>
+
+<!-- Librerías -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+:root{
+  --azul:#1E88E5;
+  --verde:#009B02;
+  --cian:#65FEFB;
+  --fondo:#f4f6f8;
+  --oscuro:#121212;
+  --texto:#222;
+  --ok:#189359;
+  --err-bg:#F8D7DA;
+  --err-txt:#8e0311;
+}
+
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  margin:0;
+  background:var(--fondo);
+  color:var(--texto);
+}
+
+/* ==== ENCABEZADO ==== */
+header{
+  background:linear-gradient(90deg,var(--azul),var(--verde));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:12px;
+  padding:8px 20px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+header h1{font-size:1.1rem;margin:0;font-weight:600;}
+
+/* === LOGO SOCIALTECH VIVO === */
+.logo-socialtech{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(0,0,0,0.55);
+  border-radius:8px;
+  padding:3px 10px 3px 6px;
+}
+.logo-socialtech .linea{
+  width:35px;height:6px;background:#009B02;border-radius:3px;
+}
+.logo-socialtech .punto{
+  position:absolute;left:16px;width:14px;height:14px;background:#00FF8A;
+  border-radius:50%;box-shadow:0 0 8px #00FF8A,0 0 15px rgba(0,255,138,0.6);
+  animation:pulse 1.6s infinite ease-in-out;
+}
+.logo-socialtech .punto .onda{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,255,138,0.35);animation:wave 1.6s infinite ease-in-out;
+}
+.logo-socialtech .texto{
+  color:white;font-size:1.4rem;font-weight:500;letter-spacing:0.5px;
+  text-shadow:0 0 4px rgba(255,255,255,0.2);
+}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.25);opacity:0.85;}}
+@keyframes wave{0%{transform:scale(1);opacity:0.7;}70%{transform:scale(2.8);opacity:0;}100%{opacity:0;}}
+
+/* ==== MODAL ADAPTATIVO ==== */
+#modalInicio{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.55);z-index:3000;opacity:0;visibility:hidden;
+  transition:opacity .4s ease,visibility .4s ease;
+}
+#modalInicio.show{opacity:1;visibility:visible;}
+#modalInicio .contenido{
+  background:#fff;border-radius:12px;padding:30px 25px;max-width:420px;text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,0.25);animation:slideFade .45s ease;
+}
+@keyframes slideFade{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+#modalInicio h2{color:var(--azul);}
+#modalInicio button{
+  background:var(--azul);color:#fff;border:none;border-radius:25px;
+  padding:10px 18px;margin:8px;cursor:pointer;transition:background .3s ease;
+}
+#modalInicio button:hover{background:var(--verde);}
+
+/* ==== ÁREA DE TEXTO DOCENTE ==== */
+#entradaDocente{
+  display:none;margin:20px auto;padding:20px;border:2px solid #ccc;border-radius:10px;
+  width:85%;background:#fff;
+}
+#entradaDocente textarea{
+  width:100%;height:200px;padding:10px;font-size:15px;border-radius:8px;border:1px solid #aaa;
+}
+#entradaDocente button{
+  background:var(--azul);color:#fff;border:none;border-radius:20px;
+  padding:10px 18px;margin-top:10px;cursor:pointer;
+}
+#entradaDocente button:hover{background:var(--verde);}
+
+/* ==== CUESTIONARIO ==== */
+#cuestionario-container{display:none;margin:20px auto;padding:20px;border:2px solid #ccc;border-radius:10px;width:85%;background:#fff;}
+.pregunta{margin:20px 0;padding:15px;background:#fafafa;border-radius:10px;}
+.retroalimentacion-container{margin-top:8px;padding:10px;border-radius:8px;}
+.retroalimentacion-container.respuesta-correcta{background:var(--ok);color:#fff;}
+.retroalimentacion-container.respuesta-incorrecta{background:var(--err-bg);color:var(--err-txt);}
+.explicacion{background:#f4f9ff;border-left:5px solid var(--azul);padding:8px 12px;border-radius:8px;margin-top:8px;display:none;}
+.explicacion a{color:var(--azul);text-decoration:underline;}
+.nivel-container{display:inline-block;padding:8px 16px;border-radius:8px;color:#fff;margin-top:10px;}
+.p1{background:#b91c1c}.p2{background:#d97706}.p3{background:#ffee52;color:#0b1022!important}.p4{background:#65a30d}
+
+/* ==== TOAST ==== */
+#toast-site{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--azul),var(--verde));color:#fff;
+  padding:12px 24px;border-radius:8px;font-weight:600;opacity:0;
+  transition:opacity .4s ease,transform .4s ease;z-index:4000;
+}
+#toast-site.show{opacity:1;transform:translateX(-50%) translateY(-8px);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-socialtech">
+    <div class="linea"></div>
+    <div class="punto"><div class="onda"></div></div>
+    <span class="texto">SocialTech</span>
+  </div>
+  <h1>SITE-RUTA LATAM – Generador Adaptativo de Cuestionarios</h1>
+</header>
+
+<!-- === MODAL INICIO ADAPTATIVO === -->
+<div id="modalInicio">
+  <div class="contenido">
+    <h2>Bienvenido docente 👋</h2>
+    <p>Se detectó información previa de un cuestionario.<br>
+       ¿Deseas restaurarlo o generar uno nuevo?</p>
+    <div style="margin-top:15px;">
+      <button id="btnRestaurar">🔄 Restaurar</button>
+      <button id="btnNuevo">🆕 Generar nuevo</button>
+    </div>
+  </div>
+</div>
+
+<!-- === ÁREA DOCENTE PARA PEGAR TEXTO === -->
+<div id="entradaDocente">
+  <h2>📘 Pega tu cuestionario</h2>
+  <p><em>Formato libre:</em> escribe o pega tus preguntas, opciones y respuestas correctas.
+     El sistema identificará los elementos automáticamente.</p>
+  <textarea id="textoCuestionario" placeholder="Ejemplo:
+1. ¿Qué es una célula?
+a. Un organismo
+b. Un tejido
+c. Unidad básica de un ser vivo
+Respuesta: c
+https://es.wikipedia.org/wiki/Célula"></textarea>
+  <button onclick="generarCuestionario()">Generar Cuestionario</button>
+</div>
+
+<!-- === CONTENEDOR DE CUESTIONARIO === -->
+<div id="cuestionario-container">
+  <h2>Tu Cuestionario</h2>
+  <div id="preguntasGeneradas"></div>
+</div>
+
+<!-- ==== TOAST ==== -->
+<div id="toast-site"></div>
+
+<script>
+/* ======== MODAL INICIAL ======== */
+window.addEventListener('DOMContentLoaded',()=>{
+  const modal=document.getElementById('modalInicio');
+  modal.classList.add('show');
+  document.getElementById('btnRestaurar').onclick=()=>restaurarCuestionario();
+  document.getElementById('btnNuevo').onclick=()=>{
+    modal.classList.remove('show');
+    setTimeout(()=>modal.style.display='none',400);
+    document.getElementById('entradaDocente').style.display='block';
+  };
+});
+
+/* ======== GENERAR CUESTIONARIO DINÁMICO ======== */
+function generarCuestionario(){
+  const texto=document.getElementById('textoCuestionario').value.trim();
+  if(!texto){mostrarToast('⚠️ Debes pegar el contenido del cuestionario.');return;}
+  const preguntas=parsePreguntas(texto);
+  localStorage.setItem('cuestionarioGuardado',JSON.stringify(preguntas));
+  construirCuestionario(preguntas);
+  document.getElementById('entradaDocente').style.display='none';
+  document.getElementById('cuestionario-container').style.display='block';
+  mostrarToast('✅ Cuestionario generado correctamente.');
+}
+
+/* ======== RESTAURAR CUESTIONARIO GUARDADO ======== */
+function restaurarCuestionario(){
+  const guardado=localStorage.getItem('cuestionarioGuardado');
+  if(!guardado){mostrarToast('ℹ️ No se encontró ningún cuestionario guardado.');return;}
+  const preguntas=JSON.parse(guardado);
+  document.getElementById('modalInicio').classList.remove('show');
+  document.getElementById('cuestionario-container').style.display='block';
+  construirCuestionario(preguntas);
+  mostrarToast('🔄 Cuestionario restaurado desde almacenamiento local.');
+}
+
+/* ======== PARSEO LIBRE ======== */
+function parsePreguntas(texto){
+  const bloques=texto.split(/\n\s*\n/);
+  const preguntas=[];
+  bloques.forEach(b=>{
+    const lineas=b.trim().split('\n').filter(l=>l.trim()!=='');
+    if(lineas.length<2)return;
+    let pregunta=lineas[0];
+    const opciones=lineas.filter(l=>/^[a-h]\./i.test(l.trim()));
+    const resp=lineas.find(l=>/respuesta\s*[:\-]/i.test(l));
+    const url=lineas.find(l=>/^https?:\/\//i.test(l));
+    const feedback=lineas.find(l=>/retroalimentaci/i.test(l))||"";
+    preguntas.push({
+      pregunta:pregunta.replace(/^\d+\.\s*/,'').trim(),
+      opciones:opciones.map(o=>o.replace(/^[a-h]\.\s*/i,'')),
+      correcta:resp?resp.split(/[:\-]/)[1].trim().toLowerCase():"",
+      url:url||"",
+      feedback:feedback.replace(/retroalimentaci[oó]n[:\-]/i,"").trim()
+    });
+  });
+  return preguntas;
+}
+
+/* ======== CONSTRUIR CUESTIONARIO ======== */
+function construirCuestionario(preguntas){
+  const cont=document.getElementById('preguntasGeneradas');
+  cont.innerHTML="";
+  preguntas.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='pregunta';
+    div.innerHTML=`<p><strong>${i+1}. ${p.pregunta}</strong></p>`+
+      p.opciones.map((opt,idx)=>`
+      <label><input type="radio" name="resp${i}" value="${String.fromCharCode(97+idx)}"> 
+      ${String.fromCharCode(97+idx)}) ${opt}</label><br>`).join("")+
+      `<div class="retroalimentacion-container"></div>`+
+      (p.feedback?`<div class="explicacion"><p>${p.feedback}</p></div>`:"");
+    cont.appendChild(div);
+  });
+}
+
+/* ======== TOAST ======== */
+function mostrarToast(msg){
+  const t=document.getElementById('toast-site');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+</script>
+
+</body>
+</html>

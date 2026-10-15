@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SISTEMA TEGUMENTARIO</title>
+
+  <!-- Librerías -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+/* === Estilos generales === */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+/* === Registro === */
+#registro-container {
+  display: block;
+  margin: 40px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 88%;
+  background-color: #fff;
+}
+
+/* === Cuestionario === */
+#cuestionario-container {
+  display: none;
+  margin: 20px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 53%;
+  background-color: #fff;
+}
+#cuestionario-container h1 {
+  text-align: center;
+  color: #102461;
+}
+
+/* === Preguntas === */
+.pregunta {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #fafafa;
+  border-radius: 10px;
+}
+.pregunta p { font-size: 16px; }
+.retroalimentacion-container {
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.retroalimentacion-container.respuesta-correcta {
+  background-color: #189359;
+  border-left: 6px solid #28A745;
+  color: #ffffff;
+}
+.retroalimentacion-container.respuesta-incorrecta {
+ background-color: #F8D7DA;   /* 🔹 Más intenso */
+  border-left: 6px solid #e60118;
+  color: #8e0311;
+}
+
+/* === Botones === */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  color: white;
+}
+button#iniciar-cuestionario { background-color: #25447e; }
+button.boton { background-color: #25447e; }
+button.boton:hover { background-color: #3366cc; }
+
+/* === Menú lateral === */
+#menuIcon {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  background-color: #25447e;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+}
+#menuIcon .linea {
+  position: absolute;
+  width: 26px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease, top 0.25s ease;
+}
+#menuIcon .linea1 { top: 14px; }
+#menuIcon .linea2 { top: 21px; }
+#menuIcon .linea3 { top: 28px; }
+#menuIcon.abierto .linea1 { top: 21px; transform: rotate(45deg); }
+#menuIcon.abierto .linea2 { opacity: 0; }
+#menuIcon.abierto .linea3 { top: 21px; transform: rotate(-45deg); }
+
+.menu-contenedor {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  border-radius: 18px;
+  padding: 10px;
+  display: none;
+  z-index: 1000;
+}
+.menu-contenedor.show { display: block; }
+
+/* === Modal de puntaje === */
+.popup-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.popup-modal.show { display: flex; }
+.popup-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 800px;
+  text-align: center;
+}
+.popup-buttons button {
+  margin: 5px;
+  border-radius: 8px;
+}
+
+/* === Gráficos === */
+.graficos-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.graficos-container canvas {
+  width: 300px !important;
+  height: 300px !important;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+
+/* === Popup Estético Mejorado === */
+.popup-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  transition: opacity 0.3s ease;
+}
+
+.popup-modal.show {
+  display: flex;
+  animation: fadeIn 0.35s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.popup-content {
+  background: #ffffff;
+  padding: 30px 25px;
+  border-radius: 15px;
+  width: 70%;
+  max-width: 750px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.popup-content h2 {
+  color: #102461;
+  margin-bottom: 10px;
+}
+
+.popup-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.popup-buttons {
+  margin-top: 15px;
+}
+
+.popup-buttons button {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background-color: #25447e;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.popup-buttons button:hover {
+  background-color: #3366cc;
+}
+
+/* Ajuste responsivo */
+@media (max-width: 768px) {
+  .popup-content {
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+.explicacion {
+  background-color: #f4f9ff;
+  border-left: 5px solid #25447e;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Evita que el texto de retroalimentación se salga del contenedor */
+.retroalimentacion-container {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.explicacion pre {
+  white-space: pre-wrap;     /* Mantiene formato pero ajusta líneas */
+  word-wrap: break-word;
+  overflow-x: auto;          /* Permite scroll si hay líneas muy largas */
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+
+.explicacion a {
+  color: #25447e;
+  font-weight: bold;       /* 🔹 Negrita */
+  text-decoration: underline;
+}
+
+.explicacion a:hover {
+  color: #3366cc;
+}
+
+#modalAlerta .popup-content {
+  border-top: 5px solid #b10000;
+  animation: fadeIn 0.3s ease;
+}
+
+#modalAlerta h3 {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+
+.p1 { background: #b91c1c; } /* Nivel 1 - Rojo */
+.p2 { background: #d97706; } /* Nivel 2 - Naranja */
+.p3 { background: #ffee52; /* Nivel 3 Amarillo */ color: #0b1022 !important;  /* ✅ Texto negro visible */}
+.p4 { background: #65a30d; } /* Nivel 4 - Verde */
+
+
+  </style>
+
+
+</head>
+
+<body>
+
+
+<!-- Registro -->
+<div id="registro-container">
+  <h2>Registro</h2>
+  <form id="registro-form">
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" required><br><br>
+
+    <label for="email">Correo Electrónico:</label>
+    <input type="email" id="email" required><br><br>
+
+    <label for="asignatura">Área / Prueba:</label>
+    <select id="asignatura" required>
+      <option value="" disabled selected>Selecciona el área</option>
+      <option value="Ciencias Naturales">Ciencias Naturales</option>
+      <option value="Ciencias Sociales y Ciudadanas">Ciencias Sociales y Ciudadanas</option>
+      <option value="Matemáticas">Matemáticas</option>
+      <option value="Lectura Crítica">Lectura Crítica</option>
+      <option value="Inglés">Inglés (MCER)</option>
+    </select><br><br>
+
+    <button id="iniciar-cuestionario" type="button" onclick="iniciarCuestionario()">Iniciar Cuestionario</button>
+  </form>
+</div>
+
+<!-- Cuestionario -->
+<div id="cuestionario-container">
+
+  <button id="menuIcon" onclick="toggleMenu()">
+    <span class="linea linea1"></span>
+    <span class="linea linea2"></span>
+    <span class="linea linea3"></span>
+  </button>
+
+  <div id="menuContenedor" class="menu-contenedor">
+    <button class="boton" onclick="calcularPuntaje()">Ver Puntaje</button>
+    <button class="boton" onclick="toggleExplicaciones()">Ver Explicaciones</button>
+    <button class="boton" onclick="descargarExcel()">Descargar Excel</button>
+    <button class="boton" onclick="reiniciarEvaluacion()">Reiniciar</button>
+  </div>
+
+ 
+
+<h1 id="tituloEvaluacion">Sistema Tegumentario</h1>
+
+<!-- P1 -->
+<div class="pregunta">
+  <p><strong><em>1. ¿Cuál es la función principal del sistema tegumentario?</em></strong></p>
+  <div class="opcion"><input type="radio" name="respuesta1" value="a"> a) Producir hormonas que regulan el metabolismo.</div>
+  <div class="opcion"><input type="radio" name="respuesta1" value="b"> b) Proteger el cuerpo contra agentes externos y regular la temperatura.</div>
+  <div class="opcion"><input type="radio" name="respuesta1" value="c"> c) Transportar nutrientes a los tejidos.</div>
+  <div class="opcion"><input type="radio" name="respuesta1" value="d"> d) Controlar los movimientos voluntarios.</div>
+  <div class="retroalimentacion-container"></div>
+
+  <div class="explicacion" style="display:none;">
+    <p><strong>SOLUCIÓN 1:</strong> El sistema tegumentario —compuesto por la piel, el cabello, las uñas y las glándulas— protege el cuerpo, evita la pérdida de agua y ayuda a regular la temperatura.</p>
+    <p><strong>Tema:</strong> <em>Funciones generales del sistema tegumentario</em></p>
+    <p><strong>Respuesta correcta:</strong> b) Proteger el cuerpo contra agentes externos y regular la temperatura.</p>
+  </div>
+
+  <a href="https://medlineplus.gov/spanish/ency/article/002282.htm"
+     target="_blank" style="display:none;font-size:16px;color:#a6179c;">
+     Reforzar tema pregunta 1
+  </a>
+</div>
+
+<!-- P2 -->
+<div class="pregunta">
+  <p><strong><em>2. ¿Cuál es la capa más externa de la piel?</em></strong></p>
+  <div class="opcion"><input type="radio" name="respuesta2" value="a"> a) Dermis.</div>
+  <div class="opcion"><input type="radio" name="respuesta2" value="b"> b) Epidermis.</div>
+  <div class="opcion"><input type="radio" name="respuesta2" value="c"> c) Hipodermis.</div>
+  <div class="opcion"><input type="radio" name="respuesta2" value="d"> d) Endodermis.</div>
+  <div class="retroalimentacion-container"></div>
+
+  <div class="explicacion" style="display:none;">
+    <p><strong>SOLUCIÓN 2:</strong> La epidermis es la capa más externa de la piel; actúa como barrera frente a microorganismos, radiación solar y pérdida de agua.</p>
+    <p><strong>Tema:</strong> <em>Estructura de la piel</em></p>
+    <p><strong>Respuesta correcta:</strong> b) Epidermis.</p>
+  </div>
+
+  <a href="https://es.wikipedia.org/wiki/Epidermis"
+     target="_blank" style="display:none;font-size:16px;color:#a6179c;">
+     Reforzar tema pregunta 2
+  </a>
+</div>
+
+<!-- P3 -->
+<div class="pregunta">
+  <p><strong><em>3. ¿Qué glándulas del sistema tegumentario son responsables de la producción de sudor?</em></strong></p>
+  <div class="opcion"><input type="radio" name="respuesta3" value="a"> a) Sebáceas.</div>
+  <div class="opcion"><input type="radio" name="respuesta3" value="b"> b) Sudoríparas.</div>
+  <div class="opcion"><input type="radio" name="respuesta3" value="c"> c) Pineales.</div>
+  <div class="opcion"><input type="radio" name="respuesta3" value="d"> d) Suprarrenales.</div>
+  <div class="retroalimentacion-container"></div>
+
+  <div class="explicacion" style="display:none;">
+    <p><strong>SOLUCIÓN 3:</strong> Las glándulas sudoríparas producen sudor, permitiendo la regulación térmica y la eliminación de ciertas sustancias de desecho.</p>
+    <p><strong>Tema:</strong> <em>Glándulas cutáneas</em></p>
+    <p><strong>Respuesta correcta:</strong> b) Sudoríparas.</p>
+  </div>
+
+  <a href="https://es.wikipedia.org/wiki/Gl%C3%A1ndula_sudor%C3%ADpara"
+     target="_blank" style="display:none;font-size:16px;color:#a6179c;">
+     Reforzar tema pregunta 3
+  </a>
+</div>
+
+<!-- P4 -->
+<div class="pregunta">
+  <p><strong><em>4. ¿Cuál es la función principal de las glándulas sebáceas?</em></strong></p>
+  <div class="opcion"><input type="radio" name="respuesta4" value="a"> a) Segregar sebo para lubricar y proteger la piel y el cabello.</div>
+  <div class="opcion"><input type="radio" name="respuesta4" value="b"> b) Producir sudor y regular la temperatura.</div>
+  <div class="opcion"><input type="radio" name="respuesta4" value="c"> c) Controlar el crecimiento del vello corporal.</div>
+  <div class="opcion"><input type="radio" name="respuesta4" value="d"> d) Generar melanina para la pigmentación.</div>
+  <div class="retroalimentacion-container"></div>
+
+  <div class="explicacion" style="display:none;">
+    <p><strong>SOLUCIÓN 4:</strong> Las glándulas sebáceas producen sebo, una sustancia oleosa que mantiene la piel y el cabello hidratados y protegidos contra microorganismos.</p>
+    <p><strong>Tema:</strong> <em>Glándulas sebáceas</em></p>
+    <p><strong>Respuesta correcta:</strong> a) Segregar sebo para lubricar y proteger la piel y el cabello.</p>
+  </div>
+
+  <a href="https://es.wikipedia.org/wiki/Gl%C3%A1ndula_seb%C3%A1cea"
+     target="_blank" style="display:none;font-size:16px;color:#a6179c;">
+     Reforzar tema pregunta 4
+  </a>
+</div>
+
+<!-- P5 -->
+<div class="pregunta">
+  <p><strong><em>5. ¿Qué pigmento produce la piel para protegerse de la radiación ultravioleta del sol?</em></strong></p>
+  <div class="opcion"><input type="radio" name="respuesta5" value="a"> a) Hemoglobina.</div>
+  <div class="opcion"><input type="radio" name="respuesta5" value="b"> b) Melanina.</div>
+  <div class="opcion"><input type="radio" name="respuesta5" value="c"> c) Queratina.</div>
+  <div class="opcion"><input type="radio" name="respuesta5" value="d"> d) Colágeno.</div>
+  <div class="retroalimentacion-container"></div>
+
+  <div class="explicacion" style="display:none;">
+    <p><strong>SOLUCIÓN 5:</strong> La melanina es un pigmento producido por los melanocitos de la piel que absorbe la radiación ultravioleta y previene daños en el ADN de las células.</p>
+    <p><strong>Tema:</strong> <em>Melanina y protección solar</em></p>
+    <p><strong>Respuesta correcta:</strong> b) Melanina.</p>
+  </div>
+
+  <a href="https://es.wikipedia.org/wiki/Melanina"
+     target="_blank" style="display:none;font-size:16px;color:#a6179c;">
+     Reforzar tema pregunta 5
+  </a>
+</div>
+
+</div>
+
+
+<!-- Modal de resultados con gráficos -->
+<div id="puntaje-popup" class="popup-modal">
+  <div class="popup-content">
+    <h2>Resultado de la Evaluación</h2>
+    <p id="resultado-nombre" style="font-weight: bold; font-size: 18px;"></p>
+    <p id="resultado-puntaje" style="color: #102461; font-size: 16px;"></p>
+    <p id="resultado-porcentaje" style="color: #102461; font-size: 16px;"></p>
+
+    <div class="graficos-container">
+      <canvas id="graficoCircular" width="250" height="250"></canvas>
+      <canvas id="graficoBarras" width="250" height="250"></canvas>
+    </div>
+
+    <div class="popup-buttons">
+      <button class="boton" onclick="descargarExcel()">📥 Descargar Excel</button>
+      <button class="boton" onclick="cerrarPuntajePopup()">✖ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal de advertencia -->
+<div id="modalAlerta" class="popup-modal">
+  <div class="popup-content" style="max-width: 400px; text-align:center;">
+    <h3 style="color:#b10000;">⚠️ Atención</h3>
+    <p>Debes responder <strong>todas las preguntas</strong> antes de ver los resultados.</p>
+    <div class="popup-buttons">
+      <button onclick="cerrarModalAlerta()">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+const nombreCuestionario = "Preguntas de Matemáticas y Reciclaje";
+// Constante con respuestas correctas (aleatorias)
+const respuestasCorrectas = ["b", "b", "b", "a", "b"];
+
+
+
+
+let chart1, chart2;
+
+function iniciarCuestionario() {
+  document.getElementById("registro-container").style.display = "none";
+  document.getElementById("cuestionario-container").style.display = "block";
+}
+
+function toggleMenu() {
+  document.getElementById("menuContenedor").classList.toggle("show");
+  document.getElementById("menuIcon").classList.toggle("abierto");
+}
+
+function calcularPuntaje() {
+  const preguntas = document.getElementsByClassName("pregunta");
+  let correctas = 0;
+  let total = preguntas.length;
+  let respondidas = 0;
+
+  // ✅ Verificar cuántas preguntas han sido respondidas
+  for (let i = 0; i < total; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+    if (seleccion !== "") respondidas++;
+  }
+
+  // ⚠️ Si no se han contestado todas → mostrar alerta y detener
+  if (respondidas < total) {
+    document.getElementById("modalAlerta").classList.add("show");
+    return;
+  }
+
+  // ✅ Calcular respuestas correctas e incorrectas
+  for (let i = 0; i < total; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+
+    const retro = preguntas[i].querySelector(".retroalimentacion-container");
+    retro.innerHTML = "";
+
+    if (seleccion === respuestasCorrectas[i]) {
+      correctas++;
+      retro.className = "retroalimentacion-container respuesta-correcta";
+      retro.innerHTML = "✅ <strong>Respuesta correcta</strong>";
+    } else {
+      // 🔗 Detectar el enlace de refuerzo real de esa pregunta
+      const enlaceRefuerzo = preguntas[i].querySelector("a")?.href || "";
+      retro.className = "retroalimentacion-container respuesta-incorrecta";
+
+      // ✅ Mostrar retroalimentación con su propio enlace
+      if (enlaceRefuerzo) {
+        retro.innerHTML = `
+          ❌ <strong>Respuesta incorrecta</strong><br>
+          <div class="explicacion">
+            <a href="${enlaceRefuerzo}" target="_blank" style="color:#a6179c;font-weight:bold;">
+              🔍 Refuerza este tema
+            </a>
+          </div>`;
+      } else {
+        retro.innerHTML = "❌ <strong>Respuesta incorrecta</strong>";
+      }
+    }
+  }
+
+  const porcentaje = (correctas / total) * 100;
+  const area = document.getElementById("asignatura").value;
+  let nivel = "";
+  let claseNivel = "";
+  let descripcionNivel = "";
+
+  // === 🧠 Determinar el nivel de desempeño (ICFES 2022, con enfoque formativo) ===
+  switch (area) {
+
+    // 🧠 LECTURA CRÍTICA
+    case "Lectura Crítica":
+      if (porcentaje === 0) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "No cumple con las competencias mínimas del nivel 1. Presenta dificultades para identificar información literal en los textos. Este resultado inicial puede ser el punto de partida para una mejora significativa si se refuerzan los temas base. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 35) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "Identifica información literal y estructura básica del texto. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 50) {
+        nivel = "Nivel 2 (Básico)"; claseNivel = "p2";
+        descripcionNivel = "Comprende información explícita, jerarquiza ideas y reconoce la intención comunicativa. (ICFES 2022, pp. 6–7)";
+      } else if (porcentaje <= 65) {
+        nivel = "Nivel 3 (Alto)"; claseNivel = "p3";
+        descripcionNivel = "Infiere información implícita y evalúa argumentos y estrategias discursivas. (ICFES 2022, pp. 7–8)";
+      } else {
+        nivel = "Nivel 4 (Superior)"; claseNivel = "p4";
+        descripcionNivel = "Analiza críticamente textos, contrasta posturas y formula interpretaciones propias. (ICFES 2022, pp. 8–9)";
+      }
+      break;
+
+    // 🔢 MATEMÁTICAS
+    case "Matemáticas":
+      if (porcentaje === 0) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "No cumple con las competencias mínimas del nivel 1. Presenta dificultades para interpretar datos o realizar operaciones básicas. Este resultado inicial puede ser el punto de partida para una mejora significativa si se refuerzan los fundamentos numéricos. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 35) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "Lee datos y realiza operaciones básicas en contextos simples. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 50) {
+        nivel = "Nivel 2 (Básico)"; claseNivel = "p2";
+        descripcionNivel = "Interpreta tablas y gráficas y resuelve problemas rutinarios. (ICFES 2022, pp. 6–7)";
+      } else if (porcentaje <= 70) {
+        nivel = "Nivel 3 (Alto)"; claseNivel = "p3";
+        descripcionNivel = "Formula relaciones algebraicas y aplica propiedades geométricas. (ICFES 2022, pp. 7–8)";
+      } else {
+        nivel = "Nivel 4 (Superior)"; claseNivel = "p4";
+        descripcionNivel = "Modela, argumenta y evalúa estrategias matemáticas complejas. (ICFES 2022, pp. 8–9)";
+      }
+      break;
+
+    // ⚗️ CIENCIAS NATURALES
+    case "Ciencias Naturales":
+      if (porcentaje === 0) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "No cumple con las competencias mínimas del nivel 1. No logra reconocer información científica básica ni relacionar variables. Este resultado inicial puede ser el punto de partida para una mejora significativa si se refuerzan los conceptos fundamentales de las ciencias. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 40) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "Reconoce información explícita en textos, tablas o gráficas simples. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 55) {
+        nivel = "Nivel 2 (Básico)"; claseNivel = "p2";
+        descripcionNivel = "Explica procesos naturales simples y relaciones causa–efecto. (ICFES 2022, pp. 6–7)";
+      } else if (porcentaje <= 70) {
+        nivel = "Nivel 3 (Alto)"; claseNivel = "p3";
+        descripcionNivel = "Analiza, formula hipótesis y usa teorías científicas en contextos cotidianos. (ICFES 2022, pp. 7–8)";
+      } else {
+        nivel = "Nivel 4 (Superior)"; claseNivel = "p4";
+        descripcionNivel = "Integra teorías y plantea soluciones científicas a problemas reales. (ICFES 2022, pp. 8–9)";
+      }
+      break;
+
+    // 🌍 CIENCIAS SOCIALES Y CIUDADANAS
+    case "Ciencias Sociales y Ciudadanas":
+      if (porcentaje === 0) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "No cumple con las competencias mínimas del nivel 1. No logra reconocer normas, derechos ni hechos básicos. Este resultado inicial puede ser el punto de partida para una mejora significativa si se fortalecen los fundamentos históricos y éticos. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 40) {
+        nivel = "Nivel 1 (Bajo)"; claseNivel = "p1";
+        descripcionNivel = "Reconoce derechos, normas y símbolos básicos del Estado. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 55) {
+        nivel = "Nivel 2 (Básico)"; claseNivel = "p2";
+        descripcionNivel = "Relaciona normas y derechos con situaciones cotidianas. (ICFES 2022, pp. 6–7)";
+      } else if (porcentaje <= 70) {
+        nivel = "Nivel 3 (Alto)"; claseNivel = "p3";
+        descripcionNivel = "Analiza procesos históricos y argumenta con base en principios democráticos. (ICFES 2022, pp. 7–8)";
+      } else {
+        nivel = "Nivel 4 (Superior)"; claseNivel = "p4";
+        descripcionNivel = "Evalúa críticamente acciones e integra saberes históricos, sociales y éticos. (ICFES 2022, pp. 8–9)";
+      }
+      break;
+
+    // 🇬🇧 INGLÉS (MCER)
+    case "Inglés":
+      if (porcentaje === 0) {
+        nivel = "Pre A1"; claseNivel = "p1";
+        descripcionNivel = "No cumple con las competencias mínimas del nivel Pre A1. No reconoce vocabulario básico ni expresiones simples. Este resultado inicial puede ser el punto de partida para una mejora significativa si se refuerzan los temas de vocabulario y comprensión auditiva. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 36) {
+        nivel = "Pre A1"; claseNivel = "p1";
+        descripcionNivel = "Reconoce vocabulario y oraciones muy simples sobre su entorno. (ICFES 2022, pp. 5–6)";
+      } else if (porcentaje <= 57) {
+        nivel = "A1"; claseNivel = "p2";
+        descripcionNivel = "Comprende frases cortas y expresiones cotidianas simples. (ICFES 2022, pp. 6–7)";
+      } else if (porcentaje <= 70) {
+        nivel = "A2"; claseNivel = "p3";
+        descripcionNivel = "Interpreta textos breves e identifica ideas principales. (ICFES 2022, pp. 7–8)";
+      } else {
+        nivel = "B1"; claseNivel = "p4";
+        descripcionNivel = "Comprende textos generales e infiere significados en diversos contextos. (ICFES 2022, pp. 8–9)";
+      }
+      break;
+  }
+
+  // === 🪶 Bloque de resultados ===
+  let detalleHTML = `
+    <h2 style="text-align:center; margin-bottom:5px;">Resultado de la Evaluación</h2>
+    <p style="text-align:center; font-weight:bold;">${document.getElementById("nombre").value}</p>
+    <p style="text-align:center; font-weight:bold; text-transform:uppercase;">ACIERTOS: ${correctas}/${total}</p>
+    <p style="text-align:center; font-weight:bold; text-transform:uppercase;">PORCENTAJE: ${porcentaje.toFixed(2)}%</p>
+    <p style="text-align:center;">
+      <span class="${claseNivel}" style="display:inline-block;color:#fff;font-weight:bold;padding:8px 15px;border-radius:8px;text-transform:uppercase;font-size:15px;">${nivel}</span>
+    </p>
+    <p style="text-align:center; font-size:14px; color:#333; margin-top:5px;"><em>${descripcionNivel}</em></p>
+    <p style="text-align:center; font-size:12px; color:#555;">📚 Fuente: Niveles de Desempeño Saber 11°, ICFES 2022</p>
+  `;
+
+  // === 🧾 Listado detallado ===
+  detalleHTML += `
+    <div class="resultado-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;justify-items:start;margin-top:10px;margin-bottom:20px;text-align:left;">
+  `;
+  for (let i = 0; i < total; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+    const esCorrecta = seleccion === respuestasCorrectas[i];
+    const icono = esCorrecta ? "✅" : "❌";
+    const color = esCorrecta ? "color:#28A745;" : "color:#DC3545;";
+    detalleHTML += `<div style="font-size:15px; font-weight:bold; ${color}">${icono} Pregunta ${i + 1}: ${esCorrecta ? "Correcta" : "Incorrecta"}</div>`;
+  }
+  detalleHTML += "</div>";
+
+  // === Insertar y mostrar resultados ===
+  const popup = document.querySelector("#puntaje-popup .popup-content");
+  popup.innerHTML = `
+    ${detalleHTML}
+    <div class="graficos-container">
+      <canvas id="graficoCircular" width="250" height="250"></canvas>
+      <canvas id="graficoBarras" width="250" height="250"></canvas>
+    </div>
+    <div class="popup-buttons">
+      <button class="boton" onclick="descargarExcel()">📥 Descargar Excel</button>
+      <button class="boton" onclick="cerrarPuntajePopup()">✖ Cerrar</button>
+    </div>
+  `;
+  document.getElementById("puntaje-popup").classList.add("show");
+
+  // === 🎯 Gráficos ===
+  if (chart1) chart1.destroy();
+  if (chart2) chart2.destroy();
+
+  const ctx1 = document.getElementById("graficoCircular").getContext("2d");
+  chart1 = new Chart(ctx1, {
+    type: "doughnut",
+    data: { labels: ["Correctas", "Incorrectas"], datasets: [{ data: [correctas, total - correctas], backgroundColor: ["#4CAF50", "#F44336"] }] },
+    options: { plugins: { legend: { position: "top" }, title: { display: true, text: "Distribución de respuestas" } } }
+  });
+
+  const ctx2 = document.getElementById("graficoBarras").getContext("2d");
+  chart2 = new Chart(ctx2, {
+    type: "bar",
+    data: { labels: ["Correctas", "Incorrectas"], datasets: [{ label: "Comparativo", data: [correctas, total - correctas], backgroundColor: ["#4CAF50", "#F44336"] }] },
+    options: { plugins: { legend: { display: false }, title: { display: true, text: "Comparativo" } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+}
+
+function cerrarPuntajePopup() {
+  const modal = document.getElementById("puntaje-popup");
+  modal.classList.remove("show");
+
+  if (chart1) { chart1.destroy(); chart1 = null; }
+  if (chart2) { chart2.destroy(); chart2 = null; }
+}
+
+// Cerrar al hacer clic en el fondo (fuera del contenido)
+(function initCerrarPopupHelpers(){
+  const modal = document.getElementById('puntaje-popup');
+  if (!modal) return;
+  modal.addEventListener('click', (ev) => {
+    if (ev.target === modal) cerrarPopup();
+  });
+  // Cerrar con tecla ESC
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') cerrarPopup();
+  });
+})();
+
+function reiniciarEvaluacion() {
+  location.reload();
+}
+function descargarExcel() {
+  const preguntas = document.getElementsByClassName("pregunta");
+  const nombreEstudiante = document.getElementById("nombre").value || "Estudiante";
+  const area = document.getElementById("asignatura").value;
+  const fecha = new Date().toLocaleDateString("es-CO");
+  const nombreCuestionario = window.nombreCuestionario || "Sistema Óseo";
+
+  const datos = [
+    ["NOMBRE DE LA EVALUACIÓN", "ESTUDIANTE", "Fecha", "Área / Prueba"],
+    [nombreCuestionario, nombreEstudiante, fecha, area],
+    [],
+    ["Pregunta", "Tu Respuesta", "Opción Correcta", "Calificación", "Puntuación", "Porcentaje", "Refuerzo del Tema"]
+  ];
+
+  let totalCorrectas = 0;
+
+  for (let i = 0; i < preguntas.length; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+
+    const esCorrecta = seleccion === respuestasCorrectas[i];
+    const puntuacion = esCorrecta ? 1 : 0;
+    const porcentajeFila = ((puntuacion / 1) * (100 / preguntas.length)).toFixed(2) + "%";
+
+    // 🔗 Enlace de refuerzo (solo si fue incorrecta)
+    const enlaceRefuerzo = esCorrecta ? "" : (preguntas[i].querySelector("a")?.href || "");
+
+    // 📎 Crea celda con hipervínculo activo en Excel
+    const celdaEnlace = enlaceRefuerzo
+      ? { f: `HYPERLINK("${enlaceRefuerzo}", "🔗 Abrir refuerzo P${i + 1}")` }
+      : "";
+
+    datos.push([
+      "Pregunta " + (i + 1),
+      seleccion || "Sin respuesta",
+      respuestasCorrectas[i],
+      esCorrecta ? "Correcta" : "Incorrecta",
+      puntuacion + "/1",
+      porcentajeFila,
+      celdaEnlace
+    ]);
+
+    if (esCorrecta) totalCorrectas++;
+  }
+
+  const porcentajeTotal = ((totalCorrectas / preguntas.length) * 100).toFixed(2);
+  let nivel = "", descripcionNivel = "";
+
+  // === 🧠 Determinar el nivel de desempeño ===
+  switch (area) {
+    case "Lectura Crítica":
+      if (porcentajeTotal == 0) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "No cumple con las competencias mínimas. Punto de partida para mejorar si refuerza los temas base."; }
+      else if (porcentajeTotal <= 35) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "Identifica información literal y estructura básica del texto."; }
+      else if (porcentajeTotal <= 50) { nivel = "Nivel 2 (Básico)"; descripcionNivel = "Comprende información explícita y jerarquiza ideas."; }
+      else if (porcentajeTotal <= 65) { nivel = "Nivel 3 (Alto)"; descripcionNivel = "Infiere información implícita y evalúa argumentos y estrategias discursivas."; }
+      else { nivel = "Nivel 4 (Superior)"; descripcionNivel = "Analiza críticamente textos, contrasta posturas y formula interpretaciones propias."; }
+      break;
+
+    case "Matemáticas":
+      if (porcentajeTotal == 0) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "No cumple con las competencias mínimas. Refuerza fundamentos numéricos básicos."; }
+      else if (porcentajeTotal <= 35) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "Lee datos y realiza operaciones básicas en contextos simples."; }
+      else if (porcentajeTotal <= 50) { nivel = "Nivel 2 (Básico)"; descripcionNivel = "Interpreta tablas y resuelve problemas rutinarios."; }
+      else if (porcentajeTotal <= 70) { nivel = "Nivel 3 (Alto)"; descripcionNivel = "Aplica conceptos algebraicos y geométricos en situaciones cotidianas."; }
+      else { nivel = "Nivel 4 (Superior)"; descripcionNivel = "Modela, argumenta y evalúa estrategias matemáticas complejas."; }
+      break;
+
+    case "Ciencias Naturales":
+      if (porcentajeTotal == 0) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "No cumple con las competencias mínimas. Refuerza conceptos científicos básicos."; }
+      else if (porcentajeTotal <= 40) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "Reconoce información explícita en textos o gráficas simples."; }
+      else if (porcentajeTotal <= 55) { nivel = "Nivel 2 (Básico)"; descripcionNivel = "Explica procesos naturales simples y relaciones causa–efecto."; }
+      else if (porcentajeTotal <= 70) { nivel = "Nivel 3 (Alto)"; descripcionNivel = "Analiza fenómenos y aplica teorías científicas en contextos reales."; }
+      else { nivel = "Nivel 4 (Superior)"; descripcionNivel = "Integra teorías y plantea soluciones científicas a problemas reales."; }
+      break;
+
+    case "Ciencias Sociales y Ciudadanas":
+      if (porcentajeTotal == 0) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "No cumple con competencias mínimas. Refuerza fundamentos históricos y éticos."; }
+      else if (porcentajeTotal <= 40) { nivel = "Nivel 1 (Bajo)"; descripcionNivel = "Reconoce derechos, normas y símbolos del Estado."; }
+      else if (porcentajeTotal <= 55) { nivel = "Nivel 2 (Básico)"; descripcionNivel = "Relaciona normas y derechos con situaciones cotidianas."; }
+      else if (porcentajeTotal <= 70) { nivel = "Nivel 3 (Alto)"; descripcionNivel = "Analiza procesos históricos y argumenta con base en principios democráticos."; }
+      else { nivel = "Nivel 4 (Superior)"; descripcionNivel = "Evalúa críticamente acciones e integra saberes sociales y éticos."; }
+      break;
+
+    case "Inglés":
+      if (porcentajeTotal == 0) { nivel = "Pre A1"; descripcionNivel = "No cumple con las competencias mínimas. Refuerza vocabulario y comprensión auditiva."; }
+      else if (porcentajeTotal <= 36) { nivel = "Pre A1"; descripcionNivel = "Reconoce vocabulario y oraciones muy simples sobre su entorno."; }
+      else if (porcentajeTotal <= 57) { nivel = "A1"; descripcionNivel = "Comprende frases cortas y expresiones cotidianas simples."; }
+      else if (porcentajeTotal <= 70) { nivel = "A2"; descripcionNivel = "Interpreta textos breves e identifica ideas principales."; }
+      else { nivel = "B1"; descripcionNivel = "Comprende textos generales e infiere significados en diversos contextos."; }
+      break;
+  }
+
+  datos.push([]);
+  datos.push(["Calificación", "", "", "", `${totalCorrectas}/${preguntas.length}`, `${porcentajeTotal}%`, ""]);
+  datos.push([]);
+  datos.push(["", "", "", "Nivel de desempeño:", nivel, ""]);
+  datos.push([]);
+  datos.push(["", "", "", "Observaciones / Descripción:", descripcionNivel, ""]);
+
+  const libro = XLSX.utils.book_new();
+  const hoja = XLSX.utils.aoa_to_sheet(datos);
+  XLSX.utils.book_append_sheet(libro, hoja, "Resultados");
+
+  const fechaActual = new Date();
+  const nombreArchivo = `Resultados_${nombreCuestionario.replace(/ /g, "_")}_${nombreEstudiante.replace(/ /g, "_")}_${fechaActual.getFullYear()}_${fechaActual.getMonth() + 1}_${fechaActual.getDate()}_${fechaActual.getHours()}_${fechaActual.getMinutes()}.xlsx`;
+
+  XLSX.writeFile(libro, nombreArchivo);
+}
+
+// === MOSTRAR / OCULTAR EXPLICACIONES ===
+function toggleExplicaciones() {
+  const explicaciones = document.querySelectorAll(".explicacion");
+  const botones = document.querySelectorAll(".boton");
+
+  let hayVisible = false;
+  explicaciones.forEach(exp => {
+    if (exp.style.display === "block") hayVisible = true;
+  });
+
+  explicaciones.forEach(exp => {
+    exp.style.display = hayVisible ? "none" : "block";
+  });
+
+  // Cambia texto del botón dinámicamente
+  const btn = Array.from(botones).find(b => b.textContent.includes("Ver Explicaciones"));
+  if (btn) btn.textContent = hayVisible ? "Ver Explicaciones" : "Ocultar Explicaciones";
+}
+
+function cerrarModalAlerta() {
+  document.getElementById("modalAlerta").classList.remove("show");
+}
+
+</script>
+
+
+
+</body>
+</html>

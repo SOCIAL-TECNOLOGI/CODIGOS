@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE·RUTA LATAM v5.1 — Institucional</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0; background-color: #f4f6f8; color: #333;
+  }
+  header {
+    background-color: #1F4E78; color: white; text-align: center;
+    padding: 15px; border-bottom: 5px solid #2F75B5;
+  }
+  header h1 { margin: 5px 0; font-size: 22px; }
+  header h2 { margin: 0; font-size: 14px; font-weight: normal; }
+  .container {
+    width: 90%; max-width: 1100px; margin: 25px auto;
+    background: white; padding: 25px; border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  label { font-weight: bold; display: block; margin-top: 10px; }
+  input, textarea {
+    width: 100%; padding: 8px; margin-top: 5px;
+    border: 1px solid #ccc; border-radius: 5px;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button {
+    background-color: #2F75B5; color: white;
+    border: none; border-radius: 6px;
+    padding: 8px 15px; margin: 8px 5px;
+    cursor: pointer; font-weight: bold;
+  }
+  button:hover { background-color: #1F4E78; }
+  table {
+    width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;
+  }
+  th, td {
+    border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top;
+  }
+  th { background-color: #2F75B5; color: white; }
+  .footer {
+    background-color: #c62828; color: white; text-align: center;
+    padding: 12px; font-size: 13px; margin-top: 30px;
+  }
+  .rubrica {
+    border: 1px solid #2F75B5; border-radius: 8px; padding: 10px;
+    background-color: #eef4fb; margin-top: 15px;
+  }
+  .rubrica h3 { color: #1F4E78; margin-top: 0; }
+  .rubrica button {
+    background-color: #2F75B5; margin: 3px; font-size: 13px; padding: 5px 10px;
+  }
+  .info {
+    background: #e3f2fd; border-left: 5px solid #1F4E78;
+    padding: 10px; font-size: 13px; margin-top: 10px; border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Corporación Bartolomé Mitre — SITE·RUTA LATAM v5.1</h1>
+  <h2>Modelo Institucional de Planeación DCE–SIEE–SABER–HACER–SER</h2>
+  <p style="font-size:12px;">Versión institucional con trazabilidad digital © Mario Germán Barbosa Valderrama (2025)</p>
+</header>
+
+<div class="container">
+
+  <div class="info">
+    ⚠️ <b>Uso institucional autorizado.</b>  
+    Cada registro se almacena localmente con fecha, hora y autor.  
+    No se permite exportar ni compartir fuera de la plataforma.
+  </div>
+
+  <label>Institución / Docente responsable:</label>
+  <input type="text" id="usuario" placeholder="Ej: Bartolomé Mitre - María Pérez">
+
+  <label>Período:</label>
+  <input type="text" id="periodo">
+
+  <label>Área / Grado:</label>
+  <input type="text" id="area">
+
+  <label>Competencia (Saber–Hacer–Ser):</label>
+  <textarea id="competencia"></textarea>
+
+  <label>DBA relacionado:</label>
+  <textarea id="dba"></textarea>
+
+  <label>Afirmación / Evidencia (DCE):</label>
+  <textarea id="evidencia"></textarea>
+
+  <label>Tarea / Descriptor literal (DCE):</label>
+  <textarea id="tarea"></textarea>
+
+  <label>Nivel esperado (SIEE):</label>
+  <input type="text" id="nivel">
+
+  <label>Rúbrica N1–N4 (Integrada):</label>
+  <textarea id="rubrica"></textarea>
+
+  <label>Meta de migración y contexto:</label>
+  <textarea id="meta"></textarea>
+
+  <label>Observaciones del docente:</label>
+  <textarea id="obs"></textarea>
+
+  <div class="rubrica">
+    <h3>🎯 Estratificación por Dimensión</h3>
+    <button onclick="mostrarNivel('saber')">Saber</button>
+    <button onclick="mostrarNivel('hacer')">Hacer</button>
+    <button onclick="mostrarNivel('ser')">Ser</button>
+    <div id="niveles"></div>
+  </div>
+
+  <div style="margin-top:15px;">
+    <button onclick="agregarFila()">Guardar registro</button>
+    <button onclick="mostrarTabla()">Mostrar tabla</button>
+    <button onclick="limpiar()">Limpiar campos</button>
+  </div>
+
+  <table id="tabla" style="display:none;">
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Fecha / Hora</th>
+        <th>Período</th>
+        <th>Área / Grado</th>
+        <th>Competencia</th>
+        <th>DBA</th>
+        <th>Evidencia</th>
+        <th>Tarea</th>
+        <th>Nivel</th>
+        <th>Rúbrica</th>
+        <th>Meta</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  ⚠️ Uso controlado. Versión institucional SITE·RUTA LATAM v5.1.  
+  Derechos reservados © Mario G. Barbosa Valderrama — 2025.
+</div>
+
+<script>
+  const rubricas = {
+    saber: [
+      "N1: Recordar – Identifica conceptos básicos.",
+      "N2: Comprender – Explica relaciones simples.",
+      "N3: Analizar – Contrasta e interpreta evidencias.",
+      "N4: Crear – Formula hipótesis o soluciones innovadoras."
+    ],
+    hacer: [
+      "N1: Imita procedimientos básicos.",
+      "N2: Aplica instrucciones con apoyo.",
+      "N3: Ejecuta tareas con autonomía.",
+      "N4: Optimiza, transfiere y crea estrategias propias."
+    ],
+    ser: [
+      "N1: Atiende normas y muestra disposición.",
+      "N2: Participa y coopera con el grupo.",
+      "N3: Asume responsabilidades y reflexiona.",
+      "N4: Lidera, influye positivamente y modela valores."
+    ]
+  };
+
+  const tabla = document.querySelector("#tabla tbody");
+
+  function mostrarNivel(tipo) {
+    const div = document.getElementById('niveles');
+    div.innerHTML = "<h4>Niveles de " + tipo.toUpperCase() + "</h4><ul>" +
+      rubricas[tipo].map(x => "<li>" + x + "</li>").join('') + "</ul>";
+  }
+
+  function agregarFila() {
+    const usuario = document.getElementById('usuario').value.trim();
+    const datos = ['periodo','area','competencia','dba','evidencia','tarea','nivel','rubrica','meta','obs']
+      .map(id => document.getElementById(id).value.trim());
+    if (!usuario || datos.some(x => !x)) {
+      alert('Por favor complete todos los campos y el nombre del docente.');
+      return;
+    }
+
+    const fecha = new Date().toLocaleString();
+    const fila = document.createElement('tr');
+    const celdas = [usuario, fecha, ...datos];
+    celdas.forEach(x => {
+      const td = document.createElement('td');
+      td.textContent = x;
+      fila.appendChild(td);
+    });
+    tabla.appendChild(fila);
+    document.getElementById('tabla').style.display = 'table';
+
+    // Guardar localmente
+    const registros = JSON.parse(localStorage.getItem('siteRutaData') || '[]');
+    registros.push({usuario, fecha, datos});
+    localStorage.setItem('siteRutaData', JSON.stringify(registros));
+
+    alert('Registro guardado localmente con éxito.');
+    limpiar();
+  }
+
+  function mostrarTabla() {
+    document.getElementById('tabla').style.display = 'table';
+    const registros = JSON.parse(localStorage.getItem('siteRutaData') || '[]');
+    tabla.innerHTML = '';
+    registros.forEach(r => {
+      const fila = document.createElement('tr');
+      fila.innerHTML = `<td>${r.usuario}</td><td>${r.fecha}</td>` +
+        r.datos.map(d => `<td>${d}</td>`).join('');
+      tabla.appendChild(fila);
+    });
+  }
+
+  function limpiar() {
+    document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+  }
+</script>
+
+</body>
+</html>

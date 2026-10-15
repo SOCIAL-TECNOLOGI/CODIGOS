@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Semillero AlaU - Movilidad Competencial SITE-RUTA LATAM</title>
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+      
+<style>
+:root { /* (Mantengo tu excelente sistema de estilos) */
+  --bg: #020617; --panel: #0f172a; --card: #111827; --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15); --ok: #22c55e; --warn: #f97316;
+  --danger: #ef4444; --text: #e5e7eb; --muted: #9ca3af; --border: #1f2937;
+  /* Nuevos colores para áreas */
+  --lc: #3b82f6; --mat: #10b981; --sociales: #f59e0b; --cn: #8b5cf6; --ingles: #ec4899;
+}
+/* (Mantengo todas tus clases CSS: .btn, .modal, .table-container, .dashboard-grid, etc.) */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+}
+header {
+  padding: 16px 24px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+}
+.title-block { display: flex; flex-direction: column; gap: 4px; }
+h1 { font-size: 1.4rem; letter-spacing: .03em; }
+.subtitle { font-size: .85rem; color: var(--muted); }
+.current-student {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.current-student strong { color: var(--accent); }
+.student-management { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 8px 16px; border: none; background: transparent; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; white-space: nowrap;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+.btn {
+  border: none; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft);
+  color: var(--accent); transition: all 0.2s ease; text-decoration: none;
+}
+.btn:hover { background: rgba(56,189,248,.25); }
+.btn-success { background: rgba(34,197,94,.1); color: var(--ok); }
+.btn-success:hover { background: rgba(34,197,94,.2); }
+.btn-danger { background: rgba(239,68,68,.1); color: var(--danger); }
+.btn-danger:hover { background: rgba(239,68,68,.2); }
+.btn-warning { background: rgba(249,115,22,.1); color: var(--warn); }
+.btn-warning:hover { background: rgba(249,115,22,.2); }
+.estudiante-form { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); transition: all 0.2s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.full-width { grid-column: 1 / -1; }
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px;
+  text-align: center; transition: all 0.3s ease; cursor: pointer;
+}
+.upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: var(--accent-soft); }
+.upload-icon { font-size: 3rem; margin-bottom: 12px; }
+.table-container { overflow-x: auto; margin: 16px 0; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.data-table th { background: var(--card); color: var(--muted); font-weight: 600; position: sticky; top: 0; }
+.data-table tr:hover { background: var(--accent-soft); }
+.chart-container {
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border);
+  margin: 16px 0; height: 300px; position: relative;
+}
+.chart-title { margin-bottom: 16px; color: var(--muted); font-size: 1.1rem; }
+.modal {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(2,6,23,0.8); z-index: 1000; align-items: center; justify-content: center;
+}
+.modal.active { display: flex; }
+.modal-content {
+  background: var(--panel); border-radius: 12px; padding: 24px; max-width: 90%;
+  max-height: 90%; overflow: auto; border: 1px solid var(--border); position: relative;
+}
+.modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; }
+.modal-close:hover { color: var(--text); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px; font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
+.badge-success { background: rgba(34,197,94,.1); color: var(--ok); border-color: var(--ok); }
+.badge-warning { background: rgba(249,115,22,.1); color: var(--warn); border-color: var(--warn); }
+.badge-danger { background: rgba(239,68,68,.1); color: var(--danger); border-color: var(--danger); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+.dashboard-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+.dashboard-card .value { font-size: 2rem; font-weight: bold; margin-bottom: 8px; }
+.dashboard-card .label { font-size: 0.85rem; color: var(--muted); }
+.filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.8rem; color: var(--muted); }
+.filter-group select, .filter-group input { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); min-width: 120px; }
+.estudiantes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+.estudiante-card { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s ease; }
+.estudiante-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.estudiante-card.active { border-color: var(--accent); background: var(--accent-soft); }
+.estudiante-info { margin-bottom: 12px; }
+.estudiante-nombre { font-weight: 600; margin-bottom: 4px; }
+.estudiante-meta { font-size: 0.8rem; color: var(--muted); }
+/* Estilos para la matriz 3x4 */
+.matriz-3x4 { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.8rem; background: var(--panel); border-radius: 8px; overflow: hidden; }
+.matriz-3x4 th { background: var(--card); color: var(--muted); font-weight: 500; padding: 8px; text-align: center; }
+.matriz-3x4 td { padding: 8px; text-align: center; border: 1px solid var(--border); }
+.matriz-3x4 .competencia { text-align: left; font-weight: 500; background: var(--card); }
+.acierto-alto { color: var(--ok); font-weight: bold; }
+.acierto-medio { color: var(--warn); font-weight: bold; }
+.acierto-bajo { color: var(--danger); font-weight: bold; }
+/* Colores de áreas */
+.area-lc { border-left: 4px solid var(--lc); }
+.area-mat { border-left: 4px solid var(--mat); }
+.area-sociales { border-left: 4px solid var(--sociales); }
+.area-cn { border-left: 4px solid var(--cn); }
+.area-ingles { border-left: 4px solid var(--ingles); }
+</style>              
+</head>
+<body>
+
+<!-- Modales (se mantienen igual) -->
+<div id="modalDimension" class="modal"><div class="modal-content" style="max-width: 800px;"><button class="modal-close" onclick="cerrarModal('modalDimension')">×</button><h3 id="modalDimensionTitle">Detalles de Dimensión</h3><div id="modalDimensionContent"></div></div></div>
+<div id="modalReportes" class="modal"><div class="modal-content" style="max-width: 1000px;"><button class="modal-close" onclick="cerrarModal('modalReportes')">×</button><h3>📊 Generador de Reportes</h3><div id="modalReportesContent"></div></div></div>
+<div id="modalConfiguracion" class="modal"><div class="modal-content" style="max-width: 600px;"><button class="modal-close" onclick="cerrarModal('modalConfiguracion')">×</button><h3>⚙️ Configuración</h3><div id="modalConfiguracionContent"></div></div></div>
+<div id="modalAlertas" class="modal"><div class="modal-content" style="max-width: 700px;"><button class="modal-close" onclick="cerrarModal('modalAlertas')">×</button><h3>🚨 Alertas</h3><div id="modalAlertasContent"></div></div></div>
+
+<header>
+  <div class="title-block">
+    <h1>🎯 Semillero AlaU - Movilidad Competencial SITE-RUTA LATAM</h1>
+    <div class="subtitle">Diagnóstico N1–N4 | Matriz 3×4 | PMAP | Basado en Protocolo v2.7</div>
+    <div class="current-student"><span>Estudiante actual:</span><strong id="currentStudentName">Selecciona un estudiante</strong></div>
+  </div>
+  <div class="student-management">
+    <button class="btn btn-success" id="btnManageStudents">👥 Gestionar Estudiantes</button>
+    <button class="btn" id="btnReports">📊 Reportes</button>
+    <button class="btn" id="btnAlertas">🚨 Alertas</button>
+    <button class="btn" id="btnSettings">⚙️ Configuración</button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1;">
+  
+<!-- Panel de Gestión de Estudiantes (se mantiene la estructura, pero se adaptará) -->
+<div id="studentsPanel" class="tab-pane active">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista">📋 Lista del Semillero</button>
+    <button class="tab-btn" data-tab="registro">👤 Registro Manual</button>
+    <button class="tab-btn" data-tab="importar">📤 Importar desde Excel</button>
+    <button class="tab-btn" data-tab="plantilla">📋 Plantilla</button>
+    <button class="tab-btn" data-tab="dashboard">📈 Panel del Semillero</button>
+  </div>
+
+  <!-- Pestaña: Lista de Estudiantes (se mantiene, solo cambia el título) -->
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row">
+      <div class="filter-group"><label>Filtrar por grado</label><select id="filtroGrado"><option value="todos">Todos</option><?php for($i=1;$i<=11;$i++) echo "<option value='$i'>$i°</option>"; ?></select></div>
+      <div class="filter-group"><label>Filtrar por grupo</label><select id="filtroGrupo"><option value="todos">Todos</option></select></div>
+      <div class="filter-group"><label>Buscar</label><input type="text" id="filtroBusqueda" placeholder="Nombre o código"></div>
+    </div>
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+  </div>
+
+  <!-- Pestaña: Registro Manual (idéntica) -->
+  <div id="registro" class="tab-pane">
+    <form id="formEstudianteManual" class="estudiante-form">
+      <div class="form-grid"> <!-- (campos iguales, omitidos por brevedad, pero se mantienen) -->
+        <div class="form-group"><label>Código *</label><input type="text" id="codigo" required placeholder="Ej: 2024-001"></div>
+        <div class="form-group"><label>Nombres *</label><input type="text" id="nombres" required></div>
+        <div class="form-group"><label>Apellidos *</label><input type="text" id="apellidos" required></div>
+        <div class="form-group"><label>Documento *</label><input type="text" id="documento" required></div>
+        <div class="form-group"><label>Grado *</label><select id="grado" required><?php for($i=1;$i<=11;$i++) echo "<option value='$i'>$i°</option>"; ?></select></div>
+        <div class="form-group"><label>Grupo *</label><select id="grupo" required></select></div>
+        <div class="form-group"><label>Jornada *</label><select id="jornada"><option>MAÑANA</option><option>TARDE</option></select></div>
+      </div>
+      <button type="submit" class="btn btn-success">💾 Guardar</button>
+    </form>
+  </div>
+
+  <!-- Pestaña: Importar (se mantiene) -->
+  <div id="importar" class="tab-pane">
+    <div class="estudiante-form">
+      <h3>📤 Importar desde Excel</h3>
+      <div class="upload-area" id="dropZone"><input type="file" id="archivoExcel" accept=".xlsx, .xls" style="display: none;"><div class="upload-icon">📁</div><h4>Arrastra tu archivo Excel aquí</h4></div>
+      <div id="importPreview" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Pestaña: Plantilla (se mantiene) -->
+  <div id="plantilla" class="tab-pane">
+    <div class="estudiante-form">
+      <h3>📋 Descargar Plantilla</h3>
+      <button class="btn btn-success" onclick="descargarPlantillaCompleta()">📥 Plantilla Completa</button>
+    </div>
+  </div>
+
+  <!-- Pestaña: Panel del Semillero (DASHBOARD NUEVO) -->
+  <div id="dashboard" class="tab-pane">
+    <div class="filters-row">
+      <div class="filter-group"><label>Filtrar por grado</label><select id="dashboardGrado" onchange="actualizarDashboard()"><option value="todos">Todos</option><?php for($i=1;$i<=11;$i++) echo "<option value='$i'>$i°</option>"; ?></select></div>
+      <div class="filter-group"><label>Simulacro</label><select id="dashboardSimulacro" onchange="actualizarDashboard()"></select></div>
+    </div>
+    <!-- KPIs Principales -->
+    <div class="dashboard-grid">
+      <div class="dashboard-card"><div class="value" id="metricTotalEstudiantes">0</div><div class="label">Estudiantes</div></div>
+      <div class="dashboard-card"><div class="value" id="metricNivelMedio">-</div><div class="label">Nivel Medio</div></div>
+      <div class="dashboard-card"><div class="value" id="metricBrechaCritica">0%</div><div class="label">Brecha N2→N3</div></div>
+      <div class="dashboard-card"><div class="value" id="metricEnN1">0%</div><div class="label">En N1</div></div>
+    </div>
+    <!-- Gráficos -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+      <div class="chart-container"><div class="chart-title">📊 Distribución por Niveles</div><canvas id="chartNiveles"></canvas></div>
+      <div class="chart-container"><div class="chart-title">📈 Migración N2→N3 por Área</div><canvas id="chartMigracion"></canvas></div>
+    </div>
+    <!-- Tabla de Resultados por Área -->
+    <div class="chart-container">
+      <div class="chart-title">📋 Resultados por Área (% en N3 y N4)</div>
+      <table class="data-table" id="tablaResultadosArea">
+        <thead><tr><th>Área</th><th>N1</th><th>N2</th><th>N3</th><th>N4</th><th>% en N3+N4</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Panel de Progreso del Estudiante (NUEVO) -->
+<div id="progressPanel" class="tab-pane" style="display: none;">
+  <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <h2 id="studentProgressTitle">Perfil Cognitivo</h2>
+    <button class="btn" onclick="volverALista()">← Volver</button>
+    <button class="btn btn-success" onclick="generarReporteIndividual()">📄 Reporte PMAP (Excel)</button>
+  </div>
+  <!-- Info Estudiante -->
+  <div class="dashboard-grid" style="grid-template-columns: repeat(4,1fr);">
+    <div class="dashboard-card"><span class="label">Código</span><div class="value" id="infoCodigo">-</div></div>
+    <div class="dashboard-card"><span class="label">Nivel Global</span><div class="value" id="infoNivelGlobal">-</div></div>
+    <div class="dashboard-card"><span class="label">Brecha</span><div class="value" id="infoBrecha">-</div></div>
+    <div class="dashboard-card"><span class="label">Simulacros</span><div class="value" id="infoSimulacros">0</div></div>
+  </div>
+
+  <!-- Selector de Área para ver la Matriz 3x4 -->
+  <div class="filters-row">
+    <div class="filter-group"><label>Ver matriz por área</label><select id="selectorAreaMatriz" onchange="mostrarMatrizArea()">
+      <option value="Lectura Crítica">Lectura Crítica</option>
+      <option value="Matemáticas">Matemáticas</option>
+      <option value="Sociales">Sociales</option>
+      <option value="Ciencias Naturales">Ciencias Naturales</option>
+    </select></div>
+  </div>
+  <!-- La Matriz 3x4 se renderizará aquí -->
+  <div id="matrizContainer" style="background: var(--card); padding: 20px; border-radius: 12px; margin: 20px 0;"></div>
+
+  <!-- PMAP Activo -->
+  <div style="background: var(--card); padding: 20px; border-radius: 12px; border-left: 4px solid var(--accent);">
+    <h3>🧠 PMAP - Plan de Migración Activo</h3>
+    <div id="pmapContainer">Selecciona un estudiante para ver su PMAP.</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===============================
+// NUEVA ESTRUCTURA DE DATOS PARA EL SEMILLERO
+// ===============================
+const STUDENTS_STORAGE_KEY = 'semilleroAlaU_students';
+
+// --- 1. BANCO DE ÍTEMS (Formato FF) ---
+// Versión demo con 10 ítems basados en tu protocolo y la Guía ICFES 2026-1
+const itemBanco = [
+  // Lectura Crítica
+  { id: "LC-C1-N1-001", area: "Lectura Crítica", competencia: "C1", afirmacion: "Identificar información explícita.", evidencia: "Localiza datos en el texto.", nivel: "N1", microhabilidad: "Localizar información explícita", microrutina: "Subrayado dirigido", respuestaCorrecta: "B" },
+  { id: "LC-C2-N2-002", area: "Lectura Crítica", competencia: "C2", afirmacion: "Comprender la articulación del texto.", evidencia: "Relaciona ideas principales.", nivel: "N2", microhabilidad: "Parafrasear ideas", microrutina: "Reescritura conceptual", respuestaCorrecta: "C" },
+  { id: "LC-C3-N3-003", area: "Lectura Crítica", competencia: "C3", afirmacion: "Reflexionar y evaluar el contenido.", evidencia: "Diferencia opinión de evidencia.", nivel: "N3", microhabilidad: "Inferir intención del autor", microrutina: "Análisis de discurso", respuestaCorrecta: "A" },
+  // Matemáticas
+  { id: "MT-C1-N1-004", area: "Matemáticas", competencia: "C1", afirmacion: "Interpretación y representación.", evidencia: "Lee datos en una gráfica.", nivel: "N1", microhabilidad: "Leer información explícita", microrutina: "Lectura de gráficos", respuestaCorrecta: "D" },
+  { id: "MT-C2-N2-005", area: "Matemáticas", competencia: "C2", afirmacion: "Formulación y ejecución.", evidencia: "Aplica una fórmula conocida.", nivel: "N2", microhabilidad: "Seleccionar operación", microrutina: "Identificación de procedimiento", respuestaCorrecta: "B" },
+  { id: "MT-C3-N3-006", area: "Matemáticas", competencia: "C3", afirmacion: "Argumentación.", evidencia: "Justifica un procedimiento.", nivel: "N3", microhabilidad: "Justificar razonamiento", microrutina: "Análisis de errores", respuestaCorrecta: "C" },
+  // Sociales
+  { id: "SO-C1-N1-007", area: "Sociales", competencia: "C1", afirmacion: "Pensamiento social.", evidencia: "Reconoce un hecho histórico.", nivel: "N1", microhabilidad: "Identificar eventos", microrutina: "Línea de tiempo", respuestaCorrecta: "A" },
+  { id: "SO-C2-N2-008", area: "Sociales", competencia: "C2", afirmacion: "Interpretación de perspectivas.", evidencia: "Compara puntos de vista.", nivel: "N2", microhabilidad: "Relacionar hechos con conceptos", microrutina: "Balanza de Actores", respuestaCorrecta: "D" },
+  { id: "SO-C3-N3-009", area: "Sociales", competencia: "C3", afirmacion: "Pensamiento sistémico.", evidencia: "Analiza multicausalidad.", nivel: "N3", microhabilidad: "Analizar causas", microrutina: "Árbol de efectos", respuestaCorrecta: "B" },
+  // Ciencias Naturales
+  { id: "CN-C3-N4-010", area: "Ciencias Naturales", competencia: "C3", afirmacion: "Indagación.", evidencia: "Evalúa una conclusión experimental.", nivel: "N4", microhabilidad: "Evaluar hipótesis", microrutina: "Contraste de evidencia", respuestaCorrecta: "C" }
+];
+
+// --- 2. MODELO DE ESTUDIANTE PARA EL SEMILLERO ---
+let estudiantes = [];
+let estudianteActual = null;
+let simulacroActualId = "SIM-2026-03-15"; // Simulacro de demostración
+
+// Datos de simulacro de ejemplo (para un estudiante)
+const simulacroEjemplo = {
+  id: "SIM-2026-03-15",
+  fecha: "2026-03-15",
+  tipo: "diagnostico",
+  items: itemBanco.map(i => i.id),
+  resultados: {
+    "est_001": { // Resultados para el estudiante de demostración
+      respuestas: {
+        "LC-C1-N1-001": { respuesta: "B", acierto: true }, "LC-C2-N2-002": { respuesta: "A", acierto: false },
+        "LC-C3-N3-003": { respuesta: "A", acierto: true }, "MT-C1-N1-004": { respuesta: "D", acierto: true },
+        "MT-C2-N2-005": { respuesta: "B", acierto: true }, "MT-C3-N3-006": { respuesta: "C", acierto: true },
+        "SO-C1-N1-007": { respuesta: "A", acierto: true }, "SO-C2-N2-008": { respuesta: "A", acierto: false },
+        "SO-C3-N3-009": { respuesta: "B", acierto: true }, "CN-C3-N4-010": { respuesta: "A", acierto: false }
+      }
+    }
+  }
+};
+
+// Función auxiliar para determinar nivel por % de aciertos (regla simple del protocolo)
+function determinarNivelPorAciertos(porcentajeN3, porcentajeN4) {
+  if (porcentajeN4 >= 50) return "N4";
+  if (porcentajeN3 >= 60) return "N3";
+  if (porcentajeN3 >= 30) return "N2";
+  return "N1";
+}
+
+// ===============================
+// FUNCIONES DE INICIALIZACIÓN Y GUARDADO
+// ===============================
+function cargarDatosSistema() {
+  const guardados = localStorage.getItem(STUDENTS_STORAGE_KEY);
+  if (guardados) {
+    estudiantes = JSON.parse(guardados);
+  } else {
+    // Crear un estudiante de demostración
+    estudiantes = [{
+      id: "est_001",
+      datos_basicos: { codigo: "2024-001", nombres: "Ana", apellidos: "Gómez", documento: "123" },
+      ubicacion_academica: { grado: "11", grupo: "11-1", jornada: "MAÑANA" },
+      semillero: {
+        simulacros: ["SIM-2026-03-15"],
+        ultimoDiagnostico: null, // Se calculará al cargar
+        pmap: { objetivo: "", planDeAccion: [], microhabilidadesLogradas: [] }
+      }
+    }];
+    guardarDatosSistema();
+  }
+  // Calcular diagnóstico para el estudiante de demo
+  calcularDiagnosticoEstudiante(estudiantes[0]);
+}
+
+function guardarDatosSistema() {
+  localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(estudiantes));
+}
+
+// ===============================
+// MOTOR ANALÍTICO DEL SEMILLERO
+// ===============================
+
+
+// Calcula la matriz 3x4 para un estudiante en un simulacro dado
+function calcularMatriz3x4(estudianteId, simulacroId) {
+  const estudiante = estudiantes.find(e => e.id === estudianteId);
+  if (!estudiante) return null;
+  const resultadosSim = simulacroEjemplo.resultados[estudianteId]; // Usamos el demo
+  if (!resultadosSim) return null;
+
+  const matriz = {};
+
+  // Función auxiliar para crear la estructura base de una competencia
+  function crearEstructuraCompetencia() {
+    return {
+      N1: { aciertos: 0, total: 0 },
+      N2: { aciertos: 0, total: 0 },
+      N3: { aciertos: 0, total: 0 },
+      N4: { aciertos: 0, total: 0 }
+    };
+  }
+
+  itemBanco.forEach(item => {
+    if (!resultadosSim.respuestas[item.id]) return;
+    const acierto = resultadosSim.respuestas[item.id].acierto;
+    const area = item.area;
+    const comp = item.competencia;
+    const nivel = item.nivel;
+
+    // Inicializar el área si no existe
+    if (!matriz[area]) {
+      matriz[area] = {
+        C1: crearEstructuraCompetencia(),
+        C2: crearEstructuraCompetencia(),
+        C3: crearEstructuraCompetencia()
+      };
+    }
+    
+    // Asegurar que la competencia existe (por si acaso)
+    if (!matriz[area][comp]) {
+      matriz[area][comp] = crearEstructuraCompetencia();
+    }
+
+    matriz[area][comp][nivel].total++;
+    if (acierto) matriz[area][comp][nivel].aciertos++;
+  });
+
+  // Calcular porcentajes
+  Object.keys(matriz).forEach(area => {
+    ['C1', 'C2', 'C3'].forEach(comp => {
+      if (matriz[area][comp]) {
+        ['N1', 'N2', 'N3', 'N4'].forEach(nivel => {
+          let datos = matriz[area][comp][nivel];
+          if (datos) {
+            datos.porcentaje = datos.total > 0 ? Math.round((datos.aciertos / datos.total) * 100) : 0;
+          }
+        });
+      }
+    });
+  });
+
+  return matriz;
+}
+// Actualiza el diagnóstico de un estudiante
+function calcularDiagnosticoEstudiante(estudiante) {
+  const matriz = calcularMatriz3x4(estudiante.id, "SIM-2026-03-15");
+  if (!matriz) return;
+
+  // Calcular % de aciertos en N3 y N4 por área para determinar nivel global
+  let totalN3 = 0, totalN4 = 0, totalItemsN3 = 0, totalItemsN4 = 0;
+  const diagnostico = {
+    fecha: simulacroEjemplo.fecha,
+    nivelGlobal: "N2",
+    brechaPrioritaria: "N2-N3",
+    matrizResultados: matriz,
+    metricasArea: {}
+  };
+
+  Object.keys(matriz).forEach(area => {
+    let aciertosN3 = 0, itemsN3 = 0, aciertosN4 = 0, itemsN4 = 0;
+    ['C1','C2','C3'].forEach(comp => {
+      aciertosN3 += matriz[area][comp].N3.aciertos || 0;
+      itemsN3 += matriz[area][comp].N3.total || 0;
+      aciertosN4 += matriz[area][comp].N4.aciertos || 0;
+      itemsN4 += matriz[area][comp].N4.total || 0;
+    });
+    totalN3 += aciertosN3; totalItemsN3 += itemsN3;
+    totalN4 += aciertosN4; totalItemsN4 += itemsN4;
+    diagnostico.metricasArea[area] = {
+      pctN3: itemsN3 > 0 ? Math.round((aciertosN3 / itemsN3) * 100) : 0,
+      pctN4: itemsN4 > 0 ? Math.round((aciertosN4 / itemsN4) * 100) : 0
+    };
+  });
+
+  const pctGlobalN3 = totalItemsN3 > 0 ? (totalN3 / totalItemsN3) * 100 : 0;
+  const pctGlobalN4 = totalItemsN4 > 0 ? (totalN4 / totalItemsN4) * 100 : 0;
+  diagnostico.nivelGlobal = determinarNivelPorAciertos(pctGlobalN3, pctGlobalN4);
+
+  // Detectar brecha prioritaria (simplificado)
+  if (pctGlobalN3 < 40) diagnostico.brechaPrioritaria = "N2-N3";
+  else if (pctGlobalN4 < 30) diagnostico.brechaPrioritaria = "N3-N4";
+  else diagnostico.brechaPrioritaria = "N4+";
+
+  estudiante.semillero.ultimoDiagnostico = diagnostico;
+  
+  // Generar PMAP basado en el diagnóstico
+  estudiante.semillero.pmap = generarPMAP(estudiante);
+  guardarDatosSistema();
+}
+
+// Genera un PMAP simple basado en el diagnóstico
+function generarPMAP(estudiante) {
+  const diag = estudiante.semillero.ultimoDiagnostico;
+  if (!diag) return { objetivo: "Sin diagnóstico", planDeAccion: [] };
+
+  const plan = [];
+  if (diag.brechaPrioritaria === "N2-N3") {
+    plan.push({ area: "General", microhabilidad: "Inferir relaciones causales", microrutina: "Árbol de efectos", frecuencia: "3/semana" });
+    plan.push({ area: "Lectura Crítica", microhabilidad: "Inferir intención del autor", microrutina: "Análisis de discurso", frecuencia: "2/semana" });
+  } else if (diag.brechaPrioritaria === "N3-N4") {
+    plan.push({ area: "General", microhabilidad: "Evaluar argumentos", microrutina: "Debate estructurado", frecuencia: "2/semana" });
+    plan.push({ area: "Ciencias", microhabilidad: "Evaluar hipótesis", microrutina: "Contraste de evidencia", frecuencia: "2/semana" });
+  }
+
+  return {
+    objetivo: `Migrar de ${diag.nivelGlobal} a ${diag.brechaPrioritaria.split('-')[1]}`,
+    planDeAccion: plan
+  };
+}
+
+// ===============================
+// FUNCIONES DE INTERFAZ (ACTUALIZADAS)
+// ===============================
+
+function actualizarListaEstudiantes() {
+  const lista = document.getElementById('estudiantesList');
+  lista.innerHTML = estudiantes.filter(e => e.activo !== false).map(est => {
+    const nivel = est.semillero?.ultimoDiagnostico?.nivelGlobal || 'N/D';
+    return `
+      <div class="estudiante-card" onclick="seleccionarEstudiante('${est.id}')">
+        <div class="estudiante-nombre">${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}</div>
+        <div class="estudiante-meta">${est.datos_basicos.codigo} • Nivel: <strong>${nivel}</strong></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function seleccionarEstudiante(id) {
+  estudianteActual = estudiantes.find(e => e.id === id);
+  if (estudianteActual) {
+    document.getElementById('studentsPanel').style.display = 'none';
+    document.getElementById('progressPanel').style.display = 'block';
+    actualizarVistaProgreso();
+  }
+}
+
+function actualizarVistaProgreso() {
+  if (!estudianteActual) return;
+  const est = estudianteActual;
+  const diag = est.semillero.ultimoDiagnostico;
+
+  document.getElementById('currentStudentName').textContent = `${est.datos_basicos.nombres} ${est.datos_basicos.apellidos}`;
+  document.getElementById('infoCodigo').textContent = est.datos_basicos.codigo;
+  document.getElementById('infoNivelGlobal').textContent = diag?.nivelGlobal || 'N/D';
+  document.getElementById('infoBrecha').textContent = diag?.brechaPrioritaria || 'N/D';
+  document.getElementById('infoSimulacros').textContent = est.semillero.simulacros.length;
+
+  // Mostrar la matriz del área por defecto (Lectura Crítica)
+  mostrarMatrizArea();
+  mostrarPMAP();
+}
+
+function mostrarMatrizArea() {
+  if (!estudianteActual || !estudianteActual.semillero.ultimoDiagnostico) return;
+  const area = document.getElementById('selectorAreaMatriz').value;
+  const matriz = estudianteActual.semillero.ultimoDiagnostico.matrizResultados[area];
+  if (!matriz) {
+    document.getElementById('matrizContainer').innerHTML = `<p>No hay datos para ${area}</p>`;
+    return;
+  }
+
+  let html = `<h4>${area} - Matriz 3×4 (% de aciertos)</h4><table class="matriz-3x4"><thead><tr><th>Competencia</th><th>N1</th><th>N2</th><th>N3</th><th>N4</th></tr></thead><tbody>`;
+  ['C1','C2','C3'].forEach(comp => {
+    html += `<tr><td class="competencia">${comp}</td>`;
+    ['N1','N2','N3','N4'].forEach(nivel => {
+      let pct = matriz[comp]?.[nivel]?.porcentaje || 0;
+      let clase = pct >= 70 ? 'acierto-alto' : (pct >= 40 ? 'acierto-medio' : 'acierto-bajo');
+      html += `<td class="${clase}">${pct}%</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('matrizContainer').innerHTML = html;
+}
+
+function mostrarPMAP() {
+  if (!estudianteActual) return;
+  const pmap = estudianteActual.semillero.pmap;
+  let html = `<p><strong>Objetivo:</strong> ${pmap.objetivo}</p><ul>`;
+  pmap.planDeAccion.forEach(item => {
+    html += `<li><strong>${item.area}:</strong> ${item.microhabilidad} (${item.microrutina}) - ${item.frecuencia}</li>`;
+  });
+  html += `</ul>`;
+  document.getElementById('pmapContainer').innerHTML = html;
+}
+
+function volverALista() {
+  document.getElementById('studentsPanel').style.display = 'block';
+  document.getElementById('progressPanel').style.display = 'none';
+  actualizarListaEstudiantes();
+}
+
+// ===============================
+// FUNCIONES DE REPORTES (ADAPTADAS)
+// ===============================
+
+function generarReporteIndividual() {
+  if (!estudianteActual) return;
+  const est = estudianteActual;
+  const diag = est.semillero.ultimoDiagnostico;
+
+  const wb = XLSX.utils.book_new();
+  const reporteData = [
+    ['REPORTE PMAP - Semillero AlaU'],
+    [`Estudiante: ${est.datos_basicos.nombres} ${est.datos_basicos.apellidos} (${est.datos_basicos.codigo})`],
+    [`Nivel Global: ${diag?.nivelGlobal}`, `Brecha: ${diag?.brechaPrioritaria}`],
+    [],
+    ['PLAN DE ACCIÓN (PMAP)'],
+    ['Área', 'Microhabilidad', 'Microrutina', 'Frecuencia']
+  ];
+  est.semillero.pmap.planDeAccion.forEach(item => {
+    reporteData.push([item.area, item.microhabilidad, item.microrutina, item.frecuencia]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(reporteData);
+  XLSX.utils.book_append_sheet(wb, ws, "PMAP");
+  XLSX.writeFile(wb, `PMAP_${est.datos_basicos.codigo}.xlsx`);
+  alert('✅ Reporte PMAP generado');
+}
+
+// ===============================
+// FUNCIONES DEL DASHBOARD INSTITUCIONAL (NUEVO)
+// ===============================
+function actualizarDashboard() {
+  const total = estudiantes.length;
+  let sumaNiveles = 0, enN1 = 0, brechaN2N3 = 0;
+  const niveles = { N1:0, N2:0, N3:0, N4:0 };
+
+  estudiantes.forEach(e => {
+    const nivel = e.semillero?.ultimoDiagnostico?.nivelGlobal || 'N1';
+    niveles[nivel] = (niveles[nivel] || 0) + 1;
+  });
+
+  document.getElementById('metricTotalEstudiantes').textContent = total;
+  document.getElementById('metricNivelMedio').textContent = `N2`; // Placeholder
+  document.getElementById('metricEnN1').textContent = total ? `${Math.round((niveles.N1/total)*100)}%` : '0%';
+
+  // Gráfico de distribución por niveles
+  const ctx = document.getElementById('chartNiveles').getContext('2d');
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: ['N1', 'N2', 'N3', 'N4'], datasets: [{ data: [niveles.N1, niveles.N2, niveles.N3, niveles.N4], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e'] }] }
+  });
+
+  // Tabla de resultados por área (simplificada)
+  let tbody = '';
+  ['Lectura Crítica', 'Matemáticas', 'Sociales', 'Ciencias Naturales'].forEach(area => {
+    tbody += `<tr><td>${area}</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td><td>0%</td></tr>`;
+  });
+  document.querySelector('#tablaResultadosArea tbody').innerHTML = tbody;
+}
+
+// ===============================
+// INICIALIZACIÓN
+// ===============================
+function inicializarAplicacion() {
+  cargarDatosSistema();
+  actualizarListaEstudiantes();
+  actualizarDashboard();
+
+  // Event listeners para pestañas
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      document.querySelectorAll('#studentsPanel .tab-pane').forEach(p => p.style.display = 'none');
+      document.getElementById(e.target.dataset.tab).style.display = 'block';
+      if (e.target.dataset.tab === 'dashboard') setTimeout(actualizarDashboard, 100);
+    });
+  });
+
+  // Botones de header (reportes, etc.)
+  document.getElementById('btnReports').addEventListener('click', () => {
+    if (estudianteActual) generarReporteIndividual();
+    else alert('Selecciona un estudiante primero');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', inicializarAplicacion);
+
+// Funciones auxiliares que deben existir (versiones mínimas)
+function cerrarModal(id) { document.getElementById(id).classList.remove('active'); }
+function descargarPlantillaCompleta() { alert('Función de descarga de plantilla'); }
+function generarReporteInstitucional() { alert('Reporte institucional'); }
+function abrirModalReportes() { document.getElementById('modalReportes').classList.add('active'); }
+function abrirModalAlertas() { document.getElementById('modalAlertas').classList.add('active'); }
+function abrirModalConfiguracion() { document.getElementById('modalConfiguracion').classList.add('active'); }
+
+</script>
+
+</body>
+</html>

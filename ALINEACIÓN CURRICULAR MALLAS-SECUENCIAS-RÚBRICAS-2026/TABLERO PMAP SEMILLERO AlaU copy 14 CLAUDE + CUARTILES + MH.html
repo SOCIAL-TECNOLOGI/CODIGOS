@@ -1,0 +1,4922 @@
+TABLERO PMAP ALAU VERSIÓN 12 COPY 3
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>SITE–RUTA LATAM |</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+
+:root {
+
+  --bg: #020617;
+
+  --panel: #0f172a;
+
+  --card: #111827;
+
+  --accent: #38bdf8;
+
+  --accent-soft: rgba(56,189,248,.15);
+
+  --ok: #22c55e;
+
+  --warn: #f97316;
+
+  --danger: #ef4444;
+
+  --text: #e5e7eb;
+
+  --muted: #9ca3af;
+
+  --border: #1f2937;
+
+  --saber: #3b82f6;
+
+  --hacer: #10b981;
+
+  --ser: #8b5cf6;
+
+  --transicion: #f59e0b;
+
+  --primaria: #ef4444;
+
+  --secundaria: #8b5cf6;
+
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+
+  color: var(--text);
+
+  min-height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+}
+
+header {
+
+  padding: 16px 24px;
+
+  border-bottom: 1px solid var(--border);
+
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+
+}
+
+.title-block { display: flex; flex-direction: column; gap: 4px; }
+
+h1 { font-size: 1.4rem; letter-spacing: .03em; }
+
+.subtitle { font-size: .85rem; color: var(--muted); }
+
+.current-student {
+
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.85rem; color: var(--muted);
+
+}
+
+.current-student strong { color: var(--accent); }
+
+.student-management { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.tabs {
+
+  display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+
+}
+
+.tab-btn {
+
+  padding: 8px 16px; border: none; background: transparent; color: var(--muted); cursor: pointer;
+
+  border-bottom: 2px solid transparent; transition: all 0.2s ease; white-space: nowrap;
+
+}
+
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tab-pane { display: none; }
+
+.tab-pane.active { display: block; }
+
+.btn {
+
+  border: none; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
+
+  display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent);
+
+  transition: all 0.2s ease; text-decoration: none;
+
+}
+
+.btn:hover { background: rgba(56,189,248,.25); }
+
+.btn-success { background: rgba(34,197,94,.1); color: var(--ok); }
+
+.btn-success:hover { background: rgba(34,197,94,.2); }
+
+.btn-danger { background: rgba(239,68,68,.1); color: var(--danger); }
+
+.btn-danger:hover { background: rgba(239,68,68,.2); }
+
+.btn-warning { background: rgba(249,115,22,.1); color: var(--warn); }
+
+.btn-warning:hover { background: rgba(249,115,22,.2); }
+
+.estudiante-form { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+
+.form-grid {
+
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;
+
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-group label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+
+.form-group input, .form-group select, .form-group textarea {
+
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+
+  background: var(--panel); color: var(--text); transition: all 0.2s ease;
+
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft);
+
+}
+
+.full-width { grid-column: 1 / -1; }
+
+.upload-area {
+
+  border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px; text-align: center;
+
+  transition: all 0.3s ease; cursor: pointer;
+
+}
+
+.upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: var(--accent-soft); }
+
+.upload-icon { font-size: 3rem; margin-bottom: 12px; }
+
+.table-container { overflow-x: auto; margin: 16px 0; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+
+.data-table th { background: var(--card); color: var(--muted); font-weight: 600; position: sticky; top: 0; }
+
+.data-table tr:hover { background: var(--accent-soft); }
+
+@media (max-width: 900px) {
+  .charts-4col {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .chart-container {
+    height: 220px !important;
+  }
+}
+@media (max-width: 600px) {
+  .charts-4col {
+    grid-template-columns: 1fr !important;
+  }
+}
+.chart-container {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin: 0;
+  height: 260px;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  box-sizing: border-box;
+  cursor: zoom-in;
+  transition: border-color 0.2s;
+}
+.chart-container:hover {
+  border-color: rgba(56,189,248,0.35);
+}
+
+.charts-4col {
+  overflow: hidden;    /* el grid nunca genera scroll horizontal */
+  box-sizing: border-box;
+}
+
+.charts-4col .chart-container canvas {
+  max-width: 100% !important;
+}
+
+.chart-title {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;  /* más pequeño para dejar espacio al gráfico */
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alert { padding: 12px 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid; }
+
+.alert-warning { background: rgba(249,115,22,.1); border-left-color: var(--warn); color: var(--warn); }
+
+.alert-success { background: rgba(34,197,94,.1); border-left-color: var(--ok); color: var(--ok); }
+
+.alert-danger { background: rgba(239,68,68,.1); border-left-color: var(--danger); color: var(--danger); }
+
+.filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+
+.filter-group label { font-size: 0.8rem; color: var(--muted); }
+
+.filter-group select, .filter-group input {
+
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+
+  background: var(--panel); color: var(--text); min-width: 120px;
+
+}
+
+.badge {
+
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px;
+
+  font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent);
+
+}
+
+.badge-success { background: rgba(34,197,94,.1); color: var(--ok); border-color: var(--ok); }
+
+.badge-warning { background: rgba(249,115,22,.1); color: var(--warn); border-color: var(--warn); }
+
+.badge-danger { background: rgba(239,68,68,.1); color: var(--danger); border-color: var(--danger); }
+
+.dashboard-grid {
+
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+
+}
+
+.dashboard-card {
+
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center;
+
+}
+
+.dashboard-card .value { font-size: 2rem; font-weight: bold; margin-bottom: 8px; }
+
+.dashboard-card .label { font-size: 0.85rem; color: var(--muted); }
+
+.estudiantes-grid {
+
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;
+
+}
+
+.estudiante-card {
+
+  background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border);
+
+  cursor: pointer; transition: all 0.3s ease;
+
+}
+
+.estudiante-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+.estudiante-card.active { border-color: var(--accent); background: var(--accent-soft); }
+
+.estudiante-info { margin-bottom: 12px; }
+
+.estudiante-nombre { font-weight: 600; margin-bottom: 4px; }
+
+.estudiante-meta { font-size: 0.8rem; color: var(--muted); }
+
+.modal {
+
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+  background: rgba(2,6,23,0.8); z-index: 1000; align-items: center; justify-content: center;
+
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+
+  background: var(--panel); border-radius: 12px; padding: 24px; max-width: 90%;
+
+  max-height: 90%; overflow: auto; border: 1px solid var(--border); position: relative;
+
+}
+
+.modal-close {
+
+  position: absolute; top: 16px; right: 16px; background: none; border: none;
+
+  color: var(--muted); font-size: 1.5rem; cursor: pointer;
+
+}
+
+.modal-close:hover { color: var(--text); }
+
+/* ===== MAPA DE CALOR - SIN DESBORDAMIENTO ===== */
+
+.heatmap-wrapper {
+
+  width: 100%;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+
+}
+
+.heatmap-scroll-inner {
+
+  min-width: 900px; /* permite scroll en móvil sin romper layout */
+
+}
+
+.heatmap-fila {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 8px;
+
+}
+
+.heatmap-label {
+
+  min-width: 150px;
+
+  max-width: 150px;
+
+  background: var(--card);
+
+  border: 1px solid var(--border);
+
+  border-radius: 10px;
+
+  padding: 8px 10px;
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+
+  color: var(--muted);
+
+  text-align: center;
+
+  flex-shrink: 0;
+
+}
+
+.heatmap-pills {
+
+  display: flex;
+
+  gap: 6px;
+
+  flex: 1;
+
+}
+
+.heatmap-pill-p {
+
+  flex: 1;
+
+  min-width: 0;
+
+  background: var(--accent-soft);
+
+  border: 1px solid var(--accent);
+
+  border-radius: 20px;
+
+  padding: 6px 2px;
+
+  text-align: center;
+
+  font-size: 0.7rem;
+
+  font-weight: 600;
+
+  color: var(--accent);
+
+  line-height: 1.3;
+
+}
+
+.heatmap-pill-n {
+
+  flex: 1;
+
+  min-width: 0;
+
+  border-radius: 12px;
+
+  padding: 6px 2px;
+
+  text-align: center;
+
+  font-size: 0.75rem;
+
+  font-weight: 600;
+
+}
+
+.heatmap-pill-n.n1 { background: rgba(239,68,68,.2); color: var(--danger); }
+
+.heatmap-pill-n.n2 { background: rgba(249,115,22,.2); color: var(--warn); }
+
+.heatmap-pill-n.n3 { background: rgba(56,189,248,.2); color: var(--accent); }
+
+.heatmap-pill-n.n4 { background: rgba(34,197,94,.2); color: var(--ok); }
+
+.heatmap-oval {
+
+  flex: 1;
+
+  min-width: 0;
+
+  aspect-ratio: 1;
+
+  max-width: 44px;
+
+  margin: 0 auto;
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 1rem;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  border: 2px solid transparent;
+
+  transition: transform 0.15s ease;
+
+}
+
+.heatmap-oval:hover { transform: scale(1.15); }
+
+.heatmap-oval.correcto { background: rgba(34,197,94,.2); color: var(--ok); border-color: var(--ok); }
+
+.heatmap-oval.incorrecto { background: rgba(239,68,68,.2); color: var(--danger); border-color: var(--danger); }
+
+.heatmap-leyenda {
+
+  display: flex; gap: 24px; margin-top: 16px; padding-top: 14px;
+
+  border-top: 1px solid var(--border); flex-wrap: wrap;
+
+}
+
+.heatmap-leyenda-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+
+.dot { width: 14px; height: 14px; border-radius: 50%; }
+
+/* ===== MATRIZ 3×4 - SIN DESBORDAMIENTO ===== */
+
+.matriz3x4-wrapper {
+
+  background: var(--panel);
+
+  border: 1px solid var(--border);
+
+  border-radius: 16px;
+
+  padding: 20px;
+
+  margin: 20px 0;
+
+}
+
+.matriz3x4-titulo {
+
+  color: var(--accent);
+
+  font-size: 1rem;
+
+  font-weight: 600;
+
+  margin-bottom: 16px;
+
+}
+
+.matriz3x4-table {
+
+  width: 100%;
+
+  border-collapse: separate;
+
+  border-spacing: 6px;
+
+}
+
+.matriz3x4-table th {
+
+  background: var(--card);
+
+  border: 1px solid var(--border);
+
+  border-radius: 8px;
+
+  padding: 10px 8px;
+
+  text-align: center;
+
+  font-size: 0.85rem;
+
+  color: var(--muted);
+
+  font-weight: 600;
+
+}
+
+.matriz3x4-table th:first-child { text-align: left; }
+
+.matriz3x4-table td {
+
+  background: var(--card);
+
+  border: 1px solid var(--border);
+
+  border-radius: 8px;
+
+  padding: 12px 8px;
+
+  text-align: center;
+
+  font-weight: bold;
+
+  font-size: 0.95rem;
+
+}
+
+.matriz3x4-table td:first-child {
+
+  text-align: left;
+
+  font-size: 0.82rem;
+
+  min-width: 140px;
+
+}
+
+.comp-key { font-weight: 700; display: block; margin-bottom: 2px; }
+
+.comp-desc { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+
+.pct-alto { background: rgba(34,197,94,.2) !important; color: var(--ok) !important; }
+
+.pct-medio { background: rgba(249,115,22,.2) !important; color: var(--warn) !important; }
+
+.pct-bajo { background: rgba(239,68,68,.2) !important; color: var(--danger) !important; }
+
+.pct-vacio { background: rgba(100,100,100,.1) !important; color: var(--muted) !important; }
+
+.matriz3x4-leyenda {
+
+  display: flex; gap: 20px; margin-top: 16px; padding-top: 14px;
+
+  border-top: 1px solid var(--border); flex-wrap: wrap; font-size: 0.82rem;
+
+}
+
+/* Tarjetas info estudiante */
+
+.info-tarjetas {
+
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+
+}
+
+.info-tarjeta {
+
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+
+}
+
+.info-tarjeta .titulo { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; }
+
+.info-tarjeta .valor { font-size: 2rem; font-weight: bold; }
+
+.info-tarjeta .subtitulo { color: var(--muted); font-size: 0.9rem; }
+
+/* micro prioritarias */
+
+.micro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+
+.micro-card {
+
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+
+  border-left: 4px solid var(--danger);
+
+}
+
+/* card genérica */
+
+.card {
+
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+
+  padding: 20px; margin-bottom: 16px;
+
+}
+
+.table-wrap { overflow-x: auto; }
+
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+
+.table-wrap th, .table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+
+.table-wrap th { background: var(--panel); color: var(--muted); font-weight: 600; }
+
+/* pmap */
+
+.pmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 16px; }
+
+.pmap-card {
+
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+
+  transition: all 0.2s;
+
+}
+
+.pmap-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.pmap-priority {
+
+  display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;
+
+  text-transform: uppercase; margin-bottom: 10px;
+
+}
+
+.priority-high { background: rgba(239,68,68,.2); color: var(--danger); }
+
+.priority-medium { background: rgba(249,115,22,.2); color: var(--warn); }
+
+.priority-low { background: rgba(56,189,248,.2); color: var(--accent); }
+
+.notice { background: var(--panel); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.82rem; margin: 10px 0; }
+
+.small { font-size: 0.82rem; } .muted { color: var(--muted); }
+
+.actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+
+  .form-grid { grid-template-columns: 1fr; }
+
+  .estudiantes-grid { grid-template-columns: 1fr; }
+
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+
+  header { flex-direction: column; align-items: flex-start; }
+
+  .filters-row { flex-direction: column; align-items: stretch; }
+
+  .filter-group { width: 100%; }
+
+}
+
+@media (max-width: 480px) {
+
+  .dashboard-grid { grid-template-columns: 1fr; }
+
+  .tabs { flex-direction: column; }
+
+  .tab-btn { text-align: left; }
+
+}
+
+
+/* ── Mejora 3.4: Motor de Cuartiles PMAP ── */
+.cuartil-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 6px; margin-top: 10px;
+}
+.cuartil-cell {
+  height: 52px; border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700;
+  cursor: default; transition: transform 0.15s;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.cuartil-cell:hover { transform: scale(1.08); }
+.cuartil-cell .q-label { font-size: 0.58rem; color: rgba(255,255,255,0.6); margin-top: 2px; }
+/* Q4(alto/dominio)=verde → Q1(bajo/dificultad)=rojo */
+.cq4 { background: rgba(34,197,94,0.25); color: #4ade80; }
+.cq3 { background: rgba(56,189,248,0.2); color: #7dd3fc; }
+.cq2 { background: rgba(249,115,22,0.25); color: #fb923c; }
+.cq1 { background: rgba(239,68,68,0.3); color: #f87171; }
+.cq-empty { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.2); }
+.estado-pmap-badge {
+  display: inline-block; padding: 4px 12px;
+  border-radius: 999px; font-size: 0.72rem; font-weight: 700; margin-top: 8px;
+}
+.ep-dominio     { background: rgba(34,197,94,0.2);  color: #4ade80; }
+.ep-comprension { background: rgba(56,189,248,0.2); color: #7dd3fc; }
+.ep-impulsivo   { background: rgba(249,115,22,0.2); color: #fb923c; }
+.ep-dificultad  { background: rgba(239,68,68,0.2);  color: #f87171; }
+.cuartil-leyenda { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 0.68rem; }
+.cuartil-leyenda span { display: flex; align-items: center; gap: 4px; }
+.cuartil-leyenda .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- ═══ MODAL GRÁFICO AMPLIADO ═══ -->
+<div id="chartModal" style="display:none;position:fixed;inset:0;z-index:50000;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;box-sizing:border-box;" onclick="if(event.target===this)cerrarChartModal()">
+  <div id="chartModalBox" style="background:#1e293b;border:1px solid #334155;border-radius:16px;padding:28px 24px 16px;width:min(92vw,920px);height:min(85vh,600px);display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.8);position:relative;">
+    <button id="chartModalClose" onclick="cerrarChartModal()" title="Cerrar (Esc)" style="position:absolute;top:10px;right:12px;background:rgba(255,255,255,0.1);border:none;color:#e5e7eb;border-radius:8px;width:30px;height:30px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    <div id="chartModalTitle" style="font-size:0.95rem;font-weight:700;color:#e5e7eb;margin-bottom:14px;padding-right:40px;">Gráfico</div>
+    <canvas id="chartModalInner" style="flex:1;min-height:0;"></canvas>
+    <div id="chartModalHint" style="font-size:0.68rem;color:#64748b;text-align:center;margin-top:8px;">Presiona Esc o clic fuera para cerrar</div>
+  </div>
+</div>
+
+<div id="modalDimension" class="modal"><div class="modal-content"><button class="modal-close" onclick="cerrarModal('modalDimension')">×</button><h3>Detalles</h3><div id="modalDimensionContent"></div></div></div>
+
+<!-- MODAL REINICIO -->
+
+<div id="modalReinicio" class="modal">
+
+  <div class="modal-content" style="max-width:420px; text-align:center;">
+
+    <div style="font-size:3rem; margin-bottom:16px;">⚠️</div>
+
+    <h3 style="margin-bottom:10px;">¿Reiniciar la aplicación?</h3>
+
+    <p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px; line-height:1.6;">
+
+      Esta acción borrará <strong style="color:var(--danger);">todos los datos</strong> almacenados localmente:<br>
+
+      evaluación aplicada, ZipGrade, banco FCRI y diagnósticos procesados.<br><br>
+
+      <strong>Esta acción no se puede deshacer.</strong>
+
+    </p>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+
+      <button class="btn" onclick="cerrarModal('modalReinicio')" style="min-width:120px;">Cancelar</button>
+
+      <button class="btn btn-danger" onclick="ejecutarReinicio()" style="min-width:120px;">🗑️ Sí, reiniciar</button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<header>
+
+  <div class="title-block">
+
+    <h1>🎯 SITE–RUTA LATAM |</h1>
+
+    <div class="subtitle">• 240/240 • PMAP • Banco FCRI</div>
+
+    <div class="current-student">
+
+      <span>Estudiante actual:</span><strong id="currentStudentName">Selecciona un estudiante</strong>
+
+    </div>
+
+  </div>
+
+  <div class="student-management">
+
+    <button class="btn btn-success" onclick="volverALista()">👥 Gestionar Estudiantes</button>
+
+    <button class="btn" onclick="alert('En construcción')">📊 Reportes</button>
+
+    <button class="btn" onclick="alert('En construcción')">🚨 Alertas</button>
+
+    <button class="btn btn-danger" onclick="confirmarReinicio()" title="Borra todos los datos y reinicia la app">🗑️ Reiniciar app</button>
+
+  </div>
+
+</header>
+
+<main style="padding: 20px; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%;">
+
+<!-- PANEL PRINCIPAL -->
+
+<div id="studentsPanel">
+
+  <div class="tabs">
+
+    <button class="tab-btn active" data-tab="lista">📋 Lista del Semillero</button>
+
+    <button class="tab-btn" data-tab="aplicada">📋 Evaluación aplicada</button>
+
+    <button class="tab-btn" data-tab="zipgrade">📤 ZipGrade</button>
+
+    <button class="tab-btn" data-tab="diagnostico">📈 Diagnóstico grupal</button>
+
+    <button class="tab-btn" data-tab="pmap">🧠 PMAP</button>
+
+    <button class="tab-btn" data-tab="banco">📚 Banco FCRI</button>
+
+  </div>
+
+  <div id="lista" class="tab-pane active">
+
+    <div class="filters-row">
+
+      <div class="filter-group"><label>Institución</label><input type="text" id="filtroInstitucion" placeholder="Filtrar institución"></div>
+
+      <div class="filter-group"><label>Grado</label><select id="filtroGrado"><option value="todos">Todos</option><option value="9">9°</option><option value="10">10°</option><option value="11">11°</option></select></div>
+
+      <div class="filter-group"><label>Grupo</label><select id="filtroGrupo"><option value="todos">Todos</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+
+      <div class="filter-group"><label>Buscar</label><input type="text" id="filtroBusqueda" placeholder="Nombre o código"></div>
+
+      <button class="btn btn-success" onclick="aplicarFiltros()">🔍 Filtrar</button>
+
+    </div>
+
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0; flex-wrap:wrap; gap:10px;">
+
+      <div style="font-size:0.85rem; color:var(--muted);">
+
+        Mostrando <strong id="paginationFrom">0</strong>–<strong id="paginationTo">0</strong>
+
+        de <strong id="totalStudentsCount">0</strong> estudiantes
+
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+
+        <label style="font-size:0.8rem; color:var(--muted);">Por página:</label>
+
+        <select id="pageSize" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:0.82rem;">
+
+          <option value="8">8</option>
+          <option value="12">12</option>
+          <option value="16" selected>16 (tamizaje completo)</option>
+          <option value="20">20</option>
+          <option value="24">24</option>
+          <option value="32">32</option>
+          <option value="48">48 (3 competencias Saber 11)</option>
+
+          <option value="48">48</option>
+
+          <option value="999">Todos</option>
+
+        </select>
+
+        <button class="btn" id="btnPrimera" onclick="irAPagina(1)" title="Primera página">«</button>
+
+        <button class="btn" id="btnAnterior" onclick="irAPagina(paginaActual-1)" title="Anterior">‹</button>
+
+        <div id="paginaBtns" style="display:flex; gap:4px;"></div>
+
+        <button class="btn" id="btnSiguiente" onclick="irAPagina(paginaActual+1)" title="Siguiente">›</button>
+
+        <button class="btn" id="btnUltima" onclick="irAPagina(totalPaginas)" title="Última página">»</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="aplicada" class="tab-pane">
+
+    <div class="card">
+
+      <h3>Evaluación aplicada (<span id="nPreguntasLabel">16</span> preguntas)</h3>
+
+      <div class="notice">Pega la tabla con 11 columnas: ID | # | Respuesta | Contenido del ítem | Área conceptual | Competencia ICFES | Tipo evidencia | Nivel | Verbo | Microhabilidad | Microrutina</div>
+
+      <textarea id="textoAplicada" style="height:200px; width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px;"></textarea>
+
+      <div class="actions">
+
+        <button class="btn btn-success" id="cargarAplicadaBtn">📥 Cargar evaluación</button>
+
+        <button class="btn" onclick="document.getElementById('tablaAplicada').innerHTML=''">🗑️ Limpiar</button>
+
+      </div>
+
+      <div id="aplicadaResumen" class="small muted" style="margin:8px 0;"></div>
+
+      <div class="table-wrap"><table id="tablaAplicada"></table></div>
+
+    </div>
+
+  </div>
+
+  <div id="zipgrade" class="tab-pane">
+
+    <div class="card">
+
+      <h3>ZipGrade</h3>
+
+      <input type="file" id="archivoZip" accept=".xlsx,.xls,.csv" style="color:var(--text);">
+
+      <div class="actions"><div style="margin:10px 0 14px;padding:10px 14px;background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.2);border-radius:8px;display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="usaCronometriaCheck" onchange="_usaCronometria=this.checked" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;">
+    <div>
+      <label for="usaCronometriaCheck" style="font-size:0.82rem;font-weight:600;color:var(--text);cursor:pointer;">⏱ Esta prueba se aplicó con cronometría</label>
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;">Sin cronometría el sistema diagnostica solo por acierto/error. Con cronometría se añade el tipo de respuesta: AR · AL · ER · EL</div>
+    </div>
+  </div>
+  <button class="btn btn-success" id="leerZipBtn">📄 Leer ZipGrade</button></div>
+
+      <div id="zipResumen" class="small muted"></div>
+
+      <div class="table-wrap"><table id="tablaZip"></table></div>
+
+    </div>
+
+  </div>
+
+  <div id="diagnostico" class="tab-pane">
+
+    <div class="card">
+
+      <h3>Diagnóstico grupal</h3>
+
+      
+  <!-- ═══ FILTROS AVANZADOS PMAP ═══ -->
+  <div class="card" id="cardFiltrosAvanzados" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;"
+         onclick="toggleFiltrosAvanzados()">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:0.85rem;font-weight:700;">🔬 Filtros avanzados</span>
+        <span id="badgeFiltrosActivos" style="display:none;background:rgba(56,189,248,0.2);color:#7dd3fc;border-radius:999px;padding:2px 8px;font-size:0.68rem;font-weight:700;"></span>
+      </div>
+      <span id="iconoFiltrosAvanzados" style="font-size:0.85rem;color:var(--muted);">▼</span>
+    </div>
+
+    <div id="panelFiltrosAvanzados" style="display:none;margin-top:14px;display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
+
+        <!-- Filtro ZDR -->
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">ZDR (nivel de dominio)</label>
+          <select id="filtroZDRSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="">Todos</option>
+            <option value="N1">N1 — Dificultad</option>
+            <option value="N2">N2 — Básico</option>
+            <option value="N3">N3 — Medio</option>
+            <option value="N4">N4 — Avanzado</option>
+          </select>
+        </div>
+
+        <!-- Filtro Estado PMAP -->
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">Estado PMAP</label>
+          <select id="filtroEstadoSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="">Todos</option>
+            <option value="dominio_consolidado">✅ Dominio consolidado</option>
+            <option value="comprension_no_automatizada">🔵 Comprensión no automatizada</option>
+            <option value="error_impulsivo">⚡ Error impulsivo</option>
+            <option value="dificultad_estructural">🔴 Dificultad estructural</option>
+          </select>
+        </div>
+
+        <!-- Filtro Patrón PMAP (nivel del patrón) -->
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">Nivel del patrón PMAP</label>
+          <select id="filtroPatronNivelSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="">Todos</option>
+            <option value="N1">N1</option>
+            <option value="N2">N2</option>
+            <option value="N3">N3</option>
+            <option value="N4">N4</option>
+          </select>
+        </div>
+
+        <!-- Filtro Cuartil del patrón -->
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">Cuartil del patrón</label>
+          <select id="filtroPatronCuartilSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="">Todos</option>
+            <option value="Q1">Q1 — Dificultad estructural</option>
+            <option value="Q2">Q2 — Error impulsivo</option>
+            <option value="Q3">Q3 — Comprensión no automatizada</option>
+            <option value="Q4">Q4 — Dominio consolidado</option>
+          </select>
+        </div>
+
+        <!-- Filtro rango % aciertos -->
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">% aciertos (mínimo)</label>
+          <select id="filtroPctMinSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="0">Sin límite inferior</option>
+            <option value="40">≥ 40%</option>
+            <option value="60">≥ 60%</option>
+            <option value="75">≥ 75%</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.68rem;color:var(--muted);display:block;margin-bottom:4px;">% aciertos (máximo)</label>
+          <select id="filtroPctMaxSelect" onchange="actualizarFiltrosMultiples()"
+            style="width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:0.78rem;">
+            <option value="100">Sin límite superior</option>
+            <option value="39">≤ 39%</option>
+            <option value="59">≤ 59%</option>
+            <option value="74">≤ 74%</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button onclick="limpiarTodosFiltros()"
+          style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:8px;padding:5px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+          ✕ Limpiar todos los filtros
+        </button>
+        <div id="resumenFiltros" style="font-size:0.7rem;color:var(--muted);"></div>
+      </div>
+    </div>
+  </div>
+
+      <div class="actions"><button class="btn btn-success" id="procesarDiagnosticoBtn">🚀 Procesar motor</button></div>
+
+    </div>
+
+    <div class="dashboard-grid" id="metricasGrupo">
+
+      <div class="dashboard-card"><div class="value" id="mEstudiantes">0</div><div class="label">Estudiantes</div></div>
+
+      <div class="dashboard-card"><div class="value" id="mPromedio">0%</div><div class="label">Promedio grupo</div></div>
+
+      <div class="dashboard-card" title="ZDR más frecuente en el grupo: nivel de dominio real (≥60% aciertos) que más se repite entre los estudiantes"><div class="value" id="mNivel">-</div><div class="label">ZDR grupal (moda)</div></div>
+
+      <div class="dashboard-card" title="Rango entre el ZDR mínimo y máximo del grupo. Indica la dispersión de dominio real entre los estudiantes."><div class="value" id="mBrecha">-</div><div class="label">Brecha ZDR grupal</div></div>
+
+    </div>
+
+    <!-- Banners fuera del grid para no desplazar gráficos -->
+    <div id="metaPruebaBar" style="display:none;font-size:0.75rem;color:var(--muted);padding:6px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:8px;align-items:center;gap:8px;flex-wrap:wrap;"></div>
+    <div id="labelFiltroZDR" style="font-size:0.72rem;color:var(--muted);text-align:center;padding:4px 0;margin-bottom:8px;"></div>
+
+    <!-- Grid de 4 gráficos: siempre 2×2 en pantallas medianas, 4 en fila en grandes -->
+    <div class="charts-4col" style="display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; overflow:hidden;">
+
+      <div class="chart-container"><div class="chart-title">Errores por pregunta</div><canvas id="chartErrores"></canvas></div>
+
+      <div class="chart-container"><div class="chart-title">Distribución por niveles</div><canvas id="chartNiveles"></canvas></div>
+
+      <div class="chart-container"><div class="chart-title">Desempeño por competencia</div><canvas id="chartCompetencias"></canvas></div>
+
+      <div class="chart-container"><div class="chart-title">Top microhabilidades críticas</div><canvas id="chartMicro"></canvas></div>
+
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+
+      <h4>Resultados por estudiante</h4>
+
+      <div class="table-wrap"><table id="tablaDiagnostico"></table></div>
+      <div id="notaTablaDiagnostico"></div>
+
+    </div>
+
+  </div>
+
+  <div id="pmap" class="tab-pane">
+
+    <div class="card">
+
+      <h3>PMAP y adaptativo local</h3>
+
+      <div class="notice">El sistema prioriza microhabilidad → microrutina → nivel meta</div>
+
+      <div class="actions"><button class="btn btn-success" id="generarPmapBtn">🧠 Generar PMAP</button></div>
+
+      <div class="table-wrap"><table id="tablaPmap"></table></div>
+
+    </div>
+
+  </div>
+
+  <div id="banco" class="tab-pane">
+
+    <div class="card">
+
+      <h3>Banco FCRI</h3>
+
+      <div class="small muted" style="margin-bottom:8px;">Pega tabla con 11 encabezados (igual que evaluación aplicada).</div>
+
+      <textarea id="textoFcri" style="height:180px; width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px;"></textarea>
+
+      <div class="actions">
+
+        <button class="btn btn-success" id="cargarFcriBtn">📥 Cargar FCRI</button>
+
+        <button class="btn btn-warning" id="exportarBancoBtn">📤 Exportar JSON</button>
+
+      </div>
+
+      <div id="bancoResumen" class="small muted"></div>
+
+      <div class="table-wrap"><table id="tablaBanco"></table></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- PANEL INDIVIDUAL DEL ESTUDIANTE -->
+
+<div id="progressPanel" style="display:none;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+
+    <h2 id="studentProgressTitle">Perfil cognitivo</h2>
+
+    <div style="display:flex; gap:8px;">
+
+      <button class="btn" onclick="volverALista()">← Volver a la lista</button>
+
+      <button class="btn btn-success" onclick="generarReporteIndividual()">📄 Reporte Excel</button>
+
+    </div>
+
+  </div>
+
+  <div class="info-tarjetas">
+
+    <div class="info-tarjeta"><div class="titulo">% aciertos</div><div class="valor" id="infoPct">-</div></div>
+
+    <div class="info-tarjeta" title="Nivel más alto donde el estudiante muestra dominio real ≥60% de aciertos">
+      <div class="titulo">ZDR – Nivel de dominio</div>
+      <div class="valor" id="infoZDR" style="color:var(--accent);">-</div>
+    </div>
+
+    <div class="info-tarjeta" title="Siguiente nivel alcanzable en la taxonomía N1→N4">
+      <div class="titulo">ZDP – Próximo nivel</div>
+      <div class="valor" id="infoZDP">-</div>
+    </div>
+
+    <div class="info-tarjeta" title="Patrón cognitivo más frecuente: cruza velocidad × acierto × nivel del ítem. Distinto del ZDR.">
+      <div class="titulo">Patrón PMAP</div>
+      <div class="valor" id="infoCuartilDominante" style="font-size:1.1rem;">-</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:2px;" id="infoPatronLabel">—</div>
+    </div>
+
+    <div class="info-tarjeta">
+      <div class="titulo">Nivel prueba</div>
+      <div class="valor" id="infoNivelGlobal" style="font-size:1rem;">-</div>
+    </div>
+
+  </div>
+
+  <!-- NOTA ACLARATORIA ZDR vs PATRÓN PMAP -->
+  <div style="font-size:0.72rem;color:var(--muted);padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid var(--accent);margin-bottom:12px;line-height:1.6;">
+    <strong style="color:var(--text);">📌 Cómo leer estas tarjetas:</strong>
+    <span style="display:block;margin-top:3px;">
+      <strong>ZDR</strong> = nivel más alto donde el estudiante alcanzó ≥60% de aciertos (dominio real por nivel).
+      <strong>ZDP</strong> = siguiente nivel en la taxonomía.
+      <strong>Patrón PMAP</strong> = combinación velocidad × acierto más frecuente en toda la prueba — puede estar en un nivel distinto al ZDR.
+      Un estudiante puede tener <em>ZDR = N4</em> y <em>Patrón = N1Q3</em> si respondió más preguntas de N1 que de N4.
+    </span>
+  </div>
+
+  <!-- MAPA DE CALOR -->
+
+  <div class="card">
+
+    <h3 style="margin-bottom:16px;">📊 Mapa de calor respuestas</h3>
+
+    <div id="heatmapIndividual"></div>
+
+  </div>
+
+  <!-- MICROHABILIDADES PRIORITARIAS -->
+
+  <div class="card">
+
+    <h3 style="margin-bottom:16px;">🎯 Microhabilidades prioritarias</h3>
+
+    <div id="microPrioritarias" class="micro-grid"></div>
+
+  </div>
+
+  <!-- MATRIZ 3×4 -->
+
+  <div class="card">
+
+    <h3 style="margin-bottom:16px;">📐 Matriz 3×4 (% de aciertos por competencia y nivel)</h3>
+
+    <div id="matrizIndividual"></div>
+
+  </div>
+
+  <!-- SUGERENCIAS INDIVIDUALES AUTOMÁTICAS -->
+    <div class="card" style="margin-top:20px;">
+      <h4 style="margin-bottom:8px;font-size:0.85rem;">🤖 Microrutinas sugeridas para este estudiante</h4>
+      <div id="panelSugerenciasIndividual">
+        <div class="muted small">Cargando sugerencias...</div>
+      </div>
+    </div>
+
+    <!-- PANEL CUARTILES PMAP — Mejora 3.4 -->
+    <div class="card" style="margin-top:16px;padding:14px;">
+      <div class="card" style="margin-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <h4 style="font-size:0.85rem;margin:0;">🤖 Sugerencias de intervención automáticas</h4>
+        <button onclick="renderSugerenciasAutomaticas(resultadosMotor)"
+          style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);color:#7dd3fc;border-radius:8px;padding:4px 12px;font-size:0.72rem;font-weight:600;cursor:pointer;">
+          🔄 Actualizar
+        </button>
+      </div>
+      <div id="panelSugerenciasAuto">
+        <div class="muted small">Procesa el diagnóstico para ver sugerencias de microrutinas.</div>
+      </div>
+    </div>
+
+    <div id="coberturaTamizaje">
+        <div class="muted small">Procesa una evaluación para ver la cobertura de tamizaje N×Q.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;padding:14px;">
+      <h4 style="margin-bottom:8px;font-size:0.85rem;">🗺️ Contexto Territorial GAGEM5</h4>
+      <div id="panelGAGEM5"><div class="muted small">Procesa una evaluación para ver el contexto territorial.</div></div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h4 style="margin-bottom:4px;">📊 Motor de Cuartiles PMAP</h4>
+      <p class="small muted" style="margin-bottom:12px;">
+        Posición N1Q1→N4Q4 cruzando velocidad × acierto × nivel del ítem.
+      </p>
+      <div id="panelCuartilesPMAP">
+        <div class="muted small">Selecciona un estudiante para ver su posición en cuartiles.</div>
+      </div>
+    </div>
+
+    <!-- RECOMENDACIONES PMAP -->
+
+  <div class="card">
+
+    <h3 style="margin-bottom:16px;">🧠 Recomendaciones PMAP</h3>
+
+    <div id="recomendacionesPMAP" class="pmap-grid"></div>
+
+  </div>
+
+  <!-- NARRATIVA IA -->
+
+  <div class="card" id="cardNarrativa">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+
+      <div>
+
+        <h3 style="margin-bottom:4px;">✨ Narrativa PMAP para el docente</h3>
+
+        <div class="small muted">Generada por IA a partir del perfil cognitivo del estudiante</div>
+
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+
+        <select id="toneNarrativa" style="padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:0.82rem;">
+
+          <option value="docente">📚 Para el docente</option>
+
+          <option value="padre">👨‍👩‍👧 Para el padre de familia</option>
+
+          <option value="estudiante">🎓 Para el estudiante</option>
+
+          <option value="coordinador">📋 Para el coordinador</option>
+
+        </select>
+
+        <button class="btn btn-success" id="btnNarrativa" onclick="generarNarrativaPMAP()">
+
+          ✨ Generar narrativa
+
+        </button>
+
+        <button class="btn" id="btnCopiarNarrativa" style="display:none;" onclick="copiarNarrativa()">
+
+          📋 Copiar
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- Estado: vacío -->
+
+    <div id="narrativaVacia" style="border:2px dashed var(--border); border-radius:12px; padding:40px 20px; text-align:center; color:var(--muted);">
+
+      <div style="font-size:2.5rem; margin-bottom:12px;">🤖</div>
+
+      <div style="font-size:0.95rem;">Haz clic en <strong style="color:var(--accent);">Generar narrativa</strong> para obtener una recomendación pedagógica en lenguaje natural.</div>
+
+      <div class="small muted" style="margin-top:8px;">La IA analizará el mapa de calor, la ZDR/ZDP y las microhabilidades críticas del estudiante.</div>
+
+    </div>
+
+    <!-- Estado: cargando -->
+
+    <div id="narrativaCargando" style="display:none; padding:30px; text-align:center;">
+
+      <div class="loading-dots" style="display:inline-flex; gap:6px; margin-bottom:16px;">
+
+        <span class="dot-pulse"></span><span class="dot-pulse" style="animation-delay:.2s"></span><span class="dot-pulse" style="animation-delay:.4s"></span>
+
+      </div>
+
+      <div class="small muted" id="narrativaStatus">Analizando perfil cognitivo...</div>
+
+    </div>
+
+    <!-- Estado: resultado -->
+
+    <div id="narrativaResultado" style="display:none;">
+
+      <div id="narrativaTexto" style="
+
+        background: linear-gradient(135deg, rgba(56,189,248,.05), rgba(139,92,246,.05));
+
+        border: 1px solid rgba(56,189,248,.2);
+
+        border-radius: 12px;
+
+        padding: 24px;
+
+        line-height: 1.75;
+
+        font-size: 0.95rem;
+
+        white-space: pre-wrap;
+
+      "></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+
+        <div class="small muted" id="narrativaMeta"></div>
+
+        <button class="btn btn-warning small" onclick="generarNarrativaPMAP()" style="font-size:0.78rem; padding:5px 12px;">🔄 Regenerar</button>
+
+      </div>
+
+    </div>
+
+    <!-- Estado: error -->
+
+    <div id="narrativaError" style="display:none;" class="alert alert-danger"></div>
+
+  </div>
+
+</div>
+
+<style>
+
+.dot-pulse {
+
+  width: 10px; height: 10px; border-radius: 50%;
+
+  background: var(--accent);
+
+  display: inline-block;
+
+  animation: pulse 1.2s ease-in-out infinite;
+
+}
+
+@keyframes pulse {
+
+  0%,100%{opacity:.2;transform:scale(.8);}
+
+  50%{opacity:1;transform:scale(1.2);}
+
+}
+
+</style>
+
+</main>
+
+<script>
+
+// ── cerrarModal: al inicio del script para evitar ReferenceError ──
+function cerrarModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+
+
+// ===================================================
+
+// DATOS Y ESTADO
+
+// ===================================================
+
+const STORAGE_KEY = "site_ruta_v31";
+
+let evaluacionAplicada = [];
+
+let zipRows = [];
+
+let bancoItems = [];
+
+let resultadosMotor = null;
+
+let chartErrores=null, chartNiveles=null, chartCompetencias=null, chartMicro=null;
+
+const SUBJECT_LEVELS = {
+
+  LC:["N1","N2","N3","N4"], MAT:["N1","N2","N3","N4"],
+
+  SOC:["N1","N2","N3","N4"], ING:["PreA1","A1","A2","B1"],
+
+  BIO:["N1","N2","N3","N4"], FIS:["N1","N2","N3","N4"],
+
+  QUI:["N1","N2","N3","N4"], CTS:["N1","N2","N3","N4"]
+
+};
+
+// ===================================================
+
+// HELPERS
+
+// ===================================================
+
+
+// ── Seguridad: escapeHTML previene XSS al pintar datos del usuario ──
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// CAPACIDAD DE PREGUNTAS — Trazabilidad PMAP completa
+// 4 niveles × 4 cuartiles = 16 coordenadas por competencia
+// ══════════════════════════════════════════════════════════════
+const N_MIN_TAMIZAJE  = 16; // mínimo para cubrir N1Q1→N4Q4 × 1 competencia
+const N_MAX_PREGUNTAS = 48; // 3 competencias completas (3×16) — estructura Saber 11
+const N_DEFAULT       = 16; // valor por defecto del selector
+
+function nextLevel(nivelActual, levels){
+
+  const idx = levels.indexOf(nivelActual);
+
+  return (idx>=0 && idx<levels.length-1) ? levels[idx+1] : nivelActual;
+
+}
+
+function splitCSV(line){
+
+  const out=[]; let cur="",q=false;
+
+  for(let i=0;i<line.length;i++){
+
+    const ch=line[i];
+
+    if(ch==='"'){q=!q;continue;}
+
+    if(ch===","&&!q){out.push(cur);cur="";continue;}
+
+    cur+=ch;
+
+  }
+
+  out.push(cur); return out;
+
+}
+
+function csvToObjects(text){
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return [];
+
+  // Detectar separador: tab (ZipGrade por defecto) o coma
+  const sep = lines[0].includes('\t') ? '\t' : ',';
+  const headers = (sep === '\t' ? lines[0].split('\t') : splitCSV(lines[0])).map(h => h.trim());
+
+  // Metadatos de la prueba (primera fila de datos)
+  let _metaPrueba = null;
+
+  return lines.slice(1).map((line, rowIdx) => {
+    const vals = sep === '\t' ? line.split('\t') : splitCSV(line);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (vals[i] ?? '').trim(); });
+
+    // ── Campos calculados por el sistema ──
+    // Nombre completo: First Name + Last Name (formato ZipGrade real)
+    const fn = obj['First Name'] || obj['first name'] || '';
+    const ln = obj['Last Name']  || obj['last name']  || '';
+    obj['_nombre'] = (fn + ' ' + ln).trim() || obj['First Name'] || '—';
+
+    // Metadatos de la prueba
+    obj['_quizName']    = obj['Quiz Name']    || '';
+    obj['_class']       = obj['Class']        || '';
+    obj['_externalId']  = obj['External Id']  || '';   // nombre interno de la institución/prueba
+    obj['_keyVersion']  = obj['Key Version']  || '';
+    obj['_zipGradeId']  = obj['ZipGrade ID']  || String(rowIdx + 1);
+
+    // Guardar metadatos globales de la prueba (del primer registro)
+    if (rowIdx === 0 && !_metaPrueba) {
+      _metaPrueba = {
+        quizName:   obj['_quizName'],
+        externalId: obj['_externalId'],
+        clase:      obj['_class'],
+      };
+      // Exponerlos para uso en el tablero
+      window._zipGradeMetaPrueba = _metaPrueba;
+    }
+
+    return obj;
+  });
+}
+
+function getChartOptions(rotacion, pluginOverrides) {
+  const rot = rotacion !== undefined ? rotacion : 35;
+  const base = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { bottom: 4 } },
+    plugins: Object.assign(
+      { legend: { labels: { color: "#e5e7eb", font: { size: 11 } } } },
+      pluginOverrides || {}
+    ),
+    scales: {
+      x: {
+        ticks: {
+          color: "#9ca3af",
+          font: { size: 10 },
+          maxRotation: rot,
+          minRotation: rot,
+          callback: function(val) {
+            const label = this.getLabelForValue(val);
+            return label && label.length > 14 ? label.substring(0, 13) + '…' : label;
+          }
+        },
+        grid: { color: "#1f2937" }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { color: "#9ca3af", font: { size: 10 } },
+        grid: { color: "#1f2937" }
+      }
+    }
+  };
+  return base;
+}
+
+function dominanteDistribucion(dist){
+
+  let best="-",max=-1;
+
+  Object.entries(dist).forEach(([k,v])=>{if(v>max){max=v;best=k;}});
+
+  return best;
+
+}
+
+function alertAndThrow(msg){alert(msg);throw new Error(msg);}
+
+async function parseFileToRows(file){
+
+  const name=file.name.toLowerCase();
+
+  if(name.endsWith(".csv")){const text=await file.text();return csvToObjects(text);}
+
+  const data=await file.arrayBuffer();
+
+  const wb=XLSX.read(data,{type:"array"});
+
+  const ws=wb.Sheets[wb.SheetNames[0]];
+
+  return XLSX.utils.sheet_to_json(ws,{defval:""});
+
+}
+
+// ===================================================
+
+// PARSE EVALUACIÓN APLICADA
+
+// ===================================================
+
+function parseAplicadaTSV(texto){
+
+  const rows=texto.split(/\r?\n/).filter(Boolean);
+
+  const out=[];
+
+  rows.forEach((row,idx)=>{
+
+    const c=row.split("\t").map(x=>x.trim());
+
+    if(c.length<11) return;
+
+    if(idx===0&&(c[0]||"").toLowerCase()==="id") return;
+
+    out.push({
+
+      idLocal:c[0]||`Q${idx}`, orden:Number(c[1])||idx,
+
+      respuestaCorrecta:c[2]||"", contenido:c[3]||"",
+
+      areaConceptual:c[4]||"", competencia:c[5]||"",
+
+      evidencia:c[6]||"", nivel:c[7]||"", verbo:c[8]||"",
+
+      microhabilidad:c[9]||"", microrutina:c[10]||""
+
+    });
+
+  });
+
+  return out;
+
+}
+
+function renderAplicada(){
+  // Actualizar label dinámico
+  const lbl = document.getElementById('nPreguntasLabel');
+  if(lbl) lbl.textContent = evaluacionAplicada.length || N_DEFAULT;
+
+
+  const res=document.getElementById("aplicadaResumen");
+
+  const tabla=document.getElementById("tablaAplicada");
+
+  res.textContent=`Preguntas registradas: ${evaluacionAplicada.length}`;
+
+  if(!evaluacionAplicada.length){tabla.innerHTML="";return;}
+
+  let html=`<tr><th>ID</th><th>#</th><th>Resp</th><th>Área conceptual</th><th>Competencia</th><th>Nivel</th><th>Microhabilidad</th><th>Microrutina</th></tr>`;
+
+  evaluacionAplicada.forEach(q=>{
+
+    html+=`<tr><td>${q.idLocal}</td><td>${q.orden}</td><td>${q.respuestaCorrecta}</td><td>${q.areaConceptual}</td><td>${q.competencia}</td><td>${q.nivel}</td><td>${q.microhabilidad}</td><td>${q.microrutina}</td></tr>`;
+
+  });
+
+  tabla.innerHTML=html;
+
+}
+
+document.getElementById("cargarAplicadaBtn").addEventListener("click",()=>{
+
+  const texto=document.getElementById("textoAplicada").value.trim();
+
+  if(!texto) return alert("Pega la tabla.");
+
+  const arr=parseAplicadaTSV(texto);
+
+  if(arr.length > N_MAX_PREGUNTAS) return alert(`Máximo ${N_MAX_PREGUNTAS} preguntas por evaluación. Se encontraron: ${arr.length}`);
+
+  // Validación canónica de cada ítem
+  const _nivelesValidos   = new Set(['N1','N2','N3','N4','Pre A1','A1','A2','B1']);
+  const _respValidas      = new Set(['A','B','C','D','E']);
+  const _erroresVal       = [];
+  arr.forEach((item, i) => {
+    const rc = (item.respuestaCorrecta||'').toUpperCase();
+    if (!_respValidas.has(rc))
+      _erroresVal.push(`P${i+1}: respuesta "${item.respuestaCorrecta||'vacía'}" no válida (A–E)`);
+    if (item.nivel && !_nivelesValidos.has(item.nivel))
+      _erroresVal.push(`P${i+1}: nivel "${item.nivel}" no reconocido`);
+  });
+  if (_erroresVal.length > 0) {
+    const msg = _erroresVal.slice(0,5).join('\n') + (_erroresVal.length>5?`\n...y ${_erroresVal.length-5} más`:'');
+    if (!confirm(`⚠️ ${_erroresVal.length} advertencia(s) en la evaluación:\n\n${msg}\n\n¿Continuar de todas formas?`)) return;
+  }
+
+  evaluacionAplicada=arr; renderAplicada(); saveState();
+
+});
+
+// ===================================================
+
+// ZIPGRADE
+
+// ===================================================
+
+document.getElementById("leerZipBtn").addEventListener("click",async()=>{
+
+  const file=document.getElementById("archivoZip").files[0];
+
+  if(!file) return alert("Sube un archivo.");
+
+  zipRows=await parseFileToRows(file);
+
+  renderZipPreview(); saveState();
+
+});
+
+function renderZipPreview(){
+
+  const res=document.getElementById("zipResumen");
+
+  const tabla=document.getElementById("tablaZip");
+
+  if(!zipRows.length){res.textContent="";tabla.innerHTML="";return;}
+
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+
+  const qUsadas=qCols.slice(0,N_MAX_PREGUNTAS);
+  // Traducción Q→P: ZipGrade usa Q internamente, el sistema muestra P al docente
+  // qAP['Q1']='P1', qAP['Q12']='P12', etc.
+  const qAP={}; qUsadas.forEach(q=>{qAP[q]='P'+q.slice(1);});
+
+  const numQArchivo=Number(zipRows[0]["Num Questions"]||qCols.length);
+
+  // Detectar anomalía: Num Questions del archivo ≠ columnas Q reales
+
+  const anomalia = numQArchivo !== qUsadas.length;
+
+  const alertaHtml = anomalia
+
+    ? `<div class="alert alert-warning" style="margin-bottom:10px;">
+
+        ⚠️ <strong>Anomalía detectada:</strong> El archivo reporta <strong>${numQArchivo} preguntas</strong>
+
+        pero solo contiene <strong>${qUsadas.length} columnas Q</strong>.
+
+        Los campos <em>Num Correct</em> y <em>Percent Correct</em> del archivo
+
+        <strong>fueron ignorados</strong>. El sistema recalculó ambos valores
+
+        internamente sobre las ${qUsadas.length} preguntas reales.
+
+      </div>`
+
+    : '';
+
+  mostrarMetaPrueba();
+  res.innerHTML=`${alertaHtml}Filas cargadas: <strong>${zipRows.length}</strong> &nbsp;•&nbsp; Columnas Q detectadas: <strong>${qUsadas.length}</strong>${anomalia?` &nbsp;<span style="color:var(--warn);">(archivo dice ${numQArchivo} — ignorado)</span>`:''}`;
+
+  let html=`<tr>
+
+    <th>Estudiante</th>
+
+    <th>Aciertos <span style="color:var(--ok);font-size:0.75rem;">(calculado)</span></th>
+
+    <th>% <span style="color:var(--ok);font-size:0.75rem;">(calculado)</span></th>
+
+    ${anomalia?`<th style="color:var(--warn);">Aciertos archivo</th><th style="color:var(--warn);">% archivo</th>`:''}
+
+    ${qUsadas.map(q=>`<th>${qAP[q]||q}</th>`).join('')}
+
+  </tr>`;
+
+  zipRows.forEach(r=>{
+
+    const nombre = r["_nombre"] || `${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+
+    // Recálculo propio — siempre sobre las Q reales
+
+    const calcOk=qUsadas.reduce((s,q)=>s+Number(r[q]||0),0);
+
+    const calcPct=Math.round((calcOk/qUsadas.length)*100);
+
+    const archivoOk=r["Num Correct"]||"";
+
+    const archivoPct=r["Percent Correct"]||"";
+
+    const discrepancia=anomalia&&String(calcOk)!==String(archivoOk);
+
+    html+=`<tr>
+
+      <td>${nombre}</td>
+
+      <td style="color:var(--ok);font-weight:600;">${calcOk}</td>
+
+      <td style="color:var(--ok);font-weight:600;">${calcPct}%</td>
+
+      ${anomalia?`<td style="color:${discrepancia?'var(--warn)':'var(--muted)'};text-decoration:line-through;">${archivoOk}</td><td style="color:${discrepancia?'var(--warn)':'var(--muted)'};text-decoration:line-through;">${archivoPct}%</td>`:''}
+
+      ${qUsadas.map(q=>`<td style="color:${Number(r[q]||0)?'var(--ok)':'var(--danger)'};">${r[q]||0}</td>`).join('')}
+
+    </tr>`;
+
+  });
+
+  tabla.innerHTML=html;
+
+}
+
+// ===================================================
+
+// BANCO FCRI
+
+// ===================================================
+
+function renderBanco(){
+
+  const res=document.getElementById("bancoResumen");
+
+  const tabla=document.getElementById("tablaBanco");
+
+  res.textContent=`Ítems en banco: ${bancoItems.length}`;
+
+  if(!bancoItems.length){tabla.innerHTML="";return;}
+
+  let html=`<tr><th>ID</th><th>Nivel</th><th>Competencia</th><th>Microhabilidad</th></tr>`;
+
+  bancoItems.slice(0,100).forEach(i=>{
+
+    html+=`<tr><td>${i.id}</td><td>${i.nivel}</td><td>${i.competencia}</td><td>${i.microhabilidad}</td></tr>`;
+
+  });
+
+  tabla.innerHTML=html;
+
+}
+
+document.getElementById("cargarFcriBtn").addEventListener("click",()=>{
+
+  const texto=document.getElementById("textoFcri").value.trim();
+
+  if(!texto) return alert("Pega la tabla FCRI.");
+
+  bancoItems=bancoItems.concat(parseAplicadaTSV(texto).map(r=>({...r,id:r.idLocal})));
+
+  saveState(); renderBanco();
+
+});
+
+document.getElementById("exportarBancoBtn").addEventListener("click",()=>{
+
+  if(!bancoItems.length) return alert("No hay ítems en el banco.");
+
+  const blob=new Blob([JSON.stringify(bancoItems,null,2)],{type:"application/json"});
+
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+
+  a.download="banco_fcri_site_ruta.json"; a.click();
+
+});
+
+// ===================================================
+
+// MOTOR ANALÍTICO
+
+// ===================================================
+
+document.getElementById("procesarDiagnosticoBtn").addEventListener("click",()=>{
+  resultadosMotor = motorDiagnostico();
+  // Mantener el filtro ZDR activo al re-procesar
+  renderDiagnostico(resultadosMotor, _filtroZDRActivo);
+  aplicarFiltros();
+  renderSugerenciasAutomaticas(resultadosMotor); // sugerencias automáticas
+});
+
+
+// ══════════════════════════════════════════════════════════════
+// MEJORA 3.4 — MOTOR DE CUARTILES PMAP
+// Velocidad × Acierto × NivelItem → Cuartil (Q1–Q4)
+//   Q1: Rápido + ✅  Dominio consolidado
+//   Q2: Lento  + ✅  Comprensión no automatizada
+//   Q3: Rápido + ❌  Error impulsivo
+//   Q4: Lento  + ❌  Dificultad estructural
+// ══════════════════════════════════════════════════════════════
+// AJUSTE 4: Umbral dinámico — se calcula por prueba como mediana
+// de los tiempos por ítem del grupo, no un fijo arbitrario.
+// Si no hay datos de tiempo, se usa el fallback de 8s.
+const UMBRAL_RAPIDO_Q_DEFAULT = 8;
+let   UMBRAL_RAPIDO_Q = UMBRAL_RAPIDO_Q_DEFAULT; // se recalcula en calcularUmbralDinamico()
+
+/**
+ * calcularUmbralDinamico
+ * Calcula la mediana de tiempos por ítem del grupo como umbral "rápido".
+ * Se llama desde motorDiagnostico() cuando hay columna Time en ZipGrade.
+ * @param {Array} rows - zipRows
+ * @returns {number} umbral en segundos
+ */
+function calcularUmbralDinamico(rows, nPreguntas) {
+  const tiempos = [];
+  rows.forEach(r => {
+    const t = Number(r['Time'] || 0);
+    if (t > 0 && nPreguntas > 0) tiempos.push(t / nPreguntas);
+  });
+  if (tiempos.length < 3) return UMBRAL_RAPIDO_Q_DEFAULT;
+  tiempos.sort((a, b) => a - b);
+  const mediana = tiempos[Math.floor(tiempos.length / 2)];
+  // Umbral rápido = percentil 33 (tercio inferior del grupo)
+  const p33 = tiempos[Math.floor(tiempos.length * 0.33)];
+  return Math.max(4, Math.min(p33, 15)); // clamp entre 4s y 15s
+}
+
+// ══════════════════════════════════════════════════════════════
+// EJE COGNITIVO: Q1–Q4 vienen del MD del banco (evaluacionAplicada[i].cuartil)
+// No se calculan por tiempo — son coordenadas de progresión cognitiva.
+//
+// EJE TEMPORAL: calcularTipoRespuesta() → ER / EL / AR / AL
+// Solo se usa cuando el docente marcó que aplicó cronometría.
+//
+// Tabla canónica SITE–RUTA LATAM:
+// ER = Error rápido    (error impulsivo)
+// EL = Error lento     (dificultad estructural)
+// AR = Acierto rápido  (dominio consolidado)
+// AL = Acierto lento   (comprensión no automatizada)
+// ══════════════════════════════════════════════════════════════
+
+// Mantener calcularCuartilPMAP como ALIAS de compatibilidad
+// pero ahora devuelve solo NxQy usando el cuartil del MD del banco
+function calcularCuartilPMAP(esCorrecta, tiempoSeg, nivelItem, cuartilMD) {
+  // El cuartil cognitivo viene del MD del banco, no del tiempo
+  const niv     = nivelItem || 'N2';
+  const cuartil = cuartilMD && cuartilMD !== 'SIN_CUARTIL' ? cuartilMD : null;
+  if (!cuartil) return `${niv}__SC`; // __SC = Sin Cuartil — no inferir
+  return `${niv}${cuartil}`;
+}
+
+// Función canónica: tipo de respuesta temporal
+function calcularTipoRespuesta(esCorrecta, tiempoSeg, usaCronometria) {
+  if (!usaCronometria) return null; // sin cronometría → no se infiere patrón temporal
+  const hayTiempo = tiempoSeg !== null && tiempoSeg !== undefined && tiempoSeg > 0;
+  if (!hayTiempo) return null;
+  const esRapido = tiempoSeg <= UMBRAL_RAPIDO_Q;
+  if (esCorrecta === true)  return esRapido ? 'AR' : 'AL';
+  if (esCorrecta === false) return esRapido ? 'ER' : 'EL';
+  return null;
+}
+
+// Etiquetas pedagógicas del tipo de respuesta (solo informativas)
+const ETIQUETAS_TIPO_RESPUESTA = {
+  AR: 'Acierto rápido — dominio consolidado',
+  AL: 'Acierto lento — comprensión no automatizada',
+  ER: 'Error rápido — error impulsivo',
+  EL: 'Error lento — dificultad estructural',
+};
+
+function motorCuartilesPorEstudiante(estudiantesDiag, evaluacionAplicada, zipRows, qUsadas) {
+  const nivelOrden = ['N1','N2','N3','N4'];
+  const cuartOrden = ['Q1','Q2','Q3','Q4'];
+
+  return estudiantesDiag.map(est => {
+    const fila = zipRows.find(r => (r['_nombre'] || `${r['First Name']||''} ${r['Last Name']||''}`.trim()) === est.nombre);
+    if (!fila) return { ...est, cuartiles: null };
+
+    const tiempoTotal = fila['Time'] ? Number(fila['Time']) : null;
+    const tiempoPorItem = tiempoTotal && qUsadas.length > 0 ? tiempoTotal / qUsadas.length : null;
+
+    const itemsCuartil = qUsadas.map((qCol, idx) => {
+      const item       = evaluacionAplicada[idx];
+      const respuesta  = Number(fila[qCol] || 0);
+      const esCorrecta = respuesta === 1; // ZipGrade: 1=correcto, 0=incorrecto
+      const nivelItem  = item?.nivel || 'N2';
+      const tiempoItemCol = fila[`T${idx + 1}`];
+      const tiempoItem = tiempoItemCol ? Number(tiempoItemCol) : tiempoPorItem;
+      // Cuartil cognitivo: viene del banco (item.cuartil) — NO del tiempo
+      // Si el banco no trae cuartil: "SIN_CUARTIL" — no se infiere Q1
+      // Inferir Q1 sin evidencia crearía una falsa dificultad estructural
+      const cuartilMD = item?.cuartil || 'SIN_CUARTIL';
+      const cuartil   = cuartilMD !== 'SIN_CUARTIL'
+        ? calcularCuartilPMAP(esCorrecta, tiempoItem, nivelItem, cuartilMD)
+        : `${nivelItem}__SC`; // __SC = Sin Cuartil cognitivo
+
+      // Tipo de respuesta temporal (solo si hay cronometría activa)
+      const usaCrono     = typeof _usaCronometria !== 'undefined' ? _usaCronometria : false;
+      const tipoRespuesta = calcularTipoRespuesta(esCorrecta, tiempoItem, usaCrono);
+
+      return {
+        q: idx + 1, nivelItem,
+        competencia:    item?.competencia    || '—',
+        microhabilidad: item?.microhabilidad || '—',
+        mh_id:          item?.mh_id          || null,
+        esCorrecta, tiempoSeg: tiempoItem,
+        cuartil,          // coordenada cognitiva: NxQy
+        tipoRespuesta,    // lectura temporal: AR/AL/ER/EL o null
+        cuartilMD         // cuartil del MD del banco
+      };
+    });
+
+    const distCuartiles = {};
+    itemsCuartil.forEach(it => {
+      // No acumular SIN_CUARTIL (__SC) en la distribución cognitiva
+      if (it.cuartil && !it.cuartil.endsWith('__SC')) {
+        distCuartiles[it.cuartil] = (distCuartiles[it.cuartil] || 0) + 1;
+      }
+    });
+
+    // Si todos los ítems carecen de cuartil en el banco → cuartilDominante nulo
+    const cuartilDominante = Object.keys(distCuartiles).length
+      ? Object.entries(distCuartiles).sort((a,b) => b[1]-a[1])[0][0]
+      : null;
+    const zdrNivel   = cuartilDominante ? cuartilDominante.substring(0, 2) : null;
+    const zdrCuartil = cuartilDominante ? cuartilDominante.substring(2)    : null;
+    const idxN = zdrNivel ? nivelOrden.indexOf(zdrNivel) : -1;
+
+    // ZDP: dirección de crecimiento en el continuo Q1(alto)→Q4(bajo)
+    // Q1 = dominio consolidado (techo del nivel)
+    // Continuo PMAP: Q1 → Q2 → Q3 → Q4 → N(x+1)Q1
+    // Movimiento INTRANIVEL: NxQ1→NxQ2→NxQ3→NxQ4
+    // Único salto INTERNIVEL: NxQ4 → N(x+1)Q1
+    // Si no hay cuartil cognitivo (banco sin cuartil) → zdp indeterminado
+    let zdp;
+    if (!zdrCuartil || !zdrNivel) {
+      zdp = null; // sin dato cognitivo no se puede calcular ZDP de cuartil
+    } else if (zdrCuartil === 'Q4') {
+      // Único punto de migración internivel
+      zdp = idxN < nivelOrden.length - 1 ? `${nivelOrden[idxN+1]}Q1` : `${zdrNivel}Q4`;
+    } else if (zdrCuartil === 'Q3') {
+      zdp = `${zdrNivel}Q4`; // intranivel Q3→Q4
+    } else if (zdrCuartil === 'Q2') {
+      zdp = `${zdrNivel}Q3`; // intranivel Q2→Q3
+    } else {
+      zdp = `${zdrNivel}Q2`; // intranivel Q1→Q2
+    }
+
+    // Q4=dominio, Q3=comprensión, Q2=error impulsivo, Q1=dificultad
+    // estadoPMAP: basado en el cuartil cognitivo del MD dominante
+    // Si el banco no trae cuartiles → estadoPMAP = 'sin_dato_cognitivo'
+    const cuartilCognitivo = cuartilDominante ? cuartilDominante.slice(-2) : null;
+    let estadoPMAP;
+    if      (cuartilCognitivo === 'Q4') estadoPMAP = 'dominio_consolidado';
+    else if (cuartilCognitivo === 'Q3') estadoPMAP = 'comprension_no_automatizada';
+    else if (cuartilCognitivo === 'Q2') estadoPMAP = 'error_impulsivo';
+    else if (cuartilCognitivo === 'Q1') estadoPMAP = 'dificultad_estructural';
+    else                                estadoPMAP = 'sin_dato_cognitivo'; // banco sin cuartil
+
+    // Tipo de respuesta modal del estudiante (solo si hay cronometría)
+    const tiposRespuesta = itemsCuartil.map(it=>it.tipoRespuesta).filter(Boolean);
+    const tipoRespuestaModa = tiposRespuesta.length
+      ? Object.entries(tiposRespuesta.reduce((a,t)=>{a[t]=(a[t]||0)+1;return a},{}))
+          .sort((a,b)=>b[1]-a[1])[0][0]
+      : null;
+
+    const itemsCriticos = itemsCuartil
+      .filter(it => it.cuartil.endsWith('Q1'))
+      .map(it => ({
+        q:             it.q,
+        nivel:         it.nivelItem,   // usar nivelItem (nunca undefined)
+        cuartil:       it.cuartil,
+        competencia:   it.competencia,
+        microhabilidad:it.microhabilidad,
+        esCorrecta:    it.esCorrecta,
+        tiempoSeg:     it.tiempoSeg
+      }));
+
+    return { ...est, cuartiles: { itemsCuartil, distCuartiles, cuartilDominante, zdpCuartil: zdp, estadoPMAP, itemsCriticos, tipoRespuestaModa } };
+  });
+}
+
+function renderCuartilesPMAP(est) {
+  const cont = document.getElementById('panelCuartilesPMAP');
+  if (!cont) return;
+
+  if (!est.cuartiles) {
+    cont.innerHTML = `<div class="muted small" style="padding:12px;">
+      ⚠️ Sin datos de tiempo — el cuartil requiere velocidad de respuesta.<br>
+      <span style="font-size:0.7rem;">ZipGrade necesita columna "Time" o T1…T12. AlaU Offline los registra automáticamente.</span>
+    </div>`;
+    return;
+  }
+
+  const c = est.cuartiles;
+  const levels = resultadosMotor?.levels || ['N1','N2','N3','N4'];
+  const cuartiles = ['Q1','Q2','Q3','Q4'];
+
+  const estadoTexto = {
+    dominio_consolidado:        '✅ Dominio consolidado',
+    comprension_no_automatizada:'🔵 Comprensión no automatizada',
+    error_impulsivo:            '⚡ Error impulsivo',
+    dificultad_estructural:     '🔴 Dificultad estructural'
+  };
+  const estadoClase = {
+    dominio_consolidado:        'ep-dominio',
+    comprension_no_automatizada:'ep-comprension',
+    error_impulsivo:            'ep-impulsivo',
+    dificultad_estructural:     'ep-dificultad'
+  };
+
+  // Matriz nivel × cuartil
+  let matrizHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:14px;">
+    <thead><tr>
+      <th style="padding:6px;color:var(--muted);text-align:left;">Nivel</th>
+      ${cuartiles.map(q=>`<th style="padding:6px;text-align:center;color:var(--muted);">${q}</th>`).join('')}
+      <th style="padding:6px;text-align:center;color:var(--muted);">Total</th>
+    </tr></thead><tbody>`;
+
+  levels.forEach(nivel => {
+    const tot = cuartiles.reduce((s,q) => s + (c.distCuartiles[`${nivel}${q}`]||0), 0);
+    matrizHTML += `<tr><td style="padding:6px;font-weight:700;color:var(--accent);">${nivel}</td>`;
+    cuartiles.forEach(q => {
+      const key = `${nivel}${q}`, count = c.distCuartiles[key]||0;
+      const pct = tot > 0 ? Math.round((count/tot)*100) : 0;
+      const cls = count > 0 ? `c${q.toLowerCase()}` : 'cq-empty';
+      matrizHTML += `<td style="padding:4px;text-align:center;">
+        <div class="cuartil-cell ${cls}" title="${key}: ${count} ítem(s)" style="min-height:50px;flex-direction:column;gap:2px;">
+           <span style="font-size:0.82rem;font-weight:700;line-height:1.1;">${count || '·'}</span><span class="q-label" style="font-size:0.6rem;line-height:1;">${count>0 ? pct+' %' : '—'}</span>
+        </div></td>`;
+    });
+    matrizHTML += `<td style="padding:6px;text-align:center;color:var(--muted);font-size:0.72rem;">${tot}</td></tr>`;
+  });
+  matrizHTML += `</tbody></table>`;
+
+  // Grid de ítems
+  const gridItems = c.itemsCuartil.map(it => {
+    const cls = `c${it.cuartil.substring(2).toLowerCase()}`;
+    const tip = `P${it.q} · ${it.cuartil} · ${it.esCorrecta===true?'✅':it.esCorrecta===false?'❌':'—'} · ${it.tiempoSeg?it.tiempoSeg.toFixed(1)+'s':'sin tiempo'}`;
+    return `<div class="cuartil-cell ${cls}" title="${tip}"
+          style="height:50px;flex-direction:column;gap:2px;padding:4px 2px;">
+          <span style="font-size:0.7rem;font-weight:700;line-height:1;">P${it.q}</span>
+          <span class="q-label" style="font-size:0.6rem;line-height:1;">${it.cuartil}</span>
+        </div>`;
+  }).join('');
+
+  // Ítems críticos
+  let criticosHTML = '';
+  if (c.itemsCriticos.length > 0) {
+    criticosHTML = `<div style="margin-top:12px;padding:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;">
+      <div style="font-size:0.7rem;font-weight:700;color:#f87171;margin-bottom:8px;">
+        🔴 ÍTEMS CRÍTICOS — Q1 Dificultad estructural · Prioridad de intervención
+      </div>
+      ${c.itemsCriticos.map(it=>`
+        <div style="font-size:0.75rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <strong>P${it.q}</strong> · ${it.nivel} · <span style="color:var(--muted);">${it.competencia}</span>
+          ${it.microhabilidad!=='—'?`<br><span style="font-size:0.68rem;color:var(--muted);padding-left:16px;">🔹 ${it.microhabilidad}</span>`:''}
+        </div>`).join('')}
+    </div>`;
+  }
+
+  cont.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--accent);letter-spacing:0.5px;">📊 MOTOR DE CUARTILES PMAP</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:4px;">
+        Patrón cognitivo dominante: <strong style="color:var(--text);">${c.cuartilDominante}</strong>
+        <span style="margin:0 4px;color:var(--muted);">·</span>
+        Próx. paso intranivel: <strong style="color:var(--accent);">${c.zdpCuartil}</strong>
+        <span style="display:block;margin-top:2px;font-size:0.65rem;color:var(--muted);">
+          ⚠️ El ZDR (nivel de dominio real) se muestra en la tarjeta superior — es distinto del patrón cognitivo.
+        </span>
+      </div>
+    </div>
+    <span class="estado-pmap-badge ${estadoClase[c.estadoPMAP]}">${estadoTexto[c.estadoPMAP]||c.estadoPMAP}</span>
+    <div style="margin-top:14px;font-size:0.7rem;font-weight:700;color:var(--muted);letter-spacing:0.4px;margin-bottom:6px;">MATRIZ NIVEL × CUARTIL</div>
+    ${matrizHTML}
+    <div style="font-size:0.7rem;font-weight:700;color:var(--muted);letter-spacing:0.4px;margin-bottom:6px;">MAPA DE CUARTILES POR ÍTEM</div>
+    <div class="cuartil-grid">${gridItems}</div>
+    <div class="cuartil-leyenda">
+      <span><div class="dot" style="background:#4ade80;"></div>Q4 Dominio consolidado</span>
+      <span><div class="dot" style="background:#7dd3fc;"></div>Q3 Comprensión no automatizada</span>
+      <span><div class="dot" style="background:#fb923c;"></div>Q2 Error impulsivo</span>
+      <span><div class="dot" style="background:#f87171;"></div>Q1 Dificultad estructural</span>
+    </div>
+    ${criticosHTML}`;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// BASE MAESTRA SITE–RUTA LATAM v0.2 — Embebida en tablero
+// Cadena canónica: Área → Competencia → Evidencia → MH → MHD → MD → MR → PMAP
+// 187 MH canónicas | IDs permanentes | Inglés usa MCER (Pre A1–B1) × Cuartil
+// ══════════════════════════════════════════════════════════════
+const BASE_MAESTRA = {"mh":{"BIO_MH_001":"[Catálogo extendido pendiente] Biológico asociado a evidencia 1.1","BIO_MH_002":"[Catálogo extendido pendiente] Biológico asociado a evidencia 1.2","BIO_MH_003":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 003","BIO_MH_004":"[Catálogo extendido pendiente] Explicación biológica transversal","BIO_MH_005":"Explica la dinámica de ecosistemas en función de flujos de energía y nutrientes","BIO_MH_006":"[Catálogo extendido pendiente] Ciclos y recursos en biología","BIO_MH_007":"Relaciona estructura y función de organismos para explicar supervivencia","BIO_MH_008":"[Catálogo extendido pendiente] Dinámica interna biológica","BIO_MH_009":"Analiza la interacción de sistemas internos para el mantenimiento de la vida","BIO_MH_010":"Formula preguntas e hipótesis en contextos biológicos","BIO_MH_011":"[Catálogo extendido pendiente] Indagación experimental en biología","BIO_MH_012":"[Catálogo extendido pendiente] Recolección de datos / herencia biológica","BIO_MH_013":"Evalúa validez de conclusiones a partir de datos experimentales","BIO_MH_014":"Interpreta y comunica resultados de investigaciones biológicas","BIO_MH_015":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 015","BIO_MH_016":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 016","BIO_MH_017":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 017","BIO_MH_018":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 018","BIO_MH_019":"[Catálogo extendido pendiente] BIO microhabilidad núcleo 019","CTS_MH_001":"Explica efectos del uso de tecnologías en el entorno","CTS_MH_002":"[Catálogo extendido pendiente] Tecnología segura","CTS_MH_003":"Reconoce cambios ambientales por acción humana","CTS_MH_004":"[Catálogo extendido pendiente] CTS microhabilidad núcleo 004","CTS_MH_005":"Analiza decisiones sobre uso de recursos naturales","CTS_MH_006":"[Catálogo extendido pendiente] CTS microhabilidad núcleo 006","CTS_MH_007":"Evalúa implicaciones éticas del uso de la ciencia","CTS_MH_008":"[Catálogo extendido pendiente] CTS microhabilidad núcleo 008","CTS_MH_009":"Evalúa soluciones a problemáticas socioambientales","CTS_MH_010":"[Catálogo extendido pendiente] CTS microhabilidad núcleo 010","CTS_MH_011":"[Catálogo extendido pendiente] CTS microhabilidad núcleo 011","CTS_MH_012":"Argumenta sobre el uso responsable de la ciencia y la tecnología","EN_MH_001":"Identificar palabras clave en descripciones cortas","EN_MH_002":"Relacionar descripciones con vocabulario dado","EN_MH_003":"Reconocer objetos, personas o lugares descritos","EN_MH_004":"Identificar información explícita en textos cortos","EN_MH_005":"Identificar contexto de avisos","EN_MH_006":"Asociar lenguaje con situaciones cotidianas","EN_MH_007":"Interpretar señales y avisos en contexto","EN_MH_008":"Reconocer propósito básico de un aviso","EN_MH_009":"Identificar vocabulario funcional en contexto","EN_MH_010":"Diferenciar contextos a partir del lenguaje usado","EN_MH_011":"Identificar intención comunicativa en conversaciones","EN_MH_012":"Seleccionar respuestas coherentes en diálogos","EN_MH_013":"Reconocer turnos de habla en interacción","EN_MH_014":"Inferir continuidad lógica en conversación","EN_MH_015":"Identificar estructuras gramaticales en contexto","EN_MH_016":"Completar oraciones con coherencia gramatical","EN_MH_017":"Relacionar forma gramatical con significado","EN_MH_018":"Identificar concordancia en estructuras","EN_MH_019":"Reconocer patrones sintácticos","EN_MH_020":"Seleccionar estructuras correctas según contexto","EN_MH_021":"Identificar información explícita en textos","EN_MH_022":"Inferir información implícita","EN_MH_023":"Relacionar ideas dentro del texto","EN_MH_024":"Identificar idea general de un texto","EN_MH_025":"Identificar intención del autor","EN_MH_026":"Reconocer tono y propósito comunicativo","EN_MH_027":"Inferir significado de palabras por contexto","EN_MH_028":"Analizar estructura del texto","EN_MH_029":"Integrar información para responder preguntas","EN_MH_030":"Evaluar coherencia global del texto","FIS_MH_001":"Explica el comportamiento de sistemas físicos a partir de leyes y principios","FIS_MH_002":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 002","FIS_MH_003":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 003","FIS_MH_004":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 004","FIS_MH_005":"[Catálogo extendido pendiente] Explicación física transversal","FIS_MH_006":"Explica fenómenos mediante modelos de cinemática y dinámica","FIS_MH_007":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 007","FIS_MH_008":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 008","FIS_MH_009":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 009","FIS_MH_010":"Relaciona variables en circuitos eléctricos","FIS_MH_011":"Relaciona variables para explicar dinámica de sistemas físicos","FIS_MH_012":"[Catálogo extendido pendiente] Energía en sistemas físicos","FIS_MH_013":"[Catálogo extendido pendiente] Fuerzas","FIS_MH_014":"Identifica variables que determinan fenómenos físicos","FIS_MH_015":"[Catálogo extendido pendiente] Medición física","FIS_MH_016":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 016","FIS_MH_017":"Interpreta datos físicos en diferentes representaciones","FIS_MH_018":"[Catálogo extendido pendiente] FIS microhabilidad núcleo 018","LC_MH_001":"Identificar actores explícitos en el texto","LC_MH_002":"Establecer referente de expresiones pronominales","LC_MH_003":"Localizar información explícita en el texto","LC_MH_004":"Asociar acciones con actores","LC_MH_005":"Reconocer secuencia temporal de eventos","LC_MH_006":"Determinar significado de palabras en contexto","LC_MH_007":"Relacionar enunciados contiguos","LC_MH_008":"Identificar idea principal de un segmento","LC_MH_009":"Asociar atributos a entidades","LC_MH_010":"Distinguir información relevante de no relevante","LC_MH_011":"Identificar conectores y su función","LC_MH_012":"Establecer relación causa–efecto","LC_MH_013":"Establecer relación de contraste","LC_MH_014":"Establecer relación de equivalencia","LC_MH_015":"Identificar función de un segmento en el texto","LC_MH_016":"Relacionar segmentos no contiguos","LC_MH_017":"Identificar progresión temática","LC_MH_018":"Reconocer organización global del texto","LC_MH_019":"Identificar intención comunicativa y estrategias discursivas del texto","LC_MH_020":"Identificar características de textos continuos y discontinuos y su propósito","LC_MH_021":"Inferir información implícita","LC_MH_022":"Inferir relaciones entre elementos y voces presentes en el texto","LC_MH_023":"Inferir propósito comunicativo implícito","LC_MH_024":"Identificar supuestos y contenidos valorativos implícitos","LC_MH_025":"Relacionar texto con contexto","LC_MH_026":"Comparar información dentro del texto","LC_MH_027":"Evaluar coherencia entre segmentos","LC_MH_028":"Evaluar relación entre evidencia y afirmación","LC_MH_029":"Formular hipótesis interpretativa","LC_MH_030":"Construir interpretación global integrando elementos del texto","M_MH_001":"Identificar información en tablas","M_MH_002":"Identificar información en gráficas","M_MH_003":"Identificar características de datos en registros","M_MH_004":"Reconocer variables en representaciones","M_MH_005":"Interpretar relaciones entre variables en gráficos","M_MH_006":"Identificar patrones en datos","M_MH_007":"Transformar información entre tablas y gráficas","M_MH_008":"Transformar información entre distintos registros","M_MH_009":"Interpretar escalas en representaciones","M_MH_010":"Identificar tendencias en datos","M_MH_011":"Identificar datos relevantes en un problema","M_MH_012":"Relacionar datos con operaciones matemáticas","M_MH_013":"Seleccionar operaciones para resolver problemas","M_MH_014":"Plantear estrategias de solución para problemas cuantitativos","M_MH_015":"Ejecutar procedimientos matemáticos","M_MH_016":"Resolver problemas con información cuantitativa","M_MH_017":"Resolver problemas con información esquemática","M_MH_018":"Interpretar resultados en contexto","M_MH_019":"Verificar coherencia de resultados","M_MH_020":"Ajustar procedimientos según condiciones del problema","M_MH_021":"Identificar procedimientos matemáticos utilizados","M_MH_022":"Relacionar procedimientos con resultados","M_MH_023":"Evaluar pertinencia de un procedimiento","M_MH_024":"Identificar errores en procedimientos","M_MH_025":"Comparar procedimientos de solución","M_MH_026":"Relacionar diferentes soluciones a un problema","M_MH_027":"Evaluar la coherencia de una solución","M_MH_028":"Determinar la validez de una solución con base en propiedades del problema","M_MH_029":"Argumentar a favor o en contra de un procedimiento matemático","M_MH_030":"Integrar procedimientos y resultados para sustentar una solución","QUI_MH_001":"Explica el comportamiento de sistemas químicos","QUI_MH_002":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 002","QUI_MH_003":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 003","QUI_MH_004":"[Catálogo extendido pendiente] Explicación química transversal","QUI_MH_005":"Explica procesos fisicoquímicos simples","QUI_MH_006":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 006","QUI_MH_007":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 007","QUI_MH_008":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 008","QUI_MH_009":"Relaciona variables de estado en sistemas químicos","QUI_MH_010":"Analiza factores que afectan velocidad de reacción","QUI_MH_011":"[Catálogo extendido pendiente] Fenómenos fisicoquímicos","QUI_MH_012":"Relaciona estructura de la materia con formación de moléculas","QUI_MH_013":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 013","QUI_MH_014":"Evalúa coherencia entre datos y conclusiones químicas","QUI_MH_015":"[Catálogo extendido pendiente] Medición química","QUI_MH_016":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 016","QUI_MH_017":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 017","QUI_MH_018":"[Catálogo extendido pendiente] QUI microhabilidad núcleo 018","SC_MH_001":"Identificar derechos ciudadanos en situaciones","SC_MH_002":"Identificar deberes del Estado en situaciones","SC_MH_003":"Reconocer mecanismos de participación ciudadana","SC_MH_004":"Relacionar derechos con mecanismos de participación","SC_MH_005":"Identificar instituciones del Estado","SC_MH_006":"Relacionar instituciones con sus funciones","SC_MH_007":"Identificar situaciones de vulneración de derechos","SC_MH_008":"Identificar situaciones de garantía de derechos","SC_MH_009":"Reconocer normas jurídicas en contextos","SC_MH_010":"Relacionar normas con comportamientos ciudadanos","SC_MH_011":"Ubicar eventos en el tiempo histórico","SC_MH_012":"Ubicar eventos en el espacio geográfico","SC_MH_013":"Relacionar dimensiones temporales y espaciales","SC_MH_014":"Relacionar problemáticas con el espacio geográfico","SC_MH_015":"Identificar y evaluar la validez de la información en fuentes","SC_MH_016":"Reconocer intenciones y prejuicios en fuentes","SC_MH_017":"Identificar argumentos y efectos del discurso en individuos o grupos","SC_MH_018":"Relacionar argumentos con posiciones de actores","SC_MH_019":"Reconocer perspectivas y cosmovisiones de actores sociales","SC_MH_020":"Comparar perspectivas de actores sociales","SC_MH_021":"Identificar dimensiones de una problemática social","SC_MH_022":"Relacionar dimensiones de una problemática","SC_MH_023":"Relacionar causas y efectos en problemáticas sociales","SC_MH_024":"Identificar intereses de actores en conflictos","SC_MH_025":"Relacionar perspectivas de actores con propuestas de solución","SC_MH_026":"Identificar alternativas de solución","SC_MH_027":"Relacionar soluciones con sus efectos","SC_MH_028":"Comparar impactos de soluciones","SC_MH_029":"Relacionar soluciones con contextos de aplicación","SC_MH_030":"Evaluar integralmente soluciones considerando múltiples dimensiones"},"gagem5":{"Sevilla":{"zdr":"N2–N3","zdp":"N3→N4","foco":"Indagación, modelación y comunicación científica","mh":["BIO_MH_013","BIO_MH_014","FIS_MH_017","CTS_MH_009"]},"Caicedonia":{"zdr":"N2","zdp":"N2→N3","foco":"Indagación auténtica, modelación CTS y evaluación","mh":["BIO_MH_010","FIS_MH_011","QUI_MH_009","CTS_MH_012"]},"LC":{"mh":["LC_MH_021","LC_MH_023","LC_MH_028"],"zdp":"Afirmación 3 — inferencia y evaluación discursiva"},"MAT":{"mh":["M_MH_002","M_MH_011","M_MH_016","M_MH_023"],"zdp":"Modelación y validación"}}};
+
+// Lookup: mh_id → nombre canónico
+function getMHNombre(mh_id) {
+  return BASE_MAESTRA.mh?.[mh_id] || mh_id;
+}
+
+// Lookup: md_id = mh_id + '_' + nivel + cuartil
+// Construye la coordenada canónica del estudiante en la base
+function getMDId(mh_id, nivel, cuartil) {
+  return `${mh_id}_${nivel}${cuartil}`;
+}
+
+// Retorna MR canónica (I=Inicio/Activación, D=Desarrollo, C=Cierre)
+// Base v0.2: MRs "Por diseñar" = coordenada existe pero texto pendiente de redacción
+// El tablero muestra el ID canónico que el docente puede completar en la base
+function getMRTexto(mh_id, nivel, cuartil, momento) {
+  const md_id = getMDId(mh_id, nivel, cuartil);
+  const mr_id = `${md_id}_MR_${momento}`;
+  // Si la base tiene contenido real, usarlo; si no, mostrar coordenada trazable
+  return `${mr_id}`; // ID canónico siempre presente
+}
+
+// GAGEM5: contexto territorial para el diagnóstico
+function getContextoTerritorial(area_code) {
+  return BASE_MAESTRA.gagem5?.[area_code] || null;
+}
+
+// Verifica si una MH es ancla del sistema (prioridad diagnóstica)
+function esMHAncla(mh_id) {
+  // Las anclas están definidas en la base maestra v0.1/v0.2
+  const ANCLAS = new Set([
+    'LC_MH_001','LC_MH_002','LC_MH_007','LC_MH_011','LC_MH_021','LC_MH_023',
+    'M_MH_002','M_MH_007','M_MH_011','M_MH_013','M_MH_016','M_MH_023',
+    'SC_MH_003','SC_MH_007','SC_MH_016','SC_MH_018','SC_MH_021','SC_MH_027',
+    'EN_MH_002','EN_MH_005','EN_MH_012','EN_MH_016','EN_MH_022','EN_MH_025',
+    'BIO_MH_005','BIO_MH_007','BIO_MH_009','BIO_MH_010','BIO_MH_013','BIO_MH_014',
+    'FIS_MH_001','FIS_MH_006','FIS_MH_010','FIS_MH_011','FIS_MH_014','FIS_MH_017',
+    'QUI_MH_001','QUI_MH_005','QUI_MH_009','QUI_MH_010','QUI_MH_012','QUI_MH_014',
+    'CTS_MH_001','CTS_MH_003','CTS_MH_005','CTS_MH_007','CTS_MH_009','CTS_MH_012'
+  ]);
+  return ANCLAS.has(mh_id);
+}
+
+
+
+// ── Tooltip descriptivo para etiqueta de distribución de niveles ──
+function tooltipNivelPrueba(etiqueta) {
+  if (!etiqueta) return '';
+  if (etiqueta === 'N1–N4 ✓')    return 'Prueba balanceada: 4 ítems por nivel (N1, N2, N3, N4). Tamizaje completo.';
+  if (etiqueta.endsWith('(solo)')) {
+    const n = etiqueta.replace(' (solo)','');
+    return `Todos los ítems son del nivel ${n}. Sin cobertura de otros niveles.`;
+  }
+  if (etiqueta.includes('(bal.)')) {
+    const r = etiqueta.replace(' (bal.)','');
+    return `Ítems solo de niveles ${r}, con igual número entre ellos. Sin cobertura de niveles fuera de ese rango.`;
+  }
+  if (etiqueta.endsWith('✓') && etiqueta !== 'N1–N4 ✓') {
+    const r = etiqueta.replace(' ✓','');
+    return `Prueba balanceada en niveles ${r}. Cobertura parcial de la taxonomía.`;
+  }
+  if (etiqueta.endsWith('*')) {
+    const n = etiqueta.replace('*','');
+    return `El nivel ${n} tiene más ítems que los demás, pero sin alcanzar el 50%. Distribución irregular.`;
+  }
+  if (etiqueta.includes('–')) {
+    const parts = etiqueta.split('–');
+    return `Empate de ítems entre niveles ${parts[0]} y ${parts[parts.length-1]}. Sin un nivel claramente dominante.`;
+  }
+  // Nivel único dominante
+  return `El nivel ${etiqueta} concentra ≥50% de los ítems de la prueba.`;
+}
+
+function motorDiagnostico(){
+
+  if(!evaluacionAplicada.length) alertAndThrow("Primero carga la evaluación aplicada.");
+  if(evaluacionAplicada.length > N_MAX_PREGUNTAS) alertAndThrow(`Máximo ${N_MAX_PREGUNTAS} preguntas. Tienes ${evaluacionAplicada.length}.`);
+  if(evaluacionAplicada.length < N_MIN_TAMIZAJE) console.warn(`⚠️ Con ${evaluacionAplicada.length} preguntas no se puede hacer tamizaje completo (mínimo ${N_MIN_TAMIZAJE}).`);
+
+  if(!zipRows.length) alertAndThrow("Primero carga el archivo ZipGrade.");
+
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+
+  if(!qCols.length) alertAndThrow("ZipGrade no detectó columnas Q. Verifica el formato del CSV.");
+
+  // ── DETECTOR DE ANOMALÍAS ────────────────────────────────
+
+  const qUsadas = qCols.slice(0,N_MAX_PREGUNTAS);
+
+  const numQArchivo = Number(zipRows[0]["Num Questions"] || qUsadas.length);
+
+  const anomaliaDetectada = numQArchivo !== qUsadas.length;
+
+  const anomalias = []; // log de discrepancias por estudiante
+
+  // Niveles y competencias desde la evaluación
+
+  // FIX: levels SIEMPRE es la taxonomía canónica completa N1–N4
+  // No depender de los niveles presentes en la evaluación —
+  // si no hay ítems N4, el sistema igual debe proyectar ZDP hacia N4.
+  const levels = ["N1","N2","N3","N4"];
+  // Los niveles reales presentes en la evaluación (solo para info)
+  const nivelesEnPrueba = [...new Set(evaluacionAplicada.map(i=>i.nivel).filter(Boolean))];
+
+  const competenciasPresentes=[...new Set(evaluacionAplicada.map(i=>i.competencia).filter(Boolean))];
+
+  const erroresPorPregunta=new Array(N_MAX_PREGUNTAS).fill(0);
+
+  const distNiveles=Object.fromEntries(levels.map(l=>[l,0]));
+
+  const competenciasGlobal={};
+
+  const microhabilidadesGlobal={};
+
+  let estudiantesDiag=[];
+
+  zipRows.forEach(r=>{
+
+    const nombre = r["_nombre"] || `${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+
+    // ── RECÁLCULO PROPIO — nunca confiar en Num Correct ni Percent Correct ──
+
+    const respuestas = qUsadas.map(q=>Number(r[q]||0));
+
+    const totalOkReal = respuestas.reduce((s,v)=>s+v, 0);
+
+    const pctReal = Math.round((totalOkReal / qUsadas.length) * 100);
+
+    // Comparar con lo que dice el archivo → registrar si hay discrepancia
+
+    const archivoOk = Number(r["Num Correct"] || totalOkReal);
+
+    const archivoPct = Number(r["Percent Correct"] || pctReal);
+
+    if(archivoOk !== totalOkReal || Math.abs(archivoPct - pctReal) > 1){
+
+      anomalias.push({
+
+        nombre,
+
+        archivoOk, archivoPct,
+
+        calculadoOk: totalOkReal, calculadoPct: pctReal
+
+      });
+
+    }
+
+    // --- Acumuladores POR NIVEL y POR COMPETENCIA+NIVEL ---
+
+    const porNivel=Object.fromEntries(levels.map(l=>[l,{ok:0,total:0}]));
+
+    const cellMap={};
+
+    competenciasPresentes.forEach(comp=>{
+
+      levels.forEach(nivel=>{ cellMap[`${comp}|${nivel}`]={aciertos:0,total:0}; });
+
+    });
+
+    let totalOk = totalOkReal; // ← siempre el recalculado
+
+    respuestas.forEach((resp,idx)=>{
+
+      const item=evaluacionAplicada[idx];
+
+      if(resp===0) erroresPorPregunta[idx]++;
+
+      const nivel=item.nivel||levels[0];
+
+      const comp=item.competencia||"Sin competencia";
+
+      const mh=item.microhabilidad||"Sin microhabilidad";
+
+      // Por nivel
+
+      if(porNivel[nivel]){ porNivel[nivel].total++; porNivel[nivel].ok+=resp; }
+
+      // Por celda competencia×nivel ← LA CLAVE DEL FIX
+
+      const ck=`${comp}|${nivel}`;
+
+      if(!cellMap[ck]) cellMap[ck]={aciertos:0,total:0};
+
+      cellMap[ck].total++;
+
+      cellMap[ck].aciertos+=resp;
+
+      // Global competencias
+
+      if(!competenciasGlobal[comp]) competenciasGlobal[comp]={ok:0,total:0};
+
+      competenciasGlobal[comp].total++; competenciasGlobal[comp].ok+=resp;
+
+      // Microhabilidades
+
+      if(!microhabilidadesGlobal[mh]) microhabilidadesGlobal[mh]={errores:0,aciertos:0,total:0,microrutina:item.microrutina||"",nivel,competencia:comp};
+
+      microhabilidadesGlobal[mh].total++;
+
+      microhabilidadesGlobal[mh].aciertos+=resp;
+
+      if(resp===0) microhabilidadesGlobal[mh].errores++;
+
+    });
+
+    // ── ZDR: nivel más alto donde el estudiante muestra dominio real (≥60%) ──
+    // FIX: recorrer de N4→N1 para encontrar el techo real de dominio.
+    // Niveles sin ítems en esta prueba se omiten del cálculo pero NO del ZDP.
+    // ZDP siempre proyecta sobre la taxonomía completa N1–N4.
+    // ── Etiqueta semántica de distribución de niveles en la prueba ──
+    // En lugar de un nivel dominante arbitrario, describe la distribución real.
+    const _conteoNiveles = {};
+    levels.forEach(n => { _conteoNiveles[n] = (porNivel[n]||{}).total || 0; });
+    const _totalItems    = Object.values(_conteoNiveles).reduce((a,b)=>a+b, 0);
+    const _nivelesActivos = levels.filter(n => _conteoNiveles[n] > 0);
+    const _maxCount      = Math.max(...Object.values(_conteoNiveles));
+    const _nivelesTop    = _nivelesActivos.filter(n => _conteoNiveles[n] === _maxCount);
+
+    // Determinar etiqueta: balanceado / rango / dominante / único
+    let nivelDominante;
+    if (_nivelesActivos.length === 0) {
+      nivelDominante = '—';
+    } else if (_nivelesActivos.length === 1) {
+      nivelDominante = `${_nivelesActivos[0]} (solo)`;
+    } else if (_nivelesTop.length === _nivelesActivos.length) {
+      // Todos los niveles presentes tienen el mismo número de ítems → balanceado
+      const rango = `${_nivelesActivos[0]}–${_nivelesActivos[_nivelesActivos.length-1]}`;
+      nivelDominante = _nivelesActivos.length === 4 ? `${rango} ✓` : `${rango} (bal.)`;
+    } else if (_nivelesTop.length === 1) {
+      // Un nivel claramente dominante
+      const pct = Math.round((_maxCount / _totalItems) * 100);
+      nivelDominante = pct >= 50 ? _nivelesTop[0] : `${_nivelesTop[0]}*`;
+    } else {
+      // Dos o más niveles empatados como máximo
+      nivelDominante = _nivelesTop.join('–');
+    }
+
+    let maxItems = _maxCount; // mantener compatibilidad con código posterior
+
+    let zdr = null;
+    let mejorRatioFallback = -1;
+    let zdrFallback = levels[0];
+    // Recorrer de mayor a menor nivel para encontrar el techo real
+    [...levels].reverse().forEach(n => {
+      const d = porNivel[n] || {ok:0, total:0};
+      if(d.total === 0) return; // sin ítems → no hay evidencia → saltar
+      const ratio = d.ok / d.total;
+      if(zdr === null && ratio >= 0.60) zdr = n; // primer nivel alto con dominio
+      if(ratio > mejorRatioFallback){ mejorRatioFallback=ratio; zdrFallback=n; }
+    });
+    if(zdr === null) zdr = zdrFallback; // ninguno ≥60% → mejor ratio como proxy
+
+    const zdp = nextLevel(zdr, levels);
+
+    // nivelDominante es etiqueta de la prueba — no usar para distNiveles grupal
+
+    // Calcular porcentajes finales del cellMap
+
+    Object.keys(cellMap).forEach(k=>{
+
+      const c=cellMap[k];
+
+      c.porcentaje=c.total>0?Math.round((c.aciertos/c.total)*100):null; // null = sin ítems en esa celda
+
+    });
+
+    estudiantesDiag.push({
+
+      nombre, totalOk, porcentaje:Math.round((totalOk/Math.max(1,qUsadas.length))*100),
+
+      nivelDominante, zdr, zdp,
+
+      heat:respuestas.map((r,i)=>({q:i+1,ok:r===1})),
+
+      cellMap,
+
+      competenciasPresentes
+
+    });
+
+  });
+
+  const promedio=estudiantesDiag.length?Math.round(estudiantesDiag.reduce((a,b)=>a+b.porcentaje,0)/estudiantesDiag.length):0;
+
+  const rankingComp=Object.entries(competenciasGlobal).map(([k,v])=>({competencia:k,pct:Math.round((v.ok/v.total)*100)})).sort((a,b)=>a.pct-b.pct);
+
+  const rankingMicro=Object.entries(microhabilidadesGlobal).map(([k,v])=>({microhabilidad:k,errorPct:Math.round((v.errores/v.total)*100),...v})).sort((a,b)=>b.errorPct-a.errorPct);
+
+  // FIX: calcular métricas grupales desde ZDR real de cada estudiante
+  // (no desde nivelDominante que es etiqueta de distribución de la prueba)
+  const distZDR = {};
+  estudiantesDiag.forEach(e => {
+    const z = e.zdr;
+    if (z) distZDR[z] = (distZDR[z] || 0) + 1;
+  });
+
+  // Nivel ZDR más frecuente en el grupo (moda)
+  const nivelDomGrupo = Object.entries(distZDR)
+    .sort((a,b) => b[1]-a[1])[0]?.[0] || levels[0];
+
+  // Brecha: rango entre ZDR mínimo y máximo del grupo
+  const zdrOrden = ['N1','N2','N3','N4'];
+  const zdrVals  = estudiantesDiag.map(e => e.zdr).filter(v => zdrOrden.includes(v));
+  const zdrMin   = zdrVals.length ? zdrVals.sort((a,b) => zdrOrden.indexOf(a)-zdrOrden.indexOf(b))[0] : levels[0];
+  const zdrMax   = zdrVals.length ? [...zdrVals].sort((a,b) => zdrOrden.indexOf(b)-zdrOrden.indexOf(a))[0] : levels[levels.length-1];
+  const brechaPrincipal = zdrMin === zdrMax
+    ? `${zdrMin} (sin brecha)`
+    : `${zdrMin} → ${zdrMax}`;
+
+  // distNiveles por ZDR real (para el gráfico de barras de distribución)
+  const distNivelesZDR = Object.fromEntries(levels.map(l => [l, distZDR[l]||0]));
+
+  const sugerenciasPmap=rankingMicro.slice(0,12).map(m=>{
+
+    const nivelMeta=nextLevel(m.nivel,levels);
+
+    const sugeridas=bancoItems.filter(i=>i.microhabilidad===m.microhabilidad&&i.nivel===nivelMeta);
+
+    return {microhabilidad:m.microhabilidad,microrutina:m.microrutina,competencia:m.competencia,nivelActual:m.nivel,nivelMeta,sugeridas:sugeridas.slice(0,5)};
+
+  });
+
+  // Ajuste 4: Recalcular umbral dinámico con datos reales del grupo
+  UMBRAL_RAPIDO_Q = calcularUmbralDinamico(zipRows, qUsadas.length);
+  console.log('[PMAP] Umbral rápido dinámico:', UMBRAL_RAPIDO_Q.toFixed(1), 's');
+
+  // ── Mejora 3.4: Enriquecer con cuartiles PMAP ──
+  estudiantesDiag = motorCuartilesPorEstudiante(
+    estudiantesDiag, evaluacionAplicada, zipRows, qUsadas
+  );
+
+  return {levels,competenciasPresentes,estudiantes:estudiantesDiag,promedio,erroresPorPregunta,distNiveles:distNivelesZDR,nivelDominanteGrupo:nivelDomGrupo,brechaPrincipal,distZDR,zdrMin,zdrMax,rankingComp,rankingMicro,sugerenciasPmap,anomalias,anomaliaDetectada,numQArchivo,numQReal:qUsadas.length};
+
+}
+
+// ===================================================
+
+// RENDER DIAGNÓSTICO GRUPAL
+
+// ===================================================
+
+
+// ── Filtro interactivo por ZDR en gráfico de distribución ──
+let _filtroZDRActivo = null; // null = todos los estudiantes
+let _usaCronometria  = false; // true si el docente marcó que aplicó cronometría
+
+// ══════════════════════════════════════════════════════════════
+// FILTRO INTERACTIVO POR ZDR
+// Clic en barra del gráfico → filtra tabla y subgráficos
+// ══════════════════════════════════════════════════════════════
+function aplicarFiltroZDR(nivel) {
+  if (!resultadosMotor) return;
+
+  // Toggle: mismo nivel = limpiar filtro
+  if (_filtroZDRActivo === nivel) {
+    _filtroZDRActivo = null;
+    document.getElementById('btnLimpiarFiltro')?.remove();
+    document.getElementById('filtroBannerDOM')?.remove();
+  } else {
+    _filtroZDRActivo = nivel;
+    mostrarBotonLimpiarFiltro(nivel);
+  }
+
+  renderDiagnostico(resultadosMotor, _filtroZDRActivo);
+}
+
+function mostrarBotonLimpiarFiltro(nivel) {
+  let btn = document.getElementById('btnLimpiarFiltro');
+  if (!btn) {
+    btn = document.createElement('div');
+    btn.id = 'btnLimpiarFiltro';
+    btn.style.cssText = 'display:inline-flex;align-items:center;gap:8px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);border-radius:20px;padding:4px 12px;font-size:0.75rem;font-weight:600;color:#7dd3fc;cursor:pointer;margin-left:12px;';
+    btn.innerHTML = `<span id="filtroLabel">Filtrando: ZDR = ${nivel}</span> <span onclick="aplicarFiltroZDR('${nivel}')" style="font-size:1rem;line-height:1;">✕</span>`;
+    const header = document.querySelector('.filters-row') || document.querySelector('.dashboard-cards');
+    if (header) header.insertAdjacentElement('afterend', btn);
+  } else {
+    document.getElementById('filtroLabel').textContent = `Filtrando: ZDR = ${nivel}`;
+    btn.querySelector('span:last-child').onclick = () => aplicarFiltroZDR(nivel);
+  }
+}
+
+function renderDiagnostico(r, filtroZDR) {
+  // ── Variables de filtro — soporta string ZDR o función compuesta ──
+  const _estudiantesFiltrados = filtroZDR
+    ? (r.estudiantes || []).filter(
+        typeof filtroZDR === 'function' ? filtroZDR : e => e.zdr === filtroZDR
+      )
+    : (r.estudiantes || []);
+  const _totalFiltro = _estudiantesFiltrados.length;
+  const _hayFiltro   = !!filtroZDR;
+
+
+
+  document.getElementById("mEstudiantes").textContent=r.estudiantes.length;
+
+  document.getElementById("mPromedio").textContent=`${r.promedio}%`;
+
+  // Mostrar ZDR modal del grupo con conteo (ej: "N3 (28)")
+  const _modalCount = r.distZDR?.[r.nivelDominanteGrupo] || '';
+  document.getElementById("mNivel").textContent =
+    r.nivelDominanteGrupo + (_modalCount ? ` (${_modalCount})` : '');
+
+  // Brecha ZDR: mostrar rango con contexto si hay un solo nivel
+  document.getElementById("mBrecha").textContent = r.brechaPrincipal;
+
+  // ── ALERTA DE ANOMALÍAS ──────────────────────────────────
+
+  const alertaExistente=document.getElementById('alertaAnomalias');
+
+  if(alertaExistente) alertaExistente.remove();
+
+  if(r.anomaliaDetectada || r.anomalias.length){
+
+    const div=document.createElement('div');
+
+    div.id='alertaAnomalias';
+
+    div.className='alert alert-warning';
+
+    div.style.marginBottom='16px';
+
+    let msg=`⚠️ <strong>Anomalías detectadas en el archivo ZipGrade:</strong><br>`;
+
+    if(r.anomaliaDetectada){
+
+      msg+=`• El archivo declara <strong>${r.numQArchivo} preguntas</strong> pero solo tiene <strong>${r.numQReal} columnas Q</strong>. `;
+
+      msg+=`Los campos <em>Num Correct</em> y <em>Percent Correct</em> fueron <strong>ignorados</strong>. `;
+
+      msg+=`Todos los cálculos se realizaron internamente sobre las ${r.numQReal} preguntas reales.<br>`;
+
+    }
+
+    if(r.anomalias.length){
+
+      msg+=`• <strong>${r.anomalias.length} estudiante(s)</strong> con discrepancia entre datos del archivo y cálculo interno:<br>`;
+
+      msg+=`<details style="margin-top:6px;"><summary style="cursor:pointer;color:var(--warn);">Ver detalle (${r.anomalias.length})</summary><ul style="margin-top:8px;font-size:0.82rem;">`;
+
+      r.anomalias.slice(0,10).forEach(a=>{
+
+        msg+=`<li><strong>${a.nombre}</strong>: archivo dice ${a.archivoOk} aciertos (${a.archivoPct}%) → calculado: ${a.calculadoOk} aciertos (${a.calculadoPct}%)</li>`;
+
+      });
+
+      if(r.anomalias.length>10) msg+=`<li>...y ${r.anomalias.length-10} más.</li>`;
+
+      msg+=`</ul></details>`;
+
+    }
+
+    div.innerHTML=msg;
+
+    const diagnosticoCard=document.querySelector('#diagnostico .card');
+
+    if(diagnosticoCard) diagnosticoCard.after(div);
+
+  }
+
+  // Ajustar altura del gráfico según número de preguntas
+  const _chartErrCont = document.getElementById("chartErrores");
+  if (_chartErrCont) {
+    const _nQ = r.numQReal || evaluacionAplicada.length;
+    _chartErrCont.parentElement.style.height = _nQ <= 16 ? '200px' : _nQ <= 32 ? '220px' : '250px';
+  }
+  if(chartErrores) chartErrores.destroy();
+
+  if(chartNiveles) chartNiveles.destroy();
+
+  if(chartCompetencias) chartCompetencias.destroy();
+
+  if(chartMicro) chartMicro.destroy();
+
+  setTimeout(()=>{
+
+    // ── Gráfico errores: solo preguntas reales, eje X adaptativo ──
+    // Recalcular errores por pregunta para el subgrupo filtrado
+    const _nReal = r.numQReal || evaluacionAplicada.length;
+    const _errDataBase = _hayFiltro
+      ? (() => {
+          const arr = new Array(_nReal).fill(0);
+          _estudiantesFiltrados.forEach(est => {
+            (est.heat || []).forEach((h, i) => { if (!h.ok && i < _nReal) arr[i]++; });
+          });
+          return arr;
+        })()
+      : r.erroresPorPregunta;
+    const _errData   = _errDataBase.slice(0, _nReal);
+
+    const _errLabels = _errData.map((_, i) => `P${i+1}`);
+    const _maxErr    = Math.max(..._errData, 1);
+    // Rotar etiquetas según cantidad de preguntas
+    const _rotacion = _nReal <= 8  ? 0  :
+                      _nReal <= 12 ? 30 :
+                      _nReal <= 16 ? 45 :
+                      _nReal <= 24 ? 55 :
+                      _nReal <= 32 ? 65 : 75;
+    const _fontSize = _nReal <= 12 ? 11 :
+                      _nReal <= 16 ? 9  :
+                      _nReal <= 24 ? 8  : 7;
+    chartErrores = new Chart(document.getElementById("chartErrores"), {
+      type: "bar",
+      data: {
+        labels: _errLabels,
+        datasets: [{
+          label: "Errores",
+          data:  _errData,
+          backgroundColor: _errData.map(v => {
+            const pct = v / (resultadosMotor?.estudiantes?.length || 1);
+            return pct >= 0.7 ? '#ef4444' : pct >= 0.4 ? '#f97316' : '#fbbf24';
+          }),
+          borderRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: "#e5e7eb" } },
+          tooltip: {
+            callbacks: {
+              title: ctx => {
+                const idx = ctx[0].dataIndex;
+                const item = evaluacionAplicada[idx];
+                return `${_errLabels[idx]} — ${item?.nivel||'?'} — ${item?.microhabilidad||''}`;
+              },
+              label: ctx => {
+                const nEst = resultadosMotor?.estudiantes?.length || 1;
+                const pct  = Math.round((ctx.raw / nEst) * 100);
+                return ` ${ctx.raw} errores (${pct}% del grupo)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9ca3af",
+              font:  { size: _fontSize },
+              maxRotation: _rotacion,
+              minRotation: _rotacion,
+              autoSkip: _nReal > 20, maxTicksLimit: Math.min(_nReal, 24)
+            },
+            grid: { color: "#1f2937" }
+          },
+          y: {
+            beginAtZero: true,
+            max: Math.ceil(_maxErr * 1.15),
+            ticks: { color: "#9ca3af", stepSize: 1 },
+            grid: { color: "#1f2937" }
+          }
+        }
+      }
+    });
+    registrarChartModal(chartErrores, "chartErrores", "Errores por pregunta");
+
+    // Gráfico ZDR con filtro interactivo — colores dinámicos por estado de filtro
+    const _nivelesOrden = ['N1','N2','N3','N4'];
+    // MEJORA 1: contar ZDR desde el subgrupo filtrado (no del grupo completo)
+    const _distZDRFiltro = {};
+    _estudiantesFiltrados.forEach(e => {
+      if (e.zdr) _distZDRFiltro[e.zdr] = (_distZDRFiltro[e.zdr]||0) + 1;
+    });
+    const _zdrCounts = _nivelesOrden.map(l => _distZDRFiltro[l] || 0);
+    const _zdrColors = _nivelesOrden.map(l => {
+      if (_filtroZDRActivo && _filtroZDRActivo !== l) return 'rgba(56,189,248,0.2)'; // atenuado
+      if (_filtroZDRActivo === l) return '#38bdf8'; // seleccionado
+      return 'rgba(56,189,248,0.75)'; // sin filtro
+    });
+
+    const _canvasNiveles = document.getElementById("chartNiveles");
+    chartNiveles = new Chart(_canvasNiveles, {
+      type: "bar",
+      data: {
+        labels: _nivelesOrden,
+        datasets: [{
+          label: "Estudiantes por ZDR",
+          data: _zdrCounts,
+          backgroundColor: _zdrColors,
+          borderColor: _nivelesOrden.map(l => _filtroZDRActivo===l ? '#7dd3fc' : 'transparent'),
+          borderWidth: 2,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { bottom: 4 } },
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: _hayFiltro,
+            text: _hayFiltro ? `Vista filtrada · ZDR = ${_filtroZDRActivo}` : '',
+            color: '#7dd3fc',
+            font: { size: 11 }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const niv = _nivelesOrden[ctx.dataIndex];
+                const n   = ctx.raw;
+                const pct = r.estudiantes.length ? Math.round((n/r.estudiantes.length)*100) : 0;
+                return ` ${n} estudiantes con ZDR ${niv} (${pct}%)`;
+              },
+              footer: () => ['Haz clic para filtrar la tabla por este nivel ZDR']
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: '#1f2937' } },
+          y: { beginAtZero: true, ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: '#1f2937' } }
+        },
+        onClick: (evt, elements) => {
+          if (!elements.length) return;
+          const nivel = _nivelesOrden[elements[0].index];
+          aplicarFiltroZDR(nivel);
+        },
+        onHover: (evt, elements) => {
+          evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+        }
+      }
+    });
+
+    // Indicador de filtro activo encima del gráfico
+    registrarChartModal(chartNiveles, "chartNiveles", "Distribución por niveles ZDR");
+    const _labelFiltro = document.getElementById('labelFiltroZDR');
+    if (_labelFiltro) {
+      _labelFiltro.textContent = _filtroZDRActivo
+        ? `🔍 Mostrando ${_totalFiltro} estudiantes con ZDR = ${_filtroZDRActivo}`
+        : `📊 ${r.estudiantes.length} estudiantes — clic en barra para filtrar`;
+    }
+
+    // Competencias — recalcular si hay filtro activo
+    const _rankingCompFiltro = _hayFiltro
+      ? (() => {
+          const acc = {};
+          _estudiantesFiltrados.forEach(est => {
+            (est.heat||[]).forEach((h,i) => {
+              const comp = evaluacionAplicada[i]?.competencia || 'Sin competencia';
+              if (!acc[comp]) acc[comp] = {ok:0,total:0};
+              acc[comp].total++;
+              if (h.ok) acc[comp].ok++;
+            });
+          });
+          return Object.entries(acc)
+            .map(([k,v]) => ({competencia:k, pct: v.total?Math.round((v.ok/v.total)*100):0}))
+            .sort((a,b) => a.pct-b.pct);
+        })()
+      : r.rankingComp;
+
+    chartCompetencias = new Chart(document.getElementById("chartCompetencias"), {
+      type:"bar",
+      data:{
+        labels: _rankingCompFiltro.map(x=>x.competencia.substring(0,25)),
+        datasets:[{
+          label: _hayFiltro ? `% logro (ZDR=${_filtroZDRActivo})` : "% logro",
+          data:  _rankingCompFiltro.map(x=>x.pct),
+          backgroundColor: _rankingCompFiltro.map(x => x.pct>=70?'#22c55e':x.pct>=40?'#f59e0b':'#ef4444'),
+          borderRadius: 3
+        }]
+      },
+      options: getChartOptions()
+    });
+    registrarChartModal(chartCompetencias, "chartCompetencias", "Desempeño por competencia");
+
+    // MEJORA 2: Recalcular ranking de microhabilidades para el subgrupo filtrado
+    const _rankingMicroFiltro = _hayFiltro
+      ? (() => {
+          const accMicro = {};
+          _estudiantesFiltrados.forEach(est => {
+            (est.heat || []).forEach((h, i) => {
+              const mh = evaluacionAplicada[i]?.microhabilidad || 'Sin microhabilidad';
+              if (!accMicro[mh]) accMicro[mh] = { errores: 0, total: 0 };
+              accMicro[mh].total++;
+              if (!h.ok) accMicro[mh].errores++;
+            });
+          });
+          return Object.entries(accMicro)
+            .filter(([, v]) => v.total > 0)
+            .map(([k, v]) => ({
+              microhabilidad: k,
+              errorPct: Math.round((v.errores / v.total) * 100)
+            }))
+            .sort((a, b) => b.errorPct - a.errorPct)
+            .slice(0, 8);
+        })()
+      : r.rankingMicro.slice(0, 8);
+
+    chartMicro = new Chart(document.getElementById("chartMicro"), {
+      type: "bar",
+      data: {
+        labels: _rankingMicroFiltro.map(x => x.microhabilidad.substring(0, 22)),
+        datasets: [{
+          label: _hayFiltro ? `% error (ZDR=${_filtroZDRActivo})` : "% error grupo",
+          data:  _rankingMicroFiltro.map(x => x.errorPct),
+          backgroundColor: _rankingMicroFiltro.map(x =>
+            x.errorPct >= 70 ? '#ef4444' : x.errorPct >= 40 ? '#f59e0b' : '#4ade80'
+          ),
+          borderRadius: 3
+        }]
+      },
+      options: getChartOptions(45, {
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const item = _rankingMicroFiltro[ctx.dataIndex];
+                const suffix = _hayFiltro ? ` (subgrupo ZDR=${_filtroZDRActivo})` : ' (grupo completo)';
+                return ` ${item?.errorPct}% de error${suffix}`;
+              }
+            }
+          }
+        })
+    });
+    registrarChartModal(chartMicro, "chartMicro", "Top microhabilidades críticas");
+
+    // Actualizar título del gráfico con indicador de filtro
+    const _titleMicro = document.querySelector('#chartMicro')?.closest('.chart-container')?.querySelector('.chart-title');
+    if (_titleMicro) {
+      _titleMicro.textContent = _hayFiltro
+        ? `Top microhabilidades críticas · ZDR=${_filtroZDRActivo} (${_totalFiltro} est.)`
+        : 'Top microhabilidades críticas';
+    }
+
+    window.dispatchEvent(new Event('resize'));
+  },100);
+  // (variables de filtro declaradas al inicio de la función)
+
+  // Indicador de filtro activo — inyectar en el DOM
+  
+  const _notaTabla = document.getElementById('notaTablaDiagnostico');
+  if (_notaTabla && _hayFiltro) {
+    _notaTabla.insertAdjacentHTML('beforebegin',
+      `<div id="filtroBannerDOM" style="font-size:0.72rem;color:#7dd3fc;padding:6px 12px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.3);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+        🔍 Filtrando: ZDR = <strong>${_filtroZDRActivo}</strong> · ${_totalFiltro} de ${r.estudiantes.length} estudiantes
+        <button onclick="aplicarFiltroZDR('${_filtroZDRActivo}')" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:12px;padding:2px 8px;font-size:0.68rem;cursor:pointer;">✕ Limpiar filtro</button>
+      </div>`
+    );
+  } else {
+    document.getElementById('filtroBannerDOM')?.remove();
+  }
+
+  let html=`<tr><th>Estudiante</th><th>%</th><th title="Distribución de niveles en la prueba: ✓=balanceado N1–N4, *=distribución parcial, (solo)=un único nivel">Nivel prueba ℹ️</th><th title="Nivel más alto con dominio ≥60%">ZDR</th><th title="Próximo nivel en taxonomía N1–N4">ZDP</th><th title="Patrón cognitivo más frecuente del estudiante. Distinto del ZDR (nivel de dominio real).">Patrón PMAP</th><th>Estado</th></tr>`;
+
+  // Aplicar filtro ZDR si está activo — (redefinición eliminada, ya está arriba)
+
+  const _estadoEmoji={'dominio_consolidado':'✅','comprension_no_automatizada':'🔵','error_impulsivo':'⚡','dificultad_estructural':'🔴'};
+  _estudiantesFiltrados.forEach(e=>{
+    const _cdom     = e.cuartiles?.cuartilDominante || '—';
+    const _est      = _estadoEmoji[e.cuartiles?.estadoPMAP] || '—';
+    const _tipND    = tooltipNivelPrueba(e.nivelDominante);
+    const _zdrColor = e.zdr==='N4'?'#4ade80':e.zdr==='N3'?'#7dd3fc':e.zdr==='N2'?'#fb923c':'#f87171';
+    html+=`<tr>
+      <td><a href="#" style="color:var(--accent);" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\'")}');return false;">${escapeHTML(e.nombre)}</a></td>
+      <td>${e.porcentaje}%</td>
+      <td title="${_tipND}" style="cursor:help;">${e.nivelDominante} <span style="font-size:0.65rem;opacity:0.6;">ℹ️</span></td>
+      <td><strong style="color:${_zdrColor};">${e.zdr}</strong></td>
+      <td>${e.zdp}</td>
+      <td><strong>${_cdom}</strong></td>
+      <td>${_est}</td>
+    </tr>`;
+
+  });
+
+  document.getElementById("tablaDiagnostico").innerHTML=html;
+
+  // Nota aclaratoria para el docente
+  const notaDiv = document.getElementById('notaTablaDiagnostico');
+  if(notaDiv){
+    const nivelesConItems = [...new Set((evaluacionAplicada||[]).map(i=>i.nivel).filter(Boolean))].sort();
+    const sinN4 = !nivelesConItems.includes('N4');
+    notaDiv.innerHTML = `
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid var(--accent);">
+        <strong>ℹ️ Cómo leer la tabla:</strong>
+        <span style="display:block;margin-top:4px;">
+          <strong>Nivel prueba</strong> = distribución de ítems: <strong>N1–N4 ✓</strong>=balanceado, <strong>N3</strong>=nivel dominante (≥50%), <strong>N2–N3</strong>=empate, <strong>N3 (solo)</strong>=un solo nivel.
+          <strong>ZDR</strong> = nivel más alto donde el estudiante alcanzó ≥60% de acierto.
+          <strong>ZDP</strong> = siguiente paso en la taxonomía N1–N4.
+          ${sinN4 ? '<span style="color:var(--warning,#fb923c);">⚠️ La prueba no incluye ítems N4 — la ZDP máxima posible es N4 (proyectada desde taxonomía, sin ítems de evidencia).</span>' : ''}
+          Ítems en esta prueba: <strong>${nivelesConItems.join(', ') || '—'}</strong>.
+        </span>
+      </div>`;
+  }
+
+  renderContextoGAGEM5(r);
+  renderCoberturaTamizaje(r);
+
+}
+
+// ===================================================
+
+// PMAP
+
+// ===================================================
+
+document.getElementById("generarPmapBtn").addEventListener("click",()=>{
+
+  if(!resultadosMotor) return alert("Primero procesa el diagnóstico.");
+
+  let html=`<tr><th>Microhabilidad</th><th>Microrutina</th><th>Competencia</th><th>Nivel actual</th><th>Nivel meta</th><th>Ítems sugeridos</th></tr>`;
+
+  resultadosMotor.sugerenciasPmap.forEach(s=>{
+
+    const sug=s.sugeridas.length?s.sugeridas.map(x=>x.id).join(", "):"Sin ítems aún";
+
+    html+=`<tr><td>${s.microhabilidad}</td><td>${s.microrutina}</td><td>${s.competencia}</td><td>${s.nivelActual}</td><td>${s.nivelMeta}</td><td>${sug}</td></tr>`;
+
+  });
+
+  document.getElementById("tablaPmap").innerHTML=html;
+
+});
+
+// ===================================================
+
+// RENDER PERFIL INDIVIDUAL
+
+// ===================================================
+
+function mostrarEstudiante(nombre){
+
+  const est=resultadosMotor?.estudiantes?.find(e=>e.nombre===nombre);
+
+  if(!est) return alert("Estudiante no encontrado");
+
+  window.estudianteActual=est;
+
+  document.getElementById('studentsPanel').style.display='none';
+
+  document.getElementById('progressPanel').style.display='block';
+
+  document.getElementById('currentStudentName').textContent=est.nombre;
+
+  document.getElementById('studentProgressTitle').textContent=`Perfil cognitivo: ${est.nombre}`;
+
+  document.getElementById('infoNivelGlobal').textContent=est.nivelDominante;
+
+  // ZDR = nivel de dominio real (nivel más alto con ≥60% aciertos)
+  // ZDP = siguiente nivel en la taxonomía N1→N4
+  // Patrón PMAP = cuartil dominante (patrón cognitivo más frecuente) — DISTINTO del ZDR
+  // Mostrar ZDR con indicador de confianza si hay pocos ítems en ese nivel
+  const _nItemsZDR = (est.heat || []).filter((h, i) =>
+    evaluacionAplicada[i]?.nivel === est.zdr
+  ).length;
+  const _zdrConfianza = _nItemsZDR >= 3 ? '' : _nItemsZDR > 0 ? ' ⚠️' : '';
+  document.getElementById('infoZDR').textContent = (est.zdr || '—') + _zdrConfianza;
+
+  // Tooltip dinámico según confianza
+  const _zdrEl = document.getElementById('infoZDR');
+  if (_zdrEl) {
+    if (_nItemsZDR < 3 && _nItemsZDR > 0) {
+      _zdrEl.title = `ZDR calculado con solo ${_nItemsZDR} ítem${_nItemsZDR>1?'s':''} en ${est.zdr}. Evidencia insuficiente — mínimo recomendado: 3 ítems por nivel.`;
+      _zdrEl.style.color = '#fb923c'; // naranja = baja confianza
+    } else {
+      _zdrEl.title = `Nivel más alto con ≥60% de aciertos (${_nItemsZDR} ítems evaluados en ${est.zdr})`;
+      _zdrEl.style.color = 'var(--accent)';
+    }
+  }
+  // ZDP con indicador de techo cuando ZDR = N4
+  const _zdpValor = est.zdp || '—';
+  const _esTecho   = est.zdr === 'N4' && est.zdp === 'N4';
+  document.getElementById('infoZDP').textContent = _esTecho ? 'N4 ✓ techo' : _zdpValor;
+  const _zdpEl = document.getElementById('infoZDP');
+  if (_zdpEl) {
+    _zdpEl.title = _esTecho
+      ? 'El estudiante ya domina el nivel más alto de la taxonomía. No hay un nivel superior al que avanzar.'
+      : `Próximo nivel alcanzable desde ZDR=${est.zdr}`;
+    _zdpEl.style.color = _esTecho ? '#4ade80' : 'var(--text)';
+  }
+
+  // Patrón PMAP: cuartil dominante + etiqueta pedagógica
+  const _patronEl    = document.getElementById('infoCuartilDominante');
+  const _patronLabel = document.getElementById('infoPatronLabel');
+  const _cuartilDom  = est.cuartiles?.cuartilDominante;
+  const _estadoPmap  = est.cuartiles?.estadoPMAP;
+  const _patronTexto = {
+    dominio_consolidado:         'Dominio consolidado',
+    comprension_no_automatizada: 'Comprensión no automatizada',
+    error_impulsivo:             'Error impulsivo',
+    dificultad_estructural:      'Dificultad estructural',
+    sin_dato_cognitivo:          'Sin cuartil cognitivo — agrega el campo "cuartil" al banco'
+  };
+  const _patronColor = {
+    dominio_consolidado:         '#4ade80',
+    comprension_no_automatizada: '#7dd3fc',
+    error_impulsivo:             '#fb923c',
+    dificultad_estructural:      '#f87171'
+  };
+  if (_patronEl) {
+    _patronEl.textContent = _cuartilDom || '—';
+    _patronEl.style.color = _patronColor[_estadoPmap] || 'var(--text)';
+  }
+  if (_patronLabel) {
+    _patronLabel.textContent = _patronTexto[_estadoPmap] || '—';
+  }
+
+  document.getElementById('infoPct').textContent=`${est.porcentaje}%`;
+
+  renderMapaCalor(est);
+
+  renderMicroPrioritarias(est);
+
+  renderMatriz3x4(est);
+
+  renderRecomendacionesPMAP(est);
+  renderCuartilesPMAP(est);
+  renderSugerenciasIndividual(est); // sugerencias automáticas por estudiante
+
+}
+
+// ===================================================
+
+// MAPA DE CALOR — SIN DESBORDAMIENTO
+
+// ===================================================
+
+function nivelClass(n){
+
+  if(!n) return '';
+
+  const nl=n.toLowerCase();
+
+  if(nl==='n1'||nl==='prea1') return 'n1';
+
+  if(nl==='n2'||nl==='a1') return 'n2';
+
+  if(nl==='n3'||nl==='a2') return 'n3';
+
+  return 'n4';
+
+}
+
+function renderMapaCalor(est){
+
+  const cont=document.getElementById('heatmapIndividual');
+
+  const items=evaluacionAplicada;
+
+  const heat=est.heat;
+
+  let html=`<div class="heatmap-wrapper"><div class="heatmap-scroll-inner">`;
+
+  // Fila 1: Competencias
+
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">COMPETENCIA</div><div class="heatmap-pills">`;
+
+  items.forEach((item,i)=>{
+
+    const short=item.competencia.length>12?item.competencia.substring(0,12)+'…':item.competencia;
+
+    html+=`<div class="heatmap-pill-p" title="${item.competencia}">P${i+1}<br><span style="font-size:0.65rem;">${short}</span></div>`;
+
+  });
+
+  html+=`</div></div>`;
+
+  // Fila 2: Niveles
+
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">NIVEL</div><div class="heatmap-pills">`;
+
+  items.forEach(item=>{
+
+    html+=`<div class="heatmap-pill-n ${nivelClass(item.nivel)}">${item.nivel}</div>`;
+
+  });
+
+  html+=`</div></div>`;
+
+  // Fila 3: Respuestas del estudiante
+
+  const primerNombre=est.nombre.split(' ')[0];
+
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">${primerNombre}<br><span style="font-size:0.7rem;color:var(--accent);">${est.nivelDominante}</span></div><div class="heatmap-pills">`;
+
+  heat.forEach((h,idx)=>{
+
+    const item=items[idx];
+
+    const tooltip=`P${idx+1} | ${item.nivel} | ${item.microhabilidad} | ${h.ok?'✓ Correcto':'✗ Incorrecto'}`;
+
+    html+=`<div class="heatmap-oval ${h.ok?'correcto':'incorrecto'}" title="${tooltip}">${h.ok?'✓':'✗'}</div>`;
+
+  });
+
+  html+=`</div></div>`;
+
+  // Leyenda
+
+  html+=`<div class="heatmap-leyenda">
+
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--ok);"></div><span>Correcto</span></div>
+
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--danger);"></div><span>Incorrecto</span></div>
+
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:transparent;border:2px solid var(--accent);border-radius:50%;"></div><span>Hover para detalles</span></div>
+
+  </div>`;
+
+  html+=`</div></div>`;
+
+  cont.innerHTML=html;
+
+}
+
+// ===================================================
+
+// MICROHABILIDADES PRIORITARIAS
+
+// ===================================================
+
+function renderMicroPrioritarias(est){
+  const cont = document.getElementById('microPrioritarias');
+
+  // FIX 3: Construir ranking desde los ERRORES del estudiante individual,
+  // no desde el ranking grupal. Así cada perfil es genuinamente personal.
+  const acumulador = {};
+  (est.heat || []).forEach((h, i) => {
+    const item = evaluacionAplicada[i];
+    if (!item) return;
+    const mh = item.microhabilidad || 'Sin microhabilidad';
+    if (!acumulador[mh]) {
+      acumulador[mh] = {
+        microhabilidad: mh,
+        microrutina:    item.microrutina    || '—',
+        competencia:    item.competencia    || '—',
+        nivel:          item.nivel          || '—',
+        errores: 0, total: 0
+      };
+    }
+    acumulador[mh].total++;
+    if (!h.ok) acumulador[mh].errores++;
+  });
+
+  // Ordenar por % error descendente, tomar top 4 con al menos 1 error
+  const micros = Object.values(acumulador)
+    .filter(m => m.errores > 0)
+    .sort((a, b) => (b.errores/b.total) - (a.errores/a.total))
+    .slice(0, 4);
+
+  if (!micros.length) {
+    cont.innerHTML = '<div class="muted small">✅ Sin errores detectados en este estudiante.</div>';
+    return;
+  }
+
+  cont.innerHTML = micros.map((m, i) => `
+
+    <div class="micro-card">
+
+      <div style="font-weight:600;margin-bottom:6px;">${m.microhabilidad}</div>
+
+      <div style="color:var(--danger);font-size:0.85rem;">Error estudiante: ${Math.round((m.errores/m.total)*100)}%</div>
+
+      <div style="color:var(--muted);font-size:0.78rem;margin-top:6px;">Microrutina: ${m.microrutina}</div>
+
+    </div>
+
+  `).join('');
+
+}
+
+// ===================================================
+
+// MATRIZ 3×4 — FIX PRINCIPAL (calcula desde cellMap real)
+
+// ===================================================
+
+function renderMatriz3x4(est){
+
+  const cont=document.getElementById('matrizIndividual');
+
+  if(!est||!est.cellMap){cont.innerHTML='<div class="muted">Sin datos</div>';return;}
+
+  const levels=resultadosMotor?.levels||["N1","N2","N3","N4"];
+
+  // Usar las competencias REALES de la evaluación (no hardcoded C1/C2/C3)
+
+  const comps=est.competenciasPresentes||[...new Set(evaluacionAplicada.map(i=>i.competencia).filter(Boolean))];
+
+  function pct(comp,nivel){
+
+    const key=`${comp}|${nivel}`;
+
+    const c=est.cellMap[key];
+
+    if(!c||c.total===0) return null; // null = no hubo ítems en esa celda
+
+    return c.porcentaje!=null?c.porcentaje:Math.round((c.aciertos/c.total)*100);
+
+  }
+
+  function claseColor(val){
+
+    if(val===null) return 'pct-vacio';
+
+    if(val>=70) return 'pct-alto';
+
+    if(val>=40) return 'pct-medio';
+
+    return 'pct-bajo';
+
+  }
+
+  function textoVal(val){
+
+    return val===null?'—':`${val}%`;
+
+  }
+
+  let html=`<div class="matriz3x4-wrapper">
+
+    <table class="matriz3x4-table">
+
+      <thead><tr>
+
+        <th>Competencia / proceso</th>
+
+        ${levels.map(l=>`<th>${l}</th>`).join('')}
+
+      </tr></thead>
+
+      <tbody>`;
+
+  comps.forEach(comp=>{
+
+    // Abreviar competencia larga
+
+    const compShort=comp.length>30?comp.substring(0,30)+'…':comp;
+
+    html+=`<tr>
+
+      <td><span class="comp-key">${compShort}</span></td>
+
+      ${levels.map(nivel=>{
+
+        const v=pct(comp,nivel);
+
+        return `<td class="${claseColor(v)}">${textoVal(v)}</td>`;
+
+      }).join('')}
+
+    </tr>`;
+
+  });
+
+  html+=`</tbody></table>
+
+    <div class="matriz3x4-leyenda">
+
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(34,197,94,.4);"></div><span>Alto (≥70%)</span></div>
+
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(249,115,22,.4);"></div><span>Medio (40-69%)</span></div>
+
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.4);"></div><span>Bajo (<40%)</span></div>
+
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(100,100,100,.2);"></div><span>— Sin ítems en esa celda</span></div>
+
+    </div>
+
+  </div>`;
+
+  cont.innerHTML=html;
+
+}
+
+// ===================================================
+
+// RECOMENDACIONES PMAP INDIVIDUALES
+
+// ===================================================
+
+function renderRecomendacionesPMAP(est){
+  const cont = document.getElementById('recomendacionesPMAP');
+  const levels = resultadosMotor?.levels || ["N1","N2","N3","N4"];
+
+  // AJUSTE 3: Construir ranking desde los ERRORES DEL ESTUDIANTE (est.heat)
+  // No usar rankingMicro grupal — cada perfil debe ser genuinamente individual
+  const acumulador = {};
+  (est.heat || []).forEach((h, i) => {
+    const item = evaluacionAplicada[i];
+    if (!item) return;
+    const mh = item.mh_id || item.microhabilidad || 'Sin microhabilidad';
+    if (!acumulador[mh]) {
+      acumulador[mh] = {
+        mh_id:          item.mh_id          || null,
+        microhabilidad: item.microhabilidad  || getMHNombre(item.mh_id) || mh,
+        microrutina:    item.microrutina     || '—',
+        competencia:    item.competencia     || '—',
+        nivel:          item.nivel           || 'N2',
+        cuartil:        'Q1', // se actualiza con el cuartil predominante del error
+        errores: 0, total: 0
+      };
+    }
+    acumulador[mh].total++;
+    if (!h.ok) acumulador[mh].errores++;
+  });
+
+  const micros = Object.values(acumulador)
+    .filter(m => m.errores > 0)
+    .map(m => ({ ...m, errorPct: Math.round((m.errores / m.total) * 100) }))
+    .sort((a, b) => b.errorPct - a.errorPct)
+    .slice(0, 6);
+
+  if (!micros.length) {
+    cont.innerHTML = '<div class="muted small">✅ Sin errores detectados — el estudiante respondió correctamente todos los ítems evaluados.</div>';
+    return;
+  }
+
+  cont.innerHTML = micros.map((m, i) => {
+    const prioLabel = i < 2 ? 'Alta' : i < 4 ? 'Media' : 'Baja';
+    const prioClass = i < 2 ? 'priority-high' : i < 4 ? 'priority-medium' : 'priority-low';
+    const nivelMeta = nextLevel(m.nivel, levels);
+
+    // Resolver mh_id canónico desde el item del banco
+    const mh_id   = m.mh_id   || null;
+    const nivel    = m.nivel   || 'N2';
+    const cuartil  = m.cuartil || 'Q1';
+    const md_id    = mh_id ? getMDId(mh_id, nivel, cuartil) : null;
+    const mr_id    = md_id ? `${md_id}_MR_I` : null;
+    const esAncla  = mh_id ? esMHAncla(mh_id) : false;
+    const nombreMH = mh_id ? getMHNombre(mh_id) : m.microhabilidad;
+
+    return `<div class="pmap-card" style="border-left-color:${esAncla?'var(--accent)':'var(--danger)'}">
+      <span class="pmap-priority ${prioClass}">Prioridad ${prioLabel}${esAncla?' · 🔑 MH ancla':''}</span>
+      <div style="font-weight:600;margin-bottom:4px;">🎯 ${escapeHTML(nombreMH)}</div>
+      ${mh_id ? `<div style="font-size:0.68rem;color:var(--muted);margin-bottom:6px;font-family:monospace;">${mh_id}</div>` : ''}
+      <div style="color:var(--danger);font-size:0.82rem;margin-bottom:4px;">
+        Error estudiante: ${m.errorPct}% (${m.errores}/${m.total} ítems)
+      </div>
+      <div style="color:var(--muted);font-size:0.82rem;padding-left:8px;border-left:2px solid var(--border);margin-bottom:6px;">
+        ${escapeHTML(m.microrutina || '—')}
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+        <span>${escapeHTML(m.competencia)} · ${nivel} → Meta: ${nivelMeta}</span>
+        ${md_id ? `<span style="font-family:monospace;font-size:0.68rem;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">MD: ${md_id}</span>` : ''}
+        ${mr_id ? `<span style="font-family:monospace;font-size:0.68rem;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">MR: ${mr_id}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+}
+
+function resetNarrativa(){
+
+  document.getElementById('narrativaVacia').style.display='block';
+
+  document.getElementById('narrativaCargando').style.display='none';
+
+  document.getElementById('narrativaResultado').style.display='none';
+
+  document.getElementById('narrativaError').style.display='none';
+
+  document.getElementById('btnCopiarNarrativa').style.display='none';
+
+}
+
+async function generarNarrativaPMAP(){
+
+  const est = window.estudianteActual;
+
+  if(!est) return;
+
+  const tono = document.getElementById('toneNarrativa').value;
+
+  const levels = resultadosMotor?.levels || ["N1","N2","N3","N4"];
+
+  // AJUSTE 3: Usar errores del estudiante para el prompt de narrativa (no del grupo)
+  const _acumNar = {};
+  (est.heat || []).forEach((h, i) => {
+    const item = evaluacionAplicada[i];
+    if (!item) return;
+    const mh = item.microhabilidad || 'Sin microhabilidad';
+    if (!_acumNar[mh]) _acumNar[mh] = { microhabilidad:mh, microrutina:item.microrutina||'—', nivel:item.nivel||'N2', errores:0, total:0 };
+    _acumNar[mh].total++;
+    if (!h.ok) _acumNar[mh].errores++;
+  });
+  const micros = Object.values(_acumNar)
+    .filter(m => m.errores > 0)
+    .map(m => ({ ...m, errorPct: Math.round((m.errores/m.total)*100) }))
+    .sort((a, b) => b.errorPct - a.errorPct)
+    .slice(0, 4);
+
+  // Construir resumen del perfil para el prompt
+
+  const aciertos = est.heat.filter(h=>h.ok).length;
+
+  const errores  = est.heat.filter(h=>!h.ok).map(h=>{
+
+    const item = evaluacionAplicada[h.q-1];
+
+    return `P${h.q} (${item?.nivel||'?'} – ${item?.microhabilidad||'?'})`;
+
+  }).join(', ');
+
+  const microsCriticas = micros.map((m,i)=>
+
+    `${i+1}. ${m.microhabilidad} (error estudiante: ${m.errorPct}%) → microrutina: "${m.microrutina}" → nivel meta: ${nextLevel(m.nivel,levels)}`
+
+  ).join('\n');
+
+  // Distribución por celda de la matriz
+
+  const compNivel = [];
+
+  if(est.cellMap){
+
+    Object.entries(est.cellMap).forEach(([k,v])=>{
+
+      if(v.total>0) compNivel.push(`${k}: ${v.porcentaje}% (${v.aciertos}/${v.total})`);
+
+    });
+
+  }
+
+  const tonoInstrucciones = {
+
+    docente:     "Escribe para un docente de aula. Usa lenguaje pedagógico claro y práctico. Incluye sugerencias concretas de actividades en el aula.",
+
+    padre:       "Escribe para un padre o madre de familia. Usa lenguaje sencillo, sin tecnicismos. Sé empático y motivador. Explica qué puede hacer la familia en casa.",
+
+    estudiante:  "Escribe directamente al estudiante adolescente. Usa un tono cercano, motivador y honesto. Habla de sus fortalezas primero y luego de sus retos.",
+
+    coordinador: "Escribe para el coordinador académico. Usa lenguaje técnico-institucional. Incluye el nivel de riesgo académico y sugiere acciones de seguimiento."
+
+  };
+
+  const prompt = `Eres un experto en evaluación educativa del sistema SITE-RUTA LATAM, un instrumento de trazabilidad cognitiva basado en niveles N1-N4 (de reconocimiento literal a pensamiento crítico) y el concepto vygotskiano de Zona de Desarrollo Próximo (ZDP).
+
+PERFIL DEL ESTUDIANTE:
+
+- Nombre: ${est.nombre}
+
+- Aciertos: ${aciertos}/${resultadosMotor?.numQReal||est.total||evaluacionAplicada.length} (${est.porcentaje}%)
+
+- Nivel dominante (ZDR): ${est.zdr}
+
+- Zona de Desarrollo Próximo (ZDP): ${est.zdp}
+
+- Preguntas falladas: ${errores || 'ninguna'}
+
+MATRIZ DE DESEMPEÑO (competencia × nivel):
+
+${compNivel.join('\n') || 'Sin datos de matriz'}
+
+MICROHABILIDADES CRÍTICAS A TRABAJAR:
+
+${microsCriticas || 'Sin datos'}
+
+INSTRUCCIÓN DE TONO:
+
+${tonoInstrucciones[tono]}
+
+TAREA:
+
+Genera una narrativa PMAP en español de 3-4 párrafos bien estructurados:
+
+1. Párrafo 1: Describe el perfil cognitivo actual del estudiante (qué sabe hacer, desde dónde parte).
+
+2. Párrafo 2: Explica el principal obstáculo cognitivo (qué le impide avanzar y por qué).
+
+3. Párrafo 3: Recomienda acciones concretas y específicas priorizando las microrutinas identificadas.
+
+4. Párrafo 4 (opcional): Mensaje motivador o de seguimiento según el tono seleccionado.
+
+Usa el nombre del estudiante. Sé específico con las microhabilidades y microrutinas. No uses listas de bullets — escribe en prosa fluida y cálida.`;
+
+  // Mostrar cargando
+
+  document.getElementById('narrativaVacia').style.display='none';
+
+  document.getElementById('narrativaResultado').style.display='none';
+
+  document.getElementById('narrativaError').style.display='none';
+
+  document.getElementById('narrativaCargando').style.display='block';
+
+  document.getElementById('narrativaStatus').textContent='Analizando perfil cognitivo...';
+
+  document.getElementById('btnNarrativa').disabled=true;
+
+  const statusMsgs = [
+
+    'Identificando zona de desarrollo próximo...',
+
+    'Contrastando microhabilidades críticas...',
+
+    'Redactando recomendaciones pedagógicas...',
+
+    'Ajustando el tono de la narrativa...'
+
+  ];
+
+  let msgIdx=0;
+
+  const statusInterval = setInterval(()=>{
+
+    msgIdx=(msgIdx+1)%statusMsgs.length;
+
+    const el=document.getElementById('narrativaStatus');
+
+    if(el) el.textContent=statusMsgs[msgIdx];
+
+  }, 1800);
+
+  try{
+
+    const response = await fetch("/api/narrativa-pmap", {
+
+      method:"POST",
+
+      headers:{"Content-Type":"application/json"},
+
+      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({
+        prompt: prompt,
+        estudiante: est?.nombre || 'Sin nombre',
+        tono: tono || 'formal'
+      })
+
+    });
+
+    clearInterval(statusInterval);
+
+    if(!response.ok){
+
+      const err = await response.json().catch(()=>({}));
+
+      throw new Error(err?.error?.message || `Error HTTP ${response.status}`);
+
+    }
+
+    const data = await response.json();
+
+    const texto = data.content?.find(b=>b.type==='text')?.text || '';
+
+    if(!texto) throw new Error('La IA no devolvió contenido.');
+
+    // Mostrar resultado
+
+    document.getElementById('narrativaCargando').style.display='none';
+
+    document.getElementById('narrativaResultado').style.display='block';
+
+    document.getElementById('narrativaTexto').textContent=texto;
+
+    document.getElementById('narrativaMeta').textContent=
+
+      `Generado para: ${['docente','padre','estudiante','coordinador'].find(t=>t===tono)||tono} · ${new Date().toLocaleTimeString('es-CO')}`;
+
+    document.getElementById('btnCopiarNarrativa').style.display='inline-flex';
+
+  } catch(err){
+
+    clearInterval(statusInterval);
+
+    document.getElementById('narrativaCargando').style.display='none';
+
+    document.getElementById('narrativaError').style.display='block';
+
+    // Modo offline: si el backend no responde, generar narrativa local
+    const textoOffline = generarNarrativaOffline(est);
+    if (textoOffline) {
+      document.getElementById('narrativaCargando').style.display='none';
+      document.getElementById('narrativaResultado').style.display='block';
+      document.getElementById('narrativaTexto').textContent = textoOffline;
+      document.getElementById('narrativaMeta').textContent = `Generado localmente (modo offline) · ${new Date().toLocaleTimeString('es-CO')}`;
+      document.getElementById('btnCopiarNarrativa').style.display='inline-flex';
+    } else {
+      document.getElementById('narrativaError').style.display='block';
+      document.getElementById('narrativaError').textContent=`Error al generar la narrativa: ${err.message}`;
+    }
+
+  } finally {
+
+    document.getElementById('btnNarrativa').disabled=false;
+
+  }
+
+}
+
+function copiarNarrativa(){
+
+  const texto = document.getElementById('narrativaTexto').textContent;
+
+  navigator.clipboard.writeText(texto).then(()=>{
+
+    const btn = document.getElementById('btnCopiarNarrativa');
+
+    const original = btn.innerHTML;
+
+    btn.innerHTML='✅ Copiado';
+
+    setTimeout(()=>btn.innerHTML=original, 2000);
+
+  });
+
+}
+
+// ===================================================
+
+// LISTA DE ESTUDIANTES CON PAGINACIÓN
+
+// ===================================================
+
+let estudiantesFiltrados = [];
+
+let paginaActual = 1;
+
+let totalPaginas = 1;
+
+function aplicarFiltros(){
+
+  const inst=document.getElementById('filtroInstitucion').value.toLowerCase();
+
+  const grado=document.getElementById('filtroGrado').value;
+
+  const grupo=document.getElementById('filtroGrupo').value;
+
+  const busq=document.getElementById('filtroBusqueda').value.toLowerCase();
+
+  const todos=resultadosMotor?.estudiantes||[];
+
+  estudiantesFiltrados=todos.filter(e=>
+
+    (inst===''||e.institucion?.toLowerCase().includes(inst))&&
+
+    (grado==='todos'||e.grado===grado)&&
+
+    (grupo==='todos'||e.grupo===grupo)&&
+
+    (busq===''||e.nombre.toLowerCase().includes(busq))
+
+  );
+
+  paginaActual=1;
+
+  renderPagina();
+
+}
+
+function renderPagina(){
+
+  const pageSize=parseInt(document.getElementById('pageSize').value)||12;
+
+  totalPaginas=Math.max(1,Math.ceil(estudiantesFiltrados.length/pageSize));
+
+  if(paginaActual<1) paginaActual=1;
+
+  if(paginaActual>totalPaginas) paginaActual=totalPaginas;
+
+  const desde=(paginaActual-1)*pageSize;
+
+  const hasta=Math.min(desde+pageSize, estudiantesFiltrados.length);
+
+  const pagina=estudiantesFiltrados.slice(desde,hasta);
+
+  const lista=document.getElementById('estudiantesList');
+
+  lista.innerHTML=pagina.map(e=>`
+
+    <div class="estudiante-card" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\\'")}')">
+
+      <div class="estudiante-nombre">${e.nombre}</div>
+
+      <div class="estudiante-meta">
+
+        Nivel: <strong style="color:var(--accent);">${e.nivelDominante}</strong> |
+
+        Aciertos: ${e.totalOk}/${r.numQReal||evaluacionAplicada.length} (${e.porcentaje}%) |
+
+        ZDP: ${e.zdp}
+
+      </div>
+
+    </div>
+
+  `).join('')||`<div class="muted small" style="padding:20px; grid-column:1/-1;">Primero procesa el diagnóstico en la pestaña "Diagnóstico grupal".</div>`;
+
+  // Contadores
+
+  document.getElementById('totalStudentsCount').textContent=estudiantesFiltrados.length;
+
+  document.getElementById('paginationFrom').textContent=estudiantesFiltrados.length?desde+1:0;
+
+  document.getElementById('paginationTo').textContent=hasta;
+
+  // Botones prev/next/primera/ultima
+
+  document.getElementById('btnPrimera').disabled=paginaActual<=1;
+
+  document.getElementById('btnAnterior').disabled=paginaActual<=1;
+
+  document.getElementById('btnSiguiente').disabled=paginaActual>=totalPaginas;
+
+  document.getElementById('btnUltima').disabled=paginaActual>=totalPaginas;
+
+  // Numeritos de página (máximo 7 visibles)
+
+  const bDiv=document.getElementById('paginaBtns');
+
+  bDiv.innerHTML='';
+
+  const rango=paginasVisibles(paginaActual,totalPaginas,7);
+
+  let anteriorFueEllipsis=false;
+
+  rango.forEach(p=>{
+
+    if(p==='…'){
+
+      if(!anteriorFueEllipsis){
+
+        const sp=document.createElement('span');
+
+        sp.textContent='…';
+
+        sp.style.cssText='color:var(--muted);padding:0 4px;line-height:34px;';
+
+        bDiv.appendChild(sp);
+
+        anteriorFueEllipsis=true;
+
+      }
+
+    } else {
+
+      anteriorFueEllipsis=false;
+
+      const b=document.createElement('button');
+
+      b.className='btn'+(p===paginaActual?' active':'');
+
+      b.textContent=p;
+
+      if(p===paginaActual){
+
+        b.style.cssText='background:var(--accent);color:#020617;font-weight:700;';
+
+      }
+
+      b.onclick=()=>irAPagina(p);
+
+      bDiv.appendChild(b);
+
+    }
+
+  });
+
+}
+
+function paginasVisibles(actual, total, maxVisible){
+
+  if(total<=maxVisible) return Array.from({length:total},(_,i)=>i+1);
+
+  const mitad=Math.floor(maxVisible/2);
+
+  let inicio=Math.max(2,actual-mitad+1);
+
+  let fin=Math.min(total-1,inicio+maxVisible-3);
+
+  inicio=Math.max(2,fin-maxVisible+3);
+
+  const pages=[1];
+
+  if(inicio>2) pages.push('…');
+
+  for(let i=inicio;i<=fin;i++) pages.push(i);
+
+  if(fin<total-1) pages.push('…');
+
+  pages.push(total);
+
+  return pages;
+
+}
+
+function irAPagina(n){
+
+  paginaActual=n;
+
+  renderPagina();
+
+  document.getElementById('estudiantesList').scrollIntoView({behavior:'smooth',block:'start'});
+
+}
+
+// Escuchar cambio de tamaño de página
+
+document.getElementById('pageSize').addEventListener('change',()=>{
+
+  paginaActual=1; renderPagina();
+
+});
+
+function volverALista(){
+
+  document.getElementById('studentsPanel').style.display='block';
+
+  document.getElementById('progressPanel').style.display='none';
+
+  aplicarFiltros();
+
+}
+
+function generarReporteIndividual() {
+  const nombre = document.getElementById('studentProgressTitle')?.textContent?.replace('Perfil cognitivo: ','') || 'Estudiante';
+  const est    = resultadosMotor?.estudiantes?.find(e => e.nombre === nombre);
+  if (!est) return alert('Procesa el diagnóstico primero.');
+
+  const nQ     = resultadosMotor?.numQReal || evaluacionAplicada.length;
+  const filas  = [
+    ['Campo', 'Valor'],
+    ['Estudiante', est.nombre],
+    ['% Aciertos', est.porcentaje + '%'],
+    ['Aciertos', `${est.totalOk}/${nQ}`],
+    ['ZDR (Nivel de dominio)', est.zdr],
+    ['ZDP (Próximo nivel)', est.zdp],
+    ['Patrón PMAP', est.cuartiles?.cuartilDominante || '—'],
+    ['Estado PMAP', est.cuartiles?.estadoPMAP?.replace(/_/g,' ') || '—'],
+    ['', ''],
+    ['Pregunta', 'Nivel', 'Competencia', 'Microhabilidad', 'Cuartil', 'Resultado']
+  ];
+
+  (est.cuartiles?.itemsCuartil || []).forEach(it => {
+    const item = evaluacionAplicada[it.q - 1];
+    filas.push([
+      `P${it.q}`,
+      it.nivelItem || item?.nivel || '—',
+      item?.competencia || '—',
+      item?.microhabilidad || '—',
+      it.cuartil || '—',
+      it.esCorrecta ? 'Correcto' : 'Incorrecto'
+    ]);
+  });
+
+  const csv = filas.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `PMAP_${est.nombre.replace(/\s+/g,'_')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+// ===================================================
+
+// REINICIO COMPLETO
+
+// ===================================================
+
+function confirmarReinicio(){
+
+  document.getElementById('modalReinicio').classList.add('active');
+
+}
+
+function ejecutarReinicio(){
+
+  // Limpiar localStorage — todas las claves del sistema
+
+  try{ localStorage.removeItem(STORAGE_KEY); } catch(e){}
+
+  // Limpiar también claves legacy por si existen
+
+  ['site_ruta_v30_total','site_ruta_v31','site_ruta_v32'].forEach(k=>{
+
+    try{ localStorage.removeItem(k); } catch(e){}
+
+  });
+
+  // Resetear estado en memoria
+
+  evaluacionAplicada=[];
+
+  zipRows=[];
+
+  bancoItems=[];
+
+  resultadosMotor=null;
+
+  estudiantesFiltrados=[];
+
+  paginaActual=1;
+
+  window.estudianteActual=null;
+
+  // Destruir gráficos si existen
+
+  [chartErrores,chartNiveles,chartCompetencias,chartMicro].forEach(c=>{ try{c?.destroy();}catch(e){} });
+
+  _filtroZDRActivo=null; _filtrosActivos={zdr:null,estado:null,patronNivel:null,patronCuartil:null,pctMin:0,pctMax:100}; Object.keys(_chartDataCache).forEach(k=>delete _chartDataCache[k]); document.getElementById('btnLimpiarFiltro')?.remove(); chartErrores=chartNiveles=chartCompetencias=chartMicro=null;
+
+  // Limpiar UI
+
+  renderAplicada();
+
+  renderZipPreview();
+
+  renderBanco();
+
+  aplicarFiltros();
+
+  document.getElementById('mEstudiantes').textContent='0';
+
+  document.getElementById('mPromedio').textContent='0%';
+
+  document.getElementById('mNivel').textContent='-';
+
+  document.getElementById('mBrecha').textContent='-';
+
+  document.getElementById('tablaDiagnostico').innerHTML='';
+
+  document.getElementById('tablaPmap').innerHTML='';
+
+  document.getElementById('currentStudentName').textContent='Selecciona un estudiante';
+
+  // Volver al panel principal en la pestaña lista
+
+  document.getElementById('progressPanel').style.display='none';
+
+  document.getElementById('studentsPanel').style.display='block';
+
+  document.querySelectorAll('#studentsPanel .tab-pane').forEach(p=>p.classList.remove('active'));
+
+  document.getElementById('lista').classList.add('active');
+
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+
+  document.querySelector('.tab-btn[data-tab="lista"]').classList.add('active');
+
+  cerrarModal('modalReinicio');
+
+  // Confirmación visual breve
+
+  const toast = document.createElement('div');
+
+  toast.textContent = '✅ Aplicación reiniciada correctamente';
+
+  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#22c55e;color:#020617;padding:12px 24px;border-radius:999px;font-weight:600;font-size:0.9rem;z-index:9999;box-shadow:0 4px 20px rgba(34,197,94,.4);';
+
+  document.body.appendChild(toast);
+
+  setTimeout(()=>toast.remove(), 3000);
+
+}
+
+// ===================================================
+
+// PESTAÑAS
+
+// ===================================================
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#studentsPanel .tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const target = document.getElementById(btn.dataset.tab);
+    if (target) target.classList.add('active');
+    btn.classList.add('active');
+
+    // MEJORA 1b: Al volver a la pestaña de diagnóstico,
+    // re-renderizar con el filtro activo para mantener el estado visual
+    if (btn.dataset.tab === 'diagnostico' && resultadosMotor) {
+      renderDiagnostico(resultadosMotor, _filtroZDRActivo);
+    }
+  });
+});
+
+// ===================================================
+
+// STORAGE
+
+// ===================================================
+
+function saveState(){
+
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({evaluacionAplicada,zipRows:zipRows,bancoItems}));}catch(e){}
+
+}
+
+function loadState(){
+
+  try{
+
+    const raw=localStorage.getItem(STORAGE_KEY);
+
+    if(!raw) return;
+
+    const d=JSON.parse(raw);
+
+    evaluacionAplicada=d.evaluacionAplicada||[];
+
+    zipRows=d.zipRows||[];
+
+    bancoItems=d.bancoItems||[];
+
+    renderAplicada(); renderZipPreview(); renderBanco();
+
+  }catch(e){}
+
+}
+
+// ===================================================
+
+// DEMO: datos de prueba precargados
+
+// ===================================================
+
+evaluacionAplicada=[
+
+  {idLocal:"Q001",orden:1,respuestaCorrecta:"B",contenido:"Solubilidad...",areaConceptual:"Solubilidad",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N2",verbo:"Interpretar",microhabilidad:"leer datos de gráfica",microrutina:"localizar punto de intersección de curvas"},
+
+  {idLocal:"Q002",orden:2,respuestaCorrecta:"A",contenido:"Vacunas...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar tablas y gráficas",microrutina:"leer tabla → identificar variables → buscar gráfica"},
+
+  {idLocal:"Q003",orden:3,respuestaCorrecta:"C",contenido:"Métodos separación...",areaConceptual:"Métodos de separación",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"relacionar propiedades con métodos",microrutina:"analizar tabla y mezcla → determinar sustancia y método"},
+
+  {idLocal:"Q004",orden:4,respuestaCorrecta:"2+",contenido:"Berilio...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Modelo",nivel:"N3",verbo:"Determinar",microhabilidad:"aplicar concepto de enlace y oxidación",microrutina:"recordar que Be pierde 2 electrones → deducir carga 2+"},
+
+  {idLocal:"Q005",orden:5,respuestaCorrecta:"D",contenido:"Nitrógeno...",areaConceptual:"Ciclos biogeoquímicos",competencia:"Explicación de fenómenos",evidencia:"Texto",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir efecto ecológico",microrutina:"leer información → conectar acidificación con daño a ecosistemas"},
+
+  {idLocal:"Q006",orden:6,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Diseñar",microhabilidad:"proponer diseño experimental",microrutina:"identificar variables medidas → sugerir mismo procedimiento"},
+
+  {idLocal:"Q007",orden:7,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Texto",nivel:"N2",verbo:"Identificar",microhabilidad:"localizar información explícita",microrutina:"leer texto → buscar la causa mencionada"},
+
+  {idLocal:"Q008",orden:8,respuestaCorrecta:"C",contenido:"Isótopos...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar datos y elegir gráfica",microrutina:"analizar tabla → decidir tipo de gráfico"},
+
+  {idLocal:"Q009",orden:9,respuestaCorrecta:"D",contenido:"Gaseosa...",areaConceptual:"Solubilidad de gases",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N3",verbo:"Explicar",microhabilidad:"interpretar gráfica científica",microrutina:"leer eje temperatura → comparar solubilidad → inferir tendencia"},
+
+  {idLocal:"Q010",orden:10,respuestaCorrecta:"B",contenido:"Efecto invernadero...",areaConceptual:"Gases efecto invernadero",competencia:"Explicación de fenómenos",evidencia:"Tabla",nivel:"N3",verbo:"Identificar",microhabilidad:"inferir causa a partir de información",microrutina:"leer sobre hidroeléctricas y metano → concluir que no eliminan todos los GEI"},
+
+  {idLocal:"Q011",orden:11,respuestaCorrecta:"C",contenido:"Electronegatividad...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"aplicar procedimiento con operación aritmética",microrutina:"restar electronegatividades → comparar con umbral"},
+
+  {idLocal:"Q012",orden:12,respuestaCorrecta:"C",contenido:"Metano...",areaConceptual:"Reacciones químicas",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir relación causal",microrutina:"analizar tabla → identificar patrón → formular hipótesis"},
+
+  {idLocal:"Q013",orden:13,respuestaCorrecta:"A",contenido:"Argumenta por qué la biodiversidad es un servicio ecosistémico",areaConceptual:"Ecosistemas",competencia:"Indagación",evidencia:"Texto",nivel:"N4",verbo:"Argumentar",microhabilidad:"Argumentar con evidencia científica",mh_id:"SC_MH_003"},
+
+  {idLocal:"Q014",orden:14,respuestaCorrecta:"B",contenido:"¿Cuál es la función de las mitocondrias?",areaConceptual:"Biología celular",competencia:"Explicación",evidencia:"Diagrama",nivel:"N1",verbo:"Reconocer",microhabilidad:"Reconocer estructura-función celular",mh_id:"BIO_MH_005"},
+
+  {idLocal:"Q015",orden:15,respuestaCorrecta:"D",contenido:"Interpreta la gráfica velocidad-tiempo e identifica la aceleración",areaConceptual:"Cinemática",competencia:"Modelación",evidencia:"Gráfica",nivel:"N2",verbo:"Interpretar",microhabilidad:"Interpretar representaciones gráficas",mh_id:"FIS_MH_006"},
+
+  {idLocal:"Q016",orden:16,respuestaCorrecta:"C",contenido:"Evalúa el impacto ambiental de la minería en el Valle del Cauca",areaConceptual:"CTS",competencia:"Indagación",evidencia:"Caso",nivel:"N4",verbo:"Evaluar",microhabilidad:"Evaluar impacto CTS en contexto local",mh_id:"CTS_MH_007"}
+
+];
+
+zipRows=[
+
+  {"First Name":"Juan Camilo","Last Name":"Agudelo","_nombre":"Juan Camilo Agudelo","Num Correct":"11","Percent Correct":"92","Q1":"1","Q2":"1","Q3":"1","Q4":"1","Q5":"1","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"1","Q11":"1","Q12":"1","Q13":"1","Q14":"1","Q15":"0","Q16":"1"},
+
+  {"First Name":"María Alejandra","Last Name":"Alzate","_nombre":"María Alejandra Alzate","Num Correct":"8","Percent Correct":"67","Q1":"1","Q2":"0","Q3":"1","Q4":"1","Q5":"1","Q6":"0","Q7":"1","Q8":"0","Q9":"1","Q10":"0","Q11":"1","Q12":"1","Q13":"1","Q14":"1","Q15":"0","Q16":"1"},
+
+  {"First Name":"José Emmanuel","Last Name":"Aranda","_nombre":"José Emmanuel Aranda","Num Correct":"7","Percent Correct":"58","Q1":"0","Q2":"1","Q3":"1","Q4":"0","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"1","Q10":"1","Q11":"0","Q12":"1","Q13":"1","Q14":"1","Q15":"0","Q16":"1"},
+
+  {"First Name":"Victor Alfonso","Last Name":"Araujo","_nombre":"Victor Alfonso Araujo","Num Correct":"9","Percent Correct":"75","Q1":"1","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"1","Q11":"1","Q12":"1","Q13":"1","Q14":"1","Q15":"0","Q16":"1"},
+
+  {"First Name":"Andrés Felipe","Last Name":"Bejarano","_nombre":"Andrés Felipe Bejarano","Num Correct":"6","Percent Correct":"50","Q1":"0","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"0","Q7":"1","Q8":"1","Q9":"1","Q10":"0","Q11":"1","Q12":"1","Q13":"1","Q14":"1","Q15":"0","Q16":"1"}
+
+];
+
+
+// ══════════════════════════════════════════════════════════════
+// INDICADOR DE COBERTURA DE TAMIZAJE PMAP
+// 4 niveles × 4 cuartiles = 16 coordenadas por competencia
+// Saber 11: 3 competencias × 16 = 48 preguntas tamizaje total
+// ══════════════════════════════════════════════════════════════
+function renderCoberturaTamizaje(resultados) {
+  const cont = document.getElementById('coberturaTamizaje');
+  if (!cont) return;
+
+  const nPreg        = evaluacionAplicada.length;
+  const niveles      = ['N1','N2','N3','N4'];
+  const cuartiles    = ['Q1','Q2','Q3','Q4'];
+  const competencias = [...new Set(evaluacionAplicada.map(i => i.competencia).filter(Boolean))];
+  const nComp        = competencias.length || 1;
+  const metaPreg     = N_MIN_TAMIZAJE * nComp;
+  const pctCober     = Math.min(100, Math.round((nPreg / metaPreg) * 100));
+  const completo     = nPreg >= metaPreg;
+  const colorBar     = completo ? '#4ade80' : nPreg >= N_MIN_TAMIZAJE ? '#fb923c' : '#f87171';
+
+  const matrizItems = {};
+  niveles.forEach(n => cuartiles.forEach(q => { matrizItems[n+q] = 0; }));
+  evaluacionAplicada.forEach((item) => {
+    const niv = item.nivel || 'N2';
+    const itemsNivel = evaluacionAplicada.filter(x => x.nivel === niv);
+    const idx = itemsNivel.indexOf(item);
+    matrizItems[niv + cuartiles[idx % 4]] = (matrizItems[niv + cuartiles[idx % 4]]||0) + 1;
+  });
+
+  const cuartilLabel = {'Q1':'Dif','Q2':'Imp','Q3':'Com','Q4':'Dom'};
+  let matrizHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.72rem;margin:10px 0;">
+    <thead><tr><th style="padding:4px;color:var(--muted);text-align:left;">Nivel</th>
+      ${cuartiles.map(q=>`<th style="padding:4px;text-align:center;color:var(--muted);">${q}<br><span style="font-size:0.6rem;font-weight:400;">${cuartilLabel[q]}</span></th>`).join('')}
+      <th style="padding:4px;text-align:center;color:var(--muted);">Total</th></tr></thead><tbody>`;
+
+  niveles.forEach(n => {
+    const totN = cuartiles.reduce((s,q) => s+(matrizItems[n+q]||0), 0);
+    matrizHTML += `<tr><td style="padding:4px;font-weight:700;color:var(--accent);">${n}</td>`;
+    cuartiles.forEach(q => {
+      const count = matrizItems[n+q]||0;
+      const bg = count>=2?'rgba(74,222,128,0.25)':count===1?'rgba(74,222,128,0.1)':'rgba(255,255,255,0.04)';
+      matrizHTML += `<td style="padding:4px;text-align:center;"><div style="background:${bg};border-radius:6px;padding:3px;min-width:28px;color:${count>0?'var(--text)':'rgba(255,255,255,0.2)'};">${count||'·'}</div></td>`;
+    });
+    matrizHTML += `<td style="padding:4px;text-align:center;color:var(--muted);font-size:0.68rem;">${totN}</td></tr>`;
+  });
+  matrizHTML += '</tbody></table>';
+
+  const faltan = metaPreg - nPreg;
+  const badgeHTML = completo
+    ? `<span style="font-size:0.68rem;background:rgba(74,222,128,0.2);color:#4ade80;padding:2px 8px;border-radius:999px;margin-left:8px;">✅ Tamizaje completo (${nComp} competencia${nComp>1?'s':''})</span>`
+    : `<span style="font-size:0.68rem;background:rgba(251,146,60,0.2);color:#fb923c;padding:2px 8px;border-radius:999px;margin-left:8px;">⚠️ Faltan ${faltan} preguntas para tamizaje completo</span>`;
+
+  cont.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <div><span style="font-size:0.7rem;font-weight:700;color:var(--accent);letter-spacing:0.4px;">📐 COBERTURA DE TAMIZAJE PMAP</span>${badgeHTML}</div>
+      <div style="font-size:0.72rem;color:var(--muted);">${nPreg}/${metaPreg} preguntas · ${nComp} competencia${nComp>1?'s':''}</div>
+    </div>
+    <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:8px;overflow:hidden;margin-bottom:10px;">
+      <div style="background:${colorBar};height:100%;width:${pctCober}%;border-radius:6px;transition:width 0.5s;"></div>
+    </div>
+    <div style="font-size:0.68rem;color:var(--muted);margin-bottom:8px;">Distribución de ítems por celda N×Q (el cuartil real se asigna por velocidad al responder):</div>
+    ${matrizHTML}
+    <div style="font-size:0.68rem;color:var(--muted);margin-top:8px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;line-height:1.6;">
+      💡 <strong>1 competencia</strong>: ${N_MIN_TAMIZAJE} preguntas · <strong>2 competencias</strong>: ${N_MIN_TAMIZAJE*2} · <strong>3 competencias Saber 11</strong>: ${N_MIN_TAMIZAJE*3} preguntas.
+      ${competencias.length>0?`<br>En esta evaluación: <strong>${competencias.join(' · ')}</strong>.`:''}
+    </div>`;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// FILTROS MÚLTIPLES — Lógica combinada (AND) con persistencia
+// _filtrosActivos: { zdr, estado, patronNivel, patronCuartil, pctMin, pctMax }
+// ══════════════════════════════════════════════════════════════
+let _filtrosActivos = { zdr: null, estado: null, patronNivel: null, patronCuartil: null, pctMin: 0, pctMax: 100 };
+
+function toggleFiltrosAvanzados() {
+  const panel = document.getElementById('panelFiltrosAvanzados');
+  const icono = document.getElementById('iconoFiltrosAvanzados');
+  if (!panel) return;
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : 'block';
+  if (icono) icono.textContent = visible ? '▼' : '▲';
+}
+
+function actualizarFiltrosMultiples() {
+  _filtrosActivos = {
+    zdr:          document.getElementById('filtroZDRSelect')?.value         || null,
+    estado:       document.getElementById('filtroEstadoSelect')?.value      || null,
+    patronNivel:  document.getElementById('filtroPatronNivelSelect')?.value || null,
+    patronCuartil:document.getElementById('filtroPatronCuartilSelect')?.value|| null,
+    pctMin:       Number(document.getElementById('filtroPctMinSelect')?.value || 0),
+    pctMax:       Number(document.getElementById('filtroPctMaxSelect')?.value || 100),
+  };
+
+  // Sincronizar con _filtroZDRActivo (para compatibilidad con el gráfico)
+  _filtroZDRActivo = _filtrosActivos.zdr || null;
+
+  // Reconstruir el filtro compuesto y renderizar
+  const filtroCompuesto = construirFiltroCompuesto();
+  actualizarBadgeFiltros();
+
+  if (resultadosMotor) {
+    renderDiagnosticoConFiltrosMultiples(resultadosMotor, filtroCompuesto);
+  }
+}
+
+function construirFiltroCompuesto() {
+  const f = _filtrosActivos;
+  const hayAlgo = f.zdr || f.estado || f.patronNivel || f.patronCuartil || f.pctMin > 0 || f.pctMax < 100;
+  if (!hayAlgo) return null;
+
+  return (est) => {
+    if (f.zdr && est.zdr !== f.zdr) return false;
+    if (f.estado && est.cuartiles?.estadoPMAP !== f.estado) return false;
+    if (f.patronNivel && !(est.cuartiles?.cuartilDominante || '').startsWith(f.patronNivel)) return false;
+    if (f.patronCuartil && !(est.cuartiles?.cuartilDominante || '').endsWith(f.patronCuartil)) return false;
+    if (f.pctMin > 0 && est.porcentaje < f.pctMin) return false;
+    if (f.pctMax < 100 && est.porcentaje > f.pctMax) return false;
+    return true;
+  };
+}
+
+function actualizarBadgeFiltros() {
+  const f = _filtrosActivos;
+  const partes = [];
+  if (f.zdr)          partes.push(`ZDR=${f.zdr}`);
+  if (f.estado)       partes.push(`Estado=${f.estado.replace(/_/g,' ')}`);
+  if (f.patronNivel || f.patronCuartil) {
+    partes.push(`Patrón=${f.patronNivel||'?'}${f.patronCuartil||''}`);
+  }
+  if (f.pctMin > 0)   partes.push(`%≥${f.pctMin}`);
+  if (f.pctMax < 100) partes.push(`%≤${f.pctMax}`);
+
+  const badge  = document.getElementById('badgeFiltrosActivos');
+  const resumen = document.getElementById('resumenFiltros');
+  if (badge) {
+    badge.style.display = partes.length ? 'inline-block' : 'none';
+    badge.textContent   = `${partes.length} filtro${partes.length!==1?'s':''} activo${partes.length!==1?'s':''}`;
+  }
+  if (resumen) {
+    resumen.textContent = partes.length ? `🔍 ${partes.join(' · ')}` : '';
+  }
+}
+
+// renderDiagnostico con función de filtro compuesta
+function renderDiagnosticoConFiltrosMultiples(r, filtroFn) {
+  // Si hay filtro compuesto, pasarlo como objeto especial
+  // renderDiagnostico acepta string (ZDR) o función (filtro múltiple)
+  renderDiagnostico(r, filtroFn || _filtroZDRActivo);
+}
+
+function limpiarTodosFiltros() {
+  _filtrosActivos = { zdr: null, estado: null, patronNivel: null, patronCuartil: null, pctMin: 0, pctMax: 100 };
+  _filtroZDRActivo = null;
+
+  // Resetear selectores
+  ['filtroZDRSelect','filtroEstadoSelect','filtroPatronNivelSelect',
+   'filtroPatronCuartilSelect','filtroPctMinSelect','filtroPctMaxSelect'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.id.includes('PctMax') ? '100' : '0' || '';
+  });
+
+  actualizarBadgeFiltros();
+  document.getElementById('filtroBannerDOM')?.remove();
+  document.getElementById('btnLimpiarFiltro')?.remove();
+
+  if (resultadosMotor) renderDiagnostico(resultadosMotor, null);
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// METADATOS DE LA PRUEBA ZipGrade
+// Muestra Quiz Name, institución (External Id) y clase
+// ══════════════════════════════════════════════════════════════
+function mostrarMetaPrueba() {
+  const meta = window._zipGradeMetaPrueba;
+  const cont = document.getElementById('metaPruebaBar');
+  if (!cont || !meta) return;
+
+  const partes = [];
+  if (meta.quizName)   partes.push(`📋 <strong>${meta.quizName}</strong>`);
+  if (meta.externalId) partes.push(`🏫 ${meta.externalId}`);
+  if (meta.clase)      partes.push(`👥 ${meta.clase}`);
+
+  if (partes.length) {
+    cont.innerHTML = partes.join(' &nbsp;·&nbsp; ');
+    cont.style.display = 'flex';
+  } else {
+    cont.style.display = 'none';
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MOTOR DE SUGERENCIAS AUTOMÁTICAS — base_maestra.json
+// Flujo: pregunta fallada → mh_id → md_id → MR de intervención
+// ══════════════════════════════════════════════════════════════
+let _baseMaestraCompleta = null; // se carga una vez por sesión
+
+async function cargarBaseMaestra() {
+  if (_baseMaestraCompleta) return _baseMaestraCompleta;
+  try {
+    const resp = await fetch('/base_maestra.json');
+    if (!resp.ok) throw new Error('No encontrado');
+    _baseMaestraCompleta = await resp.json();
+    console.log('[Base Maestra] Cargada:', Object.keys(_baseMaestraCompleta.mr || {}).length, 'MRs');
+    return _baseMaestraCompleta;
+  } catch(e) {
+    console.warn('[Base Maestra] No disponible:', e.message);
+    return null;
+  }
+}
+
+/**
+ * generarSugerenciasEstudiante
+ * Para un estudiante dado, genera sugerencias de MR para sus errores.
+ * @param {Object} est   — objeto estudiante del motor
+ * @param {string} momento — 'I' (Inicio) | 'D' (Desarrollo) | 'C' (Cierre)
+ * @returns {Array} sugerencias ordenadas por prioridad
+ */
+function generarSugerenciasEstudiante(est, baseMaestra, momento = 'I') {
+  if (!est || !baseMaestra) return [];
+
+  const sugerencias = [];
+  const mr = baseMaestra.mr || {};
+  const mhNombres = baseMaestra.mh || {};
+
+  (est.cuartiles?.itemsCuartil || []).forEach(item => {
+    if (item.esCorrecta !== false) return; // solo errores
+
+    const idx       = item.q - 1;
+    const bancoItem = evaluacionAplicada[idx];
+    if (!bancoItem) return;
+
+    const mh_id  = bancoItem.mh_id  || null;
+    const nivel  = bancoItem.nivel  || item.nivelItem || 'N2';
+    const cuartil = item.cuartil?.substring(2) || 'Q1'; // 'Q1','Q2','Q3','Q4'
+
+    if (!mh_id) return;
+
+    const md_id  = `${mh_id}_${nivel}${cuartil}`;
+    const mr_key = `${md_id}_${momento}`;
+    const mr_data = mr[md_id]?.[momento];
+
+    const nombreMH = mhNombres[mh_id] || mh_id;
+    const esCritica = cuartil === 'Q1'; // dificultad estructural
+
+    sugerencias.push({
+      pregunta:    item.q,
+      mh_id,
+      md_id,
+      mr_id:       mr_key,
+      nivel,
+      cuartil,
+      nombreMH,
+      competencia: bancoItem.competencia || '—',
+      microrutina: (mr_data && !mr_data.startsWith('Por diseñar'))
+        ? mr_data
+        : null,
+      esCritica,
+      prioridad:   esCritica ? 1 : 2
+    });
+  });
+
+  // Ordenar: Q1 (dificultad estructural) primero, luego Q2
+  return sugerencias.sort((a, b) => a.prioridad - b.prioridad);
+}
+
+/**
+ * generarSugerenciasGrupales
+ * Agrupa las sugerencias por microhabilidad para el grupo completo.
+ * Identifica qué MRs afectan a más estudiantes.
+ */
+function generarSugerenciasGrupales(estudiantes, baseMaestra, momento = 'I') {
+  const acumMH = {};
+
+  estudiantes.forEach(est => {
+    const sugs = generarSugerenciasEstudiante(est, baseMaestra, momento);
+    sugs.forEach(s => {
+      const key = s.md_id;
+      if (!acumMH[key]) {
+        acumMH[key] = {
+          md_id:      s.md_id,
+          mh_id:      s.mh_id,
+          nombreMH:   s.nombreMH,
+          nivel:      s.nivel,
+          cuartil:    s.cuartil,
+          competencia:s.competencia,
+          microrutina:s.microrutina,
+          mr_id:      s.mr_id,
+          esCritica:  s.esCritica,
+          estudiantes: [],
+          count: 0
+        };
+      }
+      acumMH[key].count++;
+      acumMH[key].estudiantes.push(est.nombre);
+    });
+  });
+
+  return Object.values(acumMH)
+    .sort((a, b) => {
+      // Prioridad: críticas primero (Q1), luego por número de estudiantes
+      if (a.esCritica !== b.esCritica) return a.esCritica ? -1 : 1;
+      return b.count - a.count;
+    });
+}
+
+// ── Renderizar panel de sugerencias automáticas ──
+async function renderSugerenciasAutomaticas(resultados, modo = 'grupal') {
+  const cont = document.getElementById('panelSugerenciasAuto');
+  if (!cont) return;
+
+  cont.innerHTML = '<div class="muted small" style="padding:12px;">⏳ Cargando sugerencias desde base maestra...</div>';
+
+  const base = await cargarBaseMaestra();
+
+  if (!base) {
+    cont.innerHTML = `<div style="padding:10px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:8px;">
+      <div style="font-size:0.72rem;font-weight:600;color:#fb923c;margin-bottom:6px;">⚠️ base_maestra.json no disponible</div>
+      <div style="font-size:0.68rem;color:var(--muted);line-height:1.5;">
+        Para activar las sugerencias automáticas:<br>
+        1. Asegúrate que <strong>base_maestra.json</strong> está en la carpeta <code>SERVER/</code><br>
+        2. Agrega en <strong>server.js</strong>:<br>
+        <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;display:block;margin-top:4px;">
+          app.get('/base_maestra.json', (req, res) =&gt; res.sendFile(path.join(__dirname, 'base_maestra.json')));
+        </code><br>
+        3. Reinicia el servidor: <code>node server.js</code>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const estudiantes = resultados?.estudiantes || [];
+  if (!estudiantes.length) {
+    cont.innerHTML = '<div class="muted small" style="padding:12px;">Procesa el diagnóstico primero.</div>';
+    return;
+  }
+
+  const sugsGrupales = generarSugerenciasGrupales(estudiantes, base, 'I');
+  const nTotal       = estudiantes.length;
+
+  if (!sugsGrupales.length) {
+    cont.innerHTML = '<div style="color:#4ade80;padding:12px;font-size:0.8rem;">✅ Sin errores estructurales detectados en el grupo.</div>';
+    return;
+  }
+
+  const cuartilColor = { Q1:'#f87171', Q2:'#fb923c', Q3:'#7dd3fc', Q4:'#4ade80' };
+  const cuartilLabel = { Q1:'Dificultad estructural', Q2:'Error impulsivo', Q3:'Comprensión no automatizada', Q4:'Dominio' };
+
+  const html = sugsGrupales.slice(0, 12).map((s, i) => {
+    const pct   = Math.round((s.count / nTotal) * 100);
+    const color = cuartilColor[s.cuartil] || 'var(--muted)';
+    const label = cuartilLabel[s.cuartil] || s.cuartil;
+    const badge = s.esCritica
+      ? '<span style="background:rgba(239,68,68,0.2);color:#f87171;border-radius:999px;padding:1px 7px;font-size:0.65rem;font-weight:700;margin-left:6px;">🔴 Prioritaria</span>'
+      : '';
+
+    return `<div style="padding:10px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:8px;border-left:3px solid ${color};">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+        <div>
+          <span style="font-size:0.78rem;font-weight:700;color:var(--text);">${escapeHTML(s.nombreMH)}</span>
+          ${badge}
+          <div style="font-size:0.68rem;font-family:monospace;color:var(--muted);margin-top:2px;">${s.md_id}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1rem;font-weight:700;color:${color};">${s.count} / ${nTotal}</div>
+          <div style="font-size:0.65rem;color:var(--muted);">${pct}% del grupo · ${label}</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px;">
+        ${escapeHTML(s.competencia)} · Nivel ${s.nivel} · ${s.cuartil}
+      </div>
+
+      ${s.microrutina
+        ? `<div style="font-size:0.75rem;padding:6px 8px;background:rgba(56,189,248,0.08);border-radius:6px;color:var(--text);margin-top:4px;">
+            💡 <strong>Microrutina:</strong> ${escapeHTML(s.microrutina)}
+           </div>`
+        : `<div style="font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:4px;">
+            MR pendiente de redacción · ID: <span style="font-family:monospace;">${s.mr_id}</span>
+           </div>`
+      }
+
+      <div style="margin-top:6px;">
+        <button onclick="verEstudiantesConError('${s.md_id}')"
+          style="background:rgba(255,255,255,0.06);border:none;color:var(--muted);border-radius:6px;padding:3px 8px;font-size:0.65rem;cursor:pointer;">
+          👁️ Ver ${s.count} estudiante${s.count!==1?'s':''}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  cont.innerHTML = `
+    <div style="font-size:0.7rem;color:var(--muted);margin-bottom:10px;">
+      ${sugsGrupales.length} microhabilidades con errores detectados ·
+      Ordenadas por: 🔴 Dificultad estructural (Q1) primero, luego por número de estudiantes
+    </div>
+    ${html}
+  `;
+}
+
+// Ver estudiantes con error en una MH específica
+function verEstudiantesConError(md_id) {
+  if (!resultadosMotor) return;
+  const mhNombres = BASE_MAESTRA?.mh || {};
+  const sugsGrupales = generarSugerenciasGrupales(resultadosMotor.estudiantes, _baseMaestraCompleta, 'I');
+  const item = sugsGrupales.find(s => s.md_id === md_id);
+  if (!item) return;
+  alert(`${item.nombreMH} (${md_id})\n\nEstudiantes con este error:\n${item.estudiantes.join('\n')}`);
+}
+
+
+// ── Sugerencias automáticas en el perfil individual ──
+async function renderSugerenciasIndividual(est) {
+  const cont = document.getElementById('panelSugerenciasIndividual');
+  if (!cont) return;
+
+  const base = await cargarBaseMaestra();
+  if (!base) {
+    cont.innerHTML = `<div style="font-size:0.68rem;color:#fb923c;padding:6px 8px;background:rgba(249,115,22,0.08);border-radius:6px;">
+      ⚠️ base_maestra.json no disponible — ver instrucciones en el panel de diagnóstico grupal.
+    </div>`;
+    return;
+  }
+
+  const sugs = generarSugerenciasEstudiante(est, base, 'I');
+  if (!sugs.length) {
+    cont.innerHTML = '<div style="color:#4ade80;font-size:0.78rem;padding:8px;">✅ Sin errores detectados.</div>';
+    return;
+  }
+
+  const cuartilColor = { Q1:'#f87171', Q2:'#fb923c', Q3:'#7dd3fc', Q4:'#4ade80' };
+  const cuartilLabel = { Q1:'Dificultad estructural', Q2:'Error impulsivo', Q3:'Comprensión no automatizada', Q4:'Dominio' };
+
+  cont.innerHTML = sugs.map(s => `
+    <div style="padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;
+                margin-bottom:6px;border-left:3px solid ${cuartilColor[s.cuartil]||'var(--muted)'};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;">
+        <div>
+          <span style="font-size:0.75rem;font-weight:700;">${escapeHTML(s.nombreMH)}</span>
+          ${s.esCritica ? '<span style="background:rgba(239,68,68,0.2);color:#f87171;border-radius:999px;padding:1px 6px;font-size:0.62rem;font-weight:700;margin-left:4px;">🔴 Crítica</span>' : ''}
+        </div>
+        <span style="font-size:0.65rem;font-family:monospace;color:var(--muted);white-space:nowrap;">P${s.pregunta} · ${s.nivel}${s.cuartil}</span>
+      </div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;">${escapeHTML(s.competencia)} · ${cuartilLabel[s.cuartil]||s.cuartil}</div>
+      ${s.microrutina
+        ? `<div style="font-size:0.72rem;padding:4px 7px;background:rgba(56,189,248,0.08);border-radius:5px;">
+            💡 ${escapeHTML(s.microrutina)}
+           </div>`
+        : `<div style="font-size:0.65rem;color:var(--muted);font-style:italic;">
+            MR pendiente · <span style="font-family:monospace;">${s.mr_id}</span>
+           </div>`
+      }
+    </div>`).join('');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MODAL DE GRÁFICO AMPLIADO
+// MODAL DE GRÁFICO — expande cualquier chart al hacer clic
+// ══════════════════════════════════════════════════════════════
+let _chartModalInstance = null;
+const _chartDataCache = {}; // guarda data y options de cada chart
+
+function abrirChartModal(titulo, chartId) {
+  const modal  = document.getElementById('chartModal');
+  const canvas = document.getElementById('chartModalInner');
+  if (!modal || !canvas) return;
+
+  const cached = _chartDataCache[chartId];
+  if (!cached) return;
+
+  // Actualizar título del modal
+  const titleEl = document.getElementById('chartModalTitle');
+  if (titleEl) titleEl.textContent = titulo;
+
+  // Destruir instancia anterior del modal si existe
+  if (_chartModalInstance) {
+    _chartModalInstance.destroy();
+    _chartModalInstance = null;
+  }
+
+  // Opciones básicas para el modal — sin clonar objetos con funciones
+  const optsModal = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 250 },
+    plugins: {
+      legend: { labels: { color: '#e5e7eb', font: { size: 13 } } },
+      title: { display: false }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#9ca3af', font: { size: 12 }, maxRotation: 35, minRotation: 0 },
+        grid: { color: '#1f2937' }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { color: '#9ca3af', font: { size: 12 } },
+        grid: { color: '#1f2937' }
+      }
+    }
+  };
+  // opciones ya definidas arriba
+
+  _chartModalInstance = new Chart(canvas, {
+    type: cached.type,
+    data: cached.data,
+    options: optsModal
+  });
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarChartModal() {
+  const modal = document.getElementById('chartModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  if (_chartModalInstance) {
+    _chartModalInstance.destroy();
+    _chartModalInstance = null;
+  }
+}
+
+// Cerrar con Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') cerrarChartModal();
+});
+
+// Función helper para registrar un gráfico en el cache y añadir el listener
+function registrarChartModal(chartInstance, canvasId, titulo) {
+  if (!chartInstance) return;
+  try {
+    // Serializar data del gráfico — resolver funciones de backgroundColor
+    const rawData = chartInstance.data;
+    const safeData = {
+      labels: rawData.labels ? [...rawData.labels] : [],
+      datasets: (rawData.datasets || []).map(ds => {
+        const safeBg = typeof ds.backgroundColor === 'function'
+          ? ds.data.map((_, i) => ds.backgroundColor(i))  // resolver función
+          : ds.backgroundColor;
+        return {
+          ...ds,
+          backgroundColor: safeBg,
+          borderColor: typeof ds.borderColor === 'function' ? [] : ds.borderColor,
+        };
+      })
+    };
+    _chartDataCache[canvasId] = {
+      type:    chartInstance.config.type,
+      data:    safeData,
+      options: chartInstance.config.options,
+      titulo:  titulo
+    };
+  } catch(e) {
+    // Fallback: guardar referencia directa
+    _chartDataCache[canvasId] = {
+      type:    chartInstance.config.type,
+      data:    chartInstance.data,
+      options: chartInstance.config.options,
+      titulo:  titulo
+    };
+  }
+  const container = document.getElementById(canvasId)?.parentElement;
+  if (container) {
+    // Eliminar listener anterior si existe
+    container.onclick = null;
+    container.addEventListener('click', function(e) {
+      if (e.target.closest('button')) return;
+      abrirChartModal(titulo, canvasId);
+    });
+    container.title = 'Clic para ampliar el gráfico';
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PANEL GAGEM5 — Contexto territorial del diagnóstico
+// ══════════════════════════════════════════════════════════════
+function renderContextoGAGEM5(resultados) {
+  const cont = document.getElementById('panelGAGEM5');
+  if (!cont) return;
+
+  const areas = [...new Set((evaluacionAplicada || [])
+    .map(i => i.area_code || i.area))].filter(Boolean);
+
+  if (!areas.length && !BASE_MAESTRA?.gagem5) {
+    cont.innerHTML = '';
+    return;
+  }
+
+  const gagem5 = BASE_MAESTRA?.gagem5 || {};
+  let html = `<div style="font-size:0.7rem;font-weight:700;color:var(--accent);
+    letter-spacing:0.4px;margin-bottom:8px;">📍 CONTEXTO TERRITORIAL GAGEM5</div>`;
+
+  // Mostrar por territorio
+  ['Sevilla','Caicedonia'].forEach(territorio => {
+    const t = gagem5[territorio];
+    if (!t) return;
+    const mhNames = (t.mh || []).map(id => {
+      const enArea = (evaluacionAplicada || []).some(i => i.mh_id === id);
+      return `<span title="${BASE_MAESTRA?.mh?.[id] || id}"
+        style="font-family:monospace;font-size:0.65rem;
+        background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;
+        color:${enArea ? '#4ade80' : 'var(--muted)'};">${id}</span>`;
+    }).join(' ');
+    html += `<div style="padding:8px;background:rgba(255,255,255,0.04);
+      border-radius:8px;margin-bottom:6px;">
+      <div style="font-size:0.72rem;font-weight:600;color:var(--text);margin-bottom:3px;">
+        📍 ${territorio} · ZDR ${t.zdr} → ZDP ${t.zdp}
+      </div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;">${t.foco||''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;">${mhNames}</div>
+    </div>`;
+  });
+
+  // Áreas de la evaluación
+  ['LC','MAT'].forEach(area => {
+    const a = gagem5[area];
+    if (!a) return;
+    const mhNames = (a.mh || []).map(id =>
+      `<span title="${BASE_MAESTRA?.mh?.[id] || id}"
+        style="font-family:monospace;font-size:0.65rem;
+        background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;
+        color:var(--muted);">${id}</span>`
+    ).join(' ');
+    html += `<div style="padding:6px 8px;background:rgba(255,255,255,0.03);
+      border-radius:6px;margin-bottom:4px;">
+      <span style="font-size:0.7rem;font-weight:600;color:var(--text);">
+        ${area} · ${a.zdp || ''}
+      </span>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;">${mhNames}</div>
+    </div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MODO OFFLINE — Narrativa PMAP basada en reglas locales
+// Se usa cuando /api/narrativa-pmap no está disponible
+// ══════════════════════════════════════════════════════════════
+function generarNarrativaOffline(est) {
+  if (!est) return 'No hay datos del estudiante.';
+
+  const nombre   = est.nombre || 'El estudiante';
+  const zdr      = est.zdr    || 'N2';
+  const zdp      = est.zdp    || 'N3';
+  const pct      = est.porcentaje || 0;
+  const patron   = est.cuartiles?.estadoPMAP || '';
+  const cuartil  = est.cuartiles?.cuartilDominante || '';
+
+  const estadoTexto = {
+    dominio_consolidado:         'dominio consolidado — responde con rapidez y seguridad',
+    comprension_no_automatizada: 'comprensión no automatizada — acierta pero con lentitud, necesita práctica',
+    error_impulsivo:             'error impulsivo — responde rápido pero sin verificar',
+    dificultad_estructural:      'dificultad estructural — hay lagunas conceptuales que requieren reenseñanza'
+  }[patron] || 'perfil mixto';
+
+  // Microhabilidades críticas (Q1)
+  const criticas = (est.cuartiles?.itemsCriticos || []).slice(0, 3)
+    .map(it => it.microhabilidad).filter(Boolean);
+  const mhTexto = criticas.length
+    ? `Las microhabilidades que requieren intervención prioritaria son: ${criticas.join(', ')}.`
+    : 'No se detectaron ítems críticos (Q1) en esta evaluación.';
+
+  // Recomendación según patrón
+  const recomendacion = {
+    dominio_consolidado:         `Se recomienda avanzar al nivel ${zdp} con desafíos de mayor complejidad. No repetir lo ya dominado.`,
+    comprension_no_automatizada: `Se recomienda práctica deliberada para automatizar el nivel ${zdr}. Ejercicios cronometrados con retroalimentación inmediata.`,
+    error_impulsivo:             `Se recomienda trabajar autorregulación: pausar antes de responder, leer dos veces, verificar opciones. Estrategias metacognitivas.`,
+    dificultad_estructural:      `Se recomienda reenseñanza explícita desde el nivel ${zdr} con andamiaje fuerte. No sirve solo dar más ejercicios iguales.`
+  }[patron] || `Se recomienda revisar el perfil detallado y diseñar una ruta desde ${zdr} hacia ${zdp}.`;
+
+  // Enriquecer con tipo de respuesta si hay cronometría
+  const tipoRespModa = est.cuartiles?.tipoRespuestaModa;
+  let lecturaTemp = '';
+  if (tipoRespModa) {
+    const lecturas = {
+      AR: 'responde con rapidez y seguridad (dominio consolidado)',
+      AL: 'responde correctamente pero con lentitud — comprensión sin automatizar',
+      ER: 'tiende a responder de forma impulsiva — control metacognitivo necesario',
+      EL: 'muestra lentitud y error — posible saturación cognitiva'
+    };
+    lecturaTemp = ` Desde el análisis temporal: ${lecturas[tipoRespModa] || ''}.`;
+  }
+
+  // Contexto por nivel ZDR
+  const contextoNivel = {
+    N1: 'Se encuentra en la fase de reconocimiento básico.',
+    N2: 'Opera a nivel de comprensión y relación de conceptos.',
+    N3: 'Trabaja en análisis y aplicación contextualizada.',
+    N4: 'Ha alcanzado el nivel de transferencia y argumentación.'
+  }[zdr] || '';
+
+  return `${nombre} obtuvo un ${pct}% de aciertos. ${contextoNivel} Su Zona de Desarrollo Real (ZDR) es ${zdr} y su próxima meta (ZDP) es ${zdp}. El patrón cognitivo dominante es ${cuartil || 'sin dato de cuartil'} — ${estadoTexto}.${lecturaTemp} ${mhTexto} ${recomendacion}`;
+}
+
+// AJUSTE 1: loadState PRIMERO — si hay datos guardados, usarlos
+// Solo mostrar demo si no hay datos previos del usuario
+try { loadState(); } catch(e) { console.warn('[loadState]', e.message); }
+
+if (!evaluacionAplicada.length && !zipRows.length) {
+  // Sin datos guardados → cargar demo para orientar al docente
+  renderAplicada();
+  renderZipPreview();
+  resultadosMotor = motorDiagnostico();
+  renderDiagnostico(resultadosMotor);
+  aplicarFiltros();
+} else {
+  // Datos recuperados de localStorage → procesar directamente
+  renderAplicada();
+  renderZipPreview();
+  resultadosMotor = motorDiagnostico();
+  renderDiagnostico(resultadosMotor);
+  aplicarFiltros();
+}
+</script>
+
+</body>
+
+</html>

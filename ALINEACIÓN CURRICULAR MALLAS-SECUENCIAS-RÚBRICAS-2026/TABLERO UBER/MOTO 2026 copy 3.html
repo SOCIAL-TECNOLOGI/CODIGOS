@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro Operativo – SITE–RUTA LATAM (Uber / Yango) · Costos por km/h/día</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#020617;
+  --panel:#0f172a;
+  --card:#111827;
+  --accent:#38bdf8;
+  --ok:#22c55e;
+  --warn:#f97316;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:#1f2937;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:radial-gradient(1200px 800px at 80% -20%,#0f172a,#020617);
+  color:var(--text);
+}
+header{
+  padding:16px 24px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(120deg,rgba(56,189,248,.15),transparent);
+}
+h1{margin:0;font-size:1.25rem}
+.subtitle{color:var(--muted);font-size:.85rem;margin-top:4px;line-height:1.35}
+
+main{
+  max-width:1400px;
+  margin:auto;
+  padding:16px;
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:16px;
+}
+@media(max-width:980px){ main{grid-template-columns:1fr} }
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
+.panel h2{
+  margin:0 0 10px;
+  font-size:1rem;
+  color:var(--accent);
+}
+
+.note{
+  font-size:.78rem;
+  color:var(--muted);
+  line-height:1.35;
+}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:.7rem;
+}
+.badge-success{ border-color: rgba(34,197,94,.35); color: var(--ok); background: rgba(34,197,94,.10); }
+.badge-warning{ border-color: rgba(249,115,22,.35); color: var(--warn); background: rgba(249,115,22,.10); }
+.badge-danger{ border-color: rgba(239,68,68,.35); color: var(--danger); background: rgba(239,68,68,.10); }
+
+hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+
+.grid-forms{display:grid;grid-template-columns:1fr;gap:12px}
+form label, .inline label{
+  font-size:.8rem;
+  color:var(--muted);
+  display:block;
+  margin-top:8px;
+}
+form input, .inline input, .inline select{
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:rgba(15,23,42,.9);
+  color:var(--text);
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:980px){ .row3{grid-template-columns:1fr} }
+
+.btn{
+  margin-top:12px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:999px;
+  background:rgba(56,189,248,.2);
+  color:var(--accent);
+  cursor:pointer;
+  font-size:0.9rem;
+  transition:background 0.2s;
+}
+.btn:hover{background:rgba(56,189,248,.35)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--danger)}
+.btn-danger:hover{background:rgba(239,68,68,.22)}
+.btn-ok{background:rgba(34,197,94,.12);color:var(--ok)}
+.btn-ok:hover{background:rgba(34,197,94,.22)}
+.btn-warn{background:rgba(249,115,22,.12);color:var(--warn)}
+.btn-warn:hover{background:rgba(249,115,22,.22)}
+.btn-success{background:rgba(34,197,94,.12);color:var(--ok)}
+.btn-success:hover{background:rgba(34,197,94,.22)}
+
+.btn-small{
+  padding:4px 10px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:rgba(56,189,248,.1);
+  color:var(--accent);
+  cursor:pointer;
+  font-size:0.75rem;
+  transition:all 0.2s;
+  margin:2px;
+}
+.btn-small:hover{background:rgba(56,189,248,.25)}
+.btn-danger-small{background:rgba(239,68,68,.1);color:var(--danger)}
+.btn-danger-small:hover{background:rgba(239,68,68,.2)}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+@media(max-width:980px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 8px;
+  text-align:center;
+}
+.kpi .v{
+  font-size:1.05rem;
+  color:var(--accent);
+  font-weight:700;
+}
+.kpi .l{font-size:.7rem;color:var(--muted);margin-top:2px}
+
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th,td{padding:7px 6px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);text-align:left}
+td{text-align:right;vertical-align:top}
+td:first-child,th:first-child{text-align:left}
+.small{font-size:.72rem;color:var(--muted)}
+
+canvas{
+  width:100%;
+  background:#020617;
+  border-radius:8px;
+  border:1px solid var(--border);
+  display:block;
+}
+
+/* Modal base */
+.modal{
+  display:none;
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(2,6,23,0.82);
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+}
+.modal.active{ display:flex; }
+
+.modal-content{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+  width:92%;
+  max-width:820px;
+  max-height:90vh;
+  overflow-y:auto;
+}
+.modal-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+}
+.modal-header h2{margin:0;color:var(--accent);font-size:1rem}
+.close-modal, .modal-close{
+  background:none;border:none;color:var(--muted);
+  font-size:1.5rem;cursor:pointer;width:30px;height:30px;
+}
+.close-modal:hover, .modal-close:hover{color:var(--text)}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:980px){ .split{grid-template-columns:1fr} }
+
+.expenses-table{width:100%;font-size:.83rem;margin-top:10px}
+.expenses-table th{background:rgba(15,23,42,0.5);padding:10px;text-align:center}
+.expenses-table td{padding:10px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.05)}
+.expenses-table .category{text-align:left;color:var(--muted)}
+.expenses-table .total{font-weight:bold;background:rgba(56,189,248,0.1)}
+
+/* Contenedores auxiliares */
+.table-container{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:rgba(2,6,23,.2)}
+.data-table th{background:rgba(15,23,42,.6)}
+.chart-container{border:1px solid var(--border);border-radius:12px;background:rgba(2,6,23,.15);padding:12px}
+.chart-title{color:var(--muted);font-size:.85rem;margin-bottom:8px}
+.filter-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.filter-group select,.filter-group input{
+  padding:8px 10px;border-radius:10px;border:1px solid var(--border);
+  background:rgba(15,23,42,.9);color:var(--text);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Registro Operativo – SITE–RUTA LATAM (Uber / Yango)</h1>
+  <div class="subtitle">
+    Costos completos por <b>km</b>, <b>hora</b> y <b>día</b> · Gasolina dinámica por <b>capacidad tanque (fija)</b> + <b>precio galón (variable)</b> · Autonomía real (km) empírica.
+  </div>
+</header>
+
+<main>
+
+<!-- IZQUIERDA -->
+<div class="panel">
+  <h2>🧾 Captura de datos</h2>
+
+  <div class="note">
+    <span class="badge">Regla</span>
+    La gasolina se calcula por <b>precio del galón vigente</b> y tu fórmula: <b>(precioGalón × capacidadTanque) / autonomía</b>.
+    El tanqueo sirve para registrar <b>precio del galón</b> (y opcionalmente el valor pagado).
+  </div>
+
+  <hr>
+
+  <div class="grid-forms">
+
+    <!-- MODELO DE COSTOS -->
+    <div>
+      <h2 style="margin-top:0;">⚙️ Modelo de costos (editable)</h2>
+
+      <div class="row3 inline">
+        <div>
+          <label>Capacidad tanque (gal) · FIJO</label>
+          <input type="number" id="tankGal" step="0.01" min="0" value="3.66">
+        </div>
+        <div>
+          <label>Autonomía real (km) · FIJO</label>
+          <input type="number" id="rangeKm" step="1" min="1" value="450">
+        </div>
+        <div>
+          <label>Precio galón vigente ($)</label>
+          <input type="number" id="currentGallonPrice" step="1" min="0" value="16400">
+        </div>
+      </div>
+
+      <div class="row3 inline">
+        <div>
+          <label>Moto: costo compra ($)</label>
+          <input type="number" id="motoCost" min="0" value="8000000">
+        </div>
+        <div>
+          <label>Valor residual ($)</label>
+          <input type="number" id="motoResidual" min="0" value="2000000">
+        </div>
+        <div>
+          <label>Vida útil (km)</label>
+          <input type="number" id="motoLifeKm" min="1" value="120000">
+        </div>
+      </div>
+
+      <div class="row3 inline">
+        <div>
+          <label>Aceite+filtro ($) (cambio)</label>
+          <input type="number" id="oilCost" min="0" value="70000">
+        </div>
+        <div>
+          <label>Cada (km)</label>
+          <input type="number" id="oilEveryKm" min="1" value="2500">
+        </div>
+        <div>
+          <label>SOAT prorrateado mensual ($)</label>
+          <input type="number" id="soatMonthly" min="0" value="33000">
+        </div>
+      </div>
+
+      <div class="row3 inline">
+        <div>
+          <label>Llantas (par) ($)</label>
+          <input type="number" id="tiresCost" min="0" value="500000">
+        </div>
+        <div>
+          <label>Vida llantas (km)</label>
+          <input type="number" id="tiresLifeKm" min="1" value="15000">
+        </div>
+        <div>
+          <label>Kit arrastre ($)</label>
+          <input type="number" id="chainCost" min="0" value="250000">
+        </div>
+      </div>
+
+      <div class="row3 inline">
+        <div>
+          <label>Vida kit arrastre (km)</label>
+          <input type="number" id="chainLifeKm" min="1" value="20000">
+        </div>
+        <div>
+          <label>Frenos (juego) ($)</label>
+          <input type="number" id="brakeCost" min="0" value="90000">
+        </div>
+        <div>
+          <label>Vida frenos (km)</label>
+          <input type="number" id="brakeLifeKm" min="1" value="9000">
+        </div>
+      </div>
+
+      <div class="row2 inline">
+        <div>
+          <label>Otros fijos mensuales ($) (Zoho, ChatGPT, datos, etc.)</label>
+          <input type="number" id="otherMonthlyFixed" min="0" value="0">
+        </div>
+        <div>
+          <label>Meta: valor hora-hombre ($/h) (solo referencia)</label>
+          <input type="number" id="targetHourly" min="0" value="0">
+        </div>
+      </div>
+
+      <button class="btn btn-ok" id="btnSaveModel">Guardar modelo</button>
+    </div>
+
+    <!-- REGISTRO DIARIO -->
+    <div>
+      <h2>🗓️ Registro diario (trabajo)</h2>
+      <form id="formLog">
+        <label>Fecha</label>
+        <input type="date" id="fecha" required>
+
+        <div class="row2">
+          <div>
+            <label>Horas efectivas</label>
+            <input type="number" id="horas" step="0.1" min="0" required>
+          </div>
+          <div>
+            <label>Viajes</label>
+            <input type="number" id="viajes" min="0" required>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Kilómetros recorridos</label>
+            <input type="number" id="km" step="0.1" min="0" required>
+          </div>
+          <div>
+            <label>Bonos / Propinas ($)</label>
+            <input type="number" id="bonos" min="0" value="0">
+          </div>
+        </div>
+
+        <label>Ingreso bruto ($) (Tarifa neta)</label>
+        <input type="number" id="bruto" min="0" required>
+
+        <button type="submit" class="btn">Guardar registro diario</button>
+      </form>
+
+      <!-- NUEVO: botón finanzas -->
+      <button class="btn btn-success" id="btnFinanzas">💰 Finanzas personales (alcancías)</button>
+      <div class="note small">Abre el panel psicológico: neto real del día → asignación automática → progreso por responsabilidad.</div>
+    </div>
+
+    <!-- EVENTO: PRECIO GALÓN / TANQUEO -->
+    <div>
+      <h2>⛽ Evento de gasolina (precio galón)</h2>
+      <form id="formFuelPrice">
+        <label>Fecha (cuando cambió el precio o tanqueaste)</label>
+        <input type="date" id="fuelDate" required>
+
+        <div class="row2">
+          <div>
+            <label>Precio galón ($)</label>
+            <input type="number" id="fuelGallonPrice" min="0" step="1" required>
+          </div>
+          <div>
+            <label>Valor pagado ($) (opcional)</label>
+            <input type="number" id="fuelPaid" min="0" step="1" value="0">
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Guardar evento gasolina</button>
+      </form>
+      <div class="note">
+        <span class="badge">Clave</span>
+        El costo/km de gasolina se calcula con <b>capacidad tanque</b> y <b>autonomía</b>.
+        El “valor pagado” solo queda como evidencia; el cálculo usa el precio del galón vigente por fecha.
+      </div>
+    </div>
+
+    <button class="btn btn-warn" id="btnShowCosts">📊 Ver costos detallados (mes actual)</button>
+    <button class="btn btn-danger" id="btnResetAll">🧨 Borrar TODO (diarios + gasolina + modelo)</button>
+
+  </div>
+</div>
+
+<!-- DERECHA -->
+<div>
+
+  <div class="panel">
+    <h2>📊 KPIs Mes Actual (con costos completos)</h2>
+    <div class="kpis" id="kpisMes"></div>
+    <div class="note small" id="notaMes"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📈 Tendencia Neto Diario (mes actual)</h2>
+    <canvas id="chart" height="160"></canvas>
+    <div class="note small">Neto diario = Ingreso total − costos completos del día.</div>
+  </div>
+
+  <div class="panel">
+    <h2>📋 Registros diarios (desglose por km/h/día)</h2>
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Km</th>
+          <th>Horas</th>
+          <th>Ingreso</th>
+          <th>Costos</th>
+          <th>Neto</th>
+          <th>$ / km</th>
+          <th>$ / h</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>⛽ Historial precio galón</h2>
+    <table id="tablaFuel">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Precio galón</th>
+          <th>Pagado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="note small" id="fuelNote"></div>
+  </div>
+
+</div>
+
+</main>
+
+<!-- MODAL COSTOS -->
+<div id="costsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📊 Costos detallados (mes actual)</h2>
+      <button class="close-modal" type="button">&times;</button>
+    </div>
+
+    <div class="note" id="modelNote"></div>
+
+    <div class="split" style="margin-top:10px;">
+      <div>
+        <label>Km mes actual</label>
+        <input id="mKm" readonly>
+      </div>
+      <div>
+        <label>Horas mes actual</label>
+        <input id="mHours" readonly>
+      </div>
+    </div>
+
+    <table class="expenses-table">
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Costo / km</th>
+          <th>Costo mes</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody id="costsBody"></tbody>
+    </table>
+
+    <div style="margin-top:15px; padding:12px; background:rgba(15,23,42,0.5); border-radius:10px;">
+      <div class="split">
+        <div>
+          <div style="color:var(--accent);font-weight:700" id="kpiCostKm">—</div>
+          <div class="small">Costo total promedio / km (mes)</div>
+        </div>
+        <div>
+          <div style="color:var(--accent);font-weight:700" id="kpiCostHour">—</div>
+          <div class="small">Costo total promedio / hora (mes)</div>
+        </div>
+      </div>
+      <div class="split" style="margin-top:10px;">
+        <div>
+          <div style="color:var(--ok);font-weight:800;font-size:1.1rem" id="kpiNetMonth">—</div>
+          <div class="small">Neto del mes (ingreso − costos)</div>
+        </div>
+        <div>
+          <div style="color:var(--ok);font-weight:800;font-size:1.1rem" id="kpiNetHour">—</div>
+          <div class="small">Neto promedio / hora (mes)</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-ok" id="btnRecalc">🔄 Recalcular</button>
+      <button class="btn" id="btnCloseModal">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Finanzas Personales: Cubrimiento de Responsabilidades -->
+<div id="modalFinanzas" class="modal">
+  <div class="modal-content" style="max-width: 1100px; width: 95%;">
+    <button class="modal-close" type="button" onclick="cerrarModal('modalFinanzas')">×</button>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h3 style="margin-bottom:6px;">💰 Cubrimiento de Responsabilidades (Mensual)</h3>
+        <div style="color: var(--muted); font-size:.9rem;">
+          Registra lo pagado por día y visualiza cubrimiento por concepto y total del mes.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+        <div class="filter-group">
+          <label for="finDia">Día del mes</label>
+          <select id="finDia"></select>
+        </div>
+
+        <div class="filter-group">
+          <label for="finDisponibleDia">Disponible del día (COP)</label>
+          <input id="finDisponibleDia" type="text" inputmode="numeric" placeholder="Ej: 250000" />
+        </div>
+
+        <button class="btn btn-success" id="btnFinGuardarDia">💾 Guardar día</button>
+        <button class="btn btn-danger" id="btnFinResetMes">🧹 Reset mes</button>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; margin-top:16px;">
+      <!-- Tabla de conceptos -->
+      <div class="table-container" style="margin:0;">
+        <table class="data-table" id="finTabla">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th style="text-align:right;">Valor mensual</th>
+              <th style="text-align:right;">Pagado (mes)</th>
+              <th style="text-align:right;">% Cubrimiento</th>
+<th style="text-align:center;">Vence (día)</th>
+<th style="text-align:right;">Pagado HOY</th>
+
+            </tr>
+          </thead>
+          <tbody id="finTablaBody"></tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+              <th style="text-align:right;" id="finTotalMensual">-</th>
+              <th style="text-align:right;" id="finTotalPagadoMes">-</th>
+              <th style="text-align:right;" id="finTotalPct">-</th>
+              <th style="text-align:right;" id="finTotalPagadoHoy">-</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Resumen + circular -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="background: var(--card); border:1px solid var(--border); border-radius:12px; padding:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <div style="color: var(--muted); font-size:.85rem;">Disponible HOY</div>
+              <div style="font-size:1.4rem; font-weight:700;" id="finDisponibleHoyResumen">$0</div>
+            </div>
+            <div>
+              <div style="color: var(--muted); font-size:.85rem;">Pagado HOY</div>
+              <div style="font-size:1.4rem; font-weight:700;" id="finPagadoHoyResumen">$0</div>
+            </div>
+            <div>
+              <div style="color: var(--muted); font-size:.85rem;">Cubierto (mes)</div>
+              <div style="font-size:1.4rem; font-weight:700;" id="finCubiertoMesResumen">$0</div>
+            </div>
+            <div>
+              <div style="color: var(--muted); font-size:.85rem;">Pendiente (mes)</div>
+              <div style="font-size:1.4rem; font-weight:700;" id="finPendienteMesResumen">$0</div>
+            </div>
+          </div>
+
+          <!-- ✅ NUEVO BLOQUE (lo que pediste) -->
+          <div style="margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+              <div>
+                <div style="color: var(--muted); font-size:.78rem;">Neto disponible HOY (desde Uber)</div>
+                <div style="font-size:1.05rem; font-weight:800; color: var(--accent);" id="finNetoHoyUber">$0</div>
+              </div>
+              <div>
+                <div style="color: var(--muted); font-size:.78rem;">Asignado automáticamente HOY</div>
+                <div style="font-size:1.05rem; font-weight:800; color: var(--ok);" id="finAsignadoAutoHoy">$0</div>
+              </div>
+              <div>
+                <div style="color: var(--muted); font-size:.78rem;">Sobrante HOY (si quedó)</div>
+                <div style="font-size:1.05rem; font-weight:800; color: var(--warn);" id="finSobranteHoy">$0</div>
+              </div>
+            </div>
+            <div class="small" style="margin-top:8px; color: var(--muted); line-height:1.35;">
+              Este bloque convierte tu jornada en avance visible: el neto real del día se asigna a “alcancías” y el sobrante queda libre (o puedes dirigirlo a ahorro).
+            </div>
+          </div>
+          <!-- /NUEVO BLOQUE -->
+        </div>
+
+        <div class="chart-container" style="height: 260px; margin:0;">
+          <div class="chart-title">🟣 Cubierto vs Pendiente (Mes)</div>
+          <canvas id="finChartCircular"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-container" style="height: 320px;">
+      <div class="chart-title">📊 % Cubrimiento por concepto (Mes)</div>
+      <canvas id="finChartBarras"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===========================
+   HELPERS UI MODAL
+=========================== */
+function abrirModal(id){
+  const m = document.getElementById(id);
+  if(m) m.classList.add('active');
+}
+function cerrarModal(id){
+  const m = document.getElementById(id);
+  if(m) m.classList.remove('active');
+}
+
+/* ===========================
+   STORAGE (UBER)
+=========================== */
+const STORAGE_LOGS = "sr_uber_logs_v1";
+const STORAGE_FUEL = "sr_fuel_price_v1";
+const STORAGE_MODEL = "sr_cost_model_v1";
+
+const $ = id => document.getElementById(id);
+const isoToday = () => new Date().toISOString().slice(0,10);
+const money = x => "$" + Math.round(Number(x||0)).toLocaleString("es-CO");
+const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+function getLogs(){ return JSON.parse(localStorage.getItem(STORAGE_LOGS) || "[]"); }
+function saveLogs(v){ localStorage.setItem(STORAGE_LOGS, JSON.stringify(v)); }
+
+function getFuel(){ return JSON.parse(localStorage.getItem(STORAGE_FUEL) || "[]"); }
+function saveFuel(v){ localStorage.setItem(STORAGE_FUEL, JSON.stringify(v)); }
+
+function getModel(){
+  const fallback = {
+    tankGal: 3.66,
+    rangeKm: 450,
+    currentGallonPrice: 16400,
+    motoCost: 8000000,
+    motoResidual: 2000000,
+    motoLifeKm: 120000,
+    oilCost: 70000,
+    oilEveryKm: 2500,
+    soatMonthly: 33000,
+    tiresCost: 500000,
+    tiresLifeKm: 15000,
+    chainCost: 250000,
+    chainLifeKm: 20000,
+    brakeCost: 90000,
+    brakeLifeKm: 9000,
+    otherMonthlyFixed: 0,
+    targetHourly: 0
+  };
+  return Object.assign(fallback, JSON.parse(localStorage.getItem(STORAGE_MODEL) || "{}"));
+}
+function saveModel(m){ localStorage.setItem(STORAGE_MODEL, JSON.stringify(m)); }
+
+function validarFecha(fecha){ return new Date(fecha) <= new Date(isoToday()); }
+function mesISO(d){ return String(d).slice(0,7); }
+
+/* ===========================
+   FECHA -> PRECIO GALÓN
+=========================== */
+function priceOnDate(fecha, fuelEvents, model){
+  const sorted = fuelEvents.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  let last = null;
+  for(const e of sorted){
+    if(e.fecha <= fecha) last = e;
+    else break;
+  }
+  return last ? last.price : model.currentGallonPrice;
+}
+
+/* ===========================
+   COSTOS POR KM
+=========================== */
+function costPerKmGas(priceGallon, model){
+  const tankGal = +model.tankGal || 0;
+  const rangeKm = +model.rangeKm || 1;
+  return (priceGallon * tankGal) / rangeKm;
+}
+function costPerKmDep(model){
+  const cost = +model.motoCost || 0;
+  const res  = +model.motoResidual || 0;
+  const life = +model.motoLifeKm || 1;
+  return Math.max(0, (cost - res) / life);
+}
+function costPerKmOil(model){
+  const c = +model.oilCost || 0;
+  const every = +model.oilEveryKm || 1;
+  return c / every;
+}
+function costPerKmTires(model){
+  const c = +model.tiresCost || 0;
+  const life = +model.tiresLifeKm || 1;
+  return c / life;
+}
+function costPerKmChain(model){
+  const c = +model.chainCost || 0;
+  const life = +model.chainLifeKm || 1;
+  return c / life;
+}
+function costPerKmBrakes(model){
+  const c = +model.brakeCost || 0;
+  const life = +model.brakeLifeKm || 1;
+  return c / life;
+}
+
+/* ===========================
+   SUMATORIAS
+=========================== */
+function sumLogs(logs){
+  return logs.reduce((a,l)=>{
+    a.km += l.km;
+    a.horas += l.horas;
+    a.viajes += l.viajes;
+    a.ingreso += (l.bruto + l.bonos);
+    return a;
+  }, {km:0, horas:0, viajes:0, ingreso:0});
+}
+
+/* ===========================
+   COSTO DIARIO COMPLETO
+=========================== */
+function dailyCosts(log, logsMes, fuelEvents, model){
+  const price = priceOnDate(log.fecha, fuelEvents, model);
+
+  const cGasKm = costPerKmGas(price, model);
+  const cDepKm = costPerKmDep(model);
+  const cOilKm = costPerKmOil(model);
+  const cTirKm = costPerKmTires(model);
+  const cBrkKm = costPerKmBrakes(model);
+  const cChnKm = costPerKmChain(model);
+
+  const varKm = cGasKm + cDepKm + cOilKm + cTirKm + cBrkKm + cChnKm;
+
+  const sM = sumLogs(logsMes);
+  const fixedMonthly = (+model.soatMonthly||0) + (+model.otherMonthlyFixed||0);
+
+  const fixedPerKm = (sM.km > 0) ? (fixedMonthly / sM.km) : 0;
+  const fixedForDay = fixedPerKm * log.km;
+
+  const variableCost = varKm * log.km;
+  const totalCost = variableCost + fixedForDay;
+
+  return {
+    priceGallon: price,
+    cGasKm, cDepKm, cOilKm, cTirKm, cBrkKm, cChnKm,
+    fixedMonthly,
+    fixedPerKm,
+    fixedForDay,
+    variableCost,
+    totalCost,
+    totalCostPerKm: log.km > 0 ? (totalCost / log.km) : 0,
+    totalCostPerHour: log.horas > 0 ? (totalCost / log.horas) : 0
+  };
+}
+
+/* ===========================
+   CANVAS crisp
+=========================== */
+function resizeCanvasToDisplaySize(canvas){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.max(1, Math.floor(rect.width * dpr));
+  const height = Math.max(1, Math.floor(rect.height * dpr));
+  if(canvas.width !== width || canvas.height !== height){
+    canvas.width = width;
+    canvas.height = height;
+    return true;
+  }
+  return false;
+}
+
+/* ===========================
+   RENDER (UBER)
+=========================== */
+function render(){
+  const model = getModel();
+
+  $("tankGal").value = model.tankGal;
+  $("rangeKm").value = model.rangeKm;
+  $("currentGallonPrice").value = model.currentGallonPrice;
+  $("motoCost").value = model.motoCost;
+  $("motoResidual").value = model.motoResidual;
+  $("motoLifeKm").value = model.motoLifeKm;
+  $("oilCost").value = model.oilCost;
+  $("oilEveryKm").value = model.oilEveryKm;
+  $("soatMonthly").value = model.soatMonthly;
+  $("tiresCost").value = model.tiresCost;
+  $("tiresLifeKm").value = model.tiresLifeKm;
+  $("chainCost").value = model.chainCost;
+  $("chainLifeKm").value = model.chainLifeKm;
+  $("brakeCost").value = model.brakeCost;
+  $("brakeLifeKm").value = model.brakeLifeKm;
+  $("otherMonthlyFixed").value = model.otherMonthlyFixed;
+  $("targetHourly").value = model.targetHourly;
+
+  const logs = getLogs().slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const fuel = getFuel().slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+
+  const hoy = isoToday();
+  const mesActual = mesISO(hoy);
+  const logsMes = logs.filter(l => mesISO(l.fecha) === mesActual);
+  const sM = sumLogs(logsMes);
+
+  let totalCosts = 0;
+  let totalNet = 0;
+
+  logsMes.forEach(l=>{
+    const c = dailyCosts(l, logsMes, fuel, model);
+    totalCosts += c.totalCost;
+    totalNet += (l.bruto + l.bonos) - c.totalCost;
+  });
+
+  const income = sM.ingreso;
+  const costKm = sM.km > 0 ? (totalCosts / sM.km) : 0;
+  const netKm = sM.km > 0 ? (totalNet / sM.km) : 0;
+  const costHour = sM.horas > 0 ? (totalCosts / sM.horas) : 0;
+  const netHour = sM.horas > 0 ? (totalNet / sM.horas) : 0;
+
+  $("kpisMes").innerHTML = `
+    <div class="kpi"><div class="v">${money(income)}</div><div class="l">Ingreso mes</div></div>
+    <div class="kpi"><div class="v">${money(totalCosts)}</div><div class="l">Costos mes</div></div>
+    <div class="kpi"><div class="v">${money(totalNet)}</div><div class="l">Neto mes</div></div>
+    <div class="kpi"><div class="v">${sM.km.toFixed(1)}</div><div class="l">Km mes</div></div>
+
+    <div class="kpi"><div class="v">${money(costKm)}</div><div class="l">Costo promedio / km</div></div>
+    <div class="kpi"><div class="v">${money(netKm)}</div><div class="l">Neto promedio / km</div></div>
+    <div class="kpi"><div class="v">${money(costHour)}</div><div class="l">Costo promedio / hora</div></div>
+    <div class="kpi"><div class="v">${money(netHour)}</div><div class="l">Neto promedio / hora</div></div>
+  `;
+
+  const cGasNow = costPerKmGas(model.currentGallonPrice, model);
+  $("notaMes").textContent =
+    `Mes ${mesActual} · Horas: ${sM.horas.toFixed(1)} · Viajes: ${sM.viajes} · Fórmula gasolina/km = (precioGalón × ${(+model.tankGal).toFixed(2)} gal) / ${(+model.rangeKm).toFixed(0)} km = ${money(cGasNow)} aprox (con precio vigente).`;
+
+  paintDailyTable(logs, logsMes, fuel, model);
+  paintFuelTable(fuel);
+  chartMonthlyNet(logsMes.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)), logsMes, fuel, model);
+}
+
+/* ===========================
+   TABLA DIARIA
+=========================== */
+function paintDailyTable(logsDesc, logsMes, fuelEvents, model){
+  const tbody = $("tabla").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  const allLogs = getLogs();
+
+  logsDesc.forEach(l=>{
+    const c = dailyCosts(l, logsMes, fuelEvents, model);
+    const ingreso = (l.bruto + l.bonos);
+    const neto = ingreso - c.totalCost;
+
+    const costPerKm = l.km>0 ? (c.totalCost / l.km) : 0;
+    const netPerHour = l.horas>0 ? (neto / l.horas) : 0;
+
+    const idx = allLogs.findIndex(x =>
+      x.fecha===l.fecha && x.km===l.km && x.horas===l.horas && x.viajes===l.viajes &&
+      x.bruto===l.bruto && x.bonos===l.bonos
+    );
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${l.fecha}<div class="small">Precio galón: ${money(c.priceGallon)}</div></td>
+        <td>${l.km.toFixed(1)}</td>
+        <td>${l.horas.toFixed(1)}</td>
+        <td>${money(ingreso)}</td>
+        <td>${money(c.totalCost)}</td>
+        <td><b style="color:${neto>=0?'#22c55e':'#ef4444'}">${money(neto)}</b></td>
+        <td>${money(costPerKm)}</td>
+        <td>${money(netPerHour)}</td>
+        <td>
+          <button class="btn-small btn-danger-small delete-log-btn" data-index="${idx}">🗑️</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ===========================
+   TABLA PRECIO GALÓN
+=========================== */
+function paintFuelTable(fuelDesc){
+  const tbody = $("tablaFuel").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  const allFuel = getFuel();
+
+  fuelDesc.forEach(f=>{
+    const idx = allFuel.findIndex(x => x.fecha===f.fecha && x.price===f.price && x.paid===f.paid);
+    tbody.innerHTML += `
+      <tr>
+        <td>${f.fecha}</td>
+        <td>${money(f.price)}</td>
+        <td>${money(f.paid||0)}</td>
+        <td><button class="btn-small btn-danger-small delete-fuel-btn" data-index="${idx}">🗑️</button></td>
+      </tr>
+    `;
+  });
+
+  const note = fuelDesc.length
+    ? `Registros: ${fuelDesc.length}. Se usa el último precio registrado <= fecha del día.`
+    : `No hay eventos de precio. Se usará el precio vigente del modelo.`;
+  $("fuelNote").textContent = note;
+}
+
+/* ===========================
+   GRÁFICA NETO DIARIO
+=========================== */
+function chartMonthlyNet(logsAsc, logsMes, fuelEvents, model){
+  const c = $("chart");
+  resizeCanvasToDisplaySize(c);
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if(logsAsc.length < 2){
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "14px system-ui";
+    ctx.fillText("Datos insuficientes para tendencia (mes actual)", 12, 28);
+    return;
+  }
+
+  const netData = logsAsc.map(l=>{
+    const cst = dailyCosts(l, logsMes, fuelEvents, model);
+    const ingreso = (l.bruto + l.bonos);
+    return ingreso - cst.totalCost;
+  });
+
+  const max = Math.max(...netData), min = Math.min(...netData);
+  const pad=18, w=c.width-(pad*2), h=c.height-(pad*2);
+
+  ctx.strokeStyle="#38bdf8";
+  ctx.lineWidth=3;
+  ctx.beginPath();
+
+  netData.forEach((v,i)=>{
+    const x = pad + (i/(netData.length-1))*w;
+    const y = pad + h - ((v-min)/(max-min || 1))*h;
+    i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+  });
+  ctx.stroke();
+
+  const y0 = pad + h - ((0-min)/(max-min || 1))*h;
+  ctx.strokeStyle="rgba(229,231,235,.25)";
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(pad, y0);
+  ctx.lineTo(pad+w, y0);
+  ctx.stroke();
+}
+
+/* ===========================
+   MODAL COSTOS (MES ACTUAL)
+=========================== */
+function openCostsModal(){
+  recalcModal();
+  $("costsModal").classList.add("active");
+}
+function closeCostsModal(){ $("costsModal").classList.remove("active"); }
+
+function recalcModal(){
+  const model = getModel();
+  const logs = getLogs();
+  const fuel = getFuel();
+
+  const mesActual = mesISO(isoToday());
+  const logsMes = logs.filter(l => mesISO(l.fecha) === mesActual);
+  const sM = sumLogs(logsMes);
+
+  $("mKm").value = sM.km.toFixed(1);
+  $("mHours").value = sM.horas.toFixed(1);
+
+  let gasCostMonth = 0;
+  logsMes.forEach(l=>{
+    const price = priceOnDate(l.fecha, fuel, model);
+    const cGasKm = costPerKmGas(price, model);
+    gasCostMonth += cGasKm * l.km;
+  });
+  const gasKmAvg = sM.km>0 ? (gasCostMonth / sM.km) : 0;
+
+  const depKm = costPerKmDep(model);
+  const oilKm = costPerKmOil(model);
+  const tiresKm = costPerKmTires(model);
+  const brakesKm = costPerKmBrakes(model);
+  const chainKm = costPerKmChain(model);
+
+  const fixedMonthly = (+model.soatMonthly||0) + (+model.otherMonthlyFixed||0);
+  const fixedPerKm = sM.km>0 ? fixedMonthly / sM.km : 0;
+
+  const rows = [
+    {name:"Gasolina (prom. mes)", cpk:gasKmAvg, type:"Variable/km"},
+    {name:"Aceite+filtro (prorrateo)", cpk:oilKm, type:"Variable/km"},
+    {name:"Llantas (prorrateo)", cpk:tiresKm, type:"Variable/km"},
+    {name:"Frenos (prorrateo)", cpk:brakesKm, type:"Variable/km"},
+    {name:"Kit arrastre (prorrateo)", cpk:chainKm, type:"Variable/km"},
+    {name:"Depreciación (línea recta)", cpk:depKm, type:"Variable/km"},
+    {name:"SOAT + otros fijos (prorrateo)", cpk:fixedPerKm, type:"Fijo mensual → /km"}
+  ];
+
+  const tbody = $("costsBody");
+  tbody.innerHTML = "";
+
+  let totalCpk = 0;
+  rows.forEach(r=>{
+    const monthCost = r.cpk * sM.km;
+    totalCpk += r.cpk;
+    tbody.innerHTML += `
+      <tr>
+        <td class="category">${r.name}</td>
+        <td>${money(r.cpk)}</td>
+        <td>${money(monthCost)}</td>
+        <td>${r.type}</td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML += `
+    <tr class="total">
+      <td>Total</td>
+      <td>${money(totalCpk)}</td>
+      <td>${money(totalCpk * sM.km)}</td>
+      <td>—</td>
+    </tr>
+  `;
+
+  const income = sM.ingreso;
+  const costMonth = totalCpk * sM.km;
+  const netMonth = income - costMonth;
+  const costHour = sM.horas>0 ? (costMonth / sM.horas) : 0;
+  const netHour = sM.horas>0 ? (netMonth / sM.horas) : 0;
+
+  $("kpiCostKm").textContent = money(totalCpk);
+  $("kpiCostHour").textContent = money(costHour);
+  $("kpiNetMonth").textContent = money(netMonth);
+  $("kpiNetMonth").style.color = netMonth>=0 ? "#22c55e" : "#ef4444";
+  $("kpiNetHour").textContent = money(netHour);
+  $("kpiNetHour").style.color = netHour>=0 ? "#22c55e" : "#ef4444";
+
+  $("modelNote").innerHTML = `
+    <div class="note">
+      <span class="badge">Modelo activo</span>
+      Capacidad tanque: <b>${(+model.tankGal).toFixed(2)} gal</b> · Autonomía real: <b>${(+model.rangeKm).toFixed(0)} km</b> ·
+      Depreciación/km: <b>${money(depKm)}</b> · Fijos mensuales: <b>${money(fixedMonthly)}</b>.
+      <br>
+      Gasolina/km del mes se calcula con <b>precio galón por fecha</b> (ponderado por km).
+    </div>
+  `;
+}
+
+/* ===========================
+   EVENTOS (UBER)
+=========================== */
+$("btnSaveModel").addEventListener("click", ()=>{
+  const m = {
+    tankGal: +$("tankGal").value,
+    rangeKm: +$("rangeKm").value,
+    currentGallonPrice: +$("currentGallonPrice").value,
+
+    motoCost: +$("motoCost").value,
+    motoResidual: +$("motoResidual").value,
+    motoLifeKm: +$("motoLifeKm").value,
+
+    oilCost: +$("oilCost").value,
+    oilEveryKm: +$("oilEveryKm").value,
+    soatMonthly: +$("soatMonthly").value,
+
+    tiresCost: +$("tiresCost").value,
+    tiresLifeKm: +$("tiresLifeKm").value,
+
+    chainCost: +$("chainCost").value,
+    chainLifeKm: +$("chainLifeKm").value,
+
+    brakeCost: +$("brakeCost").value,
+    brakeLifeKm: +$("brakeLifeKm").value,
+
+    otherMonthlyFixed: +$("otherMonthlyFixed").value,
+    targetHourly: +$("targetHourly").value
+  };
+
+  m.tankGal = clamp(m.tankGal, 0, 20);
+  m.rangeKm = clamp(m.rangeKm, 1, 2000);
+  m.motoLifeKm = clamp(m.motoLifeKm, 1, 500000);
+  m.oilEveryKm = clamp(m.oilEveryKm, 1, 20000);
+  m.tiresLifeKm = clamp(m.tiresLifeKm, 1, 100000);
+  m.chainLifeKm = clamp(m.chainLifeKm, 1, 100000);
+  m.brakeLifeKm = clamp(m.brakeLifeKm, 1, 100000);
+
+  saveModel(m);
+  alert("✅ Modelo guardado.");
+  render();
+});
+
+$("formLog").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const fecha = $("fecha").value;
+  if(!validarFecha(fecha)){ alert("⚠️ Fecha futura no válida."); return; }
+
+  const payload = {
+    fecha,
+    horas: +$("horas").value,
+    viajes: +$("viajes").value,
+    km: +$("km").value,
+    bruto: +$("bruto").value,
+    bonos: +$("bonos").value
+  };
+
+  const logs = getLogs();
+  const existing = logs.findIndex(l => l.fecha === fecha);
+  if(existing > -1){
+    if(!confirm("⚠️ Ya existe un registro para esta fecha. ¿Reemplazarlo?")) return;
+    logs.splice(existing, 1);
+  }
+
+  logs.push(payload);
+  saveLogs(logs);
+
+  // ✅ Si tienes finanzas, actualiza vistas si el modal está abierto
+  try{
+    finCargar();
+    finRenderTabla();
+    finActualizarGraficos();
+  }catch(_){}
+
+  e.target.reset();
+  $("fecha").value = isoToday();
+  render();
+});
+
+$("formFuelPrice").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const fecha = $("fuelDate").value;
+  if(!validarFecha(fecha)){ alert("⚠️ Fecha futura no válida."); return; }
+
+  const price = +$("fuelGallonPrice").value;
+  const paid  = +$("fuelPaid").value || 0;
+
+  if(price <= 0){ alert("⚠️ Precio galón debe ser > 0."); return; }
+
+  const fuel = getFuel();
+  const existing = fuel.findIndex(f=>f.fecha===fecha);
+  if(existing > -1){
+    if(!confirm("⚠️ Ya existe un precio guardado para esa fecha. ¿Reemplazarlo?")) return;
+    fuel.splice(existing,1);
+  }
+
+  fuel.push({ fecha, price, paid });
+  saveFuel(fuel);
+
+  const model = getModel();
+  model.currentGallonPrice = price;
+  saveModel(model);
+
+  e.target.reset();
+  $("fuelDate").value = isoToday();
+  $("fuelGallonPrice").value = price;
+
+  render();
+});
+
+/* ===========================
+   ELIMINAR (UBER)
+=========================== */
+document.addEventListener("click", (e)=>{
+  if(e.target.classList.contains("delete-log-btn")){
+    const idx = parseInt(e.target.dataset.index);
+    if(idx < 0) return;
+    if(confirm("¿Eliminar este registro diario?")){
+      const logs = getLogs();
+      logs.splice(idx,1);
+      saveLogs(logs);
+      render();
+    }
+  }
+
+  if(e.target.classList.contains("delete-fuel-btn")){
+    const idx = parseInt(e.target.dataset.index);
+    if(idx < 0) return;
+    if(confirm("¿Eliminar este evento de precio galón?")){
+      const fuel = getFuel();
+      fuel.splice(idx,1);
+      saveFuel(fuel);
+      render();
+    }
+  }
+});
+
+/* ===========================
+   MODAL COSTOS
+=========================== */
+document.querySelectorAll(".close-modal").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const modal = btn.closest(".modal");
+    modal.classList.remove("active");
+  });
+});
+$("costsModal").addEventListener("click", (e)=>{
+  if(e.target === $("costsModal")) closeCostsModal();
+});
+$("btnShowCosts").addEventListener("click", openCostsModal);
+$("btnCloseModal").addEventListener("click", closeCostsModal);
+$("btnRecalc").addEventListener("click", ()=>{
+  recalcModal();
+  alert("✅ Recalculado con el modelo y los datos actuales.");
+});
+
+/* ===========================
+   RESET
+=========================== */
+$("btnResetAll").addEventListener("click", ()=>{
+  if(!confirm("¿Borrar TODO? (diarios + gasolina + modelo)")) return;
+  localStorage.removeItem(STORAGE_LOGS);
+  localStorage.removeItem(STORAGE_FUEL);
+  localStorage.removeItem(STORAGE_MODEL);
+  init();
+});
+
+/* ===========================
+   INIT
+=========================== */
+function init(){
+  $("fecha").value = isoToday();
+  $("fuelDate").value = isoToday();
+  $("fuelGallonPrice").value = getModel().currentGallonPrice;
+  render();
+}
+init();
+window.addEventListener("resize", ()=>render());
+
+/* ======================================================================================
+   MÓDULO FINANZAS PERSONALES — SITE–RUTA LATAM (Frontend)
+   ✅ Incluye el bloque solicitado:
+   - Neto disponible HOY (desde Uber)
+   - Asignado automáticamente HOY
+   - Sobrante HOY (si quedó)
+   ====================================================================================== */
+
+const FIN_STORAGE_KEY = 'siteRuta_finanzas_v1';
+
+// Catálogo de gastos fijos
+const FIN_CONCEPTOS = [
+  { id: 'gastos_mama', label: 'Gastos mamá', valor: 850000 },
+  { id: 'alquiler', label: 'Alquiler', valor: 700000 },
+  { id: 'servicios', label: 'Servicios', valor: 200000 },
+  { id: 'comida', label: 'Comida', valor: 700000 },
+  { id: 'seguridad_social', label: 'Seguridad social', valor: 470000 },
+  { id: 'telefono', label: 'Teléfono', valor: 45000 },
+  { id: 'internet', label: 'Internet', valor: 80000 },
+  { id: 'universidad', label: 'Universidad', valor: 1000000 },
+  { id: 'zoho_one', label: 'Zoho One', valor: 170000 },
+  { id: 'google_cloud', label: 'Google Cloud', valor: 60000 },
+  { id: 'chatgpt', label: 'ChatGPT', valor: 80000 },
+  { id: 'seguridad_social_gabriela', label: 'Seguridad social Gabriela', valor: 122000 }
+];
+
+let finState = null;
+let finChartBarras = null;
+let finChartCircular = null;
+
+function finFormatoCOP(n) {
+  const v = Number(n || 0);
+  return v.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+}
+function finParseCOP(input) {
+  if (input === null || input === undefined) return 0;
+  const s = String(input).replace(/[^\d]/g, '');
+  return s ? parseInt(s, 10) : 0;
+}
+function finMesKeyActual() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function finGuardar() {
+  try {
+    localStorage.setItem(FIN_STORAGE_KEY, JSON.stringify(finState));
+  } catch (e) {
+    console.warn('No se pudo guardar finanzas en localStorage:', e);
+  }
+}
+
+
+
+function finTotalMensual() {
+  return FIN_CONCEPTOS.reduce((acc, c) => acc + (c.valor || 0), 0);
+}
+function finPagadoMesPorConcepto(conceptoId) {
+  let sum = 0;
+  for (const dia of Object.values(finState.dias || {})) {
+    sum += Number(dia?.pagos?.[conceptoId] || 0);
+  }
+  return sum;
+}
+function finPagadoHoyTotal(diaNum) {
+  const dia = finState.dias?.[String(diaNum)];
+  if (!dia || !dia.pagos) return 0;
+  return Object.values(dia.pagos).reduce((a, v) => a + Number(v || 0), 0);
+}
+function finDisponibleHoy(diaNum) {
+  return Number(finState.dias?.[String(diaNum)]?.disponible || 0);
+}
+function finPoblarSelectorDias() {
+  const sel = document.getElementById('finDia');
+  if (!sel) return;
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const ultimoDia = new Date(y, m + 1, 0).getDate();
+
+  sel.innerHTML = '';
+  for (let d = 1; d <= ultimoDia; d++) {
+    const opt = document.createElement('option');
+    opt.value = String(d);
+    opt.textContent = `Día ${d}`;
+    sel.appendChild(opt);
+  }
+  sel.value = String(now.getDate());
+}
+
+/* ✅ NUEVO: calcular neto real del día desde el registro Uber */
+function finGetNetoDesdeUber(diaNum){
+  const dia = String(diaNum).padStart(2,'0');
+  const mesKey = finMesKeyActual(); // "2025-12"
+  const fechaISO = `${mesKey}-${dia}`;
+
+  const logs = getLogs();
+  const logDia = logs.find(l => l.fecha === fechaISO);
+  if(!logDia) return null;
+
+  const model = getModel();
+  const fuel = getFuel();
+
+  const logsMes = logs.filter(l => mesISO(l.fecha) === mesKey);
+  const costos = dailyCosts(logDia, logsMes, fuel, model);
+  const ingreso = Number(logDia.bruto || 0) + Number(logDia.bonos || 0);
+  const neto = ingreso - Number(costos.totalCost || 0);
+
+  return { fechaISO, ingreso, costos: costos.totalCost, neto };
+}
+
+function finInicializarMes(mesKey) {
+  const conceptos = {};
+  for (const c of FIN_CONCEPTOS) {
+    conceptos[c.id] = {
+      valor: c.valor,
+      label: c.label,
+      // ✅ nuevo: día de vencimiento (1–31). Por defecto 30
+      venceDia: 30
+    };
+  }
+  return { mesKey, conceptos, dias: {} };
+}
+
+function finCargar() {
+  try {
+    const raw = localStorage.getItem(FIN_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    const mesKey = finMesKeyActual();
+
+    if (!parsed || parsed.mesKey !== mesKey) {
+      finState = finInicializarMes(mesKey);
+      finGuardar();
+      return;
+    }
+
+    finState = parsed;
+    finState.dias ??= {};
+    finState.conceptos ??= {};
+
+    // ✅ asegurar que existan todos los conceptos y el venceDia
+    for (const c of FIN_CONCEPTOS) {
+      if (!finState.conceptos[c.id]) {
+        finState.conceptos[c.id] = { valor: c.valor, label: c.label, venceDia: 30 };
+      } else {
+        finState.conceptos[c.id].valor ??= c.valor;
+        finState.conceptos[c.id].label ??= c.label;
+        finState.conceptos[c.id].venceDia ??= 30;
+      }
+    }
+  } catch (e) {
+    finState = finInicializarMes(finMesKeyActual());
+  }
+}
+
+// ✅ ordena por vencimiento (día menor = prioridad mayor), y si empatan, por mayor pendiente
+function finOrdenConceptosPorVencimiento() {
+  const items = FIN_CONCEPTOS.map(c => {
+    const cfg = finState.conceptos[c.id] || { venceDia: 30, valor: c.valor, label: c.label };
+    const pagadoMes = finPagadoMesPorConcepto(c.id);
+    const pendiente = Math.max(0, (cfg.valor || 0) - pagadoMes);
+    return {
+      id: c.id,
+      label: cfg.label,
+      valor: cfg.valor,
+      venceDia: Number(cfg.venceDia || 30),
+      pagadoMes,
+      pendiente
+    };
+  });
+
+  items.sort((a, b) => {
+    if (a.venceDia !== b.venceDia) return a.venceDia - b.venceDia;
+    return b.pendiente - a.pendiente;
+  });
+
+  return items;
+}
+
+// ✅ asignación automática del día: distribuye el monto a las alcancías priorizadas
+function finAutoAsignarPagosDelDia(montoDisponible) {
+  let restante = Math.max(0, Number(montoDisponible || 0));
+  const pagos = {};
+
+  const orden = finOrdenConceptosPorVencimiento();
+
+  for (const item of orden) {
+    if (restante <= 0) break;
+
+    const pendiente = item.pendiente;
+    if (pendiente <= 0) continue;
+
+    const abono = Math.min(restante, pendiente);
+    if (abono > 0) {
+      pagos[item.id] = Math.round(abono);
+      restante -= abono;
+    }
+  }
+
+  return { pagos, sobrante: Math.max(0, Math.round(restante)) };
+}
+
+function finRenderTabla() {
+  const diaSel = Number(document.getElementById('finDia').value);
+  const tbody = document.getElementById('finTablaBody');
+  const inputDisponible = document.getElementById('finDisponibleDia');
+
+  inputDisponible.value = finFormatoCOP(finDisponibleHoy(diaSel));
+
+  const pagosHoy = finState.dias?.[String(diaSel)]?.pagos || {};
+
+  let totalPagadoHoy = 0;
+  let totalPagadoMes = 0;
+
+  tbody.innerHTML = FIN_CONCEPTOS.map(c => {
+    const cfg = finState.conceptos[c.id];
+    const pagadoMes = finPagadoMesPorConcepto(c.id);
+    const pct = cfg.valor > 0 ? Math.min(100, Math.round((pagadoMes / cfg.valor) * 100)) : 0;
+    const pagadoHoy = Number(pagosHoy[c.id] || 0);
+    const venceDia = Number(cfg.venceDia || 30);
+
+    totalPagadoHoy += pagadoHoy;
+    totalPagadoMes += pagadoMes;
+
+    return `
+      <tr>
+        <td>${cfg.label}</td>
+        <td style="text-align:right;">${finFormatoCOP(cfg.valor)}</td>
+        <td style="text-align:right;">${finFormatoCOP(pagadoMes)}</td>
+        <td style="text-align:right;">
+          <span class="badge ${pct >= 100 ? 'badge-success' : (pct >= 50 ? 'badge-warning' : 'badge-danger')}">
+            ${pct}%
+          </span>
+        </td>
+
+        <!-- ✅ NUEVO: vence día -->
+        <td style="text-align:center;">
+          <input
+            type="number"
+            min="1"
+            max="31"
+            data-vence="${c.id}"
+            value="${venceDia}"
+            style="width:72px; text-align:center; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background: var(--panel); color: var(--text);"
+          />
+        </td>
+
+        <td style="text-align:right;">
+          <input
+            type="text"
+            inputmode="numeric"
+            data-concepto="${c.id}"
+            class="finPagoHoyInput"
+            value="${pagadoHoy ? finFormatoCOP(pagadoHoy) : ''}"
+            placeholder="0"
+            style="width: 140px; text-align:right; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background: var(--panel); color: var(--text);"
+          />
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Guardar cambios de vencimiento al vuelo
+  document.querySelectorAll('input[data-vence]').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const id = inp.getAttribute('data-vence');
+      const v = clamp(Number(inp.value || 30), 1, 31);
+      inp.value = v;
+      finState.conceptos[id].venceDia = v;
+      finGuardar();
+    });
+  });
+
+  const totalMensual = finTotalMensual();
+  const pctTotal = totalMensual > 0 ? Math.min(100, Math.round((totalPagadoMes / totalMensual) * 100)) : 0;
+
+  document.getElementById('finTotalMensual').textContent = finFormatoCOP(totalMensual);
+  document.getElementById('finTotalPagadoMes').textContent = finFormatoCOP(totalPagadoMes);
+  document.getElementById('finTotalPct').innerHTML =
+    `<span class="badge ${pctTotal >= 100 ? 'badge-success' : (pctTotal >= 50 ? 'badge-warning' : 'badge-danger')}">${pctTotal}%</span>`;
+  document.getElementById('finTotalPagadoHoy').textContent = finFormatoCOP(totalPagadoHoy);
+
+  const disponibleHoy = finDisponibleHoy(diaSel);
+  document.getElementById('finDisponibleHoyResumen').textContent = finFormatoCOP(disponibleHoy);
+  document.getElementById('finPagadoHoyResumen').textContent = finFormatoCOP(totalPagadoHoy);
+
+  const pendienteMes = Math.max(0, totalMensual - totalPagadoMes);
+  document.getElementById('finCubiertoMesResumen').textContent = finFormatoCOP(totalPagadoMes);
+  document.getElementById('finPendienteMesResumen').textContent = finFormatoCOP(pendienteMes);
+
+  // Neto desde Uber (si existe)
+  const netoUber = finGetNetoDesdeUber(diaSel);
+  const netoDisponible = (netoUber && Number.isFinite(netoUber.neto)) ? Math.max(0, netoUber.neto) : Math.max(0, disponibleHoy);
+
+  // ✅ Bloque HOY
+  const elNeto = document.getElementById('finNetoHoyUber');
+  const elAuto = document.getElementById('finAsignadoAutoHoy');
+  const elSob  = document.getElementById('finSobranteHoy');
+
+  // “Asignado automáticamente” = lo que realmente quedó registrado como pagos hoy
+  const asignado = Math.max(0, totalPagadoHoy);
+  const sobrante = Math.max(0, netoDisponible - asignado);
+
+  elNeto.textContent = finFormatoCOP(netoDisponible);
+  elAuto.textContent = finFormatoCOP(asignado);
+  elSob.textContent  = finFormatoCOP(sobrante);
+
+  // Inputs de pagos (formateo)
+  document.querySelectorAll('.finPagoHoyInput').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/[^\d]/g, '');
+    });
+    inp.addEventListener('blur', () => {
+      const v = finParseCOP(inp.value);
+      inp.value = v ? finFormatoCOP(v) : '';
+    });
+  });
+
+  inputDisponible.addEventListener('input', () => {
+    inputDisponible.value = inputDisponible.value.replace(/[^\d]/g, '');
+  });
+  inputDisponible.addEventListener('blur', () => {
+    const v = finParseCOP(inputDisponible.value);
+    inputDisponible.value = finFormatoCOP(v);
+  });
+}
+
+function finGuardarDia() {
+  const diaSel = String(document.getElementById('finDia').value);
+
+  // 1) lee disponible manual
+  const disponibleManual = finParseCOP(document.getElementById('finDisponibleDia').value);
+
+  // 2) lee neto desde Uber si existe (prioridad)
+  const netoUber = finGetNetoDesdeUber(Number(diaSel));
+  const netoDisponible = (netoUber && Number.isFinite(netoUber.neto)) ? Math.max(0, netoUber.neto) : Math.max(0, disponibleManual);
+
+  // 3) lee si el usuario escribió algo en Pagado HOY
+  const pagosManuales = {};
+  let hayManual = false;
+
+  document.querySelectorAll('.finPagoHoyInput').forEach(inp => {
+    const id = inp.getAttribute('data-concepto');
+    const val = finParseCOP(inp.value);
+    if (val > 0) {
+      pagosManuales[id] = val;
+      hayManual = true;
+    }
+  });
+
+  // 4) si NO hay manual, asigna automáticamente por vencimientos / pendientes
+  const resultAuto = hayManual ? null : finAutoAsignarPagosDelDia(netoDisponible);
+  const pagosFinales = hayManual ? pagosManuales : resultAuto.pagos;
+
+  // 5) guarda día
+  finState.dias[diaSel] ??= { disponible: 0, pagos: {} };
+
+  // “disponible” lo guardamos como referencia (manual), pero el motor usa netoUber si existe
+  finState.dias[diaSel].disponible = disponibleManual;
+  finState.dias[diaSel].pagos = pagosFinales;
+
+  finGuardar();
+
+  // 6) re-render
+  finRenderTabla();
+  finActualizarGraficos();
+
+  // feedback rápido
+  if (!hayManual) {
+    alert(`✅ Asignación automática aplicada.\nAsignado HOY: ${finFormatoCOP(Object.values(pagosFinales).reduce((a,v)=>a+v,0))}\nSobrante HOY: ${finFormatoCOP(resultAuto.sobrante)}`);
+  } else {
+    alert(`✅ Pagos del día guardados (manual).`);
+  }
+}
+
+
+function finActualizarGraficos() {
+  const totalMensual = finTotalMensual();
+  const labels = FIN_CONCEPTOS.map(c => c.label);
+
+  const pagadosMes = FIN_CONCEPTOS.map(c => finPagadoMesPorConcepto(c.id));
+  const pctMes = FIN_CONCEPTOS.map((c, i) => c.valor > 0 ? Math.min(100, Math.round((pagadosMes[i] / c.valor) * 100)) : 0);
+
+  const totalPagadoMes = pagadosMes.reduce((a, v) => a + Number(v || 0), 0);
+  const pendiente = Math.max(0, totalMensual - totalPagadoMes);
+
+  const ctxB = document.getElementById('finChartBarras');
+  if (ctxB) {
+    if (finChartBarras) finChartBarras.destroy();
+
+    finChartBarras = new Chart(ctxB, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '% cubrimiento',
+          data: pctMes,
+          backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--accent'),
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border'),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { color: '#9ca3af' },
+            grid: { color: '#1f2937' }
+          },
+          x: {
+            ticks: { color: '#9ca3af', maxRotation: 45, minRotation: 0 },
+            grid: { color: '#1f2937' }
+          }
+        },
+        plugins: {
+          legend: { labels: { color: '#e5e7eb' } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.raw}%` } }
+        }
+      }
+    });
+  }
+
+  const ctxC = document.getElementById('finChartCircular');
+  if (ctxC) {
+    if (finChartCircular) finChartCircular.destroy();
+
+    finChartCircular = new Chart(ctxC, {
+      type: 'doughnut',
+      data: {
+        labels: ['Cubierto', 'Pendiente'],
+        datasets: [{
+          data: [totalPagadoMes, pendiente],
+          backgroundColor: [
+            getComputedStyle(document.documentElement).getPropertyValue('--ok'),
+            getComputedStyle(document.documentElement).getPropertyValue('--danger')
+          ],
+          borderColor: '#020617',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#e5e7eb', font: { size: 12 } }
+          },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${finFormatoCOP(ctx.raw)}` } }
+        }
+      }
+    });
+  }
+}
+
+
+function finResetMes() {
+  finState = finInicializarMes(finMesKeyActual());
+  finGuardar();
+  finPoblarSelectorDias();
+  finRenderTabla();
+  finActualizarGraficos();
+}
+
+function abrirModalFinanzas() {
+  finCargar();
+  finPoblarSelectorDias();
+  finRenderTabla();
+  finActualizarGraficos();
+  abrirModal('modalFinanzas');
+}
+
+function finConfigurarEventos() {
+  const btn = document.getElementById('btnFinanzas');
+  const btnGuardar = document.getElementById('btnFinGuardarDia');
+  const btnReset = document.getElementById('btnFinResetMes');
+  const selDia = document.getElementById('finDia');
+
+  if (btn) btn.addEventListener('click', abrirModalFinanzas);
+  if (btnGuardar) btnGuardar.addEventListener('click', finGuardarDia);
+  if (btnReset) btnReset.addEventListener('click', finResetMes);
+
+  if (selDia) {
+    selDia.addEventListener('change', () => {
+      finRenderTabla();
+      finActualizarGraficos();
+    });
+  }
+
+  const modal = document.getElementById('modalFinanzas');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) cerrarModal('modalFinanzas');
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  finConfigurarEventos();
+});
+</script>
+
+</body>
+</html>

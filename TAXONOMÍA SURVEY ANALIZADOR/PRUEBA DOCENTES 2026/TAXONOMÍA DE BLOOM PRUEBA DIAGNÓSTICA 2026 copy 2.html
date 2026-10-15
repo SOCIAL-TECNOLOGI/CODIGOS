@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Diagnóstico DCE Offline — SITE–RUTA LATAM</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --card:#142447;
+      --text:#e8eefc;
+      --muted:#b6c3e6;
+      --accent:#7bd88f;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(123,216,143,.18), transparent),
+                  radial-gradient(1000px 500px at 90% 20%, rgba(255,204,102,.14), transparent),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.35;
+    }
+    header{
+      padding:22px 18px 10px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    h1{ margin:0; font-size: 22px; letter-spacing:.2px; }
+    .subtitle{ margin-top:6px; color: var(--muted); font-size: 13.5px; }
+
+    .wrap{
+      max-width:1280px;
+      margin: 0 auto;
+      padding: 12px 18px 24px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row.space{ justify-content: space-between; }
+    .pill{
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    select, button, input{
+      font: inherit;
+    }
+    select{
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 12px;
+      outline: none;
+    }
+    button{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .05s ease, background .15s ease;
+      user-select: none;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: scale(.98); }
+    .btn-accent{ border-color: rgba(123,216,143,.35); }
+    .btn-warn{ border-color: rgba(255,204,102,.35); }
+    .btn-danger{ border-color: rgba(255,107,107,.35); }
+
+    .big{
+      padding: 18px 14px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(20,36,71,.8), rgba(15,27,51,.7));
+      border: 1px solid var(--border);
+      margin-top: 12px;
+    }
+    .label{
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.3px;
+      text-transform: uppercase;
+    }
+    .verb{ margin-top: 8px; font-size: 34px; font-weight: 750; letter-spacing: .3px; }
+    .hint{ margin-top: 10px; color: var(--muted); font-size: 13px; }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .stat{
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+    .muted{ color: var(--muted); }
+    .small{ font-size:12px; color: var(--muted); }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12.5px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .bar{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      border: 1px solid var(--border);
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(123,216,143,.9), rgba(255,204,102,.9));
+      transition: width .2s ease;
+    }
+    .vote-grid{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .num{
+      width:100%;
+      margin-top:8px;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color: var(--text);
+      outline:none;
+    }
+
+    /* LISTA CLICKEABLE */
+    .list{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height: 360px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .item{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding:10px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      cursor:pointer;
+      transition: background .15s ease, transform .05s ease;
+    }
+    .item:hover{ background: rgba(255,255,255,.07); }
+    .item:active{ transform: scale(.99); }
+    .badge{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .item b{ font-size: 13.5px; }
+    .item .meta{ color: var(--muted); font-size: 12px; margin-top:4px; }
+    .ok{ color: var(--accent); font-weight:700; }
+    .aj{ color: var(--warn); font-weight:700; }
+
+    /* PANEL DETALLE + PIE */
+    .pieWrap{
+      display:grid;
+      grid-template-columns: 220px 1fr;
+      gap: 12px;
+      align-items:start;
+      margin-top: 10px;
+    }
+    canvas{
+      width: 220px;
+      height: 220px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .legend{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .legRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:8px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      display:inline-block; margin-right:8px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .footer{
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 18px 22px;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Diagnóstico DCE (Offline) — SITE–RUTA LATAM</h1>
+  <div class="subtitle">
+    Proyección + conteo manual de manos (N1–N4) usando <b>todos</b> los verbos por dimensión.
+    Clic en un ítem guardado → ver <b>gráfico de torta</b> y preguntas de reflexión para pasar de <b>identificar</b> a <b>comprender</b>.
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- PANEL PRINCIPAL -->
+  <section class="card">
+    <div class="row space">
+      <div class="row">
+        <span class="pill">Modo proyección</span>
+        <span class="pill">Conteo manual</span>
+        <span class="pill">Diagnóstico (no examen)</span>
+      </div>
+
+      <div class="row">
+        <label class="muted">Dimensión:</label>
+        <select id="dimension">
+          <option value="mixto">Mixto (SABER + HACER + SER)</option>
+          <option value="saber">SABER</option>
+          <option value="hacer">HACER</option>
+          <option value="ser">SER</option>
+        </select>
+
+        <label class="muted">Modo:</label>
+        <select id="modo">
+          <option value="aleatorio">Aleatorio</option>
+          <option value="secuencial">Secuencial (recorre todos)</option>
+        </select>
+
+        <button class="btn-accent" id="btnNuevo">Nuevo verbo</button>
+      </div>
+    </div>
+
+    <div class="big">
+      <div class="row space">
+        <div>
+          <div class="label">VERBO</div>
+          <div class="verb" id="verboActual">—</div>
+          <div class="hint">Cuenta manos por nivel, registra números, aplica conteo, revela, conversa 30–60s y guarda.</div>
+        </div>
+        <div class="row">
+          <span class="pill">Dimensión actual: <b id="dimActual">—</b></span>
+          <span class="pill">Ítem: <b id="idxInfo">0/0</b></span>
+        </div>
+      </div>
+
+      <!-- INGRESO MANUAL -->
+      <div class="vote-grid">
+        <div class="stat">
+          <div class="label">N1</div>
+          <input id="in1" class="num" type="number" min="0" value="0" />
+          <div class="small">Reconocer / iniciar</div>
+        </div>
+        <div class="stat">
+          <div class="label">N2</div>
+          <input id="in2" class="num" type="number" min="0" value="0" />
+          <div class="small">Comprender / ejecutar</div>
+        </div>
+        <div class="stat">
+          <div class="label">N3</div>
+          <input id="in3" class="num" type="number" min="0" value="0" />
+          <div class="small">Analizar / calibrar</div>
+        </div>
+        <div class="stat">
+          <div class="label">N4</div>
+          <input id="in4" class="num" type="number" min="0" value="0" />
+          <div class="small">Argumentar / transferir</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px; gap:10px;">
+        <button id="btnAplicarConteo" class="btn-accent">Aplicar conteo</button>
+        <button id="btnRevelar" class="btn-warn">Revelar nivel (según DATA) + retroalimentación</button>
+        <button id="btnCerrar" class="btn-accent">Cerrar ítem (guardar y pasar)</button>
+        <button id="btnResetVotos" class="btn-danger">Reset conteo</button>
+        <span class="pill">Votos totales: <b id="votosTotales">0</b></span>
+      </div>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div class="stat">
+          <div class="label">Distribución de votos</div>
+          <div style="margin-top:8px">
+            <div class="row space"><span>N1</span><span class="muted" id="c1">0</span></div>
+            <div class="bar"><div id="b1"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N2</span><span class="muted" id="c2">0</span></div>
+            <div class="bar"><div id="b2"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N3</span><span class="muted" id="c3">0</span></div>
+            <div class="bar"><div id="b3"></div></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="row space"><span>N4</span><span class="muted" id="c4">0</span></div>
+            <div class="bar"><div id="b4"></div></div>
+          </div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Resultado del ítem</div>
+          <div style="margin-top:10px" class="muted">
+            <div>Voto dominante: <b id="dominante">—</b></div>
+            <div style="margin-top:6px">Nivel (según DATA): <b id="nivelData">—</b></div>
+            <div style="margin-top:6px">Estado: <b id="estado">Pendiente</b></div>
+          </div>
+          <div class="mono" id="retro">
+Nota PMAP: aquí NO buscamos “ganar”.
+Buscamos evidenciar si el grupo reconoce el nivel del verbo.
+Si hay discrepancia, es evidencia de calibración pendiente.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL RESUMEN + DETALLE -->
+  <aside class="card">
+    <div class="row space">
+      <div>
+        <div class="label">Tendencias de calibración</div>
+        <div class="muted" style="margin-top:6px">
+          Clic en un ítem guardado para ver su <b>torta de votación</b> y preguntas de comprensión (cambio de enfoque).
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnExportCSV" class="btn-accent">Exportar CSV</button>
+        <button id="btnLimpiarTodo" class="btn-danger">Reiniciar todo</button>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div class="stat">
+        <div class="label">Progreso total</div>
+        <div style="margin-top:8px"><b id="tTotal">0</b> ítems</div>
+        <div class="muted" style="margin-top:6px">Coincidencias (dominante vs DATA): <b id="tOk">0</b></div>
+        <div class="muted">Tendencia global: <b id="tPct">0%</b></div>
+      </div>
+      <div class="stat">
+        <div class="label">Tendencia por dimensión</div>
+        <div class="muted" style="margin-top:8px">SABER: <b id="sPct">0%</b> ( <span id="sOk">0</span>/<span id="sTot">0</span> )</div>
+        <div class="muted">HACER: <b id="hPct">0%</b> ( <span id="hOk">0</span>/<span id="hTot">0</span> )</div>
+        <div class="muted">SER: <b id="rPct">0%</b> ( <span id="rOk">0</span>/<span id="rTot">0</span> )</div>
+      </div>
+    </div>
+
+    <div class="stat" style="margin-top:12px">
+      <div class="label">Ítems guardados (clickeables)</div>
+      <div class="list" id="listaItems"></div>
+    </div>
+
+    <div class="stat" style="margin-top:12px">
+      <div class="row space">
+        <div>
+          <div class="label">Detalle del ítem seleccionado</div>
+          <div class="muted" style="margin-top:6px" id="detalleTitulo">Seleccione un ítem para ver su torta de votación.</div>
+        </div>
+        <div class="row">
+          <span class="pill">Ítem #: <b id="detalleIdx">—</b></span>
+        </div>
+      </div>
+
+      <div class="pieWrap">
+        <canvas id="pie" width="220" height="220"></canvas>
+
+      <div class="legend">
+  <div class="legRow"><span><span class="dot" id="d1"></span> N1</span><b id="p1">0%</b></div>
+  <div class="legRow"><span><span class="dot" id="d2"></span> N2</span><b id="p2">0%</b></div>
+  <div class="legRow"><span><span class="dot" id="d3"></span> N3</span><b id="p3">0%</b></div>
+  <div class="legRow"><span><span class="dot" id="d4"></span> N4</span><b id="p4">0%</b></div>
+  <div class="legRow"><span>Total votos</span><b id="pT">0</b></div>
+</div>
+
+
+      <div class="mono" id="detalleReflexion">
+Preguntas de comprensión (DCE):
+1) ¿Qué revela esta distribución sobre nuestra “lente” al ubicar verbos?
+2) Si hay dispersión (muchos niveles con votos), ¿qué implica para la justicia evaluativa?
+3) ¿Qué evidencia real del aula nos permitiría calibrar mejor este verbo (observación, desempeño, producto)?
+4) ¿Qué parte del enfoque DCC está influyendo aquí (contenido/entrega) y cuál sería el giro DCE (verbo/evidencia)?
+      </div>
+    </div>
+
+    <div class="stat" style="margin-top:12px">
+      <div class="label">Mensaje de cierre (para proyectar)</div>
+      <div class="muted" style="margin-top:8px">
+        “Si deseas hacer el diagnóstico individual en línea, pídeme el enlace cuando estés en un lugar con conexión.”
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="footer">
+  Referencias sugeridas (APA 7): Bloom et al. (1956); Schön (1983); Biggs & Tang (2011); Perrenoud (2004).
+</div>
+
+<script>
+/* =============== DATA SITE–RUTA LATAM (v1.0) =============== */
+const DATA = {
+  saber: {
+    1: ["Recordar", "Identificar", "Reconocer", "Nombrar", "Definir", "Listar"],
+    2: ["Comprender", "Describir", "Explicar", "Interpretar",
+      "Ejemplificar", "Clasificar", "Parafrasear", "Resumir"
+    ],
+    3: ["Aplicar", "Analizar", "Comparar", "Contrastar", "Diferenciar", "Organizar", "Revisar", "Establecer relaciones"],
+    4: ["Evaluar", "Argumentar", "Justificar", "Formular", "Diseñar (conceptual)",
+      "Crear", "Sintetizar", "Proponer soluciones", "Construir explicaciones", "Hipotetizar"
+    ]
+  },
+  hacer: {
+    1: ["Imitar", "Copiar", "Seguir instrucciones", "Manipular con ayuda", "Reproducir", "Ensayar (bajo supervisión)"],
+    2: ["Ejecutar", "Practicar", "Demostrar", "Operar", "Usar", "Manipular con control", "Registrar", "Medir", "Montar (con criterios)", "Desmontar (controlado)"],
+    3: ["Implementar", "Integrar (procedimental)",
+      "Coordinar", "Ajustar", "Calibrar", "Configurar", "Diagnosticar fallas", "Perfeccionar", "Supervisar procesos", "Ensamblar (autónomo)"
+    ],
+    4: ["Optimizar", "Automatizar", "Transferir", "Innovar (técnicamente)", "Prototipar", "Desarrollar procedimientos", "Simular", "Estandarizar", "Validar (funcionalidad técnica)", "Retroalimentar técnicamente", "Diseñar soluciones operativas"]
+  },
+  ser: {
+    1: ["Atender", "Escuchar", "Aceptar", "Mostrar disposición", "Reconocer emociones básicas", "Pedir apoyo"],
+    2: ["Participar", "Colaborar", "Respetar", "Cumplir acuerdos simples", "Responder adecuadamente", "Dialogar", "Aportar ideas", "Respetar turnos"],
+    3: ["Asumir responsabilidades", "Valorar diversas perspectivas", "Regular emociones", "Argumentar respetuosamente", "Tomar decisiones responsables", "Resolver conflictos simples", "Cumplir compromisos"],
+    4: ["Liderar procesos colaborativos", "Mediar conflictos con imparcialidad", "Facilitar participación", "Modelar comportamientos respetuosos", "Promover iniciativas colectivas", "Tomar decisiones considerando consecuencias", "Cuidar el entorno y a otros", "Interiorizar principios de convivencia"]
+  }
+};
+
+/* =============== RETROALIMENTACIÓN (por dimensión y nivel) =============== */
+const FEEDBACK = {
+  saber: {
+    1: { porque: "Se centra en reconocer o recuperar información explícita.", seVe: "Nombrar/definir/listar sin relaciones.", pregunta: "¿Estoy pidiendo reconocimiento o comprensión?" },
+    2: { porque: "Implica comprensión: describir, explicar e interpretar (literal).", seVe: "Explica con sus palabras y ejemplifica.", pregunta: "¿Exijo explicación con sentido o repetición?" },
+    3: { porque: "Exige uso y análisis: aplicar, comparar, diferenciar, establecer relaciones.", seVe: "Resuelve y compara estrategias.", pregunta: "¿La tarea obliga a analizar o solo ejecutar?" },
+    4: { porque: "Supone juicio y construcción: evaluar, argumentar, justificar, hipotetizar.", seVe: "Defiende una postura con razones.", pregunta: "¿Permito argumentación real o solo marcar respuestas?" }
+  },
+  hacer: {
+    1: { porque: "Acción inicial dependiente: imitar/copiar/seguir instrucciones.", seVe: "Reproduce con guía paso a paso.", pregunta: "¿Evalúo autonomía o solo seguimiento?" },
+    2: { porque: "Ejecución con control: operar/medir/registrar con criterios.", seVe: "Ejecuta y registra adecuadamente.", pregunta: "¿Evidencio control o solo entrega?" },
+    3: { porque: "Ajuste y calibración: ajustar/calibrar/configurar/diagnosticar fallas.", seVe: "Detecta errores y corrige parámetros.", pregunta: "¿Observo ajuste o repetición del mismo proceso?" },
+    4: { porque: "Optimización/transferencia: automatizar/estandarizar/validar/prototipar/transferir.", seVe: "Mejora, valida y enseña/adapta.", pregunta: "¿La tarea permite transferir u optimizar?" }
+  },
+  ser: {
+    1: { porque: "Disposición y regulación básica: atender/escuchar/pedir apoyo.", seVe: "Se mantiene disponible y pide ayuda adecuada.", pregunta: "¿Evalúo disposición observable o subjetividad?" },
+    2: { porque: "Interacción social inicial: participar/colaborar/respetar acuerdos simples.", seVe: "Aporta ideas y respeta turnos.", pregunta: "¿Tengo evidencia concreta o impresión general?" },
+    3: { porque: "Responsabilidad: regular emociones, valorar perspectivas, cumplir compromisos.", seVe: "Sostiene acuerdos y decide responsablemente.", pregunta: "¿Veo decisiones responsables o solo ‘portarse bien’?" },
+    4: { porque: "Liderazgo ético: mediar conflictos, facilitar participación, considerar consecuencias.", seVe: "Guía procesos y cuida a otros con acciones.", pregunta: "¿Observo mediación/liderazgo o solo participación activa?" }
+  }
+};
+
+/* =============== UTILIDADES =============== */
+function allVerbsFor(dimension){
+  const out = [];
+  for (let lvl=1; lvl<=4; lvl++){
+    const arr = DATA[dimension]?.[lvl] || [];
+    for (const v of arr) out.push({dimension, nivel:lvl, verbo:v});
+  }
+  return out;
+}
+function buildPool(dimension){
+  if (dimension === "mixto"){
+    return [...allVerbsFor("saber"), ...allVerbsFor("hacer"), ...allVerbsFor("ser")];
+  }
+  return allVerbsFor(dimension);
+}
+
+/* =============== ESTADO =============== */
+let pool = buildPool("mixto");
+let idx = -1;
+let current = null;
+let revealed = false;
+let votos = {1:0,2:0,3:0,4:0};
+const historial = []; // items cerrados
+
+/* =============== UI HOOKS =============== */
+const elDim = document.getElementById("dimension");
+const elModo = document.getElementById("modo");
+const elNuevo = document.getElementById("btnNuevo");
+const elVerbo = document.getElementById("verboActual");
+const elDimActual = document.getElementById("dimActual");
+const elIdxInfo = document.getElementById("idxInfo");
+
+const in1 = document.getElementById("in1");
+const in2 = document.getElementById("in2");
+const in3 = document.getElementById("in3");
+const in4 = document.getElementById("in4");
+
+const btnAplicarConteo = document.getElementById("btnAplicarConteo");
+const elRevelar = document.getElementById("btnRevelar");
+const elCerrar = document.getElementById("btnCerrar");
+const elResetVotos = document.getElementById("btnResetVotos");
+
+const elC1 = document.getElementById("c1");
+const elC2 = document.getElementById("c2");
+const elC3 = document.getElementById("c3");
+const elC4 = document.getElementById("c4");
+const elB1 = document.getElementById("b1");
+const elB2 = document.getElementById("b2");
+const elB3 = document.getElementById("b3");
+const elB4 = document.getElementById("b4");
+const elTot = document.getElementById("votosTotales");
+
+const elDominante = document.getElementById("dominante");
+const elNivelData = document.getElementById("nivelData");
+const elEstado = document.getElementById("estado");
+const elRetro = document.getElementById("retro");
+
+const elTTotal = document.getElementById("tTotal");
+const elTOk = document.getElementById("tOk");
+const elTPct = document.getElementById("tPct");
+const elSOk = document.getElementById("sOk");
+const elSTot = document.getElementById("sTot");
+const elSPct = document.getElementById("sPct");
+const elHOk = document.getElementById("hOk");
+const elHTot = document.getElementById("hTot");
+const elHPct = document.getElementById("hPct");
+const elROk = document.getElementById("rOk");
+const elRTot = document.getElementById("rTot");
+const elRPct = document.getElementById("rPct");
+
+const elExportCSV = document.getElementById("btnExportCSV");
+const elLimpiarTodo = document.getElementById("btnLimpiarTodo");
+
+const elListaItems = document.getElementById("listaItems");
+
+/* DETALLE + PIE */
+const elDetalleTitulo = document.getElementById("detalleTitulo");
+const elDetalleIdx = document.getElementById("detalleIdx");
+const canvas = document.getElementById("pie");
+const ctx = canvas.getContext("2d");
+const d1 = document.getElementById("d1");
+const d2 = document.getElementById("d2");
+const d3 = document.getElementById("d3");
+const d4 = document.getElementById("d4");
+const p1 = document.getElementById("p1");
+const p2 = document.getElementById("p2");
+const p3 = document.getElementById("p3");
+const p4 = document.getElementById("p4");
+const pT = document.getElementById("pT");
+
+const PIE_COLORS = ["#7bd88f","#ffcc66","#7aa8ff","#ff6b6b"];
+d1.style.background = PIE_COLORS[0];
+d2.style.background = PIE_COLORS[1];
+d3.style.background = PIE_COLORS[2];
+d4.style.background = PIE_COLORS[3];
+
+/* =============== DOMINANTE =============== */
+function getDominante(){
+  const total = votos[1]+votos[2]+votos[3]+votos[4];
+  const max = Math.max(votos[1],votos[2],votos[3],votos[4]);
+  const ties = [1,2,3,4].filter(n => votos[n] === max && max > 0);
+  if (max === 0) return {dom:"—", total};
+  if (ties.length !== 1) return {dom:"Empate", total};
+  return {dom:"N"+ties[0], total};
+}
+
+/* =============== RENDER PRINCIPAL =============== */
+function updateBars(){
+  const {dom, total} = getDominante();
+  elTot.textContent = total;
+
+  elC1.textContent = votos[1];
+  elC2.textContent = votos[2];
+  elC3.textContent = votos[3];
+  elC4.textContent = votos[4];
+
+  const pct = (n)=> total ? Math.round((votos[n]/total)*100) : 0;
+  elB1.style.width = pct(1)+"%";
+  elB2.style.width = pct(2)+"%";
+  elB3.style.width = pct(3)+"%";
+  elB4.style.width = pct(4)+"%";
+
+  elDominante.textContent = dom;
+  elNivelData.textContent = revealed && current ? ("N"+current.nivel) : "—";
+  elEstado.textContent = !current ? "Pendiente" : (revealed ? "Revelado + retroalimentación" : "Pendiente");
+}
+
+function renderRetro(){
+  if (!current || !revealed){
+    elRetro.textContent =
+`Nota PMAP: aquí NO buscamos “ganar”.
+Buscamos evidenciar si el grupo reconoce el nivel del verbo.
+Si hay discrepancia, es evidencia de calibración pendiente.`;
+    return;
+  }
+
+  const {dom} = getDominante();
+  const dim = current.dimension;
+  const lvl = current.nivel;
+  const fb = FEEDBACK?.[dim]?.[lvl] || {porque:"—",seVe:"—",pregunta:"—"};
+
+  const lectura =
+    (dom === "—" || dom === "Empate")
+      ? "Sin consenso → sostener con presencia y pedir 1 argumento breve."
+      : (dom === ("N"+lvl))
+        ? "Coincidencia con DATA → calibración alineada (por ahora)."
+        : "Diferencia con DATA → calibración pendiente (normal en diagnóstico).";
+
+  elRetro.textContent =
+`RETROALIMENTACIÓN (DCE)
+Dimensión: ${dim.toUpperCase()} | Nivel DATA: N${lvl}
+
+¿POR QUÉ ESTÁ EN ESTE NIVEL?
+- ${fb.porque}
+
+¿CÓMO SE VE EN AULA (EVIDENCIA OBSERVABLE)?
+- ${fb.seVe}
+
+PREGUNTA DE REFLEXIÓN (Schön)
+- ${fb.pregunta}
+
+LECTURA PMAP DEL RESULTADO
+- ${lectura}`;
+}
+
+function resetConteo(){
+  votos = {1:0,2:0,3:0,4:0};
+  in1.value = 0; in2.value = 0; in3.value = 0; in4.value = 0;
+  revealed = false;
+  updateBars();
+  renderRetro();
+}
+
+function setCurrent(item){
+  current = item;
+  elVerbo.textContent = item.verbo;
+  elDimActual.textContent = item.dimension.toUpperCase();
+  const total = pool.length;
+  const pos = (idx >= 0 ? (idx+1) : 0);
+  elIdxInfo.textContent = `${pos}/${total}`;
+  resetConteo();
+}
+
+function nuevoVerbo(){
+  const dimSel = elDim.value;
+  pool = buildPool(dimSel);
+  if (!pool.length) return;
+
+  if (elModo.value === "secuencial"){
+    idx = (idx + 1) % pool.length;
+    setCurrent(pool[idx]);
+    return;
+  }
+  idx = Math.floor(Math.random() * pool.length);
+  setCurrent(pool[idx]);
+}
+
+function aplicarConteoManual(){
+  if (!current) return;
+  const v1 = Math.max(0, Number(in1.value || 0));
+  const v2 = Math.max(0, Number(in2.value || 0));
+  const v3 = Math.max(0, Number(in3.value || 0));
+  const v4 = Math.max(0, Number(in4.value || 0));
+  votos = {1:v1,2:v2,3:v3,4:v4};
+  updateBars();
+  if (revealed) renderRetro();
+}
+
+function revelar(){
+  if (!current) return;
+  aplicarConteoManual();
+  revealed = true;
+  updateBars();
+  renderRetro();
+}
+
+function cerrarItem(){
+  if (!current) return;
+  aplicarConteoManual();
+
+  const {dom, total} = getDominante();
+  const nivelData = current.nivel;
+  const acierto = (dom === ("N"+nivelData));
+
+  historial.push({
+    verbo: current.verbo,
+    dimension: current.dimension,
+    votoDominante: dom,
+    nivelData,
+    acierto,
+    votos: {...votos},
+    votosTotales: total,
+    timestamp: Date.now()
+  });
+
+  updateSummary();
+  renderListaItems();
+  // auto-selecciona el último guardado para reflexión inmediata (paso de identificar→comprender)
+  seleccionarItem(historial.length - 1);
+
+  nuevoVerbo();
+}
+
+/* =============== RESUMEN + LISTA =============== */
+function updateSummary(){
+  const total = historial.length;
+  const ok = historial.filter(x=>x.acierto).length;
+  elTTotal.textContent = total;
+  elTOk.textContent = ok;
+  elTPct.textContent = total ? Math.round((ok/total)*100) + "%" : "0%";
+
+  const dims = ["saber","hacer","ser"];
+  for (const d of dims){
+    const tot = historial.filter(x=>x.dimension===d).length;
+    const okd = historial.filter(x=>x.dimension===d && x.acierto).length;
+    const pct = tot ? Math.round((okd/tot)*100)+"%" : "0%";
+    if (d==="saber"){ elSTot.textContent=tot; elSOk.textContent=okd; elSPct.textContent=pct; }
+    if (d==="hacer"){ elHTot.textContent=tot; elHOk.textContent=okd; elHPct.textContent=pct; }
+    if (d==="ser"){ elRTot.textContent=tot; elROk.textContent=okd; elRPct.textContent=pct; }
+  }
+}
+
+function renderListaItems(){
+  elListaItems.innerHTML = "";
+  if (!historial.length){
+    elListaItems.innerHTML = `<div class="muted">— Aún no hay ítems guardados —</div>`;
+    return;
+  }
+  // más recientes arriba
+  for (let i = historial.length - 1; i >= 0; i--){
+    const x = historial[i];
+    const t = new Date(x.timestamp).toLocaleTimeString();
+    const status = x.acierto ? `<span class="ok">COINCIDE</span>` : `<span class="aj">AJUSTAR</span>`;
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <div>
+        <b>${x.verbo}</b>
+        <div class="meta">${x.dimension.toUpperCase()} • voto ${x.votoDominante} • DATA N${x.nivelData} • ${status}</div>
+      </div>
+      <div class="badge">${t}</div>
+    `;
+    el.addEventListener("click", ()=> seleccionarItem(i));
+    elListaItems.appendChild(el);
+  }
+}
+
+/* =============== PIE CHART =============== */
+function clearPie(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // fondo sutil
+  ctx.fillStyle = "rgba(0,0,0,.12)";
+  ctx.beginPath();
+  ctx.arc(110,110,90,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawPie(v){
+  const total = v[0]+v[1]+v[2]+v[3];
+  clearPie();
+
+  // porcentaje labels
+  const pct = (n)=> total ? Math.round((n/total)*100) : 0;
+  p1.textContent = pct(v[0]) + "%";
+  p2.textContent = pct(v[1]) + "%";
+  p3.textContent = pct(v[2]) + "%";
+  p4.textContent = pct(v[3]) + "%";
+  pT.textContent = total;
+
+  if (!total) return;
+
+  const cx=110, cy=110, r=90;
+  let start = -Math.PI/2;
+
+  for (let i=0;i<4;i++){
+    const slice = (v[i]/total) * Math.PI*2;
+    const end = start + slice;
+
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle = PIE_COLORS[i];
+    ctx.fill();
+
+    // etiqueta % dentro (si slice suficiente)
+    if (slice > 0.35){
+      const mid = (start+end)/2;
+      const lx = cx + Math.cos(mid)*55;
+      const ly = cy + Math.sin(mid)*55;
+      ctx.fillStyle = "rgba(15,27,51,.95)";
+      ctx.font = "bold 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(pct(v[i])+"%", lx, ly);
+    }
+
+    start = end;
+  }
+
+  // aro central
+  ctx.beginPath();
+  ctx.arc(cx,cy,38,0,Math.PI*2);
+  ctx.fillStyle = "rgba(11,18,32,.92)";
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(232,238,252,.92)";
+  ctx.font = "bold 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("VOTOS", cx, cy-8);
+  ctx.fillStyle = "rgba(182,195,230,.95)";
+  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText(String(total), cx, cy+10);
+}
+
+/* =============== SELECCIÓN DE ÍTEM (CLICK) =============== */
+function seleccionarItem(index){
+  if (index < 0 || index >= historial.length) return;
+  const x = historial[index];
+
+  elDetalleIdx.textContent = String(index+1);
+  elDetalleTitulo.innerHTML =
+    `<b>${x.verbo}</b> — ${x.dimension.toUpperCase()} • voto ${x.votoDominante} • DATA N${x.nivelData}`;
+
+  // dibuja torta
+  const v = [x.votos[1], x.votos[2], x.votos[3], x.votos[4]];
+  drawPie(v);
+
+  // (Opcional) adapta preguntas según coincidencia/dispersión
+  const total = x.votosTotales || 0;
+  const max = Math.max(v[0],v[1],v[2],v[3]);
+  const dispersion = total ? (Math.round((1 - (max/total))*100)) : 0; // 0=consenso alto, 75=dispersión alta aprox.
+
+  const lectura = x.acierto
+    ? "Coincidencia con DATA: útil para afirmar el lente DCE (por ahora)."
+    : "Discrepancia con DATA: evidencia directa de calibración pendiente (paso a comprender).";
+
+  const pregunta4 = x.dimension === "saber"
+    ? "¿Estoy evaluando contenido/entrega (DCC) o el verbo rector y su evidencia (DCE) en el desempeño?"
+    : x.dimension === "hacer"
+      ? "¿Estoy calificando ‘que lo hizo’ (DCC) o la ejecución/ajuste/validación observable (DCE) del procedimiento?"
+      : "¿Estoy calificando ‘buena actitud’ (DCC) o comportamientos/evidencias observables y trazables (DCE) en convivencia?"
+
+  document.getElementById("detalleReflexion").textContent =
+`Lectura rápida del dato:
+- Dispersión estimada: ${dispersion}% (más alto = menos consenso).
+- ${lectura}
+
+Preguntas de comprensión (DCE):
+1) ¿Qué revela esta distribución sobre nuestra “lente” al ubicar verbos?
+2) Si hay dispersión, ¿qué implica para la justicia evaluativa (dos docentes podrían calificar distinto lo mismo)?
+3) ¿Qué evidencia real del aula permitiría calibrar mejor este verbo (observación, desempeño, producto)?
+4) ${pregunta4}`;
+}
+
+/* =============== EXPORT + RESET =============== */
+function exportCSV(){
+  if (!historial.length){
+    alert("Aún no hay ítems cerrados para exportar.");
+    return;
+  }
+  const header = [
+    "timestamp","dimension","verbo","voto_dominante","nivel_data","coincide_con_data","votos_totales","v1","v2","v3","v4"
+  ];
+  const rows = historial.map(x=>[
+    new Date(x.timestamp).toISOString(),
+    x.dimension,
+    x.verbo.replaceAll('"','""'),
+    x.votoDominante,
+    "N"+x.nivelData,
+    x.acierto ? "SI" : "NO",
+    x.votosTotales,
+    x.votos[1], x.votos[2], x.votos[3], x.votos[4]
+  ]);
+
+  const csv = [header.join(","), ...rows.map(r=>{
+    r[2] = `"${r[2]}"`;
+    return r.join(",");
+  })].join("\n");
+
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "diagnostico_dce_siteruta_offline.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function reiniciarTodo(){
+  if (!confirm("¿Reiniciar todo? Se borrará el historial.")) return;
+  historial.length = 0;
+  idx = -1;
+  current = null;
+  elVerbo.textContent = "—";
+  elDimActual.textContent = "—";
+  elIdxInfo.textContent = "0/0";
+  resetConteo();
+  updateSummary();
+  renderListaItems();
+  elDetalleIdx.textContent = "—";
+  elDetalleTitulo.textContent = "Seleccione un ítem para ver su torta de votación.";
+  drawPie([0,0,0,0]);
+}
+
+/* =============== EVENTOS =============== */
+document.getElementById("btnNuevo").addEventListener("click", nuevoVerbo);
+btnAplicarConteo.addEventListener("click", aplicarConteoManual);
+elRevelar.addEventListener("click", revelar);
+elCerrar.addEventListener("click", cerrarItem);
+elResetVotos.addEventListener("click", resetConteo);
+elExportCSV.addEventListener("click", exportCSV);
+elLimpiarTodo.addEventListener("click", reiniciarTodo);
+
+elDim.addEventListener("change", ()=>{ idx = -1; nuevoVerbo(); });
+elModo.addEventListener("change", ()=>{ idx = -1; nuevoVerbo(); });
+
+/* =============== INICIO =============== */
+nuevoVerbo();
+updateSummary();
+renderRetro();
+renderListaItems();
+drawPie([0,0,0,0]);
+</script>
+</body>
+</html>

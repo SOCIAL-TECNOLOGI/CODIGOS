@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nivel 3 – Equivalencias 🚀</title>
+<style>
+  body {
+    font-family: 'Press Start 2P', monospace;
+    background: radial-gradient(circle at top, #001a33, #000);
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #00ffff;
+    text-shadow: 2px 2px 5px #ff00ff;
+  }
+
+  button {
+    background: #00ffff;
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-weight: bold;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  button:hover { transform: scale(1.1); background: #00e6e6; }
+
+  #astronauta {
+    font-size: 60px;
+    animation: flotar 3s infinite ease-in-out;
+    margin-top: 20px;
+  }
+
+  @keyframes flotar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+
+  #consola {
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    margin: 20px auto;
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+    max-width: 80%;
+    height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    background: #00ffff;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  .contenedor {
+    display: none;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .columna {
+    width: 45%;
+    min-width: 250px;
+  }
+
+  h2 { color: #00e6ff; }
+
+  .tarjeta {
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px auto;
+    font-weight: bold;
+    cursor: grab;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .tarjeta:hover { transform: scale(1.05); }
+
+  .zona-drop {
+    background: rgba(255,255,255,0.1);
+    border: 2px dashed #00ffff;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 220px;
+  }
+
+  .correcto {
+    background: #00e676 !important;
+    color: white;
+    animation: brillar 0.5s ease-in-out;
+  }
+
+  @keyframes brillar {
+    from { box-shadow: 0 0 5px #00e676; }
+    to { box-shadow: 0 0 25px #00e676; }
+  }
+
+  .incorrecto {
+    background: #f44336 !important;
+    color: white;
+    animation: sacudir 0.4s;
+  }
+
+  @keyframes sacudir {
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-8px);}
+    50%{transform:translateX(8px);}
+    75%{transform:translateX(-8px);}
+  }
+
+  #mensajeFinal {
+    color: #00ffff;
+    margin-top: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 Nivel 3 – Equivalencias de Unidades</h1>
+<p>Primero observa las equivalencias y escucha la explicación del astronauta.</p>
+
+<div id="astronauta">👨‍🚀</div>
+<div id="consola"></div>
+
+<button id="btnPractica" onclick="iniciarPractica()">Comenzar práctica</button>
+
+<div class="contenedor" id="zonaPractica">
+  <div class="columna zona-drop" id="magnitudes">
+    <h2>Unidades</h2>
+    <div class="tarjeta" data-correcta="1000m">1 Kilómetro</div>
+    <div class="tarjeta" data-correcta="100cm">1 Metro</div>
+    <div class="tarjeta" data-correcta="10mm">1 Centímetro</div>
+  </div>
+
+  <div class="columna" id="unidades">
+    <h2>Equivalencias</h2>
+    <div class="tarjeta" draggable="true" data-unidad="1000m">1000 metros</div>
+    <div class="tarjeta" draggable="true" data-unidad="100cm">100 centímetros</div>
+    <div class="tarjeta" draggable="true" data-unidad="10mm">10 milímetros</div>
+  </div>
+</div>
+
+<p id="mensajeFinal"></p>
+
+<script>
+const consola = document.getElementById('consola');
+const astronauta = document.getElementById('astronauta');
+let aciertos = 0;
+
+window.onload = function() {
+  narrar("Bienvenida al Nivel 3. Hoy aprenderás las equivalencias entre unidades de medida. Observa: un kilómetro equivale a mil metros, un metro a cien centímetros y un centímetro a diez milímetros.");
+  setTimeout(() => {
+    narrar("Estas equivalencias te ayudarán a convertir medidas más fácilmente. Cuando estés lista, haz clic en Comenzar práctica.");
+  }, 9000);
+};
+
+function narrar(texto){
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 1;
+  voz.rate = 0.9;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(voz);
+
+  const linea = document.createElement("div");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  let i=0;
+  function type(){
+    if(i<texto.length){
+      linea.innerHTML = texto.substring(0,i+1)+'<span class="cursor"></span>';
+      i++;
+      setTimeout(type,40);
+    } else linea.innerHTML = texto+' <span class="cursor"></span>';
+  }
+  type();
+}
+
+function iniciarPractica(){
+  document.getElementById('zonaPractica').style.display = 'flex';
+  narrar("Iniciando práctica. Arrastra cada unidad hacia su equivalencia correcta.");
+  const magnitudes = document.querySelectorAll('#magnitudes .tarjeta');
+  const unidades = document.querySelectorAll('#unidades .tarjeta');
+
+  magnitudes.forEach(mag=>{
+    mag.addEventListener('dragover', e=>e.preventDefault());
+    mag.addEventListener('drop', e=>{
+      const unidad = e.dataTransfer.getData('unidad');
+      verificar(mag, unidad);
+    });
+  });
+
+  unidades.forEach(u=>{
+    u.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('unidad', e.target.dataset.unidad);
+    });
+  });
+}
+
+function verificar(mag, unidad){
+  const correcta = mag.dataset.correcta;
+  const unidadElemento = document.querySelector(`[data-unidad="${unidad}"]`);
+  if(!unidadElemento) return;
+
+  if(unidad === correcta){
+    mag.classList.add('correcto');
+    mag.textContent = `${mag.textContent} → ${unidadElemento.textContent}`;
+    narrar(`Excelente, ${mag.textContent.split("→")[0].trim()} equivale a ${unidadElemento.textContent}.`);
+    unidadElemento.remove();
+    aciertos++;
+    if(aciertos === 3){
+      setTimeout(()=>{
+        narrar("¡Misión completada! Has dominado las equivalencias métricas.");
+        document.getElementById("mensajeFinal").textContent = "🎯 ¡Misión completada! Has emparejado todas las equivalencias.";
+      },1500);
+    }
+  } else {
+    mag.classList.add('incorrecto');
+    narrar(`No, ${unidadElemento.textContent} no corresponde a ${mag.textContent}. Inténtalo de nuevo.`);
+    setTimeout(()=>mag.classList.remove('incorrecto'),600);
+  }
+}
+</script>
+</body>
+</html>

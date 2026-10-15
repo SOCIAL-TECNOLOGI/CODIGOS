@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Caza Genotipos 🎮 v2.6</title>
+<style>
+  body {
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: "Press Start 2P", cursive;
+    text-align: center;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    margin: auto;
+    background: #111;
+    border: 3px solid #0f0;
+    transition: filter 0.3s ease;
+  }
+  #info {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+ .modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle at center, rgba(0,255,100,0.15), rgba(0,0,0,0.95));
+  color: #0f0;
+  border: 2px solid #0f0;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  z-index: 10;
+  animation: fadeIn 1s ease;
+  padding: 40px 20px; /* 🟢 NUEVO: espacio interno superior e inferior */
+  box-sizing: border-box; /* 🟢 evita desbordes */
+}
+.modal p {
+  font-size: 18px;
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 40px; /* 🟢 separa el texto del botón */
+  white-space: normal; /* 🟢 permite saltos de línea naturales */
+  word-wrap: break-word; /* 🟢 evita que palabras largas sobresalgan */
+}
+
+  .modal h2 {
+    font-size: 28px;
+    color: #00ff7f;
+    text-shadow: 0 0 10px #0f0;
+    margin-bottom: 20px;
+  }
+  .modal p {
+    font-size: 18px;
+    max-width: 600px;
+    line-height: 1.8;
+  }
+  .btn {
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 12px 24px;
+    margin: 10px;
+    cursor: pointer;
+    font-family: "Press Start 2P", cursive;
+    font-size: 14px;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #0f0;
+    transition: transform 0.2s ease, background 0.3s ease;
+  }
+  .btn:hover {
+    background: #aaffaa;
+    transform: scale(1.05);
+  }
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  #nivelFlash {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #00ff7f;
+    font-size: 30px;
+    text-shadow: 0 0 20px #0f0;
+    display: none;
+    animation: flashText 2s ease-out forwards;
+  }
+  @keyframes flashText {
+    0% {opacity: 0;}
+    20% {opacity: 1;}
+    100% {opacity: 0;}
+  }
+
+
+  canvas.blur {
+  filter: blur(6px) brightness(0.6);
+  transition: filter 0.5s ease;
+}
+
+</style>
+</head>
+
+<body>
+<h1>🧬 Caza Genotipos v2.6</h1>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+
+<!-- 🔹 HUD oculto al inicio -->
+<div id="info" style="display:none;">
+  ⭐ Puntos: <span id="puntos">0</span> | Nivel: <span id="nivel">1</span><br>
+  🎯 Objetivo: <span id="objetivo">Atrapa heterocigotos (Aa, Bb)</span><br>
+  <button id="btnReiniciar" class="btn" style="display:none;" onclick="reiniciarTotal()">🔁 Reiniciar</button>
+</div>
+
+<!-- Modales -->
+<div id="modalInicio" class="modal" style="display:flex;">
+  <h2>🎮 Bienvenido a Caza Genotipos</h2>
+  <p style="max-width:500px;">
+    Explora el fascinante mundo de la genética.<br>
+    🎯 Atrapa solo los heterocigotos (Aa, Bb).<br><br>
+    Recuerda: aprender no depende de la edad, sino de la curiosidad.
+  </p>
+  <button class="btn" onclick="iniciarJuego()">Comenzar Nivel 1</button>
+</div>
+
+<div id="modalCambio" class="modal">
+  <h2>🌱 ¡Excelente!</h2>
+  <p>
+    Estás explorando conceptos de genética avanzada.<br>
+    Recuerda: aprender no depende de la edad, sino de la curiosidad.<br><br>
+    ¿Deseas pasar al Nivel 2?
+  </p>
+  <div>
+    <button class="btn" onclick="mostrarResumen()">Sí, continuar</button>
+    <button class="btn" onclick="seguirNivel1()">No, seguir practicando</button>
+  </div>
+</div>
+
+<div id="modalResumen" class="modal">
+  <h2>📊 Resultados del Nivel 1</h2>
+  <p id="resumenDatos"></p>
+  <button class="btn" onclick="pasarNivel2()">Continuar al Nivel 2</button>
+</div>
+
+<div id="modalFinal" class="modal">
+  <h2>🎉 ¡Has completado tu exploración genética!</h2>
+  <p>
+    Cada descubrimiento cuenta.<br>
+    Sigue creando, sigue aprendiendo. 🌱
+  </p>
+  <p style="color:#aaffaa;">
+    Gracias, profesor Roberto, por inspirar la enseñanza de la Didáctica de la Biología con pasión y curiosidad.
+  </p>
+  <button class="btn" onclick="reiniciarTotal()">🔁 Volver a jugar</button>
+</div>
+
+<!-- Sonidos -->
+<audio id="soundOk" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="soundStar" src="https://actions.google.com/sounds/v1/cartoon/descending_whistle.ogg"></audio>
+<audio id="soundLife" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+<audio id="soundExplosion" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg"></audio>
+<audio id="music" src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/Time_to_Travel/Komiku_-_03_-_Friendly_Ghosts.mp3" loop></audio>
+
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const btnReiniciar = document.getElementById("btnReiniciar");
+
+let nivel = 1, puntos = 0, tiempo = 0, jugando = false;
+let objetos = [];
+let contAa = 0, contBb = 0, contAA = 0, contaa = 0;
+const jugador = { x: 250, y: 360, w: 100, h: 20, speed: 7 };
+const music = document.getElementById("music");
+const sonidos = {
+  ok: () => document.getElementById("soundOk").play(),
+  star: () => document.getElementById("soundStar").play(),
+  life: () => document.getElementById("soundLife").play(),
+  boom: () => document.getElementById("soundExplosion").play()
+};
+
+// 🎙️ Narrador
+function narrar(texto, rate = 0.9){
+  const msg = new SpeechSynthesisUtterance(texto);
+  msg.lang = "es-ES"; msg.rate = rate; msg.pitch = 1;
+  speechSynthesis.cancel(); speechSynthesis.speak(msg);
+}
+
+// Saludo inicial
+window.onload = () => {
+  narrar("Bienvenido a Caza Genotipos, profesor Roberto. Gracias por acompañarnos en esta experiencia. Explora el fascinante mundo de la genética. Atrapa los heterocigotos A a y B b. Recuerda, aprender no depende de la edad sino de la curiosidad.");
+};
+
+// Funciones base
+function genotipoAleatorio(){
+  const g = ["AA","Aa","aa","BB","Bb","bb"];
+  return g[Math.floor(Math.random() * g.length)];
+}
+function colorGenotipo(g){
+  if(g==="Aa"||g==="Bb")return"#2ecc71";
+  if(g==="AA"||g==="BB")return"#3498db";
+  if(g==="aa"||g==="bb")return"#e74c3c";
+  return"#7f8c8d";
+}
+function objetivoTexto(){
+  return nivel===1 ?
+    "Atrapa heterocigotos (Aa, Bb)" :
+    "Atrapa homocigotos dominantes (AA, BB) y recesivos (aa, bb)";
+}
+function actualizarHUD(){
+  document.getElementById("puntos").innerText = puntos;
+  document.getElementById("nivel").innerText = nivel;
+  document.getElementById("objetivo").innerText = objetivoTexto();
+}
+
+// Mostrar u ocultar HUD y aplicar desenfoque al fondo
+function mostrarHUD(mostrar) {
+  document.getElementById("info").style.display = mostrar ? "block" : "none";
+  if (mostrar) canvas.classList.remove("blur");
+  else canvas.classList.add("blur");
+}
+
+// Música
+function pausarMusica(){ music.pause(); }
+function reanudarMusica(){ music.volume = 0.3; music.play(); }
+
+// Movimiento
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Generar objetos
+setInterval(() => {
+  if(!jugando) return;
+  objetos.push({
+    x: Math.random() * (canvas.width - 50),
+    y: 0, w: 50, h: 40,
+    speed: 1 + Math.random() * 1.5,
+    text: genotipoAleatorio()
+  });
+}, 1200);
+
+// Bucle principal
+function update(){
+  if(!jugando) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(keys["ArrowLeft"] && jugador.x > 0) jugador.x -= jugador.speed;
+  if(keys["ArrowRight"] && jugador.x + jugador.w < canvas.width) jugador.x += jugador.speed;
+  ctx.fillStyle = "lime"; ctx.fillRect(jugador.x, jugador.y, jugador.w, jugador.h);
+
+  objetos.forEach((o,i) => {
+    o.y += o.speed;
+    ctx.fillStyle = colorGenotipo(o.text);
+    ctx.fillRect(o.x,o.y,o.w,o.h);
+    ctx.strokeStyle = "#fff"; ctx.strokeRect(o.x,o.y,o.w,o.h);
+    ctx.fillStyle = "white"; ctx.font = "16px Arial";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(o.text, o.x + o.w/2, o.y + o.h/2);
+
+    if(o.y + o.h >= jugador.y && o.x + o.w > jugador.x && o.x < jugador.x + jugador.w){
+      if(nivel===1 && (o.text==="Aa"||o.text==="Bb")){
+        puntos++; sonidos.ok(); if(o.text==="Aa")contAa++; else contBb++;
+      } else if(nivel===2 && (o.text==="AA"||o.text==="aa"||o.text==="BB"||o.text==="bb")){
+        puntos += 2; sonidos.ok(); if(o.text==="AA")contAA++; else if(o.text==="aa")contaa++;
+      }
+      objetos.splice(i,1);
+    }
+    if(o.y > canvas.height) objetos.splice(i,1);
+  });
+  actualizarHUD();
+  requestAnimationFrame(update);
+}
+
+// Cronómetro y control de modales
+setInterval(() => {
+  if(!jugando) return;
+  tiempo++;
+  if(nivel===1 && tiempo===60){
+    jugando = false; pausarMusica();
+    mostrarHUD(false);
+    document.getElementById("modalCambio").style.display = "flex";
+    sonidos.star();
+    narrar("Excelente, estás explorando conceptos de genética avanzada. Recuerda, aprender no depende de la edad sino de la curiosidad. ¿Deseas pasar al nivel dos?");
+  }
+  if (nivel === 2 && tiempo === 120) {
+  jugando = false;
+  pausarMusica();
+  mostrarHUD(false);
+
+  // ✅ Registrar puntaje de Nivel 2 y mostrar botón
+  puntajeNivel2 = puntos - puntajeNivel1;
+  document.getElementById("btnVerPuntaje").style.display = "inline-block";
+
+  document.getElementById("modalFinal").style.display = "flex";
+  sonidos.boom();
+  narrar("Has completado tu exploración genética. Cada descubrimiento cuenta. Gracias profesor Roberto, por inspirar la enseñanza de la Didáctica de la Biología con pasión y curiosidad.");
+}
+
+
+}, 1000);
+
+// Iniciar juego
+function iniciarJuego(){
+  document.getElementById("modalInicio").style.display = "none";
+  mostrarHUD(true);
+  btnReiniciar.style.display = "inline-block";
+  sonidos.life();
+
+  // 🟢 Desbloquear narrador con una breve frase silenciosa
+  const msg = new SpeechSynthesisUtterance(" ");
+  msg.volume = 0; // no se oye
+  speechSynthesis.speak(msg);
+
+  // 🎙️ Narración real del inicio
+  narrar("Bienvenido a Caza Genotipos, profesor Roberto. Comienza tu exploración genética. Atrapa los heterocigotos A a y B b. ¡Vamos a aprender jugando!");
+
+  try {
+    music.volume = 0.3;
+    const playPromise = music.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => console.warn("⚠️ Bloqueo de música:", error));
+    }
+  } catch (e) { console.warn("🎧 Error al iniciar música:", e); }
+
+  jugando = true;
+  tiempo = 0;
+  update();
+}
+
+// Reanudar nivel 1
+function seguirNivel1(){
+  document.getElementById("modalCambio").style.display="none";
+  reanudarMusica(); jugando=true;
+  mostrarHUD(true);
+  narrar("Sigue practicando, cada intento te acerca a dominar la genética.");
+}
+
+// Resumen nivel 1
+function mostrarResumen(){
+  document.getElementById("modalCambio").style.display="none";
+  mostrarHUD(false);
+  const datos=`Aa cazados:${contAa}<br>Bb cazados:${contBb}<br>Puntaje total:${puntos}`;
+  document.getElementById("resumenDatos").innerHTML=datos;
+  document.getElementById("modalResumen").style.display="flex";
+  sonidos.star(); pausarMusica();
+  narrar("Nivel uno completado. Aquí están tus resultados. ¿Listo para pasar al nivel dos?");
+puntajeNivel1 = puntos;
+
+}
+
+// Pasar al nivel 2
+function pasarNivel2(){
+  document.getElementById("modalResumen").style.display="none";
+  mostrarHUD(true);
+  nivel=2; objetos=[]; tiempo=60; jugando=true;
+  sonidos.life(); reanudarMusica();
+  narrar("Nivel dos activado. Ahora atrapa los homocigotos dominantes A A y B B, y los homocigotos recesivos a a y b b minúscula. Recuerda, todos forman parte de la variabilidad genética.");
+  update();
+}
+
+// Reiniciar total
+function reiniciarTotal(){
+  objetos=[]; nivel=1; puntos=0; tiempo=0;
+  contAa=contBb=contAA=contaa=0; jugando=false;
+  btnReiniciar.style.display = "none";
+  mostrarHUD(false);
+  document.querySelectorAll('.modal').forEach(m=>m.style.display="none");
+  document.getElementById("modalInicio").style.display = "flex";
+  actualizarHUD(); pausarMusica(); sonidos.life();
+  narrar("Bienvenido nuevamente a Caza Genotipos, profesor Roberto. Explora la genética y atrapa los heterocigotos A a y B b.");
+}
+
+// =========================
+// 📊 GESTIÓN DE PUNTUACIÓN FINAL (todo dinámico)
+// =========================
+let puntajeNivel1 = 0;
+let puntajeNivel2 = 0;
+
+// 👉 Crear dinámicamente el botón y el modal
+window.addEventListener("DOMContentLoaded", () => {
+  // Botón "Ver puntuación final"
+  const btnPuntaje = document.createElement("button");
+  btnPuntaje.id = "btnVerPuntaje";
+  btnPuntaje.className = "btn";
+  btnPuntaje.textContent = "📊 Ver puntuación final";
+  btnPuntaje.style.display = "none";
+  btnPuntaje.onclick = verPuntajeFinal;
+  document.getElementById("modalFinal").appendChild(btnPuntaje);
+
+  // Modal de puntuación total
+  const modalPuntaje = document.createElement("div");
+  modalPuntaje.id = "modalPuntajeFinal";
+  modalPuntaje.className = "modal";
+  modalPuntaje.innerHTML = `
+    <h2>📊 Puntuación Total</h2>
+    <p id="textoPuntajeFinal" style="font-size:18px; line-height:1.8;"></p>
+    <button class="btn" id="btnCerrarPuntaje">Cerrar</button>
+  `;
+  document.body.appendChild(modalPuntaje);
+
+  // Botón "Cerrar" dentro del modal
+  document.getElementById("btnCerrarPuntaje").onclick = cerrarPuntajeFinal;
+});
+
+// =========================
+// 🎯 FUNCIONES DE PUNTUACIÓN FINAL
+// =========================
+function verPuntajeFinal() {
+  const total = puntajeNivel1 + puntajeNivel2;
+  const texto = `
+    🌱 Nivel 1: ${puntajeNivel1} puntos<br>
+    🧬 Nivel 2: ${puntajeNivel2} puntos<br><br>
+    ⭐ <strong>Total general: ${total} puntos</strong>
+  `;
+  document.getElementById("textoPuntajeFinal").innerHTML = texto;
+  document.getElementById("modalFinal").style.display = "none";
+  document.getElementById("modalPuntajeFinal").style.display = "flex";
+  narrar("Tu puntuación total es de " + total + " puntos. Excelente trabajo, profesor Roberto.");
+}
+
+function cerrarPuntajeFinal() {
+  document.getElementById("modalPuntajeFinal").style.display = "none";
+  document.getElementById("modalFinal").style.display = "flex";
+}
+
+
+
+
+
+</script>
+
+
+
+</body>
+</html>

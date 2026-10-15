@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE–RUTA LATAM | Motor Local V2.3</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+:root{
+  --bg:#020617;
+  --panel:#0f172a;
+  --card:#111827;
+  --accent:#38bdf8;
+  --accent-soft:rgba(56,189,248,.15);
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:#1f2937;
+  --purple:#8b5cf6;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;
+  background:radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color:var(--text);
+  min-height:100vh;
+}
+
+header{
+  padding:18px 24px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+}
+
+h1{font-size:1.35rem}
+h2{font-size:1.1rem;margin-bottom:12px}
+h3{font-size:1rem;margin-bottom:10px}
+h4{font-size:.95rem;margin-bottom:8px}
+
+.subtitle{
+  font-size:.9rem;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+main{
+  padding:20px;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:10px;
+}
+
+.tab-btn{
+  padding:9px 14px;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:.2s;
+}
+
+.tab-btn.active{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.grid{
+  display:grid;
+  gap:16px;
+}
+
+.grid-2{
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+}
+
+.grid-3{
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+}
+
+label{
+  display:block;
+  font-size:.82rem;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--panel);
+  color:var(--text);
+}
+
+textarea{
+  min-height:140px;
+  resize:vertical;
+}
+
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:9px 14px;
+  font-size:.88rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--accent-soft);
+  color:var(--accent);
+}
+
+.btn:hover{
+  background:rgba(56,189,248,.25);
+}
+
+.btn-success{
+  background:rgba(34,197,94,.12);
+  color:var(--ok);
+}
+
+.btn-warning{
+  background:rgba(245,158,11,.12);
+  color:var(--warn);
+}
+
+.btn-danger{
+  background:rgba(239,68,68,.12);
+  color:var(--danger);
+}
+
+.btn-purple{
+  background:rgba(139,92,246,.12);
+  color:#c4b5fd;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.table-wrap{
+  overflow:auto;
+  margin-top:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.84rem;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:top;
+}
+
+th{
+  background:var(--panel);
+  color:var(--muted);
+  position:sticky;
+  top:0;
+}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:12px;
+}
+
+.metric{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+
+.metric .value{
+  font-size:1.7rem;
+  font-weight:700;
+  margin-top:6px;
+}
+
+.chart-box{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  height:320px;
+}
+
+.small{font-size:.8rem}
+.muted{color:var(--muted)}
+
+pre{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  overflow:auto;
+  color:#d1fae5;
+  white-space:pre-wrap;
+}
+
+.notice{
+  padding:12px 14px;
+  background:rgba(56,189,248,.08);
+  border:1px solid rgba(56,189,248,.25);
+  border-radius:12px;
+  color:#dbeafe;
+  font-size:.88rem;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:.74rem;
+  border:1px solid var(--border);
+  background:var(--panel);
+}
+
+.right{
+  text-align:right;
+}
+
+.center{
+  text-align:center;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 SITE–RUTA LATAM | Motor Local V2.3</h1>
+  <div class="subtitle">
+    Evaluación aplicada → ZipGrade → Diagnóstico → PMAP • Banco FCRI independiente
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="inicio">Inicio</button>
+    <button class="tab-btn" data-tab="aplicada">Evaluación aplicada</button>
+    <button class="tab-btn" data-tab="zipgrade">ZipGrade</button>
+    <button class="tab-btn" data-tab="diagnostico">Diagnóstico</button>
+    <button class="tab-btn" data-tab="pmap">PMAP y adaptativo</button>
+    <button class="tab-btn" data-tab="banco">Banco FCRI</button>
+  </div>
+
+  <section id="inicio" class="tab-pane active">
+    <div class="card">
+      <h2>Panel inicial</h2>
+      <div class="grid grid-3" style="margin-top:12px">
+        <div>
+          <label>Institución</label>
+          <input id="institucion" placeholder="Ej. IE León de Greiff">
+        </div>
+        <div>
+          <label>Grado</label>
+          <select id="grado">
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11" selected>11</option>
+          </select>
+        </div>
+        <div>
+          <label>Grupo</label>
+          <select id="grupo">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="fecha">
+        </div>
+        <div>
+          <label>Asignatura</label>
+          <select id="asignatura">
+            <option value="LC">Lectura Crítica</option>
+            <option value="MAT">Matemáticas</option>
+            <option value="SOC">Sociales y Ciudadanas</option>
+            <option value="ING">Inglés</option>
+            <option value="BIO">Biología</option>
+            <option value="FIS">Física</option>
+            <option value="QUI">Química</option>
+            <option value="CTS">CTS</option>
+          </select>
+        </div>
+        <div>
+          <label>Nombre del simulacro / corte</label>
+          <input id="simulacro" placeholder="Ej. Diagnóstico 3x4 corte 1">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-success" id="guardarSesionBtn">💾 Guardar sesión local</button>
+        <button class="btn btn-danger" id="resetAllBtn">🗑️ Reiniciar todo</button>
+      </div>
+
+      <div id="sesionEstado" class="small muted" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Arquitectura del motor</h3>
+      <pre>CAPA 1  Ingesta de datos
+CAPA 2  Normalización
+CAPA 3  Vinculación curricular
+CAPA 4  Análisis
+CAPA 5  Diagnóstico
+CAPA 6  Intervención PMAP
+CAPA 7  Retroalimentación adaptativa local
+
+PRIORIDAD DE USO:
+1. Registrar evaluación aplicada
+2. Subir ZipGrade
+3. Procesar diagnóstico
+4. Generar PMAP
+5. Opcionalmente alimentar banco FCRI</pre>
+    </div>
+
+    <div class="card">
+      <h3>Base cognitiva interna</h3>
+      <div class="notice">
+        Esta versión incluye una <strong>base estructural interna</strong> para microhabilidades y microrutinas,
+        preparada para ampliarse con tus 240 + 240 canónicas. En esta entrega queda implementada
+        la <strong>arquitectura</strong> y la <strong>validación lógica</strong>; puedes reemplazar o ampliar
+        el catálogo base dentro del bloque <code>BASE_COGNITIVA</code>.
+      </div>
+      <div id="baseResumen" class="small muted" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="aplicada" class="tab-pane">
+    <div class="card">
+      <h2>Evaluación aplicada</h2>
+      <div class="notice">
+        Este módulo es independiente del banco FCRI. Aquí registras las <strong>12 preguntas reales</strong> que respondieron los estudiantes.
+      </div>
+
+      <div class="grid grid-2" style="margin-top:14px">
+        <div>
+          <h4>Pegar tabla de evaluación aplicada</h4>
+          <div class="small muted">
+            Formato esperado (TSV o copiado desde Excel):<br>
+            <strong>orden | id_local | contenido | área conceptual | competencia/proceso/parte | evidencia | nivel | verbo | microhabilidad | microrutina | respuesta_correcta</strong>
+          </div>
+          <textarea id="textoAplicada" placeholder="1	EXT_Q1	Solubilidad...	Solubilidad	Explicación de fenómenos	Gráfica	N2	Interpretar	leer datos de gráfica	localizar punto de intersección	B"></textarea>
+          <div class="actions">
+            <button class="btn btn-success" id="cargarAplicadaBtn">📥 Cargar evaluación aplicada</button>
+          </div>
+        </div>
+
+        <div>
+          <h4>Subir archivo de evaluación aplicada</h4>
+          <input type="file" id="archivoAplicada" accept=".xlsx,.xls,.csv,.txt">
+          <div class="actions">
+            <button class="btn" id="leerArchivoAplicadaBtn">📄 Leer archivo</button>
+          </div>
+
+          <h4 style="margin-top:18px">Guardar</h4>
+          <div class="actions">
+            <button class="btn btn-success" id="guardarAplicadaBtn">💾 Guardar cuestionario aplicado</button>
+            <button class="btn btn-purple" id="guardarAplicadaEnBancoBtn">📚 Guardar también en banco</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="aplicadaResumen" class="small muted" style="margin-top:12px"></div>
+      <div class="table-wrap">
+        <table id="tablaAplicada"></table>
+      </div>
+    </div>
+  </section>
+
+  <section id="zipgrade" class="tab-pane">
+    <div class="card">
+      <h2>ZipGrade</h2>
+      <input type="file" id="archivoZip" accept=".xlsx,.xls,.csv">
+      <div class="actions">
+        <button class="btn btn-success" id="leerZipBtn">📄 Leer ZipGrade</button>
+      </div>
+      <div id="zipResumen" class="small muted" style="margin-top:10px"></div>
+      <div class="table-wrap">
+        <table id="tablaZip"></table>
+      </div>
+    </div>
+  </section>
+
+  <section id="diagnostico" class="tab-pane">
+    <div class="card">
+      <h2>Diagnóstico</h2>
+      <div class="actions">
+        <button class="btn btn-success" id="procesarDiagnosticoBtn">🚀 Procesar motor</button>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="muted">Estudiantes</div>
+        <div id="mEstudiantes" class="value">0</div>
+      </div>
+      <div class="metric">
+        <div class="muted">Promedio grupo</div>
+        <div id="mPromedio" class="value">0%</div>
+      </div>
+      <div class="metric">
+        <div class="muted">Nivel dominante</div>
+        <div id="mNivel" class="value">-</div>
+      </div>
+      <div class="metric">
+        <div class="muted">Brecha principal</div>
+        <div id="mBrecha" class="value">-</div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <h4>Errores por pregunta</h4>
+        <div class="chart-box"><canvas id="chartErrores"></canvas></div>
+      </div>
+      <div class="card">
+        <h4>Distribución por niveles</h4>
+        <div class="chart-box"><canvas id="chartNiveles"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <h4>Desempeño por competencia / proceso / parte</h4>
+        <div class="chart-box"><canvas id="chartCompetencias"></canvas></div>
+      </div>
+      <div class="card">
+        <h4>Top microhabilidades críticas</h4>
+        <div class="chart-box"><canvas id="chartMicro"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Resultados por estudiante</h4>
+      <div class="table-wrap"><table id="tablaDiagnostico"></table></div>
+    </div>
+  </section>
+
+  <section id="pmap" class="tab-pane">
+    <div class="card">
+      <h2>PMAP y adaptativo local</h2>
+      <div class="notice">
+        El sistema prioriza: <strong>microhabilidad → microrutina → nivel meta → competencia/proceso → evidencia → contenido</strong>.
+      </div>
+      <div class="actions">
+        <button class="btn btn-purple" id="generarPmapBtn">🧠 Generar PMAP</button>
+      </div>
+      <div class="table-wrap"><table id="tablaPmap"></table></div>
+    </div>
+  </section>
+
+  <section id="banco" class="tab-pane">
+    <div class="card">
+      <h2>Banco FCRI</h2>
+      <div class="small muted">
+        Este módulo es independiente. Sirve para alimentar masivamente el banco general de ítems clasificados.
+      </div>
+
+      <div class="grid grid-2" style="margin-top:14px">
+        <div>
+          <label>Pegar tabla FCRI</label>
+          <textarea id="textoFcri" placeholder="ID	pregunta	respuesta	contenido	área conceptual	competencia	evidencia	nivel	verbo	microhabilidad	microrutina"></textarea>
+          <div class="actions">
+            <button class="btn btn-success" id="cargarFcriBtn">📥 Cargar FCRI al banco</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Subir archivo FCRI</label>
+          <input type="file" id="archivoFcri" accept=".xlsx,.xls,.csv,.txt">
+          <div class="actions">
+            <button class="btn" id="leerArchivoFcriBtn">📄 Leer archivo FCRI</button>
+            <button class="btn btn-warning" id="exportarBancoBtn">📤 Exportar banco JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bancoResumen" class="small muted" style="margin-top:12px"></div>
+      <div class="table-wrap"><table id="tablaBanco"></table></div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ===============================
+   ESTADO GLOBAL
+================================= */
+const STORAGE_KEY = "site_ruta_v23_local";
+
+let evaluacionAplicada = [];
+let zipRows = [];
+let estudiantes = [];
+let bancoItems = [];
+let resultadosMotor = null;
+
+let chartErrores = null;
+let chartNiveles = null;
+let chartCompetencias = null;
+let chartMicro = null;
+
+/* ===============================
+   BASE COGNITIVA INTERNA
+   Puedes sustituir este bloque por tu 240 + 240 canónico.
+================================= */
+const SUBJECT_LEVELS = {
+  LC: ["N1","N2","N3","N4"],
+  MAT:["N1","N2","N3","N4"],
+  SOC:["N1","N2","N3","N4"],
+  BIO:["N1","N2","N3","N4"],
+  FIS:["N1","N2","N3","N4"],
+  QUI:["N1","N2","N3","N4"],
+  CTS:["N1","N2","N3","N4"],
+  ING:["PreA1","A1","A2","B1"]
+};
+
+function generarBaseCognitivaEstructural(){
+  const asignaturas = ["LC","MAT","SOC","BIO","FIS","QUI","CTS","ING"];
+  const microhabilidades = [];
+  const microrutinas = [];
+  const relaciones = {};
+
+  asignaturas.forEach(asig=>{
+    const niveles = SUBJECT_LEVELS[asig];
+    const target = 30;
+    for(let i=1;i<=target;i++){
+      const nivel = niveles[(i-1) % niveles.length];
+      const mhId = `${asig}_${nivel}_MH_${String(i).padStart(3,"0")}`;
+      const mrId = `${asig}_${nivel}_MR_${String(i).padStart(3,"0")}`;
+
+      microhabilidades.push({
+        id: mhId,
+        asignatura: asig,
+        nivel,
+        nombre: `Microhabilidad ${i} ${asig}`,
+        tipoUso: i % 2 === 0 ? "consolidación intranivel" : "transición internivel"
+      });
+
+      microrutinas.push({
+        id: mrId,
+        asignatura: asig,
+        nivel,
+        nombre: `Microrutina ${i} ${asig}`
+      });
+
+      relaciones[mhId] = mrId;
+    }
+  });
+
+  return { microhabilidades, microrutinas, relaciones };
+}
+
+const BASE_COGNITIVA = generarBaseCognitivaEstructural();
+
+/* ===============================
+   UI TABS
+================================= */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ===============================
+   HELPERS
+================================= */
+function nextLevel(actual, levels){
+  const idx = levels.indexOf(actual);
+  return idx >= 0 && idx < levels.length - 1 ? levels[idx+1] : actual;
+}
+
+function dominanteDistribucion(dist){
+  let best = "-", max = -1;
+  Object.entries(dist).forEach(([k,v])=>{
+    if(v > max){
+      best = k;
+      max = v;
+    }
+  });
+  return best;
+}
+
+function splitCSV(line){
+  const out = [];
+  let cur = "";
+  let q = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"'){ q = !q; continue; }
+    if(ch === "," && !q){ out.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
+function csvToObjects(text){
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+  const headers = splitCSV(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const vals = splitCSV(line);
+    const obj = {};
+    headers.forEach((h,i)=> obj[h] = vals[i] ?? "");
+    return obj;
+  });
+}
+
+function getChartOptions(){
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{ labels:{ color:"#e5e7eb" } }
+    },
+    scales:{
+      x:{ ticks:{ color:"#9ca3af" }, grid:{ color:"#1f2937" } },
+      y:{ beginAtZero:true, ticks:{ color:"#9ca3af" }, grid:{ color:"#1f2937" } }
+    }
+  };
+}
+
+function ensureSessionSavedText(msg){
+  document.getElementById("sesionEstado").textContent = msg;
+}
+
+function alertAndThrow(msg){
+  alert(msg);
+  throw new Error(msg);
+}
+
+/* ===============================
+   STORAGE
+================================= */
+function saveState(){
+  const data = {
+    evaluacionAplicada,
+    zipRows,
+    bancoItems,
+    session:{
+      institucion: document.getElementById("institucion").value,
+      grado: document.getElementById("grado").value,
+      grupo: document.getElementById("grupo").value,
+      fecha: document.getElementById("fecha").value,
+      asignatura: document.getElementById("asignatura").value,
+      simulacro: document.getElementById("simulacro").value
+    }
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    const data = JSON.parse(raw);
+    evaluacionAplicada = data.evaluacionAplicada || [];
+    zipRows = data.zipRows || [];
+    bancoItems = data.bancoItems || [];
+
+    if(data.session){
+      document.getElementById("institucion").value = data.session.institucion || "";
+      document.getElementById("grado").value = data.session.grado || "11";
+      document.getElementById("grupo").value = data.session.grupo || "1";
+      document.getElementById("fecha").value = data.session.fecha || "";
+      document.getElementById("asignatura").value = data.session.asignatura || "LC";
+      document.getElementById("simulacro").value = data.session.simulacro || "";
+    }
+
+    renderAplicada();
+    renderZipPreview();
+    renderBanco();
+  }catch(e){
+    console.error(e);
+  }
+}
+
+document.getElementById("guardarSesionBtn").addEventListener("click", ()=>{
+  saveState();
+  ensureSessionSavedText("Sesión guardada localmente.");
+});
+
+document.getElementById("resetAllBtn").addEventListener("click", ()=>{
+  if(!confirm("¿Seguro que deseas reiniciar todo el almacenamiento local de esta herramienta?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+
+/* ===============================
+   RESUMEN BASE INTERNA
+================================= */
+(function initBaseResumen(){
+  document.getElementById("fecha").value = new Date().toISOString().slice(0,10);
+  document.getElementById("baseResumen").textContent =
+    `Base interna estructural: ${BASE_COGNITIVA.microhabilidades.length} microhabilidades + ${BASE_COGNITIVA.microrutinas.length} microrutinas.`;
+})();
+
+/* ===============================
+   PARSE EVALUACIÓN APLICADA
+================================= */
+function parseAplicadaTSV(texto){
+  const rows = texto.split(/\r?\n/).filter(Boolean);
+  const out = [];
+  rows.forEach((row, idx)=>{
+    const c = row.split("\t").map(x=>x.trim());
+    if(c.length < 11) return;
+
+    // intenta saltar encabezado
+    if(idx === 0){
+      const low = (c[0] || "").toLowerCase();
+      if(["orden","#","id","id_local"].includes(low)) return;
+    }
+
+    out.push({
+      orden: Number(c[0]) || (idx + 1),
+      idLocal: c[1] || `EXT_Q${idx+1}`,
+      contenido: c[2] || "",
+      areaConceptual: c[3] || "",
+      competencia: c[4] || "",
+      evidencia: c[5] || "",
+      nivel: c[6] || "",
+      verbo: c[7] || "",
+      microhabilidad: c[8] || "",
+      microrutina: c[9] || "",
+      respuestaCorrecta: c[10] || ""
+    });
+  });
+  return out;
+}
+
+async function parseFileToRows(file){
+  const name = file.name.toLowerCase();
+
+  if(name.endsWith(".csv")){
+    const text = await file.text();
+    return csvToObjects(text);
+  }
+
+  if(name.endsWith(".txt")){
+    const text = await file.text();
+    return text;
+  }
+
+  const data = await file.arrayBuffer();
+  const wb = XLSX.read(data, {type:"array"});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, {defval:""});
+}
+
+function normalizarAplicadaDesdeObjetos(rows){
+  const out = [];
+  rows.forEach((r, idx)=>{
+    const keys = Object.keys(r);
+    if(!keys.length) return;
+
+    out.push({
+      orden: Number(r.orden || r.Orden || r["#"] || idx + 1),
+      idLocal: String(r.id_local || r.ID || r.id || r.Id || `EXT_Q${idx+1}`).trim(),
+      contenido: String(r.contenido || r["Contenido del ítem"] || r.contenido_item || "").trim(),
+      areaConceptual: String(r.area_conceptual || r["Área conceptual"] || "").trim(),
+      competencia: String(r.competencia || r.competencia_proceso || r["Competencia ICFES"] || "").trim(),
+      evidencia: String(r.evidencia || r["Tipo evidencia"] || "").trim(),
+      nivel: String(r.nivel || r["Nivel"] || "").trim(),
+      verbo: String(r.verbo || r["Verbo"] || "").trim(),
+      microhabilidad: String(r.microhabilidad || r["Microhabilidad"] || "").trim(),
+      microrutina: String(r.microrutina || r["Microrutina"] || "").trim(),
+      respuestaCorrecta: String(r.respuesta_correcta || r["Respuesta"] || r.respuesta || "").trim()
+    });
+  });
+  return out;
+}
+
+function validarAplicada(arr){
+  if(arr.length !== 12){
+    alertAndThrow("La evaluación aplicada debe tener exactamente 12 preguntas.");
+  }
+}
+
+function renderAplicada(){
+  const resumen = document.getElementById("aplicadaResumen");
+  const tabla = document.getElementById("tablaAplicada");
+
+  resumen.textContent = `Preguntas registradas: ${evaluacionAplicada.length}`;
+  if(!evaluacionAplicada.length){
+    tabla.innerHTML = "";
+    return;
+  }
+
+  let html = `<tr>
+    <th>Orden</th><th>ID local</th><th>Contenido</th><th>Competencia/proceso</th>
+    <th>Evidencia</th><th>Nivel</th><th>Microhabilidad</th><th>Microrutina</th><th>Respuesta</th>
+  </tr>`;
+
+  evaluacionAplicada.forEach(q=>{
+    html += `<tr>
+      <td>${q.orden}</td>
+      <td>${q.idLocal}</td>
+      <td>${q.contenido}</td>
+      <td>${q.competencia}</td>
+      <td>${q.evidencia}</td>
+      <td>${q.nivel}</td>
+      <td>${q.microhabilidad}</td>
+      <td>${q.microrutina}</td>
+      <td>${q.respuestaCorrecta}</td>
+    </tr>`;
+  });
+
+  tabla.innerHTML = html;
+}
+
+document.getElementById("cargarAplicadaBtn").addEventListener("click", ()=>{
+  const texto = document.getElementById("textoAplicada").value.trim();
+  if(!texto) return alert("Pega la tabla de la evaluación aplicada.");
+  const arr = parseAplicadaTSV(texto);
+  validarAplicada(arr);
+  evaluacionAplicada = arr;
+  renderAplicada();
+});
+
+document.getElementById("leerArchivoAplicadaBtn").addEventListener("click", async ()=>{
+  const file = document.getElementById("archivoAplicada").files[0];
+  if(!file) return alert("Sube un archivo.");
+  const parsed = await parseFileToRows(file);
+
+  if(typeof parsed === "string"){
+    const arr = parseAplicadaTSV(parsed);
+    validarAplicada(arr);
+    evaluacionAplicada = arr;
+  } else {
+    const arr = normalizarAplicadaDesdeObjetos(parsed);
+    validarAplicada(arr);
+    evaluacionAplicada = arr;
+  }
+  renderAplicada();
+});
+
+document.getElementById("guardarAplicadaBtn").addEventListener("click", ()=>{
+  if(evaluacionAplicada.length !== 12) return alert("Primero carga una evaluación aplicada válida de 12 preguntas.");
+  saveState();
+  document.getElementById("aplicadaResumen").textContent =
+    `Preguntas registradas: ${evaluacionAplicada.length} • cuestionario guardado localmente`;
+});
+
+document.getElementById("guardarAplicadaEnBancoBtn").addEventListener("click", ()=>{
+  if(evaluacionAplicada.length !== 12) return alert("Primero carga una evaluación aplicada válida.");
+  const nuevos = evaluacionAplicada.map(q=>({
+    id: q.idLocal,
+    pregunta: String(q.orden),
+    respuesta: q.respuestaCorrecta,
+    contenido: q.contenido,
+    areaConceptual: q.areaConceptual,
+    competencia: q.competencia,
+    evidencia: q.evidencia,
+    nivel: q.nivel,
+    verbo: q.verbo,
+    microhabilidad: q.microhabilidad,
+    microrutina: q.microrutina
+  }));
+
+  const existentes = new Set(bancoItems.map(i=>i.id));
+  nuevos.forEach(n=>{
+    if(!existentes.has(n.id)) bancoItems.push(n);
+  });
+
+  saveState();
+  renderBanco();
+  alert("La evaluación aplicada se guardó también en el banco.");
+});
+
+/* ===============================
+   ZIPGRADE
+================================= */
+document.getElementById("leerZipBtn").addEventListener("click", async ()=>{
+  const file = document.getElementById("archivoZip").files[0];
+  if(!file) return alert("Sube un archivo ZipGrade.");
+
+  const parsed = await parseFileToRows(file);
+  zipRows = Array.isArray(parsed) ? parsed : csvToObjects(parsed);
+
+  renderZipPreview();
+  saveState();
+});
+
+function renderZipPreview(){
+  const resumen = document.getElementById("zipResumen");
+  const tabla = document.getElementById("tablaZip");
+
+  if(!zipRows.length){
+    resumen.textContent = "";
+    tabla.innerHTML = "";
+    return;
+  }
+
+  const qCols = Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k))
+    .sort((a,b)=>Number(a.slice(1)) - Number(b.slice(1)));
+
+  resumen.textContent = `Filas detectadas: ${zipRows.length} • Preguntas detectadas: ${qCols.length}`;
+
+  let html = `<tr><th>Estudiante</th><th>Aciertos</th><th>%</th>`;
+  qCols.slice(0,12).forEach(q=> html += `<th>${q}</th>`);
+  html += `</tr>`;
+
+  zipRows.slice(0,20).forEach(r=>{
+    const nombre = `${r["First Name"] || ""} ${r["Last Name"] || ""}`.trim();
+    html += `<tr>
+      <td>${nombre}</td>
+      <td>${r["Num Correct"] || ""}</td>
+      <td>${r["Percent Correct"] || ""}</td>`;
+    qCols.slice(0,12).forEach(q=> html += `<td>${r[q]}</td>`);
+    html += `</tr>`;
+  });
+
+  tabla.innerHTML = html;
+}
+
+/* ===============================
+   BANCO FCRI
+================================= */
+function parseFcriTSV(texto){
+  const rows = texto.split(/\r?\n/).filter(Boolean);
+  const out = [];
+  rows.forEach((row, idx)=>{
+    const c = row.split("\t").map(x=>x.trim());
+    if(c.length < 11) return;
+    if(idx === 0){
+      const low = (c[0] || "").toLowerCase();
+      if(["id","#"].includes(low)) return;
+    }
+
+    out.push({
+      id: c[0] || "",
+      pregunta: c[1] || "",
+      respuesta: c[2] || "",
+      contenido: c[3] || "",
+      areaConceptual: c[4] || "",
+      competencia: c[5] || "",
+      evidencia: c[6] || "",
+      nivel: c[7] || "",
+      verbo: c[8] || "",
+      microhabilidad: c[9] || "",
+      microrutina: c[10] || ""
+    });
+  });
+  return out;
+}
+
+function normalizarFcriDesdeObjetos(rows){
+  const out = [];
+  rows.forEach((r, idx)=>{
+    out.push({
+      id: String(r.ID || r.id || `Q${String(idx+1).padStart(3,"0")}`).trim(),
+      pregunta: String(r["#"] || r.pregunta || r.Num || "").trim(),
+      respuesta: String(r["Respuesta"] || r.respuesta || "").trim(),
+      contenido: String(r["Contenido del ítem"] || r.contenido || "").trim(),
+      areaConceptual: String(r["Área conceptual"] || r.area_conceptual || "").trim(),
+      competencia: String(r["Competencia ICFES"] || r.competencia || "").trim(),
+      evidencia: String(r["Tipo evidencia"] || r.evidencia || "").trim(),
+      nivel: String(r["Nivel"] || r.nivel || "").trim(),
+      verbo: String(r["Verbo"] || r.verbo || "").trim(),
+      microhabilidad: String(r["Microhabilidad"] || r.microhabilidad || "").trim(),
+      microrutina: String(r["Microrutina"] || r.microrutina || "").trim()
+    });
+  });
+  return out;
+}
+
+function renderBanco(){
+  const resumen = document.getElementById("bancoResumen");
+  const tabla = document.getElementById("tablaBanco");
+
+  resumen.textContent = `Ítems en banco: ${bancoItems.length}`;
+  if(!bancoItems.length){
+    tabla.innerHTML = "";
+    return;
+  }
+
+  let html = `<tr>
+    <th>ID</th><th>#</th><th>Contenido</th><th>Competencia</th>
+    <th>Evidencia</th><th>Nivel</th><th>Microhabilidad</th><th>Microrutina</th>
+  </tr>`;
+
+  bancoItems.slice(0,150).forEach(i=>{
+    html += `<tr>
+      <td>${i.id}</td>
+      <td>${i.pregunta}</td>
+      <td>${i.contenido}</td>
+      <td>${i.competencia}</td>
+      <td>${i.evidencia}</td>
+      <td>${i.nivel}</td>
+      <td>${i.microhabilidad}</td>
+      <td>${i.microrutina}</td>
+    </tr>`;
+  });
+
+  tabla.innerHTML = html;
+}
+
+document.getElementById("cargarFcriBtn").addEventListener("click", ()=>{
+  const texto = document.getElementById("textoFcri").value.trim();
+  if(!texto) return alert("Pega la tabla FCRI.");
+  const arr = parseFcriTSV(texto);
+  bancoItems = bancoItems.concat(arr);
+  saveState();
+  renderBanco();
+});
+
+document.getElementById("leerArchivoFcriBtn").addEventListener("click", async ()=>{
+  const file = document.getElementById("archivoFcri").files[0];
+  if(!file) return alert("Sube un archivo FCRI.");
+  const parsed = await parseFileToRows(file);
+
+  const arr = typeof parsed === "string"
+    ? parseFcriTSV(parsed)
+    : normalizarFcriDesdeObjetos(parsed);
+
+  bancoItems = bancoItems.concat(arr);
+  saveState();
+  renderBanco();
+});
+
+document.getElementById("exportarBancoBtn").addEventListener("click", ()=>{
+  if(!bancoItems.length) return alert("No hay ítems en el banco.");
+  const blob = new Blob([JSON.stringify(bancoItems, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "banco_fcri_site_ruta.json";
+  a.click();
+});
+
+/* ===============================
+   MOTOR ANALÍTICO
+================================= */
+document.getElementById("procesarDiagnosticoBtn").addEventListener("click", ()=>{
+  resultadosMotor = motorDiagnostico();
+  renderDiagnostico(resultadosMotor);
+});
+
+function motorDiagnostico(){
+  const asignatura = document.getElementById("asignatura").value;
+  const levels = SUBJECT_LEVELS[asignatura];
+
+  // CAPA 1 - INGESTA
+  if(evaluacionAplicada.length !== 12) alertAndThrow("Primero carga la evaluación aplicada de 12 preguntas.");
+  if(!zipRows.length) alertAndThrow("Primero carga ZipGrade.");
+
+  // CAPA 2 - NORMALIZACIÓN
+  const qCols = Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k))
+    .sort((a,b)=>Number(a.slice(1)) - Number(b.slice(1)));
+
+  if(qCols.length < 12){
+    alertAndThrow("El archivo ZipGrade debe tener al menos 12 columnas Q.");
+  }
+
+  estudiantes = zipRows.map(r=>{
+    const nombre = `${r["First Name"] || ""} ${r["Last Name"] || ""}`.trim();
+    const respuestas = qCols.slice(0,12).map(q=> Number(r[q] || 0));
+    return {
+      nombre,
+      respuestas,
+      aciertosZip: Number(r["Num Correct"] || 0),
+      porcentajeZip: Number(r["Percent Correct"] || 0)
+    };
+  });
+
+  // CAPA 3 - VINCULACIÓN CURRICULAR
+  const itemsAplicados = evaluacionAplicada.map((q, idx)=>({
+    ...q,
+    ordenReal: idx + 1
+  }));
+
+  // CAPA 4 - ANÁLISIS
+  const erroresPorPregunta = new Array(12).fill(0);
+  const distNiveles = Object.fromEntries(levels.map(l=>[l,0]));
+  const competencias = {};
+  const microhabilidades = {};
+  const diagnosticoEstudiantes = [];
+
+  estudiantes.forEach(est=>{
+    const aciertosPorNivel = Object.fromEntries(levels.map(l=>[l,{ok:0,total:0}]));
+    const aciertosPorComp = {};
+    let totalOk = 0;
+
+    est.respuestas.forEach((resp, idx)=>{
+      const item = itemsAplicados[idx];
+      if(resp === 0) erroresPorPregunta[idx]++;
+      totalOk += resp;
+
+      if(!aciertosPorComp[item.competencia]){
+        aciertosPorComp[item.competencia] = {ok:0,total:0};
+      }
+      aciertosPorComp[item.competencia].total++;
+      aciertosPorComp[item.competencia].ok += resp;
+
+      if(!competencias[item.competencia]){
+        competencias[item.competencia] = {ok:0,total:0};
+      }
+      competencias[item.competencia].total++;
+      competencias[item.competencia].ok += resp;
+
+      if(aciertosPorNivel[item.nivel]){
+        aciertosPorNivel[item.nivel].total++;
+        aciertosPorNivel[item.nivel].ok += resp;
+      }
+
+      const mh = item.microhabilidad || "Sin microhabilidad";
+      if(!microhabilidades[mh]){
+        microhabilidades[mh] = {
+          errores:0,
+          aciertos:0,
+          total:0,
+          microrutina:item.microrutina || "",
+          nivel:item.nivel || "",
+          competencia:item.competencia || ""
+        };
+      }
+      microhabilidades[mh].total++;
+      microhabilidades[mh].aciertos += resp;
+      if(resp === 0) microhabilidades[mh].errores++;
+    });
+
+    // CAPA 5 - DIAGNÓSTICO
+    let nivelDominante = levels[0];
+    let bestRatio = -1;
+
+    levels.forEach(n=>{
+      const d = aciertosPorNivel[n];
+      const ratio = d.total ? d.ok / d.total : 0;
+      if(ratio > bestRatio){
+        bestRatio = ratio;
+        nivelDominante = n;
+      }
+    });
+
+    const zdr = nivelDominante;
+    const zdp = nextLevel(zdr, levels);
+    distNiveles[nivelDominante]++;
+
+    diagnosticoEstudiantes.push({
+      nombre: est.nombre,
+      porcentaje: Math.round((totalOk / 12) * 100),
+      totalOk,
+      nivelDominante,
+      zdr,
+      zdp,
+      aciertosPorComp,
+      aciertosPorNivel
+    });
+  });
+
+  const promedio = diagnosticoEstudiantes.length
+    ? Math.round(diagnosticoEstudiantes.reduce((a,b)=>a+b.porcentaje, 0) / diagnosticoEstudiantes.length)
+    : 0;
+
+  const rankingComp = Object.entries(competencias).map(([k,v])=>({
+    competencia:k,
+    pct: Math.round((v.ok / v.total) * 100),
+    ...v
+  })).sort((a,b)=>a.pct - b.pct);
+
+  const rankingMicro = Object.entries(microhabilidades).map(([k,v])=>({
+    microhabilidad:k,
+    errorPct: Math.round((v.errores / v.total) * 100),
+    ...v
+  })).sort((a,b)=>b.errorPct - a.errorPct);
+
+  const nivelDominanteGrupo = dominanteDistribucion(distNiveles);
+  const idxGrupo = levels.indexOf(nivelDominanteGrupo);
+  const brechaPrincipal = idxGrupo >= 0 && idxGrupo < levels.length - 1
+    ? `${nivelDominanteGrupo} → ${levels[idxGrupo + 1]}`
+    : nivelDominanteGrupo;
+
+  // CAPA 6 - INTERVENCIÓN PMAP
+  const sugerenciasPmap = rankingMicro.slice(0,10).map(m=>{
+    const nivelMeta = nextLevel(m.nivel, levels);
+    const sugeridas = bancoItems.filter(i =>
+      i.microhabilidad === m.microhabilidad &&
+      i.nivel === nivelMeta
+    );
+
+    return {
+      microhabilidad: m.microhabilidad,
+      microrutina: m.microrutina,
+      competencia: m.competencia,
+      nivelActual: m.nivel,
+      nivelMeta,
+      sugeridas: sugeridas.slice(0,5)
+    };
+  });
+
+  return {
+    asignatura,
+    levels,
+    estudiantes: diagnosticoEstudiantes,
+    promedio,
+    erroresPorPregunta,
+    distNiveles,
+    nivelDominanteGrupo,
+    brechaPrincipal,
+    rankingComp,
+    rankingMicro,
+    sugerenciasPmap
+  };
+}
+
+/* ===============================
+   RENDER DIAGNÓSTICO
+================================= */
+function renderDiagnostico(r){
+  document.getElementById("mEstudiantes").textContent = r.estudiantes.length;
+  document.getElementById("mPromedio").textContent = `${r.promedio}%`;
+  document.getElementById("mNivel").textContent = r.nivelDominanteGrupo;
+  document.getElementById("mBrecha").textContent = r.brechaPrincipal;
+
+  if(chartErrores) chartErrores.destroy();
+  if(chartNiveles) chartNiveles.destroy();
+  if(chartCompetencias) chartCompetencias.destroy();
+  if(chartMicro) chartMicro.destroy();
+
+  chartErrores = new Chart(document.getElementById("chartErrores"), {
+    type:"bar",
+    data:{
+      labels:r.erroresPorPregunta.map((_,i)=> `Q${i+1}`),
+      datasets:[{
+        label:"Errores",
+        data:r.erroresPorPregunta
+      }]
+    },
+    options:getChartOptions()
+  });
+
+  chartNiveles = new Chart(document.getElementById("chartNiveles"), {
+    type:"bar",
+    data:{
+      labels:r.levels,
+      datasets:[{
+        label:"Estudiantes",
+        data:r.levels.map(l=> r.distNiveles[l] || 0)
+      }]
+    },
+    options:getChartOptions()
+  });
+
+  chartCompetencias = new Chart(document.getElementById("chartCompetencias"), {
+    type:"bar",
+    data:{
+      labels:r.rankingComp.map(x=> x.competencia),
+      datasets:[{
+        label:"% logro",
+        data:r.rankingComp.map(x=> x.pct)
+      }]
+    },
+    options:getChartOptions()
+  });
+
+  chartMicro = new Chart(document.getElementById("chartMicro"), {
+    type:"bar",
+    data:{
+      labels:r.rankingMicro.slice(0,10).map(x=> x.microhabilidad),
+      datasets:[{
+        label:"% error",
+        data:r.rankingMicro.slice(0,10).map(x=> x.errorPct)
+      }]
+    },
+    options:getChartOptions()
+  });
+
+  let html = `<tr>
+    <th>Estudiante</th><th>%</th><th>Nivel dominante</th><th>ZDR</th><th>ZDP</th>
+  </tr>`;
+
+  r.estudiantes.forEach(e=>{
+    html += `<tr>
+      <td>${e.nombre}</td>
+      <td>${e.porcentaje}%</td>
+      <td>${e.nivelDominante}</td>
+      <td>${e.zdr}</td>
+      <td>${e.zdp}</td>
+    </tr>`;
+  });
+
+  document.getElementById("tablaDiagnostico").innerHTML = html;
+}
+
+/* ===============================
+   PMAP
+================================= */
+document.getElementById("generarPmapBtn").addEventListener("click", ()=>{
+  if(!resultadosMotor) return alert("Primero procesa el diagnóstico.");
+  renderPmap(resultadosMotor);
+});
+
+function renderPmap(r){
+  let html = `<tr>
+    <th>Microhabilidad</th>
+    <th>Microrutina</th>
+    <th>Competencia / proceso</th>
+    <th>Nivel actual</th>
+    <th>Nivel meta</th>
+    <th>Ítems sugeridos del banco</th>
+  </tr>`;
+
+  r.sugerenciasPmap.forEach(s=>{
+    const sug = s.sugeridas.length
+      ? s.sugeridas.map(x=> x.id).join(", ")
+      : "Sin ítems compatibles aún";
+
+    html += `<tr>
+      <td>${s.microhabilidad}</td>
+      <td>${s.microrutina}</td>
+      <td>${s.competencia}</td>
+      <td>${s.nivelActual}</td>
+      <td>${s.nivelMeta}</td>
+      <td>${sug}</td>
+    </tr>`;
+  });
+
+  document.getElementById("tablaPmap").innerHTML = html;
+}
+
+/* ===============================
+   INIT
+================================= */
+loadState();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SITE-RUTA LATAM – Generador y Evaluador V10.4-J</title>
+
+<!-- Librerías -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+:root{
+  --azul:#1E88E5;--verde:#009B02;--cian:#65FEFB;
+  --fondo:#f4f6f8;--texto:#222;
+  --ok:#189359;--err-bg:#F8D7DA;--err-txt:#8e0311;--err-borde:#e60118;
+}
+*{box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;margin:0;background:var(--fondo);color:var(--texto);}
+
+/* ====== Encabezado institucional ====== */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,var(--azul),var(--verde));
+  color:#fff;padding:10px 22px;box-shadow:0 4px 15px rgba(0,0,0,0.2);
+}
+header h1{font-size:1.1rem;margin:0;flex:1;text-align:center;}
+.logo-pulse{position:relative;width:58px;height:58px;margin-right:12px;}
+.logo-pulse img{width:100%;height:auto;border-radius:50%;}
+.logo-pulse::after{content:'';position:absolute;inset:0;border-radius:50%;
+  box-shadow:0 0 12px 4px rgba(0,255,138,0.5);animation:pulseGlow 1.8s infinite ease-in-out;}
+@keyframes pulseGlow{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.15);opacity:.7;}}
+#modeToggle{background:#fff;color:var(--azul);border:none;padding:6px 12px;border-radius:8px;
+  font-weight:bold;cursor:pointer;}#modeToggle:hover{background:var(--cian);color:#000;}
+
+/* ====== Contenedores ====== */
+#docenteContainer,#estudianteContainer{
+  max-width:950px;margin:25px auto;background:#fff;border-radius:12px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);padding:25px;
+}
+.hidden{display:none;}
+textarea{width:100%;min-height:200px;border-radius:8px;padding:10px;
+  border:1px solid #ccc;font-size:15px;}
+
+/* ====== Botones ====== */
+.buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:15px;}
+button{border:none;border-radius:8px;padding:10px 16px;font-size:15px;cursor:pointer;color:#fff;}
+.gen{background:linear-gradient(90deg,var(--azul),#0d47a1);}
+.templ{background:linear-gradient(90deg,var(--verde),#00c853);}
+.save{background:linear-gradient(90deg,#6A1B9A,#4A148C);}
+.clear{background:linear-gradient(90deg,#FB8C00,#EF6C00);}
+button:hover{opacity:.9;transform:translateY(-1px);}
+footer{text-align:center;margin:25px 0;font-size:13px;color:#666;}
+
+/* ====== Modal plantilla ====== */
+#plantillaModal{position:fixed;inset:0;display:none;justify-content:center;align-items:center;
+  background:rgba(0,0,0,0.45);z-index:999;}
+#plantillaModal .contenido{background:#fff;border-radius:12px;padding:25px;max-width:700px;width:90%;
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);animation:slideFade .4s ease;}
+@keyframes slideFade{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+#plantillaModal pre{background:#f4f4f4;padding:12px;border-radius:8px;font-size:14px;white-space:pre-wrap;}
+#plantillaModal button{margin-top:10px;background:var(--azul);color:#fff;padding:8px 16px;border:none;border-radius:8px;cursor:pointer;}
+#plantillaModal button:hover{opacity:.9;}
+
+/* ====== Modo estudiante (versión 9 + 10.4H) ====== */
+#cuestionario-container{
+  display:none;margin:20px auto;padding:20px;border:2px solid #ccc;border-radius:10px;width:53%;background:#fff;
+}
+.pregunta{margin:20px 0;padding:15px;background:#fafafa;border-radius:10px;}
+.retroalimentacion-container{
+  display:block;padding:10px;border-radius:8px;margin-top:10px;
+}
+.retroalimentacion-container.respuesta-correcta{
+  background-color:var(--ok);border-left:6px solid #28A745;color:#fff;}
+.retroalimentacion-container.respuesta-incorrecta{
+  background-color:var(--err-bg);border-left:6px solid var(--err-borde);color:var(--err-txt);}
+.explicacion{background:#f4f9ff;border-left:5px solid var(--azul);
+  padding:10px 15px;border-radius:8px;margin-top:8px;font-size:15px;}
+.explicacion a{color:var(--azul);font-weight:bold;text-decoration:underline;}
+.graficos-container{display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;margin-top:10px;gap:10px;}
+.graficos-container canvas{
+  width:280px!important;height:280px!important;background:#fff;border-radius:8px;padding:8px;
+  box-shadow:0 0 6px rgba(0,0,0,.1);}
+.popup-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:center;
+  z-index:2000;opacity:0;visibility:hidden;transform:scale(.96);transition:opacity .35s,transform .35s,visibility .35s;}
+.popup-modal.show{opacity:1;visibility:visible;transform:scale(1);}
+.popup-content{background:#fff;padding:30px 25px;border-radius:15px;width:70%;max-width:750px;
+  box-shadow:0 10px 25px rgba(0,0,0,.25);text-align:center;overflow-y:auto;max-height:90vh;}
+.nivel-container{display:inline-block;padding:8px 16px;border-radius:8px;font-weight:bold;font-size:15px;
+  margin-top:12px;color:#fff;}
+.p1{background:#b91c1c;}.p2{background:#d97706;}.p3{background:#ffee52;color:#0b1022!important;}.p4{background:#65a30d;}
+#volverDocente{background:#fff;color:var(--azul);border:2px solid var(--azul);border-radius:8px;
+  font-weight:bold;padding:6px 14px;cursor:pointer;transition:all .3s ease;}
+#volverDocente:hover{background:var(--azul);color:#fff;transform:scale(1.05);}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo-pulse"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Logo_UNESCO.png" alt="SITE-RUTA LATAM"></div>
+  <h1>SITE-RUTA LATAM – Generador y Evaluador V10.4-J</h1>
+  <button id="modeToggle" onclick="toggleMode()">🔄 Cambiar a modo Estudiante</button>
+</header>
+
+<!-- ====== MODO DOCENTE ====== -->
+<section id="docenteContainer">
+  <h2>🧩 Modo Docente – Generador de Cuestionarios</h2>
+  <p>Pega tu cuestionario. <strong>(Pregunta, Opciones de respuesta, Respuesta correcta)</strong> son obligatorios.
+     Los campos URL y Retroalimentación son opcionales.</p>
+  <textarea id="inputCuestionario" placeholder="Pregunta: ¿En qué órgano se produce la insulina?
+Opciones: A. Corazón  B. Páncreas  C. Hígado  D. Riñón
+Respuesta Correcta: B. Páncreas
+URL: https://medlineplus.gov/spanish/ency/article/003701.htm
+Retroalimentación: La insulina se produce en el páncreas y regula la glucosa."></textarea>
+
+  <div class="buttons">
+    <button class="gen" onclick="generarCuestionario()">⚙️ Generar Cuestionario</button>
+    <button class="templ" onclick="abrirPlantilla()">📋 Ver Plantilla</button>
+    <button class="save" onclick="guardarLocal()">💾 Guardar Local</button>
+    <button class="clear" onclick="limpiarTodo()">🧹 Limpiar</button>
+  </div>
+  <div id="vistaPrevia"></div>
+</section>
+
+<!-- ====== MODAL DE PLANTILLA ====== -->
+<div id="plantillaModal">
+  <div class="contenido">
+    <h2>📋 Plantilla para crear cuestionario</h2>
+    <p>La estructura base del cuestionario <strong>SITE-RUTA LATAM</strong> debe seguir el siguiente formato.
+       Los <strong>tres primeros campos son obligatorios</strong> (<em>Pregunta, Opciones de respuesta, Respuesta correcta</em>)
+       y pueden estar en cualquier orden. Los campos <em>URL</em> y <em>Retroalimentación</em> son opcionales.</p>
+<pre>
+Pregunta: ¿En qué órgano se produce la insulina?
+Opciones: A. Corazón  B. Páncreas  C. Hígado  D. Riñón
+Respuesta Correcta: B. Páncreas
+URL: https://medlineplus.gov/spanish/ency/article/003701.htm
+Retroalimentación: La insulina se produce en el páncreas y regula los niveles de glucosa en sangre.
+</pre>
+    <p style="font-style: italic; text-align:center;">“Retroalimentar al estudiante incrementa significativamente su aprendizaje.” – John Hattie (2009)</p>
+    <div style="text-align:center;">
+      <button onclick="copiarPlantilla()">📋 Copiar Formato</button>
+      <button onclick="cerrarPlantilla()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODO ESTUDIANTE ====== -->
+<section id="estudianteContainer" class="hidden">
+  <header style="background:linear-gradient(90deg,var(--azul),var(--verde));color:#fff;
+    display:flex;align-items:center;justify-content:space-between;padding:10px 22px;border-radius:12px;">
+    <h2>Modo Estudiante – Evaluación SITE-RUTA LATAM</h2>
+    <button id="volverDocente" onclick="toggleMode()">🔁 Modo Docente</button>
+  </header>
+
+  <div id="cuestionario-container">
+    <h1 id="tituloEvaluacion">Evaluación generada</h1>
+    <div id="preguntasRender"></div>
+  </div>
+</section>
+
+<div id="puntaje-popup" class="popup-modal"><div class="popup-content"></div></div>
+<div id="modalAlerta" class="popup-modal"><div class="popup-content"><h3>⚠️ Atención</h3><p>Debes responder todas las preguntas.</p></div></div>
+
+<footer>© 2025 SITE-RUTA LATAM – Sistema Integrado de Trazabilidad Educativa</footer>
+
+<script>
+let modo="docente";
+function toggleMode(){
+ if(modo==="docente"){
+  if(!document.getElementById("vistaPrevia").innerHTML.trim()){
+    alert("Genera primero un cuestionario para verlo en modo estudiante.");return;}
+  document.getElementById("docenteContainer").classList.add("hidden");
+  document.getElementById("estudianteContainer").classList.remove("hidden");
+  document.getElementById("modeToggle").innerText="🔄 Cambiar a modo Docente"; modo="estudiante";
+ }else{
+  document.getElementById("docenteContainer").classList.remove("hidden");
+  document.getElementById("estudianteContainer").classList.add("hidden");
+  document.getElementById("modeToggle").innerText="🔄 Cambiar a modo Estudiante"; modo="docente";
+ }}
+
+function abrirPlantilla(){document.getElementById("plantillaModal").style.display="flex";}
+function cerrarPlantilla(){document.getElementById("plantillaModal").style.display="none";}
+function copiarPlantilla(){navigator.clipboard.writeText(document.querySelector("#plantillaModal pre").innerText);alert("Plantilla copiada.");}
+function guardarLocal(){localStorage.setItem("cuestionarioDocente",document.getElementById("inputCuestionario").value);alert("Guardado local.");}
+function limpiarTodo(){document.getElementById("inputCuestionario").value="";document.getElementById("vistaPrevia").innerHTML="";localStorage.removeItem("cuestionarioDocente");}
+
+function generarCuestionario() {
+  const texto = document.getElementById("inputCuestionario").value.trim();
+  if (!texto) { alert("Por favor pega tu cuestionario."); return; }
+
+  // 👉 Divide en bloques por doble salto de línea
+  const bloques = texto.split(/\n\s*\n/);
+  let html = "";
+
+  bloques.forEach((b, i) => {
+    // Extrae los campos en cualquier orden
+    const preg = b.match(/pregunta\s*:\s*(.+)/i);
+    const opc = b.match(/opciones\s*:\s*(.+)/i);
+    const cor = b.match(/respuesta\s*correcta\s*:\s*(.+)/i);
+    const url = b.match(/url\s*:\s*(https?:[^\s]+)/i);
+    const ret = b.match(/retroalimentaci[oó]n\s*:\s*(.+)/i);
+
+    if (preg && opc && cor) {
+      const opciones = opc[1]
+        .split(/(?=[A-D]\.)/)
+        .filter(x => x.trim() !== "");
+      html += `<div class="pregunta">
+        <p><strong>${i + 1}. ${preg[1].trim()}</strong></p>`;
+
+      opciones.forEach((op, j) => {
+        const letra = String.fromCharCode(65 + j);
+        html += `<div class="opcion"><input type="radio" name="respuesta${i}" value="${letra}"> ${op.trim()}</div>`;
+      });
+
+      html += `<div class="retroalimentacion-container"></div>`;
+
+      if (ret || url) {
+        html += `<div class="explicacion" style="display:none;">
+          ${ret ? `<p>${ret[1].trim()}</p>` : ""}
+          ${url ? `<p><a href="${url[1]}" target="_blank">🔗 Refuerzo del Tema</a></p>` : ""}
+        </div>`;
+      }
+
+      html += `</div>`;
+    }
+  });
+
+  if (!html) { alert("No se detectaron preguntas válidas. Verifica que cada bloque tenga los tres campos obligatorios."); return; }
+
+  document.getElementById("vistaPrevia").innerHTML = "<h3>Vista Previa</h3>" + html;
+  document.getElementById("preguntasRender").innerHTML = document.getElementById("vistaPrevia").innerHTML;
+  alert("✅ Cuestionario generado correctamente. Usa ‘Cambiar a modo Estudiante’.");
+}
+
+ window.addEventListener("load",()=>{const prev=localStorage.getItem("cuestionarioDocente");if(prev)document.getElementById("inputCuestionario").value=prev;});
+
+/* ====== Evaluación y Excel ====== */
+let chart1,chart2,cuestionarioCompletado=false,respuestasCorrectas=[];
+
+function calcularPuntaje(){
+  const preguntas=document.getElementsByClassName("pregunta");
+  const total=preguntas.length;let correctas=0;let respondidas=0;
+  for(let i=0;i<total;i++){const ops=preguntas[i].querySelectorAll('input[type="radio"]');let sel="";ops.forEach(op=>{if(op.checked)sel=op.value;});if(sel!=="")respondidas++;}
+  if(respondidas<total){const m=document.getElementById("modalAlerta");m.classList.remove("show");m.style.display="none";setTimeout(()=>{m.style.display="flex";m.offsetHeight;m.classList.add("show");},50);return;}
+  for(let i=0;i<total;i++){const ops=preguntas[i].querySelectorAll('input[type="radio"]');let sel="";ops.forEach(op=>{if(op.checked)sel=op.value;});const retro=preguntas[i].querySelector(".retroalimentacion-container");retro.innerHTML="";
+    if(sel===respuestasCorrectas[i]){correctas++;retro.className="retroalimentacion-container respuesta-correcta";retro.innerHTML="✅ <strong>Respuesta correcta</strong>";}
+    else{retro.className="retroalimentacion-container respuesta-incorrecta";retro.innerHTML="❌ <strong>Respuesta incorrecta</strong>";const exp=preguntas[i].querySelector(".explicacion");if(exp)exp.style.display="block";}}
+  const porcentaje=((correctas/total)*100).toFixed(1);let nivelTexto="",nivelClase="";
+  if(porcentaje<40){nivelTexto="Nivel 1 (Bajo)";nivelClase="p1";}
+  else if(porcentaje<60){nivelTexto="Nivel 2 (Básico)";nivelClase="p2";}
+  else if(porcentaje<80){nivelTexto="Nivel 3 (Alto)";nivelClase="p3";}
+  else{nivelTexto="Nivel 4 (Superior)";nivelClase="p4";}
+  let detalleHTML=`<h2>Resultado de la Evaluación</h2><p><b>${correctas}/${total}</b> aciertos (${porcentaje}%)</p><div class='nivel-container ${nivelClase}'>${nivelTexto}</div><div style="margin-top:10px;">`;
+  for(let i=0;i<total;i++){const ops=preguntas[i].querySelectorAll('input[type="radio"]');let sel="";ops.forEach(op=>{if(op.checked)sel=op.value;});const esCorrecta=sel===respuestasCorrectas[i];detalleHTML+=`<div style="color:${esCorrecta?"#189359":"#b10000"}">${esCorrecta?"✅":"❌"} Pregunta ${i+1}: ${esCorrecta?"Correcta":"Incorrecta"}</div>`;}
+  detalleHTML+=`</div><div class='graficos-container'><canvas id='graficoCircular'></canvas><canvas id='graficoBarras'></canvas></div><div style='margin-top:15px;display:flex;justify-content:center;gap:10px;'><button class='boton' style='background:#1E88E5;' onclick='generarExcelSITE()'>📥 Descargar Excel</button><button class='boton' onclick='cerrarPuntajePopup()'>✖ Cerrar</button></div>`;
+  const modal=document.getElementById("puntaje-popup");modal.querySelector(".popup-content").innerHTML=detalleHTML;
+  modal.style.display="flex";modal.offsetHeight;modal.classList.add("show");
+  requestAnimationFrame(()=>{if(chart1)chart1.destroy();if(chart2)chart2.destroy();
+    const c1=document.getElementById("graficoCircular").getContext("2d");
+    chart1=new Chart(c1,{type:"doughnut",data:{labels:["Correctas","Incorrectas"],datasets:[{data:[correctas,total-correctas],backgroundColor:["#4CAF50","#F44336"]}]},options:{responsive:false,plugins:{legend:{position:"bottom"}}}});
+    const c2=document.getElementById("graficoBarras").getContext("2d");
+    chart2=new Chart(c2,{type:"bar",data:{labels:["Correctas","Incorrectas"],datasets:[{data:[correctas,total-correctas],backgroundColor:["#4CAF50","#F44336"]}]},options:{responsive:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  });
+  cuestionarioCompletado=true;
+}
+function cerrarPuntajePopup(){document.getElementById("puntaje-popup").classList.remove("show");}
+function reiniciarEvaluacion(){document.querySelectorAll("input[type='radio']").forEach(el=>el.checked=false);
+  document.querySelectorAll(".retroalimentacion-container").forEach(el=>{el.innerHTML="";el.className="retroalimentacion-container";});
+  document.querySelectorAll(".explicacion").forEach(el=>el.style.display="none");if(chart1)chart1.destroy();if(chart2)chart2.destroy();alert("🧩 Cuestionario reiniciado.");}
+
+/* ===== Excel ===== */
+function generarExcelSITE(){
+  const preguntas=document.getElementsByClassName("pregunta");const total=preguntas.length;
+  let respondidas=0;for(let i=0;i<total;i++){const ops=preguntas[i].querySelectorAll('input[type="radio"]');let sel="";ops.forEach(op=>{if(op.checked)sel=op.value;});if(sel!=="")respondidas++;}
+  if(!cuestionarioCompletado||respondidas<total){alert("⚠️ Primero completa y visualiza tu puntaje antes de descargar.");return;}
+  const evaluacion=document.getElementById("tituloEvaluacion").textContent.trim();const nombre="Estudiante";const asignatura="Área / Prueba";
+  const ahora=new Date();const año=ahora.getFullYear();const mes=String(ahora.getMonth()+1).padStart(2,'0');const dia=String(ahora.getDate()).padStart(2,'0');const hora=String(ahora.getHours()).padStart(2,'0');const min=String(ahora.getMinutes()).padStart(2,'0');const fecha=`${dia}/${mes}/${año}`;
+  let correctas=0;const filas=[];
+  for(let i=0;i<total;i++){
+    const sel=document.querySelector(`input[name="respuesta${i}"]:checked`);const resp=sel?sel.value:"";const cor=respuestasCorrectas[i];const es=resp===cor;if(es)correctas++;
+    const cal=es?"✅ Correcta":"❌ Incorrecta";const exp=preguntas[i].querySelector(".explicacion a");const enl=(!es&&exp)?exp.href:"";
+    filas.push([`Pregunta ${i+1}`,resp||"—",cor,cal,es?"1/1":"0/1",es?`${(100/total).toFixed(2)}%`:"0.00%",enl?"🔗 Refuerzo del Tema":""]);
+  }
+  const porc=(correctas/total)*100;let nivel,desc;
+  if(porc===100){nivel="Nivel 4 (Superior)";desc="Integra teorías y plantea soluciones científicas a problemas reales.";}
+  else if(porc>=70){nivel="Nivel 3 (Alto)";desc="Aplica conceptos y resuelve problemas con autonomía.";}
+  else if(porc>=40){nivel="Nivel 2 (Básico)";desc="Comprende conceptos y resuelve situaciones simples con apoyo.";}
+  else{nivel="Nivel 1 (Bajo)";desc="Requiere acompañamiento para resolver problemas y afianzar conceptos.";}
+  const datos=[["SISTEMA INTEGRADO DE TRAZABILIDAD EDUCATIVA – SITE-RUTA LATAM"],
+  ["INSTRUMENTO: PMAP (Plan de Migración Académica Progresiva)"],
+  ["","","Fecha:",fecha],["","","Hora:",`${hora}:${min}`],[],
+  ["NOMBRE DE LA EVALUACIÓN","ESTUDIANTE","ÁREA / PRUEBA"],[evaluacion,nombre,asignatura],[],
+  ["Pregunta","Tu Respuesta","Opción Correcta","Calificación","Puntuación","Porcentaje","Retroalimentación"],
+  ...filas,[],["Calificación Final","","","","",`${correctas}/${total}`,`${porc.toFixed(2)}%`],[],
+  ["","","","Nivel de desempeño:",nivel],["","","","Observaciones / Descripción:",desc],[],
+  ["","","","Generado por:","SITE-RUTA LATAM – Sistema Integrado de Trazabilidad Educativa"]];
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(datos);
+  ws["!cols"]=[{wch:15},{wch:18},{wch:18},{wch:18},{wch:12},{wch:12},{wch:45}];
+  filas.forEach((f,i)=>{const exp=preguntas[i].querySelector(".explicacion a");
+    const sel=document.querySelector(`input[name="respuesta${i}"]:checked`);const resp=sel?sel.value:"";const cor=respuestasCorrectas[i];
+    const es=resp===cor;if(!es&&exp&&exp.href){const c=XLSX.utils.encode_cell({r:i+9,c:6});
+      ws[c]={t:"s",v:"🔗 Refuerzo del Tema",l:{Target:exp.href,Tooltip:"Abrir recurso de refuerzo"}};}});
+  XLSX.utils.book_append_sheet(wb,ws,"Resultados");
+  const nombreArchivo=`resultados_de_${evaluacion.replace(/\s+/g,"_")}_${nombre.replace(/\s+/g,"_")}_${año}-${mes}-${dia}-${hora}-${min}.xlsx`;
+  XLSX.writeFile(wb,nombreArchivo);
+}
+
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnitudes Derivadas ⚙️</title>
+<style>
+  body {
+    font-family: 'Press Start 2P', monospace;
+    background: radial-gradient(circle at top, #1a0033, #000);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    color: #ff66ff;
+    text-shadow: 2px 2px 5px #00ffff;
+  }
+
+  .contenedor {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+
+  .columna {
+    width: 45%;
+    min-width: 260px;
+  }
+
+  h2 {
+    color: #00ffcc;
+    text-shadow: 1px 1px 3px #000;
+  }
+
+  .tarjeta {
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px auto;
+    font-weight: bold;
+    cursor: grab;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .tarjeta:hover { transform: scale(1.05); }
+
+  .zona-drop {
+    background: rgba(255,255,255,0.1);
+    border: 2px dashed #ff66ff;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 250px;
+  }
+
+  .correcto {
+    background: #00e676 !important;
+    color: white;
+    animation: brillar 0.5s ease-in-out;
+  }
+
+  @keyframes brillar {
+    from { box-shadow: 0 0 5px #00e676; }
+    to { box-shadow: 0 0 25px #00e676; }
+  }
+
+  .incorrecto {
+    animation: sacudir 0.4s;
+    background: #f44336 !important;
+    color: white;
+  }
+
+  @keyframes sacudir {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    50% { transform: translateX(8px); }
+    75% { transform: translateX(-8px); }
+  }
+
+  #astronauta {
+    margin-top: 30px;
+    font-size: 60px;
+    animation: flotar 3s infinite ease-in-out;
+  }
+
+  @keyframes flotar {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+
+  #consola {
+    margin-top: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 2px solid #ff66ff;
+    border-radius: 10px;
+    max-width: 80%;
+    margin-inline: auto;
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+    height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    background: #ff66ff;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  #mensajeFinal {
+    color: #00ffcc;
+    font-weight: bold;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧩 Magnitudes Derivadas – Nivel 2</h1>
+<p>Arrastra las unidades hacia las magnitudes correspondientes.</p>
+
+<div class="contenedor">
+  <div class="columna zona-drop" id="magnitudes">
+    <h2>Magnitudes</h2>
+    <div class="tarjeta" data-correcta="m2">Área</div>
+    <div class="tarjeta" data-correcta="m3">Volumen</div>
+    <div class="tarjeta" data-correcta="ms">Velocidad</div>
+    <div class="tarjeta" data-correcta="ms2">Aceleración</div>
+    <div class="tarjeta" data-correcta="N">Fuerza</div>
+    <div class="tarjeta" data-correcta="Pa">Presión</div>
+    <div class="tarjeta" data-correcta="J">Energía</div>
+  </div>
+
+  <div class="columna" id="unidades">
+    <h2>Unidades Derivadas</h2>
+    <div class="tarjeta" draggable="true" data-unidad="m2">Metro cuadrado (m²)</div>
+    <div class="tarjeta" draggable="true" data-unidad="m3">Metro cúbico (m³)</div>
+    <div class="tarjeta" draggable="true" data-unidad="ms">Metro por segundo (m/s)</div>
+    <div class="tarjeta" draggable="true" data-unidad="ms2">Metro por segundo cuadrado (m/s²)</div>
+    <div class="tarjeta" draggable="true" data-unidad="N">Newton (N)</div>
+    <div class="tarjeta" draggable="true" data-unidad="Pa">Pascal (Pa)</div>
+    <div class="tarjeta" draggable="true" data-unidad="J">Joule (J)</div>
+  </div>
+</div>
+
+<div id="astronauta">👨‍🚀</div>
+<div id="consola"></div>
+<p id="mensajeFinal"></p>
+
+<script>
+const magnitudes = document.querySelectorAll('#magnitudes .tarjeta');
+const unidades = document.querySelectorAll('#unidades .tarjeta');
+const consola = document.getElementById('consola');
+const mensaje = document.getElementById('mensajeFinal');
+let aciertos = 0;
+
+magnitudes.forEach(mag => {
+  mag.addEventListener('dragover', e => e.preventDefault());
+  mag.addEventListener('drop', e => {
+    const unidad = e.dataTransfer.getData('unidad');
+    verificar(mag, unidad);
+  });
+});
+
+unidades.forEach(u => {
+  u.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('unidad', e.target.dataset.unidad);
+  });
+});
+
+function narrar(texto){
+  const voz = new SpeechSynthesisUtterance(texto);
+  voz.lang = "es-ES";
+  voz.pitch = 1;
+  voz.rate = 0.9;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(voz);
+
+  const linea = document.createElement("div");
+  consola.appendChild(linea);
+  consola.scrollTop = consola.scrollHeight;
+
+  let i=0;
+  function type(){
+    if(i<texto.length){
+      linea.innerHTML = texto.substring(0,i+1)+'<span class="cursor"></span>';
+      i++;
+      setTimeout(type,40);
+    } else linea.innerHTML = texto+' <span class="cursor"></span>';
+  }
+  type();
+}
+
+function verificar(mag, unidad){
+  const correcta = mag.dataset.correcta;
+  const unidadElemento = document.querySelector(`[data-unidad="${unidad}"]`);
+  if(!unidadElemento) return;
+  
+  if(unidad === correcta){
+    mag.classList.add('correcto');
+    mag.textContent = `${mag.textContent} → ${unidadElemento.textContent}`;
+    narrar(`Excelente, el ${unidadElemento.textContent.split("(")[0].trim()} corresponde a la magnitud ${mag.textContent.split("→")[0].toLowerCase()}.`);
+    aciertos++;
+    unidadElemento.remove();
+    if(aciertos === magnitudes.length){
+      setTimeout(()=>{
+        narrar("¡Misión completada! Has emparejado todas las magnitudes derivadas del universo físico.");
+        mensaje.textContent = "🎉 ¡Misión completada! Todas las magnitudes derivadas están correctas.";
+      },1500);
+    }
+  } else {
+    mag.classList.add('incorrecto');
+    narrar(`Intenta otra vez, terrícola. El ${unidadElemento.textContent.split("(")[0].trim()} no corresponde a ${mag.textContent}.`);
+    setTimeout(()=>mag.classList.remove('incorrecto'),600);
+  }
+}
+</script>
+</body>
+</html>

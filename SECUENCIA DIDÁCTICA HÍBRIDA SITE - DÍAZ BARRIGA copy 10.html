@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-RUTA LATAM × SocialTech – Secuencia Didáctica V6.7</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+  --verdeSocial:#00D372;
+  --verdeLuz:#9AFFD5;
+  --fondoOscuro:#0C0F10;
+  --azulFedusocial:#1E88E5;
+}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  margin:0;
+  background:#f5f7f9;
+  color:#222;
+}
+header{
+  text-align:center;
+  padding:15px;
+  background:linear-gradient(90deg,#0D47A1,#1E88E5);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.3);
+}
+header img{height:70px;}
+header h1{margin:5px 0 0;font-size:1.5rem;}
+header h2{margin:0;color:#CFE2FF;font-size:1rem;}
+header p{margin:2px 0;font-size:.9rem;color:#E3F2FD;}
+
+/* === Barra SocialTech Pulse 3D === */
+#barraCarruselContainer{
+  position:relative;
+  height:40px;
+  background:var(--fondoOscuro);
+  box-shadow:inset 0 -2px 8px rgba(0,0,0,0.8);
+  overflow:hidden;
+}
+#barraSocialTech{
+  position:absolute;
+  top:50%;
+  left:0;
+  transform:translateY(-50%);
+  height:6px;
+  width:100%;
+  background:linear-gradient(90deg,#00B774,#00FF8A);
+  border-radius:4px;
+}
+#puntoSocialTech{
+  position:absolute;
+  top:50%;
+  left:0%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#puntoSocialTech .outer{
+  width:28px;
+  height:28px;
+  background:var(--verdeSocial);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--verdeSocial),0 0 20px rgba(0,255,138,0.6);
+  animation:pulse 1.5s infinite ease-in-out;
+}
+#puntoSocialTech .inner{
+  position:absolute;
+  width:14px;
+  height:14px;
+  background:var(--verdeLuz);
+  border-radius:50%;
+  box-shadow:0 0 10px var(--verdeLuz);
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.3);opacity:.9;box-shadow:0 0 25px #00FF8A,0 0 40px rgba(0,255,138,0.6);}
+  100%{transform:scale(1);opacity:1;}
+}
+#textoCarrusel{
+  position:absolute;
+  top:8px;
+  width:100%;
+  text-align:center;
+  color:#9AFFD5;
+  font-weight:600;
+  font-size:0.9rem;
+  text-shadow:0 0 6px #00FF8A;
+}
+
+/* === Carrusel === */
+.carousel-container{position:relative;max-width:1000px;margin:30px auto;overflow:hidden;}
+.carousel{display:flex;transition:transform .6s ease;}
+.slide{min-width:100%;box-sizing:border-box;padding:30px;background:#fff;border-radius:14px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
+.slide h3{border-left:6px solid var(--azulFedusocial);padding-left:10px;color:#0D47A1;}
+label{font-weight:600;color:#0D47A1;}
+input,select,textarea{width:100%;padding:10px;margin:5px 0 15px;border:1.5px solid #ccc;border-radius:8px;font-size:15px;box-sizing:border-box;}
+textarea{height:90px;resize:vertical;}
+.nav-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;
+  width:45px;height:45px;cursor:pointer;z-index:10;
+}
+.nav-btn:hover{background:rgba(0,0,0,0.7);}
+#prevBtn{left:15px;}#nextBtn{right:15px;}
+footer{text-align:center;padding:15px;font-size:13px;color:#555;}
+</style>
+</head>
+
+<body>
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="SocialTech">
+  <h1>SITE-RUTA LATAM – PMAP</h1>
+  <h2>Instrumento de planificación docente basado en la trazabilidad del aprendizaje significativo</h2>
+</header>
+
+<div id="barraCarruselContainer">
+  <div id="barraSocialTech"></div>
+  <div id="puntoSocialTech"><div class="outer"></div><div class="inner"></div></div>
+  <span id="textoCarrusel">Progreso: 0 de 5 – 0%</span>
+</div>
+
+<div class="carousel-container">
+  <div class="carousel" id="carousel">
+    <div class="slide">
+      <h3>1. Identificación general</h3>
+      <label>Asignatura:</label><input id="asignatura">
+      <label>Unidad temática:</label><input id="unidad">
+      <label>Tema general:</label><input id="tema">
+      <label>Docente:</label><input id="docente">
+      <label>Duración y número de sesiones:</label><input id="duracion" placeholder="Ejemplo: 4 semanas, 1 hora por día">
+      <label>Número de sesiones planificadas:</label>
+      <select id="numSesiones" onchange="toggleOtroCampo()">
+        <option value="">Seleccione...</option>
+        ${Array.from({length:20},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}
+        <option value="Otro">Otro (caso especial)</option>
+      </select>
+      <div id="otroSesionesContainer" style="display:none;">
+        <label>Especifique otro número:</label><input type="number" id="otroSesiones" min="1" max="100">
+      </div>
+    </div>
+
+    <div class="slide"><h3>2. Propósitos y objetivos</h3>
+      <label>Finalidad:</label><textarea id="finalidad"></textarea>
+      <label>Problema o proyecto:</label><textarea id="problema"></textarea>
+    </div>
+
+    <div class="slide"><h3>3. Secuencia didáctica</h3>
+      <label>Actividades de apertura:</label><textarea id="apertura"></textarea>
+      <label>Actividades de desarrollo:</label><textarea id="desarrollo"></textarea>
+      <label>Actividades de cierre:</label><textarea id="cierre"></textarea>
+    </div>
+
+    <div class="slide"><h3>4. Evaluación y evidencias</h3>
+      <label>Tipo de evidencia:</label>
+      <select id="tipoEvidencia">
+        <option>Diagnóstica</option><option>Procesual</option><option>Final</option>
+      </select>
+      <label>Tipo de rúbrica:</label>
+      <select id="tipoRubrica"><option>Analítica</option><option>Holística</option></select>
+    </div>
+
+    <div class="slide"><h3>5. Recursos y nota aclaratoria</h3>
+      <label>Recursos y referencias:</label><textarea id="recursos"></textarea>
+      <p style="background:#E3F2FD;color:#0D47A1;padding:10px;border-radius:8px;">
+        <em>Nota: Esta propuesta es orientativa y adaptable según el contexto educativo.</em>
+      </p>
+    </div>
+  </div>
+
+  <button class="nav-btn" id="prevBtn"><i class="fa-solid fa-chevron-left"></i></button>
+  <button class="nav-btn" id="nextBtn"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+
+<footer>
+© 2025 SITE-RUTA LATAM | Desarrollado por Los Tutores – Fedusocial | Integración tecnológica SocialTech
+</footer>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+let currentIndex=0;
+function showSlide(i){
+  const carousel=document.getElementById('carousel');
+  if(i<0)i=slides.length-1;if(i>=slides.length)i=0;
+  currentIndex=i;
+  carousel.style.transform=`translateX(${-i*100}%)`;
+  actualizarProgresoCarrusel();
+}
+document.getElementById('prevBtn').addEventListener('click',()=>showSlide(currentIndex-1));
+document.getElementById('nextBtn').addEventListener('click',()=>showSlide(currentIndex+1));
+
+function actualizarProgresoCarrusel(){
+  const total=slides.length;
+  const actual=currentIndex+1;
+  const porc=Math.round((actual/total)*100);
+  const punto=document.getElementById('puntoSocialTech');
+  punto.style.left=porc+'%';
+  document.getElementById('textoCarrusel').textContent=`Progreso: ${actual} de ${total} – ${porc}%`;
+}
+
+function toggleOtroCampo(){
+  const select=document.getElementById("numSesiones");
+  const otro=document.getElementById("otroSesionesContainer");
+  if(select.value==="Otro")otro.style.display="block";
+  else otro.style.display="none";
+}
+
+window.addEventListener('load',actualizarProgresoCarrusel);
+</script>
+</body>
+</html>

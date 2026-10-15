@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-RUTA LATAM – SocialTech Restorative Flow</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root {
+  --azul: #1E88E5;
+  --verde: #009B02;
+  --cian: #65FEFB;
+  --fondo: #f4f6f8;
+  --oscuro: #121212;
+  --texto: #222;
+  --claro: #f4f4f4;
+}
+
+/* ==== BASE ==== */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+body.alto-contraste {
+  background: var(--oscuro);
+  color: #FFEB3B;
+}
+
+/* ==== ENCABEZADO ==== */
+header {
+  background: linear-gradient(90deg, var(--azul), var(--verde));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+header img { height: 55px; margin-right: 15px; }
+header h1 { font-size: 1.1rem; margin: 0; flex: 1; }
+#controls { display: flex; align-items: center; gap: 10px; }
+#controls select, #controls button {
+  padding: 5px 8px; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.9rem;
+}
+#voiceSelect { background: white; }
+#controls button {
+  color: white; background: var(--azul);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ==== BARRA SOCIALTECH ==== */
+#barraSocialTech {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  background: linear-gradient(90deg, #009B02, #00FF8A);
+  border-radius: 4px;
+  overflow: hidden;
+}
+#puntoSocialTech {
+  position: absolute;
+  top: 50%; left: 0%;
+  transform: translate(-50%, -50%);
+  transition: left 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#puntoSocialTech .outer {
+  width: 22px; height: 22px;
+  background: #009B02;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #009B02, 0 0 15px rgba(0,255,138,0.5);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+#puntoSocialTech .inner {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px; height: 12px;
+  background: #65FEFB;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px #65FEFB;
+}
+@keyframes pulse {
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.3);opacity:.9;}
+}
+
+/* ==== NOTA ==== */
+#notaPC {
+  background: #e0e0e0;
+  color: #333;
+  text-align: center;
+  padding: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ==== CARRUSEL ==== */
+#carousel-container {
+  position: relative;
+  max-width: 1000px;
+  margin: 30px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.slide {
+  display: none;
+  padding: 30px;
+  animation: fade 0.8s ease-in-out;
+}
+.active-slide { display: block; }
+@keyframes fade { from {opacity:0;} to {opacity:1;} }
+
+/* ==== ETIQUETAS Y CAMPOS ==== */
+label {
+  font-weight: bold;
+  color: #000; /* negro académico */
+}
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  font-size: 15px;
+  margin-top: 5px;
+  color: #000; /* texto negro */
+  background: #fff;
+}
+
+/* === ALTO CONTRASTE === */
+body.alto-contraste input,
+body.alto-contraste textarea {
+  background: #222;
+  color: #FFEB3B;
+  border: 1px solid #FFEB3B;
+}
+
+/* === IMPRESIÓN Y EXPORTACIÓN === */
+@media print {
+  label {
+    color: #000 !important;
+  }
+  input, textarea {
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}
+
+.buttons {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 25px;
+}
+button.export {
+  color: white; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.word-btn { background: linear-gradient(90deg,#0078D7,#005BB5); }
+.pdf-btn { background: linear-gradient(90deg,#D32F2F,#B71C1C); }
+.excel-btn { background: linear-gradient(90deg,#43A047,#2E7D32); }
+.print-btn { background: linear-gradient(90deg,#6A1B9A,#4A148C); }
+.clear-btn { background: linear-gradient(90deg,#FB8C00,#EF6C00); }
+
+/* ==== FLECHAS ==== */
+/* ==== FLECHAS AJUSTADAS AL BORDE SUPERIOR ==== */
+.arrow {
+  position: absolute;
+  top: 15px; /* más arriba, justo donde señalaste */
+  font-size: 1.4rem; /* más pequeñas */
+  color: var(--verde);
+  background: rgba(255,255,255,0.95);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  transition: all 0.3s ease;
+  z-index: 10; /* asegura que queden visibles sobre el encabezado del formulario */
+}
+.arrow:hover {
+  background: var(--verde);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* posición horizontal */
+#prev {
+  left: 12px; /* más adentro, alineadas visualmente con el contenido */
+}
+#next {
+  right: 12px;
+}
+
+/* ajusta los campos para no quedar pegados al borde superior */
+.slide {
+  padding-top: 60px; /* añade espacio extra arriba para dejar lugar a las flechas */
+}
+
+/* responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+  .arrow {
+    top: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+  .slide {
+    padding-top: 70px;
+  }
+}
+
+/* ==== PIE ==== */
+footer {
+  text-align: center; font-size: 13px; color: #666;
+  margin: 25px 0;
+}
+
+/* ==== PRINT ==== */
+@media print {
+  header, #barraSocialTech, #notaPC, .arrow, .buttons {display:none!important;}
+  body {background:white;color:black;}
+}
+</style>
+
+
+</head>
+
+<body>
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="Logo SocialTech">
+  <h1>SITE-RUTA LATAM powered SocialTech — PMAP: Plan de Migración Académica Progresiva v13</h1>
+  <div id="controls">
+    <button id="vozBtn" title="Activar o pausar narrador"><i class="fa-solid fa-volume-high"></i></button>
+    <select id="voiceSelect" aria-label="Selector de voz"><option>Cargando voces...</option></select>
+    <button id="contrasteBtn" title="Alternar alto contraste"><i class="fa-solid fa-circle-half-stroke"></i> ♿</button>
+  </div>
+</header>
+
+<div id="barraSocialTech">
+  <div id="puntoSocialTech">
+    <div class="outer"></div>
+    <div class="inner"></div>
+  </div>
+</div>
+
+<div id="notaPC">🖥️ Recomendado para uso en computadora. Algunas funciones avanzadas pueden no estar disponibles en dispositivos móviles.</div>
+
+<div id="carousel-container">
+  <!-- SLIDES -->
+  <div class="slide active-slide">
+    <label>Asignatura:</label><input type="text" id="asignatura">
+    <label>Unidad Temática:</label><input type="text" id="unidad">
+    <label>Tema General:</label><input type="text" id="tema">
+  </div>
+
+  <div class="slide">
+    <label>Finalidad, propósitos u objetivos:</label><textarea id="objetivos"></textarea>
+  </div>
+
+  <div class="slide">
+    <label>Actividades de Apertura:</label><textarea id="apertura"></textarea>
+    <label>Actividades de Desarrollo:</label><textarea id="desarrollo"></textarea>
+  </div>
+
+  <div class="slide">
+    <label>Actividades de Cierre:</label><textarea id="cierre"></textarea>
+  </div>
+
+  <div class="slide">
+    <label>Evidencias de Aprendizaje:</label><textarea id="evidencias"></textarea>
+    <label>Recursos y Nota Aclaratoria:</label><textarea id="recursos"></textarea>
+    <div class="buttons">
+      <button class="export word-btn"><i class="fa-solid fa-file-word"></i> Word</button>
+      <button class="export pdf-btn"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+      <button class="export excel-btn"><i class="fa-solid fa-file-excel"></i> Excel</button>
+      <button class="export print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+      <button class="export clear-btn" onclick="limpiarFormulario()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+    </div>
+  </div>
+
+  <!-- FLECHAS -->
+  <div id="prev" class="arrow"><i class="fa-solid fa-chevron-left"></i></div>
+  <div id="next" class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
+</div>
+
+<footer>© 2025 SITE-RUTA LATAM | Desarrollado por Los Tutores – Fedusocial | Instrumento de planificación docente</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+let currentSlide=0; const slides=document.querySelectorAll(".slide");
+let selectedVoice=null, lecturaActiva=true;
+
+/* === Carrusel === */
+function showSlide(i){
+  slides[currentSlide].classList.remove("active-slide");
+  currentSlide=(i+slides.length)%slides.length;
+  slides[currentSlide].classList.add("active-slide");
+  moverPunto();
+}
+document.getElementById("next").onclick=()=>showSlide(currentSlide+1);
+document.getElementById("prev").onclick=()=>showSlide(currentSlide-1);
+
+/* === Barra de progreso === */
+function moverPunto(){
+  const porc=((currentSlide+1)/slides.length)*100;
+  document.getElementById("puntoSocialTech").style.left=`${porc}%`;
+}
+
+/* === Voces === */
+function cargarVoces(){
+  const voices=speechSynthesis.getVoices().filter(v=>v.lang.startsWith("es"));
+  const select=document.getElementById("voiceSelect");
+  select.innerHTML="";
+  voices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.textContent=v.name.includes("male")||v.name.includes("Hombre")?`🔊 ${v.name} (Masculina)`: `🎤 ${v.name} (Femenina)`;
+    select.appendChild(o);
+  });
+  selectedVoice=voices.find(v=>/male|Hombre/i.test(v.name))||voices[0];
+}
+speechSynthesis.onvoiceschanged=cargarVoces;
+
+/* === Narrar === */
+function narrar(t){
+  if(!lecturaActiva||!selectedVoice)return;
+  const u=new SpeechSynthesisUtterance(t);
+  u.voice=selectedVoice;u.lang="es-ES";u.rate=1;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+window.onload=()=>{
+  cargarVoces();
+  const hoy=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  narrar(`Bienvenido Mario Germán Barbosa Valderrama. Hoy es ${hoy}. Iniciemos la planificación docente accesible SITE-RUTA LATAM powered SocialTech.`);
+}
+
+/* === Eventos === */
+document.getElementById("vozBtn").onclick=()=>{
+  lecturaActiva=!lecturaActiva;
+  document.querySelector("#vozBtn i").className=lecturaActiva?"fa-solid fa-volume-high":"fa-solid fa-volume-xmark";
+};
+document.getElementById("contrasteBtn").onclick=()=>{
+  document.body.classList.toggle("alto-contraste");
+};
+
+/* === Limpieza === */
+function limpiarFormulario(){
+  document.querySelectorAll("input,textarea").forEach(e=>e.value="");
+  narrar("Formulario limpio.");
+}
+</script>
+</body>
+</html>

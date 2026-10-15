@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evaluación de Matemáticas y Reciclaje</title>
+
+  <!-- Librerías -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+
+/* ================================
+   BASE / LAYOUT
+================================ */
+:root{
+  --azul: #25447e;
+  --azul-2: #3366cc;
+  --gris-bg: #f5f5f5;
+  --ok: #189359;
+  --ok-borde:#28A745;
+  --err-bg:#F8D7DA;
+  --err-borde:#e60118;
+  --err-txt:#8e0311;
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--gris-bg);
+}
+
+/* Registro / Cuestionario */
+#registro-container{
+  display: block;
+  margin: 40px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 88%;
+  background: #fff;
+}
+
+#cuestionario-container{
+  display: none;
+  margin: 20px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 53%;
+  background: #fff;
+}
+
+#cuestionario-container h1{
+  text-align: center;
+  color: #102461;
+}
+
+/* ================================
+   PREGUNTAS / RETRO
+================================ */
+.pregunta{
+  margin: 20px 0;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.pregunta p{ font-size: 16px; }
+
+.retroalimentacion-container{
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.retroalimentacion-container.respuesta-correcta{
+  background-color: var(--ok);
+  border-left: 6px solid var(--ok-borde);
+  color: #fff;
+}
+
+.retroalimentacion-container.respuesta-incorrecta{
+  background-color: var(--err-bg);
+  border-left: 6px solid var(--err-borde);
+  color: var(--err-txt);
+}
+
+.explicacion{
+  background: #f4f9ff;
+  border-left: 5px solid var(--azul);
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.explicacion pre{
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.explicacion a{
+  color: var(--azul);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.explicacion a:hover{ color: var(--azul-2); }
+
+/* ================================
+   BOTONES
+================================ */
+button{
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  color: #fff;
+}
+
+button#iniciar-cuestionario{ background: var(--azul); }
+button.boton{ background: var(--azul); }
+button.boton:hover{ background: var(--azul-2); }
+
+/* ================================
+   MENÚ SUPERIOR DERECHO (animado)
+================================ */
+#menuIcon{
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: var(--azul);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color .3s ease, transform .3s ease;
+}
+
+#menuIcon:hover{
+  background: var(--azul-2);
+  transform: scale(1.07);
+}
+
+#menuIcon .linea{
+  position: absolute;
+  width: 26px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition:
+    transform .35s cubic-bezier(.25,.8,.25,1),
+    opacity .25s ease,
+    top .35s ease;
+}
+#menuIcon .linea1{ top: 14px; }
+#menuIcon .linea2{ top: 21px; }
+#menuIcon .linea3{ top: 28px; }
+
+#menuIcon.abierto .linea1{ top: 21px; transform: rotate(45deg); }
+#menuIcon.abierto .linea2{ opacity: 0; }
+#menuIcon.abierto .linea3{ top: 21px; transform: rotate(-45deg); }
+
+/* Contenedor del menú (derecha→izquierda) */
+.menu-contenedor{
+  position: fixed;
+  top: 20px;
+  right: 75px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 6px 18px rgba(0,0,0,.1);
+  transform: translateX(30px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .45s cubic-bezier(.25,.8,.25,1), opacity .45s ease;
+}
+
+.menu-contenedor.show{
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-contenedor button{
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color .25s ease, transform .25s ease;
+}
+.menu-contenedor button:hover{
+  background: var(--azul-2);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px){
+  .menu-contenedor{
+    right: 60px;
+    flex-direction: column;
+    transform: translateY(-20px) scale(.95);
+  }
+  .menu-contenedor.show{
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   MODALES (unificados y fluidos)
+   Reutiliza .popup-modal para:
+   #puntaje-popup, #modalAlerta, #modalDescarga
+================================ */
+.popup-modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;           /* se puede dejar visible con opacity 0 */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+
+  /* Estado oculto por defecto */
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(.96);
+  transition: opacity .35s ease, transform .35s ease, visibility .35s ease;
+}
+
+/* Cuando JS agrega .show */
+.popup-modal.show{
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.popup-content{
+  background: #fff;
+  padding: 30px 25px;
+  border-radius: 15px;
+  width: 70%;
+  max-width: 750px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.25);
+  text-align: center;
+  overflow-y: auto;
+  max-height: 90vh;
+  animation: slideFadeIn .45s ease;
+}
+@keyframes slideFadeIn{
+  from{ opacity: 0; transform: translateY(30px) scale(.97); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.popup-content h2{
+  color: #102461;
+  margin-bottom: 10px;
+}
+.popup-content p{
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.popup-buttons{
+  margin-top: 15px;
+}
+.popup-buttons button{
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.popup-buttons button:hover{ background: var(--azul-2); }
+
+/* Variación visual para el modal de alerta */
+#modalAlerta .popup-content{
+  border-top: 5px solid #b10000;
+}
+
+/* ================================
+   GRÁFICOS
+================================ */
+.graficos-container{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.graficos-container canvas{
+  width: 300px !important;
+  height: 300px !important;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 0 6px rgba(0,0,0,.1);
+}
+
+/* ================================
+   INDICADORES DE NIVEL (PMAP)
+================================ */
+.nivel-container{
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 12px;
+  color: #fff;
+}
+.p1{ background:#b91c1c; }                 /* Bajo  */
+.p2{ background:#d97706; }                 /* Básico */
+.p3{ background:#ffee52; color:#0b1022!important; } /* Alto */
+.p4{ background:#65a30d; }                 /* Superior */
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px){
+  #cuestionario-container{ width: 90%; }
+  .popup-content{
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+/* ================================
+   CARRUSEL / NAVEGACIÓN ENTRE TUTORÍAS
+================================ */
+.pagina-tutoria {
+  display: none;               /* Solo se muestra la actual */
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-tutorias {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  padding-top: 10px;
+  border-top: 2px solid #ccc;
+}
+
+.nav-tutorias button {
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.nav-tutorias button:hover {
+  background: var(--azul-2);
+  transform: translateY(-2px);
+}
+
+.nav-tutorias button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Etiquetas y encabezados de Tutorías */
+.pagina-tutoria h2 {
+  text-align: center;
+  color: var(--azul);
+  background: #eef3ff;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 0;
+  border-left: 5px solid var(--azul-2);
+  font-size: 20px;
+}
+
+/* Ocultar explicaciones al cargar */
+.explicacion {
+  display: none;
+}
+
+
+
+
+</style>
+  
+
+</head>
+
+<body>
+
+
+<!-- Registro -->
+<div id="registro-container">
+  <h2>Registro</h2>
+  <form id="registro-form">
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" required><br><br>
+
+    <label for="email">Correo Electrónico:</label>
+    <input type="email" id="email" required><br><br>
+
+    <label for="asignatura">Área / Prueba:</label>
+    <select id="asignatura" required>
+      <option value="" disabled selected>Selecciona el área</option>
+      <option value="Ciencias Naturales">Ciencias Naturales</option>
+      <option value="Ciencias Sociales y Ciudadanas">Ciencias Sociales y Ciudadanas</option>
+      <option value="Matemáticas">Matemáticas</option>
+      <option value="Lectura Crítica">Lectura Crítica</option>
+      <option value="Inglés">Inglés (MCER)</option>
+    </select><br><br>
+
+    <button id="iniciar-cuestionario" type="button" onclick="iniciarCuestionario()">Iniciar Cuestionario</button>
+  </form>
+</div>
+
+<!-- === CUESTIONARIO SITE-RUTA LATAM === -->
+<div id="cuestionario-container">
+
+  <!-- === MENÚ SUPERIOR DERECHO === -->
+<button id="menuIcon" onclick="toggleMenu()">
+  <span class="linea linea1"></span>
+  <span class="linea linea2"></span>
+  <span class="linea linea3"></span>
+</button>
+
+<div id="menuContenedor" class="menu-contenedor">
+  <button class="boton" onclick="calcularPuntaje()">Ver Puntaje</button>
+  <button id="btnExplicaciones" class="boton" onclick="toggleExplicaciones()">Ver Explicaciones</button>
+  <button class="boton" onclick="descargarExcel()">Descargar Excel</button>
+  <button class="boton" onclick="reiniciarEvaluacion()">Reiniciar</button>
+</div>
+
+
+  <!-- === TÍTULO === -->
+  <h1 id="tituloEvaluacion">Preguntas de Matemáticas y Reciclaje</h1>
+
+  <div class="pagina-tutoria" id="tutoria1">
+  <h2>🦴 Tutoría 1 – Sistema Óseo y Muscular</h2>
+
+  <!-- Pregunta 1 -->
+  <div class="pregunta">
+    <p><strong>1.</strong> ¿Cómo se denomina la disposición ósea característica de los huesos planos del cráneo?</p>
+    <label><input type="radio" name="r1" value="a"> Osteona</label><br>
+    <label><input type="radio" name="r1" value="b"> Diploe</label><br>
+    <label><input type="radio" name="r1" value="c"> Endostio</label><br>
+    <label><input type="radio" name="r1" value="d"> Periostio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>diploe</b> es la capa esponjosa entre dos láminas compactas de los huesos planos.</div>
+  </div>
+
+  <!-- Pregunta 2 -->
+  <div class="pregunta">
+    <p><strong>2.</strong> ¿Cuál es la función principal del periostio?</p>
+    <label><input type="radio" name="r2" value="a"> Permitir el crecimiento en longitud</label><br>
+    <label><input type="radio" name="r2" value="b"> Permitir el crecimiento en espesor</label><br>
+    <label><input type="radio" name="r2" value="c"> Formar médula roja</label><br>
+    <label><input type="radio" name="r2" value="d"> Convertirse en cartílago</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>periostio</b> posibilita el crecimiento en espesor del hueso por osteoblastos.</div>
+  </div>
+
+  <!-- Pregunta 3 -->
+  <div class="pregunta">
+    <p><strong>3.</strong> ¿Qué tejido predomina en la diáfisis de los huesos largos?</p>
+    <label><input type="radio" name="r3" value="a"> Esponjoso con médula roja</label><br>
+    <label><input type="radio" name="r3" value="b"> Compacto con cavidad medular</label><br>
+    <label><input type="radio" name="r3" value="c"> Esponjoso con cavidades de aire</label><br>
+    <label><input type="radio" name="r3" value="d"> Cartílago elástico</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>diáfisis</b> está formada por hueso compacto que rodea una cavidad medular.</div>
+  </div>
+
+  <!-- Pregunta 4 -->
+  <div class="pregunta">
+    <p><strong>4.</strong> ¿Dónde se encuentra la médula ósea roja en el adulto con mayor frecuencia?</p>
+    <label><input type="radio" name="r4" value="a"> Diáfisis del fémur</label><br>
+    <label><input type="radio" name="r4" value="b"> Falanges</label><br>
+    <label><input type="radio" name="r4" value="c"> Huesos planos, vértebras y epífisis</label><br>
+    <label><input type="radio" name="r4" value="d"> Clavícula</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Predomina en <b>huesos planos y epífisis</b> de huesos largos en el adulto.</div>
+  </div>
+
+  <!-- Pregunta 5 -->
+  <div class="pregunta">
+    <p><strong>5.</strong> ¿Cuál es la tríada celular ósea clásica en la remodelación del tejido óseo?</p>
+    <label><input type="radio" name="r5" value="a"> Condrocitos, condroblastos y condroclastos</label><br>
+    <label><input type="radio" name="r5" value="b"> Osteoblastos, osteocitos y osteoclastos</label><br>
+    <label><input type="radio" name="r5" value="c"> Fibroblastos, macrófagos y mastocitos</label><br>
+    <label><input type="radio" name="r5" value="d"> Mioblastos, miocitos y mioclastos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Intervienen <b>osteoblastos</b> (forman), <b>osteoclastos</b> (resorben) y <b>osteocitos</b> (mantienen).</div>
+  </div>
+
+  <!-- Pregunta 6 -->
+  <div class="pregunta">
+    <p><strong>6.</strong> La matriz orgánica ósea aporta principalmente:</p>
+    <label><input type="radio" name="r6" value="a"> Dureza por hidroxiapatita</label><br>
+    <label><input type="radio" name="r6" value="b"> Elasticidad y resistencia por colágeno</label><br>
+    <label><input type="radio" name="r6" value="c"> Reserva de hierro</label><br>
+    <label><input type="radio" name="r6" value="d"> Conductividad eléctrica</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>colágeno</b> del osteoide confiere elasticidad y resistencia al hueso.</div>
+  </div>
+
+  <!-- Pregunta 7 -->
+  <div class="pregunta">
+    <p><strong>7.</strong> Los conductos de Havers se asocian con:</p>
+    <label><input type="radio" name="r7" value="a"> Trámites linfáticos</label><br>
+    <label><input type="radio" name="r7" value="b"> Estructuras trabeculares</label><br>
+    <label><input type="radio" name="r7" value="c"> Sistemas cilíndricos con vasos y nervios</label><br>
+    <label><input type="radio" name="r7" value="d"> Cartílago de crecimiento</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>osteonas</b> presentan un conducto central (de Havers) con vasos y nervios.</div>
+  </div>
+
+  <!-- Pregunta 8 -->
+  <div class="pregunta">
+    <p><strong>8.</strong> ¿Qué tipo de huesos tienen las tres dimensiones similares?</p>
+    <label><input type="radio" name="r8" value="a"> Largos</label><br>
+    <label><input type="radio" name="r8" value="b"> Cortos</label><br>
+    <label><input type="radio" name="r8" value="c"> Planos</label><br>
+    <label><input type="radio" name="r8" value="d"> Irregulares</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>huesos cortos</b> (carpo, tarso) tienen dimensiones semejantes.</div>
+  </div>
+
+  <!-- Pregunta 9 -->
+  <div class="pregunta">
+    <p><strong>9.</strong> Los huesos sesamoideos se caracterizan por:</p>
+    <label><input type="radio" name="r9" value="a"> Formar cavidades aéreas</label><br>
+    <label><input type="radio" name="r9" value="b"> Articularse con todos los huesos vecinos</label><br>
+    <label><input type="radio" name="r9" value="c"> Ser cortos, redondeados dentro de tendones</label><br>
+    <label><input type="radio" name="r9" value="d"> Estar en el carpo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Son huesos <b>inmersos en tendones</b>, como la rótula.</div>
+  </div>
+
+  <!-- Pregunta 10 -->
+  <div class="pregunta">
+    <p><strong>10.</strong> ¿Qué estructura separa epífisis y metáfisis durante el crecimiento longitudinal?</p>
+    <label><input type="radio" name="r10" value="a"> Periostio</label><br>
+    <label><input type="radio" name="r10" value="b"> Endostio</label><br>
+    <label><input type="radio" name="r10" value="c"> Cartílago de conjunción</label><br>
+    <label><input type="radio" name="r10" value="d"> Ligamento periostal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>cartílago de conjunción</b> o placa epifisaria permite el crecimiento en longitud.</div>
+  </div>
+
+  <!-- Pregunta 11 -->
+  <div class="pregunta">
+    <p><strong>11.</strong> ¿Qué contiene la cavidad medular de la diáfisis en el adulto?</p>
+    <label><input type="radio" name="r11" value="a"> Médula roja</label><br>
+    <label><input type="radio" name="r11" value="b"> Médula amarilla</label><br>
+    <label><input type="radio" name="r11" value="c"> Tejido cartilaginoso</label><br>
+    <label><input type="radio" name="r11" value="d"> Ligamento esponjoso</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La médula <b>amarilla</b> predomina en la diáfisis del adulto.</div>
+  </div>
+
+  <!-- Pregunta 12 -->
+  <div class="pregunta">
+    <p><strong>12.</strong> En el hueso esponjoso, las láminas intersticiales forman:</p>
+    <label><input type="radio" name="r12" value="a"> Osteonas</label><br>
+    <label><input type="radio" name="r12" value="b"> Trabéculas</label><br>
+    <label><input type="radio" name="r12" value="c"> Diploe compacta</label><br>
+    <label><input type="radio" name="r12" value="d"> Lamelas de Volkmann</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">En el hueso esponjoso las láminas forman <b>trabéculas</b> dispuestas en red.</div>
+  </div>
+
+  <!-- Pregunta 13 -->
+  <div class="pregunta">
+    <p><strong>13.</strong> ¿Cuál NO es función del esqueleto?</p>
+    <label><input type="radio" name="r13" value="a"> Palanca para la acción muscular</label><br>
+    <label><input type="radio" name="r13" value="b"> Hematopoyesis</label><br>
+    <label><input type="radio" name="r13" value="c"> Metabolismo mineral</label><br>
+    <label><input type="radio" name="r13" value="d"> Síntesis de hormonas tiroideas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El esqueleto no produce hormonas tiroideas; esa función pertenece a la tiroides.</div>
+  </div>
+
+  <!-- Pregunta 14 -->
+  <div class="pregunta">
+    <p><strong>14.</strong> Relacione tipo de hueso con su ejemplo correcto.</p>
+    <label><input type="radio" name="r14" value="a"> Plano – vértebra</label><br>
+    <label><input type="radio" name="r14" value="b"> Corto – tarso</label><br>
+    <label><input type="radio" name="r14" value="c"> Largo – esternón</label><br>
+    <label><input type="radio" name="r14" value="d"> Irregular – parietal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>tarso</b> corresponde a huesos cortos.</div>
+  </div>
+
+  <!-- Pregunta 15 -->
+  <div class="pregunta">
+    <p><strong>15.</strong> ¿Qué membrana tapiza internamente la cavidad medular?</p>
+    <label><input type="radio" name="r15" value="a"> Pericondrio</label><br>
+    <label><input type="radio" name="r15" value="b"> Perimisio</label><br>
+    <label><input type="radio" name="r15" value="c"> Endostio</label><br>
+    <label><input type="radio" name="r15" value="d"> Epimisio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>endostio</b> reviste la cavidad medular y contiene células osteogénicas.</div>
+  </div>
+
+  <!-- Pregunta 16 -->
+  <div class="pregunta">
+    <p><strong>16.</strong> La médula ósea roja participa directamente en:</p>
+    <label><input type="radio" name="r16" value="a"> Síntesis de colágeno</label><br>
+    <label><input type="radio" name="r16" value="b"> Hematopoyesis</label><br>
+    <label><input type="radio" name="r16" value="c"> Depósito de triglicéridos</label><br>
+    <label><input type="radio" name="r16" value="d"> Producción de líquido sinovial</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>médula roja</b> produce células sanguíneas (hematopoyesis).</div>
+  </div>
+
+  <!-- Pregunta 17 -->
+  <div class="pregunta">
+    <p><strong>17.</strong> ¿Qué tejido domina en las epífisis de un hueso largo?</p>
+    <label><input type="radio" name="r17" value="a"> Hueso compacto</label><br>
+    <label><input type="radio" name="r17" value="b"> Hueso esponjoso con médula roja</label><br>
+    <label><input type="radio" name="r17" value="c"> Cartílago elástico</label><br>
+    <label><input type="radio" name="r17" value="d"> Tejido adiposo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las epífisis presentan <b>hueso esponjoso</b> con médula roja activa.</div>
+  </div>
+
+  <!-- Pregunta 18 -->
+  <div class="pregunta">
+    <p><strong>18.</strong> La clasificación “clavícula, metacarpianos, fémur” corresponde a:</p>
+    <label><input type="radio" name="r18" value="a"> Huesos planos</label><br>
+    <label><input type="radio" name="r18" value="b"> Huesos largos</label><br>
+    <label><input type="radio" name="r18" value="c"> Huesos cortos</label><br>
+    <label><input type="radio" name="r18" value="d"> Huesos sesamoideos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los mencionados son <b>huesos largos</b> con diáfisis y epífisis.</div>
+  </div>
+
+  <!-- Pregunta 19 -->
+  <div class="pregunta">
+    <p><strong>19.</strong> La hidroxiapatita contribuye principalmente a:</p>
+    <label><input type="radio" name="r19" value="a"> Elasticidad</label><br>
+    <label><input type="radio" name="r19" value="b"> Rigidez y dureza</label><br>
+    <label><input type="radio" name="r19" value="c"> Plasticidad</label><br>
+    <label><input type="radio" name="r19" value="d"> Flexibilidad</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los cristales de <b>hidroxiapatita</b> otorgan dureza mineral al hueso.</div>
+  </div>
+
+  <!-- Pregunta 20 -->
+  <div class="pregunta">
+    <p><strong>20.</strong> La metáfisis se localiza:</p>
+    <label><input type="radio" name="r20" value="a"> Entre periostio y endostio</label><br>
+    <label><input type="radio" name="r20" value="b"> Entre epífisis y diáfisis</label><br>
+    <label><input type="radio" name="r20" value="c"> En el canal de Havers</label><br>
+    <label><input type="radio" name="r20" value="d"> En el periostio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>metáfisis</b> une la epífisis con la diáfisis.</div>
+  </div>
+
+  <!-- Pregunta 21 -->
+  <div class="pregunta">
+    <p><strong>21.</strong> El conjunto que mejor define el esqueleto axial es:</p>
+    <label><input type="radio" name="r21" value="a"> Cinturas escapular y pélvica</label><br>
+    <label><input type="radio" name="r21" value="b"> Cráneo, columna vertebral y caja torácica</label><br>
+    <label><input type="radio" name="r21" value="c"> Miembros superiores e inferiores</label><br>
+    <label><input type="radio" name="r21" value="d"> Pelvis y fémur</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>esqueleto axial</b> incluye cráneo, columna y tórax.</div>
+  </div>
+
+  <!-- Pregunta 22 -->
+  <div class="pregunta">
+    <p><strong>22.</strong> ¿Cuál es la principal función del sistema muscular esquelético?</p>
+    <label><input type="radio" name="r22" value="a"> Conducción cardíaca</label><br>
+    <label><input type="radio" name="r22" value="b"> Movimiento voluntario, postura y calor</label><br>
+    <label><input type="radio" name="r22" value="c"> Secreción hormonal</label><br>
+    <label><input type="radio" name="r22" value="d"> Filtración sanguínea</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El músculo esquelético permite <b>movimiento, postura y termogénesis</b>.</div>
+  </div>
+
+  <!-- Pregunta 23 -->
+  <div class="pregunta">
+    <p><strong>23.</strong> ¿Qué tipo de músculo constituye la pared del corazón?</p>
+    <label><input type="radio" name="r23" value="a"> Esquelético</label><br>
+    <label><input type="radio" name="r23" value="b"> Liso</label><br>
+    <label><input type="radio" name="r23" value="c"> Cardíaco</label><br>
+    <label><input type="radio" name="r23" value="d"> Mixto</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>músculo cardíaco</b> es estriado e involuntario, exclusivo del corazón.</div>
+  </div>
+
+  <!-- Pregunta 24 -->
+  <div class="pregunta">
+    <p><strong>24.</strong> ¿Qué tipo de músculo predomina en vísceras huecas?</p>
+    <label><input type="radio" name="r24" value="a"> Esquelético</label><br>
+    <label><input type="radio" name="r24" value="b"> Cardíaco</label><br>
+    <label><input type="radio" name="r24" value="c"> Liso</label><br>
+    <label><input type="radio" name="r24" value="d"> Estriado somático</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>músculo liso</b> se localiza en paredes de órganos internos.</div>
+  </div>
+
+  <!-- Pregunta 25 -->
+  <div class="pregunta">
+    <p><strong>25.</strong> La unidad estructural y funcional del hueso compacto visible al microscopio óptico es:</p>
+    <label><input type="radio" name="r25" value="a"> Sarcómero</label><br>
+    <label><input type="radio" name="r25" value="b"> Osteona</label><br>
+    <label><input type="radio" name="r25" value="c"> Trabécula</label><br>
+    <label><input type="radio" name="r25" value="d"> Condroplasto</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>osteona</b> o sistema de Havers es la unidad funcional del hueso compacto.</div>
+  </div>
+
+  <!-- Pregunta 26 -->
+  <div class="pregunta">
+    <p><strong>26.</strong> ¿Qué recubrimiento fibroso externo protege al hueso?</p>
+    <label><input type="radio" name="r26" value="a"> Endostio</label><br>
+    <label><input type="radio" name="r26" value="b"> Periostio</label><br>
+    <label><input type="radio" name="r26" value="c"> Perimisio</label><br>
+    <label><input type="radio" name="r26" value="d"> Epimisio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>periostio</b> recubre el hueso y aloja vasos y nervios.</div>
+  </div>
+
+  <!-- Pregunta 27 -->
+  <div class="pregunta">
+    <p><strong>27.</strong> ¿Cuál de los siguientes NO corresponde a hueso plano?</p>
+    <label><input type="radio" name="r27" value="a"> Escápula</label><br>
+    <label><input type="radio" name="r27" value="b"> Esternón</label><br>
+    <label><input type="radio" name="r27" value="c"> Parietal</label><br>
+    <label><input type="radio" name="r27" value="d"> Falange proximal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>falanges</b> son huesos largos, no planos.</div>
+  </div>
+
+  <!-- Pregunta 28 -->
+  <div class="pregunta">
+    <p><strong>28.</strong> En términos de palancas, el esqueleto cumple función de:</p>
+    <label><input type="radio" name="r28" value="a"> Resorte elástico</label><br>
+    <label><input type="radio" name="r28" value="b"> Palanca para músculos</label><br>
+    <label><input type="radio" name="r28" value="c"> Estructura pasiva</label><br>
+    <label><input type="radio" name="r28" value="d"> Depósito glandular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los huesos funcionan como <b>palancas</b> sobre las que actúan los músculos.</div>
+  </div>
+
+  <!-- Pregunta 29 -->
+  <div class="pregunta">
+    <p><strong>29.</strong> En crecimiento óseo, el periostio contribuye sobre todo a:</p>
+    <label><input type="radio" name="r29" value="a"> Longitud</label><br>
+    <label><input type="radio" name="r29" value="b"> Espesor</label><br>
+    <label><input type="radio" name="r29" value="c"> Hematopoyesis</label><br>
+    <label><input type="radio" name="r29" value="d"> Formación articular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>periostio</b> favorece el crecimiento en <b>espesor</b>.</div>
+  </div>
+
+  <!-- Pregunta 30 -->
+  <div class="pregunta">
+    <p><strong>30.</strong> Los huesos wormianos son:</p>
+    <label><input type="radio" name="r30" value="a"> Sesamoideos de la rótula</label><br>
+    <label><input type="radio" name="r30" value="b"> Supernumerarios en el cráneo, entre suturas</label><br>
+    <label><input type="radio" name="r30" value="c"> Huesos cortos del carpo</label><br>
+    <label><input type="radio" name="r30" value="d"> Cavidades neumáticas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>wormianos</b> son huesos accesorios ubicados entre suturas craneales.</div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button id="anteriorBtn" onclick="cambiarPagina(-1)">Anterior</button>
+    <button id="siguienteBtn" onclick="cambiarPagina(1)">Siguiente</button>
+  </div>
+</div>
+
+
+<div class="pagina-tutoria" id="tutoria2">
+  <h2>❤️ Tutoría 2 – Sistema Cardiovascular y Pulmonar</h2>
+
+  <!-- Pregunta 31 -->
+  <div class="pregunta">
+    <p><strong>31.</strong> ¿Cuáles son las tres capas de la pared cardíaca, de interna a externa?</p>
+    <label><input type="radio" name="r31" value="a"> Miocardio, endocardio, pericardio</label><br>
+    <label><input type="radio" name="r31" value="b"> Endocardio, miocardio, epicardio</label><br>
+    <label><input type="radio" name="r31" value="c"> Epicardio, miocardio, endocardio</label><br>
+    <label><input type="radio" name="r31" value="d"> Endotelio, pericardio, epicardio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">De adentro hacia afuera: <b>endocardio</b>, <b>miocardio</b> y <b>epicardio</b>.</div>
+  </div>
+
+  <!-- Pregunta 32 -->
+  <div class="pregunta">
+    <p><strong>32.</strong> ¿Qué válvula impide el reflujo de sangre del ventrículo derecho a la aurícula derecha?</p>
+    <label><input type="radio" name="r32" value="a"> Mitral</label><br>
+    <label><input type="radio" name="r32" value="b"> Tricúspide</label><br>
+    <label><input type="radio" name="r32" value="c"> Pulmonar</label><br>
+    <label><input type="radio" name="r32" value="d"> Aórtica</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La válvula <b>tricúspide</b> evita el reflujo hacia la aurícula derecha durante la sístole.</div>
+  </div>
+
+  <!-- Pregunta 33 -->
+  <div class="pregunta">
+    <p><strong>33.</strong> Orden correcto del flujo sanguíneo a través del corazón:</p>
+    <label><input type="radio" name="r33" value="a"> AD → VD → arteria pulmonar → pulmones → venas pulmonares → AI → VI → aorta</label><br>
+    <label><input type="radio" name="r33" value="b"> AI → VI → aorta → pulmones</label><br>
+    <label><input type="radio" name="r33" value="c"> AD → VI → pulmones → VD</label><br>
+    <label><input type="radio" name="r33" value="d"> VD → AD → pulmones</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La sangre sigue el trayecto: <b>AD → VD → pulmones → AI → VI → aorta</b>.</div>
+  </div>
+
+  <!-- Pregunta 34 -->
+  <div class="pregunta">
+    <p><strong>34.</strong> ¿Cuál es el marcapasos fisiológico del corazón?</p>
+    <label><input type="radio" name="r34" value="a"> Nodo auriculoventricular</label><br>
+    <label><input type="radio" name="r34" value="b"> Haz de His</label><br>
+    <label><input type="radio" name="r34" value="c"> Nodo sinoauricular</label><br>
+    <label><input type="radio" name="r34" value="d"> Fibras de Purkinje</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>nodo sinoauricular</b> origina el impulso que marca el ritmo cardíaco.</div>
+  </div>
+
+  <!-- Pregunta 35 -->
+  <div class="pregunta">
+    <p><strong>35.</strong> ¿Cuál es la función principal de las válvulas semilunares?</p>
+    <label><input type="radio" name="r35" value="a"> Facilitar el llenado rápido ventricular</label><br>
+    <label><input type="radio" name="r35" value="b"> Evitar el reflujo desde arterias hacia ventrículos</label><br>
+    <label><input type="radio" name="r35" value="c"> Conectar aurículas y ventrículos</label><br>
+    <label><input type="radio" name="r35" value="d"> Regular la precarga auricular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las válvulas <b>aórtica y pulmonar</b> impiden el reflujo sanguíneo hacia los ventrículos.</div>
+  </div>
+
+  <!-- Pregunta 36 -->
+  <div class="pregunta">
+    <p><strong>36.</strong> ¿Qué vasos poseen válvulas para vencer la baja presión y la gravedad?</p>
+    <label><input type="radio" name="r36" value="a"> Arterias</label><br>
+    <label><input type="radio" name="r36" value="b"> Arteriolas</label><br>
+    <label><input type="radio" name="r36" value="c"> Venas de mediano calibre</label><br>
+    <label><input type="radio" name="r36" value="d"> Capilares</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>venas</b> contienen válvulas que evitan el retroceso sanguíneo.</div>
+  </div>
+
+  <!-- Pregunta 37 -->
+  <div class="pregunta">
+    <p><strong>37.</strong> ¿Qué arteria coronaria origina la descendente anterior (interventricular anterior)?</p>
+    <label><input type="radio" name="r37" value="a"> Derecha</label><br>
+    <label><input type="radio" name="r37" value="b"> Izquierda</label><br>
+    <label><input type="radio" name="r37" value="c"> Circunfleja</label><br>
+    <label><input type="radio" name="r37" value="d"> Marginal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>arteria coronaria izquierda</b> da origen a la descendente anterior.</div>
+  </div>
+
+  <!-- Pregunta 38 -->
+  <div class="pregunta">
+    <p><strong>38.</strong> El seno coronario drena la sangre en:</p>
+    <label><input type="radio" name="r38" value="a"> Aurícula izquierda</label><br>
+    <label><input type="radio" name="r38" value="b"> Ventrículo izquierdo</label><br>
+    <label><input type="radio" name="r38" value="c"> Aurícula derecha</label><br>
+    <label><input type="radio" name="r38" value="d"> Ventrículo derecho</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>seno coronario</b> desemboca en la aurícula derecha.</div>
+  </div>
+
+  <!-- Pregunta 39 -->
+  <div class="pregunta">
+    <p><strong>39.</strong> ¿Qué estructura fetal permite el paso de sangre de la aurícula derecha a la izquierda?</p>
+    <label><input type="radio" name="r39" value="a"> Conducto venoso</label><br>
+    <label><input type="radio" name="r39" value="b"> Foramen oval</label><br>
+    <label><input type="radio" name="r39" value="c"> Conducto arterioso</label><br>
+    <label><input type="radio" name="r39" value="d"> Válvula tricúspide</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>foramen oval</b> fetal comunica aurícula derecha e izquierda.</div>
+  </div>
+
+  <!-- Pregunta 40 -->
+  <div class="pregunta">
+    <p><strong>40.</strong> Los capilares fenestrados se encuentran en:</p>
+    <label><input type="radio" name="r40" value="a"> Músculo esquelético</label><br>
+    <label><input type="radio" name="r40" value="b"> SNC</label><br>
+    <label><input type="radio" name="r40" value="c"> Glomérulo renal e intestino</label><br>
+    <label><input type="radio" name="r40" value="d"> Piel</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los capilares <b>fenestrados</b> permiten alta filtración, como en riñón e intestino.</div>
+  </div>
+
+  <!-- Pregunta 41 -->
+  <div class="pregunta">
+    <p><strong>41.</strong> ¿Qué fase cardíaca se asocia con el primer ruido (S1)?</p>
+    <label><input type="radio" name="r41" value="a"> Apertura de válvulas AV</label><br>
+    <label><input type="radio" name="r41" value="b"> Cierre de válvulas AV</label><br>
+    <label><input type="radio" name="r41" value="c"> Cierre de semilunares</label><br>
+    <label><input type="radio" name="r41" value="d"> Llenado auricular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>primer ruido (S1)</b> se produce al cerrar mitral y tricúspide.</div>
+  </div>
+
+  <!-- Pregunta 42 -->
+  <div class="pregunta">
+    <p><strong>42.</strong> ¿Cuál es la válvula que separa ventrículo izquierdo y aorta?</p>
+    <label><input type="radio" name="r42" value="a"> Pulmonar</label><br>
+    <label><input type="radio" name="r42" value="b"> Aórtica</label><br>
+    <label><input type="radio" name="r42" value="c"> Mitral</label><br>
+    <label><input type="radio" name="r42" value="d"> Tricúspide</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La válvula <b>aórtica</b> permite la salida del flujo desde el VI a la aorta.</div>
+  </div>
+
+  <!-- Pregunta 43 -->
+  <div class="pregunta">
+    <p><strong>43.</strong> ¿Qué vasos transportan sangre rica en oxígeno desde los pulmones al corazón?</p>
+    <label><input type="radio" name="r43" value="a"> Arterias pulmonares</label><br>
+    <label><input type="radio" name="r43" value="b"> Venas pulmonares</label><br>
+    <label><input type="radio" name="r43" value="c"> Venas cavas</label><br>
+    <label><input type="radio" name="r43" value="d"> Arterias coronarias</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>venas pulmonares</b> llevan sangre oxigenada al corazón.</div>
+  </div>
+
+  <!-- Pregunta 44 -->
+  <div class="pregunta">
+    <p><strong>44.</strong> ¿Qué ley fisiológica explica que la fuerza de contracción aumenta con el llenado ventricular?</p>
+    <label><input type="radio" name="r44" value="a"> Ley de Boyle</label><br>
+    <label><input type="radio" name="r44" value="b"> Ley de Starling</label><br>
+    <label><input type="radio" name="r44" value="c"> Ley de Laplace</label><br>
+    <label><input type="radio" name="r44" value="d"> Ley de Ohm</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>Ley de Starling</b> relaciona precarga y fuerza de contracción miocárdica.</div>
+  </div>
+
+  <!-- Pregunta 45 -->
+  <div class="pregunta">
+    <p><strong>45.</strong> ¿Qué estructura pulmonar es el sitio principal del intercambio gaseoso?</p>
+    <label><input type="radio" name="r45" value="a"> Bronquiolos terminales</label><br>
+    <label><input type="radio" name="r45" value="b"> Conductos alveolares</label><br>
+    <label><input type="radio" name="r45" value="c"> Alvéolos</label><br>
+    <label><input type="radio" name="r45" value="d"> Bronquios lobares</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>alvéolo</b> es la unidad donde ocurre el intercambio gaseoso.</div>
+  </div>
+
+  <!-- Pregunta 46 -->
+  <div class="pregunta">
+    <p><strong>46.</strong> ¿Qué tipo de células alveolares producen surfactante?</p>
+    <label><input type="radio" name="r46" value="a"> Neumocitos tipo I</label><br>
+    <label><input type="radio" name="r46" value="b"> Neumocitos tipo II</label><br>
+    <label><input type="radio" name="r46" value="c"> Macrófagos alveolares</label><br>
+    <label><input type="radio" name="r46" value="d"> Fibroblastos pulmonares</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>neumocitos tipo II</b> sintetizan el surfactante pulmonar.</div>
+  </div>
+
+  <!-- Pregunta 47 -->
+  <div class="pregunta">
+    <p><strong>47.</strong> ¿Cuál es la función del surfactante pulmonar?</p>
+    <label><input type="radio" name="r47" value="a"> Favorecer la difusión del oxígeno</label><br>
+    <label><input type="radio" name="r47" value="b"> Disminuir la tensión superficial alveolar</label><br>
+    <label><input type="radio" name="r47" value="c"> Incrementar la viscosidad del aire</label><br>
+    <label><input type="radio" name="r47" value="d"> Transportar CO₂</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>surfactante</b> reduce la tensión superficial, evitando el colapso alveolar.</div>
+  </div>
+
+  <!-- Pregunta 48 -->
+  <div class="pregunta">
+    <p><strong>48.</strong> La membrana respiratoria está compuesta por:</p>
+    <label><input type="radio" name="r48" value="a"> Epitelio bronquial, lámina propia y músculo liso</label><br>
+    <label><input type="radio" name="r48" value="b"> Endotelio capilar, membrana basal y epitelio alveolar</label><br>
+    <label><input type="radio" name="r48" value="c"> Epitelio nasal y mucosa</label><br>
+    <label><input type="radio" name="r48" value="d"> Endotelio arterial y adventicia</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Formada por <b>epitelio alveolar, membrana basal y endotelio capilar</b>.</div>
+  </div>
+
+  <!-- Pregunta 49 -->
+  <div class="pregunta">
+    <p><strong>49.</strong> ¿Cuál es el volumen que permanece en los pulmones tras una espiración forzada?</p>
+    <label><input type="radio" name="r49" value="a"> Volumen corriente</label><br>
+    <label><input type="radio" name="r49" value="b"> Volumen residual</label><br>
+    <label><input type="radio" name="r49" value="c"> Capacidad vital</label><br>
+    <label><input type="radio" name="r49" value="d"> Volumen inspiratorio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>volumen residual</b> es el aire que queda tras espiración máxima.</div>
+  </div>
+
+  <!-- Pregunta 50 -->
+  <div class="pregunta">
+    <p><strong>50.</strong> ¿Qué estructura del bulbo regula automáticamente el ritmo respiratorio?</p>
+    <label><input type="radio" name="r50" value="a"> Hipotálamo</label><br>
+    <label><input type="radio" name="r50" value="b"> Centro respiratorio bulbar</label><br>
+    <label><input type="radio" name="r50" value="c"> Cerebelo</label><br>
+    <label><input type="radio" name="r50" value="d"> Tálamo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>centro respiratorio bulbar</b> coordina la inspiración y espiración.</div>
+  </div>
+
+  <!-- Pregunta 51 -->
+  <div class="pregunta">
+    <p><strong>51.</strong> ¿Qué músculo es el principal en la inspiración?</p>
+    <label><input type="radio" name="r51" value="a"> Intercostales internos</label><br>
+    <label><input type="radio" name="r51" value="b"> Diafragma</label><br>
+    <label><input type="radio" name="r51" value="c"> Abdominales</label><br>
+    <label><input type="radio" name="r51" value="d"> Trapecio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>diafragma</b> es el músculo principal de la inspiración.</div>
+  </div>
+
+  <!-- Pregunta 52 -->
+  <div class="pregunta">
+    <p><strong>52.</strong> ¿Qué gas estimula principalmente los quimiorreceptores respiratorios?</p>
+    <label><input type="radio" name="r52" value="a"> O₂</label><br>
+    <label><input type="radio" name="r52" value="b"> CO₂</label><br>
+    <label><input type="radio" name="r52" value="c"> N₂</label><br>
+    <label><input type="radio" name="r52" value="d"> CO</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>CO₂</b> regula la frecuencia respiratoria por su efecto ácido.</div>
+  </div>
+
+  <!-- Pregunta 53 -->
+  <div class="pregunta">
+    <p><strong>53.</strong> El intercambio gaseoso alveolar ocurre por:</p>
+    <label><input type="radio" name="r53" value="a"> Ósmosis</label><br>
+    <label><input type="radio" name="r53" value="b"> Difusión simple</label><br>
+    <label><input type="radio" name="r53" value="c"> Transporte activo</label><br>
+    <label><input type="radio" name="r53" value="d"> Filtración</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los gases difunden por <b>diferencia de presiones parciales</b>.</div>
+  </div>
+
+  <!-- Pregunta 54 -->
+  <div class="pregunta">
+    <p><strong>54.</strong> ¿Qué proteína transporta la mayor parte del oxígeno sanguíneo?</p>
+    <label><input type="radio" name="r54" value="a"> Albúmina</label><br>
+    <label><input type="radio" name="r54" value="b"> Hemoglobina</label><br>
+    <label><input type="radio" name="r54" value="c"> Fibrinógeno</label><br>
+    <label><input type="radio" name="r54" value="d"> Mioglobina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>hemoglobina</b> transporta el 98% del oxígeno sanguíneo.</div>
+  </div>
+
+  <!-- Pregunta 55 -->
+  <div class="pregunta">
+    <p><strong>55.</strong> ¿Qué componente sanguíneo es esencial para la coagulación?</p>
+    <label><input type="radio" name="r55" value="a"> Eritrocitos</label><br>
+    <label><input type="radio" name="r55" value="b"> Plaquetas</label><br>
+    <label><input type="radio" name="r55" value="c"> Linfocitos</label><br>
+    <label><input type="radio" name="r55" value="d"> Monocitos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>plaquetas</b> liberan factores que inician la coagulación.</div>
+  </div>
+
+  <!-- Pregunta 56 -->
+  <div class="pregunta">
+    <p><strong>56.</strong> ¿Qué parte del sistema nervioso autónomo aumenta la frecuencia cardíaca?</p>
+    <label><input type="radio" name="r56" value="a"> Parasimpático</label><br>
+    <label><input type="radio" name="r56" value="b"> Simpático</label><br>
+    <label><input type="radio" name="r56" value="c"> Somático</label><br>
+    <label><input type="radio" name="r56" value="d"> Central</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema <b>simpático</b> acelera el ritmo cardíaco.</div>
+  </div>
+
+  <!-- Pregunta 57 -->
+  <div class="pregunta">
+    <p><strong>57.</strong> ¿Cuál de los siguientes vasos lleva sangre desde los pulmones al corazón?</p>
+    <label><input type="radio" name="r57" value="a"> Arteria pulmonar</label><br>
+    <label><input type="radio" name="r57" value="b"> Vena pulmonar</label><br>
+    <label><input type="radio" name="r57" value="c"> Aorta</label><br>
+    <label><input type="radio" name="r57" value="d"> Vena cava inferior</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>venas pulmonares</b> regresan la sangre oxigenada al corazón.</div>
+  </div>
+
+  <!-- Pregunta 58 -->
+  <div class="pregunta">
+    <p><strong>58.</strong> ¿Qué estructura regula la presión arterial mediante la liberación de renina?</p>
+    <label><input type="radio" name="r58" value="a"> Corteza suprarrenal</label><br>
+    <label><input type="radio" name="r58" value="b"> Aparato yuxtaglomerular</label><br>
+    <label><input type="radio" name="r58" value="c"> Seno carotídeo</label><br>
+    <label><input type="radio" name="r58" value="d"> Aorta</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>aparato yuxtaglomerular</b> libera renina ante baja presión arterial.</div>
+  </div>
+
+  <!-- Pregunta 59 -->
+  <div class="pregunta">
+    <p><strong>59.</strong> ¿Qué parte del corazón impulsa la sangre hacia la circulación pulmonar?</p>
+    <label><input type="radio" name="r59" value="a"> Ventrículo izquierdo</label><br>
+    <label><input type="radio" name="r59" value="b"> Ventrículo derecho</label><br>
+    <label><input type="radio" name="r59" value="c"> Aurícula izquierda</label><br>
+    <label><input type="radio" name="r59" value="d"> Aurícula derecha</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>ventrículo derecho</b> impulsa la sangre hacia la arteria pulmonar.</div>
+  </div>
+
+  <!-- Pregunta 60 -->
+  <div class="pregunta">
+    <p><strong>60.</strong> ¿Cuál es la principal función del sistema cardiovascular?</p>
+    <label><input type="radio" name="r60" value="a"> Transporte de gases, nutrientes y desechos</label><br>
+    <label><input type="radio" name="r60" value="b"> Producción de hormonas</label><br>
+    <label><input type="radio" name="r60" value="c"> Regulación del sistema nervioso</label><br>
+    <label><input type="radio" name="r60" value="d"> Digestión de proteínas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Su función esencial es el <b>transporte de gases y nutrientes</b>.</div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button onclick="cambiarPagina(-1)">Anterior</button>
+    <button onclick="cambiarPagina(1)">Siguiente</button>
+  </div>
+</div>
+
+
+<div class="pagina-tutoria" id="tutoria3">
+  <h2>🧬 Tutoría 3 – Sistema Neuroendocrino y Urinario</h2>
+
+  <!-- Pregunta 61 -->
+  <div class="pregunta">
+    <p><strong>61.</strong> ¿Cuál es la principal característica anatómica del sistema endocrino que lo diferencia de otros sistemas corporales?</p>
+    <label><input type="radio" name="r61" value="a"> Está limitado a una cavidad corporal específica</label><br>
+    <label><input type="radio" name="r61" value="b"> Posee órganos con secreción hacia el exterior</label><br>
+    <label><input type="radio" name="r61" value="c"> Está ampliamente distribuido y sin límites anatómicos definidos</label><br>
+    <label><input type="radio" name="r61" value="d"> Es exclusivamente central, sin conexión con otros sistemas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema endocrino se caracteriza por su <b>distribución difusa</b> sin límites anatómicos precisos.</div>
+  </div>
+
+  <!-- Pregunta 62 -->
+  <div class="pregunta">
+    <p><strong>62.</strong> Las glándulas endocrinas secretan hormonas directamente hacia:</p>
+    <label><input type="radio" name="r62" value="a"> Conductos excretores</label><br>
+    <label><input type="radio" name="r62" value="b"> La luz de un órgano hueco</label><br>
+    <label><input type="radio" name="r62" value="c"> El torrente sanguíneo</label><br>
+    <label><input type="radio" name="r62" value="d"> La linfa</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las hormonas se liberan directamente al <b>torrente sanguíneo</b>.</div>
+  </div>
+
+  <!-- Pregunta 63 -->
+  <div class="pregunta">
+    <p><strong>63.</strong> La hipófisis controla a múltiples glándulas endocrinas mediante hormonas tróficas. ¿Cuál de las siguientes es una de ellas?</p>
+    <label><input type="radio" name="r63" value="a"> Tiroxina</label><br>
+    <label><input type="radio" name="r63" value="b"> ACTH</label><br>
+    <label><input type="radio" name="r63" value="c"> Insulina</label><br>
+    <label><input type="radio" name="r63" value="d"> Glucagón</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>ACTH</b> estimula la corteza suprarrenal y es secretada por la hipófisis anterior.</div>
+  </div>
+
+  <!-- Pregunta 64 -->
+  <div class="pregunta">
+    <p><strong>64.</strong> ¿Qué estructura anatómica actúa como puente funcional entre el sistema nervioso y el endocrino?</p>
+    <label><input type="radio" name="r64" value="a"> Bulbo raquídeo</label><br>
+    <label><input type="radio" name="r64" value="b"> Hipotálamo</label><br>
+    <label><input type="radio" name="r64" value="c"> Tálamo</label><br>
+    <label><input type="radio" name="r64" value="d"> Hipocampo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>hipotálamo</b> integra señales nerviosas y hormonales, regulando la hipófisis.</div>
+  </div>
+
+  <!-- Pregunta 65 -->
+  <div class="pregunta">
+    <p><strong>65.</strong> La hormona antidiurética (ADH) se sintetiza en el hipotálamo y se libera desde:</p>
+    <label><input type="radio" name="r65" value="a"> Adenohipófisis</label><br>
+    <label><input type="radio" name="r65" value="b"> Neurohipófisis</label><br>
+    <label><input type="radio" name="r65" value="c"> Corteza suprarrenal</label><br>
+    <label><input type="radio" name="r65" value="d"> Médula suprarrenal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>ADH</b> se almacena y libera desde la <b>neurohipófisis</b>.</div>
+  </div>
+
+  <!-- Pregunta 66 -->
+  <div class="pregunta">
+    <p><strong>66.</strong> ¿Cuál es la función principal de la hormona paratiroidea (PTH)?</p>
+    <label><input type="radio" name="r66" value="a"> Disminuir el calcio plasmático</label><br>
+    <label><input type="radio" name="r66" value="b"> Aumentar la excreción renal de calcio</label><br>
+    <label><input type="radio" name="r66" value="c"> Incrementar el calcio sérico mediante resorción ósea y reabsorción renal</label><br>
+    <label><input type="radio" name="r66" value="d"> Inhibir la acción de la vitamina D</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>PTH</b> eleva el calcio sérico al estimular hueso y túbulos renales.</div>
+  </div>
+
+  <!-- Pregunta 67 -->
+  <div class="pregunta">
+    <p><strong>67.</strong> En el eje paratiroides-vitamina D, ¿dónde se produce la activación final de la vitamina D?</p>
+    <label><input type="radio" name="r67" value="a"> Hígado</label><br>
+    <label><input type="radio" name="r67" value="b"> Piel</label><br>
+    <label><input type="radio" name="r67" value="c"> Riñón</label><br>
+    <label><input type="radio" name="r67" value="d"> Intestino</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La activación final de la <b>vitamina D</b> ocurre en el <b>riñón</b>.</div>
+  </div>
+
+  <!-- Pregunta 68 -->
+  <div class="pregunta">
+    <p><strong>68.</strong> El páncreas tiene una doble función, exocrina y endocrina. ¿Cuál de las siguientes hormonas es producida por sus islotes endocrinos?</p>
+    <label><input type="radio" name="r68" value="a"> Amilasa</label><br>
+    <label><input type="radio" name="r68" value="b"> Tripsina</label><br>
+    <label><input type="radio" name="r68" value="c"> Insulina</label><br>
+    <label><input type="radio" name="r68" value="d"> Pepsina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los islotes de Langerhans producen <b>insulina</b>, glucagón y somatostatina.</div>
+  </div>
+
+  <!-- Pregunta 69 -->
+  <div class="pregunta">
+    <p><strong>69.</strong> ¿Qué hormona pancreática incrementa la glucemia estimulando la liberación hepática de glucosa?</p>
+    <label><input type="radio" name="r69" value="a"> Insulina</label><br>
+    <label><input type="radio" name="r69" value="b"> Glucagón</label><br>
+    <label><input type="radio" name="r69" value="c"> Somatostatina</label><br>
+    <label><input type="radio" name="r69" value="d"> Leptina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>glucagón</b> aumenta la glucemia estimulando la glucogenólisis hepática.</div>
+  </div>
+
+  <!-- Pregunta 70 -->
+  <div class="pregunta">
+    <p><strong>70.</strong> En la glándula suprarrenal, la zona fasciculada de la corteza secreta principalmente:</p>
+    <label><input type="radio" name="r70" value="a"> Aldosterona</label><br>
+    <label><input type="radio" name="r70" value="b"> Cortisol</label><br>
+    <label><input type="radio" name="r70" value="c"> Adrenalina</label><br>
+    <label><input type="radio" name="r70" value="d"> Andrógenos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La zona <b>fasciculada</b> secreta <b>cortisol</b>, hormona glucocorticoide.</div>
+  </div>
+
+  <!-- Pregunta 71 -->
+  <div class="pregunta">
+    <p><strong>71.</strong> La médula suprarrenal deriva embriológicamente de:</p>
+    <label><input type="radio" name="r71" value="a"> Mesodermo</label><br>
+    <label><input type="radio" name="r71" value="b"> Endodermo</label><br>
+    <label><input type="radio" name="r71" value="c"> Ectodermo (cresta neural)</label><br>
+    <label><input type="radio" name="r71" value="d"> Mesénquima esplácnico</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>médula suprarrenal</b> procede de células de la <b>cresta neural</b>.</div>
+  </div>
+
+  <!-- Pregunta 72 -->
+  <div class="pregunta">
+    <p><strong>72.</strong> ¿Qué efecto fisiológico principal produce la adrenalina liberada por la médula suprarrenal?</p>
+    <label><input type="radio" name="r72" value="a"> Disminuye la frecuencia cardiaca</label><br>
+    <label><input type="radio" name="r72" value="b"> Disminuye la presión arterial</label><br>
+    <label><input type="radio" name="r72" value="c"> Incrementa la frecuencia cardiaca y la glicemia</label><br>
+    <label><input type="radio" name="r72" value="d"> Estimula la secreción de insulina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>adrenalina</b> aumenta ritmo cardíaco y glucemia en respuesta al estrés.</div>
+  </div>
+
+  <!-- Pregunta 73 -->
+  <div class="pregunta">
+    <p><strong>73.</strong> Las células neuroendocrinas se caracterizan por:</p>
+    <label><input type="radio" name="r73" value="a"> No tener receptores para neurotransmisores</label><br>
+    <label><input type="radio" name="r73" value="b"> Liberar hormonas locales exclusivamente</label><br>
+    <label><input type="radio" name="r73" value="c"> Expresar péptidos neuronales y responder a señales nerviosas</label><br>
+    <label><input type="radio" name="r73" value="d"> Ser insensibles a estímulos nerviosos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las células <b>neuroendocrinas</b> son sensibles al control neural y hormonal.</div>
+  </div>
+
+  <!-- Pregunta 74 -->
+  <div class="pregunta">
+    <p><strong>74.</strong> ¿Dónde se encuentran las células C productoras de calcitonina?</p>
+    <label><input type="radio" name="r74" value="a"> Médula suprarrenal</label><br>
+    <label><input type="radio" name="r74" value="b"> Tiroides</label><br>
+    <label><input type="radio" name="r74" value="c"> Paratiroides</label><br>
+    <label><input type="radio" name="r74" value="d"> Páncreas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las células C de la <b>tiroides</b> secretan <b>calcitonina</b>, que reduce el calcio sérico.</div>
+  </div>
+
+  <!-- Pregunta 75 -->
+  <div class="pregunta">
+    <p><strong>75.</strong> ¿Cuál es el efecto fisiológico de la calcitonina?</p>
+    <label><input type="radio" name="r75" value="a"> Aumentar el calcio plasmático</label><br>
+    <label><input type="radio" name="r75" value="b"> Disminuir el calcio sanguíneo inhibiendo la resorción ósea</label><br>
+    <label><input type="radio" name="r75" value="c"> Activar la vitamina D</label><br>
+    <label><input type="radio" name="r75" value="d"> Estimular la absorción intestinal de calcio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>calcitonina</b> reduce el calcio sanguíneo al inhibir osteoclastos.</div>
+  </div>
+
+  <!-- Pregunta 76 -->
+  <div class="pregunta">
+    <p><strong>76.</strong> La unidad estructural y funcional del riñón se denomina:</p>
+    <label><input type="radio" name="r76" value="a"> Glomérulo</label><br>
+    <label><input type="radio" name="r76" value="b"> Túbulo distal</label><br>
+    <label><input type="radio" name="r76" value="c"> Nefrona</label><br>
+    <label><input type="radio" name="r76" value="d"> Cápsula de Bowman</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>nefrona</b> es la unidad estructural y funcional del riñón.</div>
+  </div>
+
+  <!-- Pregunta 77 -->
+  <div class="pregunta">
+    <p><strong>77.</strong> La ultrafiltración glomerular ocurre a nivel de:</p>
+    <label><input type="radio" name="r77" value="a"> Asa de Henle</label><br>
+    <label><input type="radio" name="r77" value="b"> Cápsula de Bowman</label><br>
+    <label><input type="radio" name="r77" value="c"> Túbulo contorneado distal</label><br>
+    <label><input type="radio" name="r77" value="d"> Conducto colector</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>filtración glomerular</b> tiene lugar en la <b>cápsula de Bowman</b>.</div>
+  </div>
+
+  <!-- Pregunta 78 -->
+  <div class="pregunta">
+    <p><strong>78.</strong> ¿Cuál de los siguientes componentes no atraviesa normalmente la barrera de filtración glomerular?</p>
+    <label><input type="radio" name="r78" value="a"> Agua</label><br>
+    <label><input type="radio" name="r78" value="b"> Sodio</label><br>
+    <label><input type="radio" name="r78" value="c"> Glucosa</label><br>
+    <label><input type="radio" name="r78" value="d"> Proteínas plasmáticas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>proteínas plasmáticas</b> no atraviesan la barrera glomerular.</div>
+  </div>
+
+  <!-- Pregunta 79 -->
+  <div class="pregunta">
+    <p><strong>79.</strong> El mecanismo de reabsorción de agua en los túbulos renales depende principalmente de:</p>
+    <label><input type="radio" name="r79" value="a"> Secreción tubular activa</label><br>
+    <label><input type="radio" name="r79" value="b"> Gradientes osmóticos y acción de la ADH</label><br>
+    <label><input type="radio" name="r79" value="c"> Presión oncótica plasmática</label><br>
+    <label><input type="radio" name="r79" value="d"> Acción tiroidea</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La reabsorción de agua depende de la <b>ADH</b> y de gradientes osmóticos.</div>
+  </div>
+
+  <!-- Pregunta 80 -->
+  <div class="pregunta">
+    <p><strong>80.</strong> La asa de Henle desempeña un papel crucial en:</p>
+    <label><input type="radio" name="r80" value="a"> Filtración glomerular</label><br>
+    <label><input type="radio" name="r80" value="b"> Concentración de la orina</label><br>
+    <label><input type="radio" name="r80" value="c"> Secreción de potasio</label><br>
+    <label><input type="radio" name="r80" value="d"> Producción de eritropoyetina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El asa de <b>Henle</b> concentra la orina mediante el gradiente osmótico.</div>
+  </div>
+
+  <!-- Pregunta 81 -->
+  <div class="pregunta">
+    <p><strong>81.</strong> ¿Qué hormona aumenta la reabsorción de sodio y la excreción de potasio en el túbulo distal?</p>
+    <label><input type="radio" name="r81" value="a"> Cortisol</label><br>
+    <label><input type="radio" name="r81" value="b"> Aldosterona</label><br>
+    <label><input type="radio" name="r81" value="c"> ADH</label><br>
+    <label><input type="radio" name="r81" value="d"> Renina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>aldosterona</b> regula el equilibrio Na⁺/K⁺ en túbulo distal.</div>
+  </div>
+
+  <!-- Pregunta 82 -->
+  <div class="pregunta">
+    <p><strong>82.</strong> El aparato yuxtaglomerular regula la presión arterial mediante la liberación de:</p>
+    <label><input type="radio" name="r82" value="a"> Eritropoyetina</label><br>
+    <label><input type="radio" name="r82" value="b"> Renina</label><br>
+    <label><input type="radio" name="r82" value="c"> Vasopresina</label><br>
+    <label><input type="radio" name="r82" value="d"> Angiotensina II</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>aparato yuxtaglomerular</b> libera <b>renina</b> ante disminución de presión.</div>
+  </div>
+
+  <!-- Pregunta 83 -->
+  <div class="pregunta">
+    <p><strong>83.</strong> La eritropoyetina, hormona secretada por el riñón, estimula:</p>
+    <label><input type="radio" name="r83" value="a"> Producción de plaquetas</label><br>
+    <label><input type="radio" name="r83" value="b"> Producción de glóbulos rojos en médula ósea</label><br>
+    <label><input type="radio" name="r83" value="c"> Activación de linfocitos T</label><br>
+    <label><input type="radio" name="r83" value="d"> Síntesis de hemoglobina en hígado</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>eritropoyetina</b> estimula la eritropoyesis en médula ósea.</div>
+  </div>
+
+  <!-- Pregunta 84 -->
+  <div class="pregunta">
+    <p><strong>84.</strong> ¿Dónde se produce la mayor reabsorción de glucosa y aminoácidos?</p>
+    <label><input type="radio" name="r84" value="a"> Túbulo contorneado proximal</label><br>
+    <label><input type="radio" name="r84" value="b"> Asa de Henle</label><br>
+    <label><input type="radio" name="r84" value="c"> Túbulo distal</label><br>
+    <label><input type="radio" name="r84" value="d"> Conducto colector</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La reabsorción de nutrientes ocurre en el <b>túbulo proximal</b>.</div>
+  </div>
+
+  <!-- Pregunta 85 -->
+  <div class="pregunta">
+    <p><strong>85.</strong> La vejiga urinaria está tapizada internamente por:</p>
+    <label><input type="radio" name="r85" value="a"> Epitelio plano simple</label><br>
+    <label><input type="radio" name="r85" value="b"> Epitelio cúbico estratificado</label><br>
+    <label><input type="radio" name="r85" value="c"> Epitelio de transición (urotelio)</label><br>
+    <label><input type="radio" name="r85" value="d"> Epitelio cilíndrico ciliado</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El revestimiento de la vejiga es el <b>urotelio</b>, epitelio de transición.</div>
+  </div>
+
+  <!-- Pregunta 86 -->
+  <div class="pregunta">
+    <p><strong>86.</strong> El músculo detrusor de la vejiga está formado por:</p>
+    <label><input type="radio" name="r86" value="a"> Músculo esquelético voluntario</label><br>
+    <label><input type="radio" name="r86" value="b"> Músculo liso involuntario</label><br>
+    <label><input type="radio" name="r86" value="c"> Músculo cardíaco</label><br>
+    <label><input type="radio" name="r86" value="d"> Tejido elástico</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>detrusor</b> es músculo liso que permite la micción involuntaria.</div>
+  </div>
+
+  <!-- Pregunta 87 -->
+  <div class="pregunta">
+    <p><strong>87.</strong> El esfínter uretral externo es controlado por:</p>
+    <label><input type="radio" name="r87" value="a"> Sistema nervioso autónomo</label><br>
+    <label><input type="radio" name="r87" value="b"> Sistema nervioso somático</label><br>
+    <label><input type="radio" name="r87" value="c"> Médula espinal simpática</label><br>
+    <label><input type="radio" name="r87" value="d"> Plexo esplácnico</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El esfínter externo es <b>voluntario</b> y depende del sistema somático.</div>
+  </div>
+
+  <!-- Pregunta 88 -->
+  <div class="pregunta">
+    <p><strong>88.</strong> En condiciones normales, el pH de la orina humana oscila entre:</p>
+    <label><input type="radio" name="r88" value="a"> 3.0 – 4.0</label><br>
+    <label><input type="radio" name="r88" value="b"> 5.0 – 7.0</label><br>
+    <label><input type="radio" name="r88" value="c"> 7.5 – 8.5</label><br>
+    <label><input type="radio" name="r88" value="d"> 9.0 – 10.0</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El pH urinario normal varía entre <b>5 y 7</b>, ligeramente ácido.</div>
+  </div>
+
+  <!-- Pregunta 89 -->
+  <div class="pregunta">
+    <p><strong>89.</strong> ¿Qué arteria irriga directamente los glomérulos renales?</p>
+    <label><input type="radio" name="r89" value="a"> Arteria renal</label><br>
+    <label><input type="radio" name="r89" value="b"> Arteriola eferente</label><br>
+    <label><input type="radio" name="r89" value="c"> Arteriola aferente</label><br>
+    <label><input type="radio" name="r89" value="d"> Arteria interlobulillar</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El glomérulo recibe sangre de la <b>arteriola aferente</b>.</div>
+  </div>
+
+  <!-- Pregunta 90 -->
+  <div class="pregunta">
+    <p><strong>90.</strong> ¿Cuál de los siguientes mecanismos explica la hipertensión secundaria a estenosis de la arteria renal?</p>
+    <label><input type="radio" name="r90" value="a"> Disminución de renina</label><br>
+    <label><input type="radio" name="r90" value="b"> Activación del sistema renina–angiotensina–aldosterona</label><br>
+    <label><input type="radio" name="r90" value="c"> Inhibición del eje simpático</label><br>
+    <label><input type="radio" name="r90" value="d"> Disminución de la secreción de ADH</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>estenosis renal</b> activa el sistema renina–angiotensina–aldosterona.</div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button onclick="cambiarPagina(-1)">Anterior</button>
+    <button onclick="cambiarPagina(1)">Siguiente</button>
+  </div>
+</div>
+
+<div class="pagina-tutoria" id="tutoria4">
+  <h2>🧠 Tutoría 4 – Sistema Nervioso y Tegumentario</h2>
+
+  <!-- Pregunta 91 -->
+  <div class="pregunta">
+    <p><strong>91.</strong> ¿Cuál es la unidad estructural y funcional básica del sistema nervioso?</p>
+    <label><input type="radio" name="r91" value="a"> Neurona</label><br>
+    <label><input type="radio" name="r91" value="b"> Axón</label><br>
+    <label><input type="radio" name="r91" value="c"> Sinapsis</label><br>
+    <label><input type="radio" name="r91" value="d"> Glía</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>neurona</b> es la unidad estructural y funcional del sistema nervioso.</div>
+  </div>
+
+  <!-- Pregunta 92 -->
+  <div class="pregunta">
+    <p><strong>92.</strong> ¿Qué tipo de célula glial forma la mielina en el sistema nervioso central?</p>
+    <label><input type="radio" name="r92" value="a"> Célula de Schwann</label><br>
+    <label><input type="radio" name="r92" value="b"> Oligodendrocito</label><br>
+    <label><input type="radio" name="r92" value="c"> Astrocito</label><br>
+    <label><input type="radio" name="r92" value="d"> Microglía</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>oligodendrocitos</b> producen la vaina de mielina en el SNC.</div>
+  </div>
+
+  <!-- Pregunta 93 -->
+  <div class="pregunta">
+    <p><strong>93.</strong> ¿Cuál de los siguientes componentes forma parte del sistema nervioso periférico?</p>
+    <label><input type="radio" name="r93" value="a"> Cerebelo</label><br>
+    <label><input type="radio" name="r93" value="b"> Médula espinal</label><br>
+    <label><input type="radio" name="r93" value="c"> Nervios craneales y espinales</label><br>
+    <label><input type="radio" name="r93" value="d"> Diencéfalo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema nervioso periférico incluye <b>nervios craneales y espinales</b>.</div>
+  </div>
+
+  <!-- Pregunta 94 -->
+  <div class="pregunta">
+    <p><strong>94.</strong> ¿Qué estructura del encéfalo coordina el equilibrio y la precisión de los movimientos?</p>
+    <label><input type="radio" name="r94" value="a"> Tálamo</label><br>
+    <label><input type="radio" name="r94" value="b"> Hipotálamo</label><br>
+    <label><input type="radio" name="r94" value="c"> Cerebelo</label><br>
+    <label><input type="radio" name="r94" value="d"> Bulbo raquídeo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>cerebelo</b> regula equilibrio, coordinación y tono muscular.</div>
+  </div>
+
+  <!-- Pregunta 95 -->
+  <div class="pregunta">
+    <p><strong>95.</strong> ¿Cuál es la principal función del bulbo raquídeo?</p>
+    <label><input type="radio" name="r95" value="a"> Regular la respiración y la frecuencia cardiaca</label><br>
+    <label><input type="radio" name="r95" value="b"> Integrar los reflejos espinales</label><br>
+    <label><input type="radio" name="r95" value="c"> Regular el sueño</label><br>
+    <label><input type="radio" name="r95" value="d"> Controlar la termorregulación</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>bulbo raquídeo</b> controla funciones vitales como respiración y ritmo cardiaco.</div>
+  </div>
+
+  <!-- Pregunta 96 -->
+  <div class="pregunta">
+    <p><strong>96.</strong> ¿Qué estructura conecta los hemisferios cerebrales derecho e izquierdo?</p>
+    <label><input type="radio" name="r96" value="a"> Cuerpo calloso</label><br>
+    <label><input type="radio" name="r96" value="b"> Tálamo</label><br>
+    <label><input type="radio" name="r96" value="c"> Mesencéfalo</label><br>
+    <label><input type="radio" name="r96" value="d"> Hipotálamo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>cuerpo calloso</b> une los dos hemisferios del cerebro.</div>
+  </div>
+
+  <!-- Pregunta 97 -->
+  <div class="pregunta">
+    <p><strong>97.</strong> En una sinapsis química, el neurotransmisor se libera desde:</p>
+    <label><input type="radio" name="r97" value="a"> Dendrita</label><br>
+    <label><input type="radio" name="r97" value="b"> Terminal axónico</label><br>
+    <label><input type="radio" name="r97" value="c"> Soma neuronal</label><br>
+    <label><input type="radio" name="r97" value="d"> Núcleo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El neurotransmisor se libera por exocitosis desde el <b>terminal axónico</b>.</div>
+  </div>
+
+  <!-- Pregunta 98 -->
+  <div class="pregunta">
+    <p><strong>98.</strong> ¿Cuál es el principal neurotransmisor excitador del sistema nervioso central?</p>
+    <label><input type="radio" name="r98" value="a"> GABA</label><br>
+    <label><input type="radio" name="r98" value="b"> Glutamato</label><br>
+    <label><input type="radio" name="r98" value="c"> Dopamina</label><br>
+    <label><input type="radio" name="r98" value="d"> Serotonina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>glutamato</b> es el neurotransmisor excitador más abundante del SNC.</div>
+  </div>
+
+  <!-- Pregunta 99 -->
+  <div class="pregunta">
+    <p><strong>99.</strong> El sistema nervioso autónomo simpático se asocia principalmente con:</p>
+    <label><input type="radio" name="r99" value="a"> Relajación y digestión</label><br>
+    <label><input type="radio" name="r99" value="b"> Respuesta de huida o lucha</label><br>
+    <label><input type="radio" name="r99" value="c"> Producción de dopamina</label><br>
+    <label><input type="radio" name="r99" value="d"> Control voluntario de músculos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema <b>simpático</b> activa respuestas de emergencia: “huida o lucha”.</div>
+  </div>
+
+  <!-- Pregunta 100 -->
+  <div class="pregunta">
+    <p><strong>100.</strong> ¿Qué parte del sistema nervioso regula la homeostasis corporal (temperatura, hambre, sed)?</p>
+    <label><input type="radio" name="r100" value="a"> Hipotálamo</label><br>
+    <label><input type="radio" name="r100" value="b"> Tálamo</label><br>
+    <label><input type="radio" name="r100" value="c"> Mesencéfalo</label><br>
+    <label><input type="radio" name="r100" value="d"> Protuberancia</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>hipotálamo</b> mantiene el equilibrio interno y regula la homeostasis corporal.</div>
+  </div>
+
+  <!-- Pregunta 101 -->
+  <div class="pregunta">
+    <p><strong>101.</strong> El sistema nervioso periférico se divide en:</p>
+    <label><input type="radio" name="r101" value="a"> Simpático y parasimpático</label><br>
+    <label><input type="radio" name="r101" value="b"> Somático y autónomo</label><br>
+    <label><input type="radio" name="r101" value="c"> Central y espinal</label><br>
+    <label><input type="radio" name="r101" value="d"> Cerebral y craneal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Se divide en sistema <b>somático</b> (voluntario) y <b>autónomo</b> (involuntario).</div>
+  </div>
+
+  <!-- Pregunta 102 -->
+  <div class="pregunta">
+    <p><strong>102.</strong> ¿Qué estructura del encéfalo es la principal vía de relevo sensorial hacia la corteza cerebral?</p>
+    <label><input type="radio" name="r102" value="a"> Hipotálamo</label><br>
+    <label><input type="radio" name="r102" value="b"> Tálamo</label><br>
+    <label><input type="radio" name="r102" value="c"> Cerebelo</label><br>
+    <label><input type="radio" name="r102" value="d"> Médula espinal</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>tálamo</b> retransmite la información sensorial hacia la corteza cerebral.</div>
+  </div>
+
+  <!-- Pregunta 103 -->
+  <div class="pregunta">
+    <p><strong>103.</strong> ¿Qué hemisferio cerebral está generalmente asociado con el lenguaje y el razonamiento lógico?</p>
+    <label><input type="radio" name="r103" value="a"> Derecho</label><br>
+    <label><input type="radio" name="r103" value="b"> Izquierdo</label><br>
+    <label><input type="radio" name="r103" value="c"> Posterior</label><br>
+    <label><input type="radio" name="r103" value="d"> Anterior</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>hemisferio izquierdo</b> se relaciona con lenguaje, análisis y lógica.</div>
+  </div>
+
+  <!-- Pregunta 104 -->
+  <div class="pregunta">
+    <p><strong>104.</strong> ¿Qué parte del sistema nervioso es responsable del arco reflejo?</p>
+    <label><input type="radio" name="r104" value="a"> Cerebro</label><br>
+    <label><input type="radio" name="r104" value="b"> Médula espinal</label><br>
+    <label><input type="radio" name="r104" value="c"> Tálamo</label><br>
+    <label><input type="radio" name="r104" value="d"> Bulbo raquídeo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>arco reflejo</b> se integra a nivel de la <b>médula espinal</b>.</div>
+  </div>
+
+  <!-- Pregunta 105 -->
+  <div class="pregunta">
+    <p><strong>105.</strong> El neurotransmisor GABA ejerce un efecto:</p>
+    <label><input type="radio" name="r105" value="a"> Excitador</label><br>
+    <label><input type="radio" name="r105" value="b"> Inhibidor</label><br>
+    <label><input type="radio" name="r105" value="c"> Neutral</label><br>
+    <label><input type="radio" name="r105" value="d"> Despolarizante</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>GABA</b> es el principal neurotransmisor inhibidor del SNC.</div>
+  </div>
+
+  <!-- Pregunta 106 -->
+  <div class="pregunta">
+    <p><strong>106.</strong> ¿Qué capa de las meninges está en contacto directo con el tejido nervioso?</p>
+    <label><input type="radio" name="r106" value="a"> Duramadre</label><br>
+    <label><input type="radio" name="r106" value="b"> Aracnoides</label><br>
+    <label><input type="radio" name="r106" value="c"> Piamadre</label><br>
+    <label><input type="radio" name="r106" value="d"> Endoneuro</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>piamadre</b> está adherida directamente al tejido nervioso.</div>
+  </div>
+
+  <!-- Pregunta 107 -->
+  <div class="pregunta">
+    <p><strong>107.</strong> ¿Qué estructura protege mecánica y químicamente al encéfalo?</p>
+    <label><input type="radio" name="r107" value="a"> Líquido cefalorraquídeo</label><br>
+    <label><input type="radio" name="r107" value="b"> Plexo coroideo</label><br>
+    <label><input type="radio" name="r107" value="c"> Hipotálamo</label><br>
+    <label><input type="radio" name="r107" value="d"> Endotelio vascular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>líquido cefalorraquídeo</b> protege y amortigua el encéfalo.</div>
+  </div>
+
+  <!-- Pregunta 108 -->
+  <div class="pregunta">
+    <p><strong>108.</strong> El sistema nervioso parasimpático provoca:</p>
+    <label><input type="radio" name="r108" value="a"> Aumento de la frecuencia cardiaca</label><br>
+    <label><input type="radio" name="r108" value="b"> Disminución del ritmo cardiaco y aumento de la digestión</label><br>
+    <label><input type="radio" name="r108" value="c"> Vasoconstricción</label><br>
+    <label><input type="radio" name="r108" value="d"> Liberación de adrenalina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>parasimpático</b> favorece la digestión y reduce la frecuencia cardiaca.</div>
+  </div>
+
+  <!-- Pregunta 109 -->
+  <div class="pregunta">
+    <p><strong>109.</strong> ¿Qué parte del encéfalo regula el ciclo sueño-vigilia?</p>
+    <label><input type="radio" name="r109" value="a"> Hipotálamo</label><br>
+    <label><input type="radio" name="r109" value="b"> Bulbo</label><br>
+    <label><input type="radio" name="r109" value="c"> Formación reticular</label><br>
+    <label><input type="radio" name="r109" value="d"> Tálamo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>formación reticular</b> controla el estado de alerta y sueño.</div>
+  </div>
+
+  <!-- Pregunta 110 -->
+  <div class="pregunta">
+    <p><strong>110.</strong> ¿Cuál es la función del sistema tegumentario?</p>
+    <label><input type="radio" name="r110" value="a"> Regular el equilibrio hídrico</label><br>
+    <label><input type="radio" name="r110" value="b"> Proteger contra agresiones externas y regular la temperatura</label><br>
+    <label><input type="radio" name="r110" value="c"> Transportar hormonas</label><br>
+    <label><input type="radio" name="r110" value="d"> Producir eritropoyetina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema <b>tegumentario</b> protege el cuerpo y regula la temperatura.</div>
+  </div>
+
+  <!-- Pregunta 111 -->
+  <div class="pregunta">
+    <p><strong>111.</strong> La capa más externa de la piel es:</p>
+    <label><input type="radio" name="r111" value="a"> Dermis</label><br>
+    <label><input type="radio" name="r111" value="b"> Epidermis</label><br>
+    <label><input type="radio" name="r111" value="c"> Hipodermis</label><br>
+    <label><input type="radio" name="r111" value="d"> Endodermis</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>epidermis</b> es la capa superficial compuesta por epitelio queratinizado.</div>
+  </div>
+
+  <!-- Pregunta 112 -->
+  <div class="pregunta">
+    <p><strong>112.</strong> ¿Cuál es la capa de la piel donde se encuentran vasos sanguíneos y terminaciones nerviosas?</p>
+    <label><input type="radio" name="r112" value="a"> Epidermis</label><br>
+    <label><input type="radio" name="r112" value="b"> Dermis</label><br>
+    <label><input type="radio" name="r112" value="c"> Hipodermis</label><br>
+    <label><input type="radio" name="r112" value="d"> Estrato córneo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>dermis</b> contiene vasos, nervios y colágeno.</div>
+  </div>
+
+  <!-- Pregunta 113 -->
+  <div class="pregunta">
+    <p><strong>113.</strong> ¿Qué sustancia da color a la piel y la protege de los rayos UV?</p>
+    <label><input type="radio" name="r113" value="a"> Colágeno</label><br>
+    <label><input type="radio" name="r113" value="b"> Queratina</label><br>
+    <label><input type="radio" name="r113" value="c"> Melanina</label><br>
+    <label><input type="radio" name="r113" value="d"> Sebo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>melanina</b> protege de la radiación ultravioleta.</div>
+  </div>
+
+  <!-- Pregunta 114 -->
+  <div class="pregunta">
+    <p><strong>114.</strong> ¿Cuál es la función principal de las glándulas sudoríparas ecrinas?</p>
+    <label><input type="radio" name="r114" value="a"> Producir sebo</label><br>
+    <label><input type="radio" name="r114" value="b"> Regular la temperatura corporal mediante sudoración</label><br>
+    <label><input type="radio" name="r114" value="c"> Secretar feromonas</label><br>
+    <label><input type="radio" name="r114" value="d"> Lubricar el cabello</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las glándulas <b>ecrinas</b> eliminan sudor para enfriar el cuerpo.</div>
+  </div>
+
+  <!-- Pregunta 115 -->
+  <div class="pregunta">
+    <p><strong>115.</strong> ¿Dónde se localizan las glándulas sebáceas?</p>
+    <label><input type="radio" name="r115" value="a"> En los pulmones</label><br>
+    <label><input type="radio" name="r115" value="b"> Asociadas a folículos pilosos</label><br>
+    <label><input type="radio" name="r115" value="c"> En la dermis papilar</label><br>
+    <label><input type="radio" name="r115" value="d"> En la hipodermis</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las glándulas <b>sebáceas</b> secretan sebo en los folículos pilosos.</div>
+  </div>
+
+  <!-- Pregunta 116 -->
+  <div class="pregunta">
+    <p><strong>116.</strong> El cabello y las uñas son estructuras derivadas de:</p>
+    <label><input type="radio" name="r116" value="a"> Dermis</label><br>
+    <label><input type="radio" name="r116" value="b"> Hipodermis</label><br>
+    <label><input type="radio" name="r116" value="c"> Epidermis</label><br>
+    <label><input type="radio" name="r116" value="d"> Glándulas apocrinas</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Cabello y uñas derivan de la <b>epidermis</b> queratinizada.</div>
+  </div>
+
+  <!-- Pregunta 117 -->
+  <div class="pregunta">
+    <p><strong>117.</strong> ¿Cuál es la función del estrato córneo?</p>
+    <label><input type="radio" name="r117" value="a"> Síntesis de melanina</label><br>
+    <label><input type="radio" name="r117" value="b"> Protección mecánica y química del cuerpo</label><br>
+    <label><input type="radio" name="r117" value="c"> Generar queratinocitos</label><br>
+    <label><input type="radio" name="r117" value="d"> Secretar sudor</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>estrato córneo</b> forma una barrera protectora de células muertas queratinizadas.</div>
+  </div>
+
+  <!-- Pregunta 118 -->
+  <div class="pregunta">
+    <p><strong>118.</strong> ¿Qué tipo de terminaciones nerviosas cutáneas detectan la presión profunda?</p>
+    <label><input type="radio" name="r118" value="a"> Corpúsculos de Meissner</label><br>
+    <label><input type="radio" name="r118" value="b"> Corpúsculos de Pacini</label><br>
+    <label><input type="radio" name="r118" value="c"> Terminaciones libres</label><br>
+    <label><input type="radio" name="r118" value="d"> Discos de Merkel</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>corpúsculos de Pacini</b> responden a presiones profundas y vibración.</div>
+  </div>
+
+  <!-- Pregunta 119 -->
+  <div class="pregunta">
+    <p><strong>119.</strong> ¿Qué capa de la piel se encuentra más desarrollada en zonas de fricción como palmas y plantas?</p>
+    <label><input type="radio" name="r119" value="a"> Estrato lúcido</label><br>
+    <label><input type="radio" name="r119" value="b"> Estrato basal</label><br>
+    <label><input type="radio" name="r119" value="c"> Estrato espinoso</label><br>
+    <label><input type="radio" name="r119" value="d"> Estrato granuloso</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>estrato lúcido</b> aparece en piel gruesa como palmas y plantas.</div>
+  </div>
+
+  <!-- Pregunta 120 -->
+  <div class="pregunta">
+    <p><strong>120.</strong> ¿Qué componente de la piel participa en la termorregulación mediante vasodilatación y vasoconstricción?</p>
+    <label><input type="radio" name="r120" value="a"> Epidermis</label><br>
+    <label><input type="radio" name="r120" value="b"> Vasos sanguíneos de la dermis</label><br>
+    <label><input type="radio" name="r120" value="c"> Estrato basal</label><br>
+    <label><input type="radio" name="r120" value="d"> Folículos pilosos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>vasos sanguíneos dérmicos</b> regulan la temperatura corporal.</div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button onclick="cambiarPagina(-1)">Anterior</button>
+    <button onclick="cambiarPagina(1)">Siguiente</button>
+  </div>
+</div>
+
+
+<div class="pagina-tutoria" id="tutoria5">
+  <h2>🧫 Tutoría 5 – Sistema Reproductor Humano</h2>
+
+  <!-- Pregunta 121 -->
+  <div class="pregunta">
+    <p><strong>121.</strong> ¿Cuál es la función principal del sistema reproductor?</p>
+    <label><input type="radio" name="r121" value="a"> Mantener la homeostasis del cuerpo</label><br>
+    <label><input type="radio" name="r121" value="b"> Permitir la continuidad de la especie mediante la producción de gametos</label><br>
+    <label><input type="radio" name="r121" value="c"> Controlar la presión arterial</label><br>
+    <label><input type="radio" name="r121" value="d"> Regular la digestión</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El sistema reproductor asegura la <b>continuidad de la especie</b> produciendo gametos y hormonas sexuales.</div>
+  </div>
+
+  <!-- Pregunta 122 -->
+  <div class="pregunta">
+    <p><strong>122.</strong> ¿Qué estructura produce los espermatozoides en el testículo?</p>
+    <label><input type="radio" name="r122" value="a"> Epidídimo</label><br>
+    <label><input type="radio" name="r122" value="b"> Túbulos seminíferos</label><br>
+    <label><input type="radio" name="r122" value="c"> Conducto deferente</label><br>
+    <label><input type="radio" name="r122" value="d"> Glándulas de Cowper</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>túbulos seminíferos</b> son el sitio donde se forman los espermatozoides.</div>
+  </div>
+
+  <!-- Pregunta 123 -->
+  <div class="pregunta">
+    <p><strong>123.</strong> ¿Cuál es la función de las células de Sertoli?</p>
+    <label><input type="radio" name="r123" value="a"> Secretar testosterona</label><br>
+    <label><input type="radio" name="r123" value="b"> Nutrir y proteger las células germinales durante la espermatogénesis</label><br>
+    <label><input type="radio" name="r123" value="c"> Almacenar espermatozoides maduros</label><br>
+    <label><input type="radio" name="r123" value="d"> Formar la cápsula testicular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>células de Sertoli</b> proporcionan soporte, nutrición y protección a las células germinales.</div>
+  </div>
+
+  <!-- Pregunta 124 -->
+  <div class="pregunta">
+    <p><strong>124.</strong> ¿Qué hormona estimula las células de Leydig para producir testosterona?</p>
+    <label><input type="radio" name="r124" value="a"> FSH</label><br>
+    <label><input type="radio" name="r124" value="b"> LH</label><br>
+    <label><input type="radio" name="r124" value="c"> Prolactina</label><br>
+    <label><input type="radio" name="r124" value="d"> Estrógeno</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>LH</b> estimula a las células de <b>Leydig</b> para producir testosterona.</div>
+  </div>
+
+  <!-- Pregunta 125 -->
+  <div class="pregunta">
+    <p><strong>125.</strong> ¿Qué estructura almacena los espermatozoides antes de la eyaculación?</p>
+    <label><input type="radio" name="r125" value="a"> Conducto deferente</label><br>
+    <label><input type="radio" name="r125" value="b"> Epidídimo</label><br>
+    <label><input type="radio" name="r125" value="c"> Vesícula seminal</label><br>
+    <label><input type="radio" name="r125" value="d"> Uretra</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>epidídimo</b> almacena y madura los espermatozoides antes de la eyaculación.</div>
+  </div>
+
+  <!-- Pregunta 126 -->
+  <div class="pregunta">
+    <p><strong>126.</strong> La vesícula seminal produce un líquido rico en:</p>
+    <label><input type="radio" name="r126" value="a"> Ácido láctico</label><br>
+    <label><input type="radio" name="r126" value="b"> Fructosa y prostaglandinas</label><br>
+    <label><input type="radio" name="r126" value="c"> Enzimas digestivas</label><br>
+    <label><input type="radio" name="r126" value="d"> Colesterol</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>vesícula seminal</b> secreta <b>fructosa</b> que nutre a los espermatozoides.</div>
+  </div>
+
+  <!-- Pregunta 127 -->
+  <div class="pregunta">
+    <p><strong>127.</strong> ¿Qué glándula contribuye con la mayor parte del volumen del semen?</p>
+    <label><input type="radio" name="r127" value="a"> Próstata</label><br>
+    <label><input type="radio" name="r127" value="b"> Glándulas de Cowper</label><br>
+    <label><input type="radio" name="r127" value="c"> Vesículas seminales</label><br>
+    <label><input type="radio" name="r127" value="d"> Epidídimo</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>vesículas seminales</b> aportan cerca del 60% del volumen del semen.</div>
+  </div>
+
+  <!-- Pregunta 128 -->
+  <div class="pregunta">
+    <p><strong>128.</strong> ¿Cuál es la función principal de la próstata?</p>
+    <label><input type="radio" name="r128" value="a"> Producir testosterona</label><br>
+    <label><input type="radio" name="r128" value="b"> Secretar un líquido alcalino que neutraliza la acidez vaginal</label><br>
+    <label><input type="radio" name="r128" value="c"> Almacenar espermatozoides</label><br>
+    <label><input type="radio" name="r128" value="d"> Regular la temperatura testicular</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>próstata</b> secreta un fluido alcalino que mejora la supervivencia de los espermatozoides.</div>
+  </div>
+
+  <!-- Pregunta 129 -->
+  <div class="pregunta">
+    <p><strong>129.</strong> ¿Qué hormona regula la producción de espermatozoides en conjunto con la testosterona?</p>
+    <label><input type="radio" name="r129" value="a"> FSH</label><br>
+    <label><input type="radio" name="r129" value="b"> ACTH</label><br>
+    <label><input type="radio" name="r129" value="c"> GH</label><br>
+    <label><input type="radio" name="r129" value="d"> TSH</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>FSH</b> estimula las células de Sertoli para la <b>espermatogénesis</b>.</div>
+  </div>
+
+  <!-- Pregunta 130 -->
+  <div class="pregunta">
+    <p><strong>130.</strong> En la mujer, los ovocitos se desarrollan en:</p>
+    <label><input type="radio" name="r130" value="a"> Trompas de Falopio</label><br>
+    <label><input type="radio" name="r130" value="b"> Ovarios</label><br>
+    <label><input type="radio" name="r130" value="c"> Útero</label><br>
+    <label><input type="radio" name="r130" value="d"> Vagina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>ovocitos</b> maduran dentro de los <b>folículos ováricos</b> del ovario.</div>
+  </div>
+
+  <!-- Pregunta 131 -->
+  <div class="pregunta">
+    <p><strong>131.</strong> ¿Qué hormona estimula la ovulación?</p>
+    <label><input type="radio" name="r131" value="a"> FSH</label><br>
+    <label><input type="radio" name="r131" value="b"> LH</label><br>
+    <label><input type="radio" name="r131" value="c"> Estrógeno</label><br>
+    <label><input type="radio" name="r131" value="d"> Progesterona</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El pico de <b>LH</b> desencadena la <b>ovulación</b>.</div>
+  </div>
+
+  <!-- Pregunta 132 -->
+  <div class="pregunta">
+    <p><strong>132.</strong> La fase lútea del ciclo menstrual se caracteriza por:</p>
+    <label><input type="radio" name="r132" value="a"> Predominio de estrógenos</label><br>
+    <label><input type="radio" name="r132" value="b"> Secreción elevada de progesterona</label><br>
+    <label><input type="radio" name="r132" value="c"> Descenso de LH</label><br>
+    <label><input type="radio" name="r132" value="d"> Liberación de ovocitos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">En la <b>fase lútea</b>, el cuerpo lúteo secreta <b>progesterona</b> para preparar el endometrio.</div>
+  </div>
+
+  <!-- Pregunta 133 -->
+  <div class="pregunta">
+    <p><strong>133.</strong> ¿Dónde ocurre la fecundación normalmente?</p>
+    <label><input type="radio" name="r133" value="a"> Ovario</label><br>
+    <label><input type="radio" name="r133" value="b"> Trompa de Falopio</label><br>
+    <label><input type="radio" name="r133" value="c"> Útero</label><br>
+    <label><input type="radio" name="r133" value="d"> Cérvix</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La fecundación ocurre en la <b>ampolla de la trompa de Falopio</b>.</div>
+  </div>
+
+  <!-- Pregunta 134 -->
+  <div class="pregunta">
+    <p><strong>134.</strong> El cuerpo lúteo se forma a partir de:</p>
+    <label><input type="radio" name="r134" value="a"> Folículo de Graaf roto</label><br>
+    <label><input type="radio" name="r134" value="b"> Células germinales</label><br>
+    <label><input type="radio" name="r134" value="c"> Endometrio</label><br>
+    <label><input type="radio" name="r134" value="d"> Zona pelúcida</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Tras la ovulación, el folículo roto se transforma en el <b>cuerpo lúteo</b>.</div>
+  </div>
+
+  <!-- Pregunta 135 -->
+  <div class="pregunta">
+    <p><strong>135.</strong> ¿Cuál es la función del cuerpo lúteo?</p>
+    <label><input type="radio" name="r135" value="a"> Producir estrógenos solamente</label><br>
+    <label><input type="radio" name="r135" value="b"> Secretar progesterona para mantener el endometrio</label><br>
+    <label><input type="radio" name="r135" value="c"> Liberar LH</label><br>
+    <label><input type="radio" name="r135" value="d"> Transportar ovocitos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>cuerpo lúteo</b> produce <b>progesterona</b> para mantener el endometrio receptivo.</div>
+  </div>
+
+  <!-- Pregunta 136 -->
+  <div class="pregunta">
+    <p><strong>136.</strong> ¿Cuál es la capa interna del útero que se desprende durante la menstruación?</p>
+    <label><input type="radio" name="r136" value="a"> Miometrio</label><br>
+    <label><input type="radio" name="r136" value="b"> Endometrio</label><br>
+    <label><input type="radio" name="r136" value="c"> Perimetrio</label><br>
+    <label><input type="radio" name="r136" value="d"> Epimetrio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>endometrio</b> se engrosa y se descama durante la menstruación.</div>
+  </div>
+
+  <!-- Pregunta 137 -->
+  <div class="pregunta">
+    <p><strong>137.</strong> ¿Qué estructura conecta el útero con la vagina?</p>
+    <label><input type="radio" name="r137" value="a"> Trompa uterina</label><br>
+    <label><input type="radio" name="r137" value="b"> Cérvix</label><br>
+    <label><input type="radio" name="r137" value="c"> Clítoris</label><br>
+    <label><input type="radio" name="r137" value="d"> Ovario</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>cérvix</b> es la porción inferior del útero que comunica con la vagina.</div>
+  </div>
+
+  <!-- Pregunta 138 -->
+  <div class="pregunta">
+    <p><strong>138.</strong> ¿Qué hormona mantiene el cuerpo lúteo durante las primeras semanas del embarazo?</p>
+    <label><input type="radio" name="r138" value="a"> Progesterona</label><br>
+    <label><input type="radio" name="r138" value="b"> hCG (gonadotropina coriónica humana)</label><br>
+    <label><input type="radio" name="r138" value="c"> Estrógeno</label><br>
+    <label><input type="radio" name="r138" value="d"> FSH</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>hCG</b> secretada por el embrión mantiene el cuerpo lúteo activo.</div>
+  </div>
+
+  <!-- Pregunta 139 -->
+  <div class="pregunta">
+    <p><strong>139.</strong> El himen es:</p>
+    <label><input type="radio" name="r139" value="a"> Una glándula de secreción vaginal</label><br>
+    <label><input type="radio" name="r139" value="b"> Una membrana delgada que cubre parcialmente el orificio vaginal</label><br>
+    <label><input type="radio" name="r139" value="c"> Una capa del endometrio</label><br>
+    <label><input type="radio" name="r139" value="d"> Una parte del clítoris</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>himen</b> es una membrana que cubre parcialmente la entrada vaginal.</div>
+  </div>
+
+  <!-- Pregunta 140 -->
+  <div class="pregunta">
+    <p><strong>140.</strong> ¿Qué glándulas femeninas lubrican la entrada vaginal?</p>
+    <label><input type="radio" name="r140" value="a"> Glándulas de Bartholin</label><br>
+    <label><input type="radio" name="r140" value="b"> Glándulas sebáceas</label><br>
+    <label><input type="radio" name="r140" value="c"> Glándulas mamarias</label><br>
+    <label><input type="radio" name="r140" value="d"> Glándulas vestibulares menores</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>glándulas de Bartholin</b> secretan un moco lubricante durante la excitación sexual.</div>
+  </div>
+
+  <!-- Pregunta 141 -->
+  <div class="pregunta">
+    <p><strong>141.</strong> ¿Qué estructura produce leche materna?</p>
+    <label><input type="radio" name="r141" value="a"> Glándulas mamarias</label><br>
+    <label><input type="radio" name="r141" value="b"> Glándulas de Skene</label><br>
+    <label><input type="radio" name="r141" value="c"> Cérvix</label><br>
+    <label><input type="radio" name="r141" value="d"> Uretra</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las <b>glándulas mamarias</b> producen leche bajo estímulo de prolactina y oxitocina.</div>
+  </div>
+
+  <!-- Pregunta 142 -->
+  <div class="pregunta">
+    <p><strong>142.</strong> La oxitocina interviene principalmente en:</p>
+    <label><input type="radio" name="r142" value="a"> La ovulación</label><br>
+    <label><input type="radio" name="r142" value="b"> La contracción uterina y eyección de leche</label><br>
+    <label><input type="radio" name="r142" value="c"> La maduración folicular</label><br>
+    <label><input type="radio" name="r142" value="d"> La síntesis de estrógenos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>oxitocina</b> estimula las contracciones uterinas y la salida de leche materna.</div>
+  </div>
+
+  <!-- Pregunta 143 -->
+  <div class="pregunta">
+    <p><strong>143.</strong> ¿Qué cromosoma determina el sexo masculino?</p>
+    <label><input type="radio" name="r143" value="a"> X</label><br>
+    <label><input type="radio" name="r143" value="b"> Y</label><br>
+    <label><input type="radio" name="r143" value="c"> XX</label><br>
+    <label><input type="radio" name="r143" value="d"> XY</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El cromosoma <b>Y</b> determina el desarrollo de caracteres masculinos (XY).</div>
+  </div>
+
+  <!-- Pregunta 144 -->
+  <div class="pregunta">
+    <p><strong>144.</strong> ¿Qué estructura embrionaria da origen a los conductos deferentes y epidídimos?</p>
+    <label><input type="radio" name="r144" value="a"> Conductos de Müller</label><br>
+    <label><input type="radio" name="r144" value="b"> Conductos de Wolff</label><br>
+    <label><input type="radio" name="r144" value="c"> Cresta gonadal</label><br>
+    <label><input type="radio" name="r144" value="d"> Seno urogenital</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>conductos de Wolff</b> originan epidídimo, conducto deferente y vesículas seminales.</div>
+  </div>
+
+  <!-- Pregunta 145 -->
+  <div class="pregunta">
+    <p><strong>145.</strong> ¿Qué estructura embrionaria da origen a las trompas de Falopio, útero y parte superior de la vagina?</p>
+    <label><input type="radio" name="r145" value="a"> Conductos de Wolff</label><br>
+    <label><input type="radio" name="r145" value="b"> Conductos de Müller</label><br>
+    <label><input type="radio" name="r145" value="c"> Cloaca</label><br>
+    <label><input type="radio" name="r145" value="d"> Saco vitelino</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>conductos de Müller</b> originan trompas, útero y parte de la vagina.</div>
+  </div>
+
+  <!-- Pregunta 146 -->
+  <div class="pregunta">
+    <p><strong>146.</strong> ¿Qué hormona femenina alcanza su nivel máximo justo antes de la ovulación?</p>
+    <label><input type="radio" name="r146" value="a"> FSH</label><br>
+    <label><input type="radio" name="r146" value="b"> Estrógeno</label><br>
+    <label><input type="radio" name="r146" value="c"> LH</label><br>
+    <label><input type="radio" name="r146" value="d"> Progesterona</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>estrógeno</b> se eleva y desencadena el pico de <b>LH</b> previo a la ovulación.</div>
+  </div>
+
+  <!-- Pregunta 147 -->
+  <div class="pregunta">
+    <p><strong>147.</strong> ¿Qué parte del pene es responsable de su erección?</p>
+    <label><input type="radio" name="r147" value="a"> Glándulas de Cowper</label><br>
+    <label><input type="radio" name="r147" value="b"> Cuerpos cavernosos</label><br>
+    <label><input type="radio" name="r147" value="c"> Prepucio</label><br>
+    <label><input type="radio" name="r147" value="d"> Uretra esponjosa</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La erección se produce por el llenado sanguíneo de los <b>cuerpos cavernosos</b>.</div>
+  </div>
+
+  <!-- Pregunta 148 -->
+  <div class="pregunta">
+    <p><strong>148.</strong> ¿Qué hormona induce el desarrollo de los caracteres sexuales secundarios masculinos?</p>
+    <label><input type="radio" name="r148" value="a"> Estrógeno</label><br>
+    <label><input type="radio" name="r148" value="b"> Testosterona</label><br>
+    <label><input type="radio" name="r148" value="c"> Progesterona</label><br>
+    <label><input type="radio" name="r148" value="d"> Prolactina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>testosterona</b> induce los caracteres sexuales secundarios en el varón.</div>
+  </div>
+
+  <!-- Pregunta 149 -->
+  <div class="pregunta">
+    <p><strong>149.</strong> ¿Qué hormona es responsable del desarrollo de los caracteres sexuales secundarios femeninos?</p>
+    <label><input type="radio" name="r149" value="a"> Estrógenos</label><br>
+    <label><input type="radio" name="r149" value="b"> Testosterona</label><br>
+    <label><input type="radio" name="r149" value="c"> LH</label><br>
+    <label><input type="radio" name="r149" value="d"> Prolactina</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los <b>estrógenos</b> regulan el desarrollo de los caracteres sexuales femeninos.</div>
+  </div>
+
+  <!-- Pregunta 150 -->
+  <div class="pregunta">
+    <p><strong>150.</strong> ¿Qué evento marca el inicio fisiológico de la pubertad en ambos sexos?</p>
+    <label><input type="radio" name="r150" value="a"> Aumento de GH</label><br>
+    <label><input type="radio" name="r150" value="b"> Activación del eje hipotálamo–hipófisis–gónadas</label><br>
+    <label><input type="radio" name="r150" value="c"> Liberación de insulina</label><br>
+    <label><input type="radio" name="r150" value="d"> Incremento de cortisol</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La pubertad inicia con la activación del eje <b>hipotálamo–hipófisis–gónadas</b>.</div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button onclick="cambiarPagina(-1)">Anterior</button>
+    <button onclick="finalizarEvaluacion()">Finalizar Evaluación</button>
+  </div>
+</div>
+
+
+
+</div>
+
+<!-- Modal de resultados con gráficos -->
+<div id="puntaje-popup" class="popup-modal">
+  <div class="popup-content"></div>
+</div>
+
+
+
+<!-- 🔔 Modal de advertencia -->
+<div id="modalAlerta" class="popup-modal">
+  <div class="popup-content" style="max-width: 400px; text-align:center;">
+    <h3 style="color:#b10000;">⚠️ Atención</h3>
+    <p>Debes responder <strong>todas las preguntas</strong> antes de ver los resultados.</p>
+    <div class="popup-buttons">
+      <button onclick="cerrarModalAlerta()">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- === 🔔  MODAL: Explicaciones bloqueadas === -->
+<div id="modalExplicacionesBloqueadas" class="popup-modal">
+  <div class="popup-content" style="max-width: 500px; text-align:center;">
+    <h2>Explicaciones no disponibles</h2>
+    <p>⚠️ Debes completar todas las preguntas y ver tu puntaje antes de consultar las explicaciones formativas del PMAP.</p>
+    <div class="popup-buttons">
+      <button class="boton" onclick="cerrarModalExplicacionesBloqueadas()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- === 🔔 MODAL: Descarga bloqueada (SITE-RUTA LATAM) === -->
+<div id="modalDescargaBloqueada" class="popup-modal">
+  <div class="popup-content" style="max-width: 500px; text-align:center;">
+    <h2>Descarga no disponible</h2>
+    <p>⚠️ Debes completar todas las preguntas y ver tu puntaje antes de generar el informe PMAP.</p>
+    <div class="popup-buttons">
+      <button class="boton" onclick="cerrarModalDescarga()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<script>
+/* ==========================================================
+   🧭 BANCO DE ENLACES DE REFUERZO – SITE-RUTA LATAM (expandido)
+   ========================================================== */
+const bancoRefuerzo = [
+  // 1–16 originales
+  "https://www.discapnet.es/salud/sistemas-del-cuerpo-humano/esqueletico",
+  "https://medlineplus.gov/spanish/ency/article/003009.htm",
+  "https://es.wikipedia.org/wiki/Sistema_muscular",
+  "https://www.biologyonline.com/dictionary/smooth-muscle",
+  "https://www.cincinnatichildrens.org/espanol/temas-de-salud/alpha/h/jobl",
+  "https://es.wikipedia.org/wiki/Arteria",
+  "https://www.visiblebody.com/es/learn/urinary/urine-creation",
+  "https://es.wikipedia.org/wiki/Vejiga_urinaria",
+  "https://es.wikipedia.org/wiki/Gl%C3%A1ndula_tiroidea",
+  "https://medlineplus.gov/spanish/ency/article/003701.htm",
+  "https://es.wikipedia.org/wiki/Neurona",
+  "https://es.wikipedia.org/wiki/Cerebelo",
+  "https://es.wikipedia.org/wiki/Dermis",
+  "https://es.wikipedia.org/wiki/Melanina",
+  "https://es.wikipedia.org/wiki/Ovario",
+  "https://es.wikipedia.org/wiki/Testosterona",
+  // 17–150 vacíos o reutilizables
+  ...Array(134).fill("")
+];
+
+/* ==========================================================
+   🧩 RESPUESTAS CORRECTAS (150)
+   Cada letra corresponde al valor del input correcto ("a","b","c","d")
+   ========================================================== */
+const respuestasCorrectas = [
+  // Tutoría 1 (1–30)
+  "b","b","b","b","b","b","a","b","a","b","a","b","b","a","b","c","b","b","a","c","b","b","c","b","a","c","a","d","b","c",
+  // Tutoría 2 (31–60)
+  "b","b","a","c","b","c","b","c","b","c","b","b","b","b","c","b","b","b","b","b","b","b","b","b","c","b","b","b","b","a",
+  // Tutoría 3 (61–90)
+  "c","c","b","b","b","c","c","c","b","b","c","c","c","b","b","c","b","d","b","b","b","b","b","a","c","b","b","b","c","b",
+  // Tutoría 4 (91–120)
+  "a","b","c","c","a","a","b","b","b","a","b","b","c","b","b","c","b","b","a","b","b","b","b","b","b","c","b","b","a","b",
+  // Tutoría 5 (121–150)
+  "b","b","b","b","b","b","c","b","a","b","b","b","b","a","b","b","b","b","b","b","a","b","b","b","b","b","b","b","a","b"
+];
+
+let chart1, chart2;
+let cuestionarioCompletado = false;
+
+/* ==========================================================
+   🔀 NAVEGACIÓN ENTRE TUTORÍAS (Paginación)
+   ========================================================== */
+let paginaActual = 0;
+const paginas = document.getElementsByClassName("pagina-tutoria");
+
+function mostrarPagina(n) {
+  for (let i = 0; i < paginas.length; i++) {
+    paginas[i].style.display = i === n ? "block" : "none";
+  }
+}
+
+function cambiarPagina(delta) {
+  paginaActual += delta;
+  if (paginaActual < 0) paginaActual = 0;
+  if (paginaActual >= paginas.length) paginaActual = paginas.length - 1;
+  mostrarPagina(paginaActual);
+}
+
+function finalizarEvaluacion() {
+  calcularPuntaje();
+}
+
+/* ==========================================================
+   ✳️ RESTO DE FUNCIONES DE CONTROL Y RESULTADOS
+   ========================================================== */
+function toggleMenu() {
+  const cont = document.getElementById("menuContenedor");
+  const icon = document.getElementById("menuIcon");
+  cont.classList.toggle("show");
+  icon.classList.toggle("abierto");
+}
+
+function iniciarCuestionario() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const asignatura = document.getElementById("asignatura").value;
+
+  if (!nombre || !email || !asignatura) {
+    alert("Por favor completa todos los campos antes de iniciar.");
+    return;
+  }
+
+  document.getElementById("registro-container").style.display = "none";
+  document.getElementById("cuestionario-container").style.display = "block";
+  document.getElementById("tituloEvaluacion").textContent = `Evaluación de ${asignatura}`;
+  mostrarPagina(0);
+}
+
+/* ==========================================================
+   📊 CALCULAR PUNTAJE – SITE-RUTA LATAM (versión extendida)
+   ========================================================== */
+function calcularPuntaje() {
+  const preguntas = document.getElementsByClassName("pregunta");
+  const total = preguntas.length;
+  let correctas = 0;
+  let respondidas = 0;
+
+  for (let i = 0; i < total; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+    if (seleccion !== "") respondidas++;
+  }
+
+  if (respondidas < total) {
+    alert("⚠️ Aún hay preguntas sin responder. Revisa todas las tutorías antes de finalizar.");
+    return;
+  }
+
+  for (let i = 0; i < total; i++) {
+    const opciones = preguntas[i].querySelectorAll('input[type="radio"]');
+    let seleccion = "";
+    opciones.forEach(op => { if (op.checked) seleccion = op.value; });
+
+    const retro = preguntas[i].querySelector(".retroalimentacion-container");
+    retro.innerHTML = "";
+    const enlace = bancoRefuerzo[i] ? bancoRefuerzo[i] : "";
+
+    if (seleccion === respuestasCorrectas[i]) {
+      correctas++;
+      retro.className = "retroalimentacion-container respuesta-correcta";
+      retro.innerHTML = "✅ <strong>Respuesta correcta</strong>";
+    } else {
+      retro.className = "retroalimentacion-container respuesta-incorrecta";
+      retro.innerHTML = `❌ <strong>Incorrecta</strong> ${enlace ? `<a href='${enlace}' target='_blank'>🔗 Refuerzo</a>` : ""}`;
+    }
+  }
+
+  const porcentaje = ((correctas / total) * 100).toFixed(2);
+  const nombre = document.getElementById("nombre").value.trim();
+
+  let nivelTexto = "", nivelClase = "";
+  if (porcentaje < 40) { nivelTexto = "Nivel 1 (Bajo)"; nivelClase = "p1"; }
+  else if (porcentaje < 60) { nivelTexto = "Nivel 2 (Básico)"; nivelClase = "p2"; }
+  else if (porcentaje < 80) { nivelTexto = "Nivel 3 (Alto)"; nivelClase = "p3"; }
+  else nivelTexto = "Nivel 4 (Superior)";
+
+  const modal = document.getElementById("puntaje-popup");
+  const popup = modal.querySelector(".popup-content");
+  popup.innerHTML = `
+    <h2>Resultados de ${nombre}</h2>
+    <p><strong>Aciertos:</strong> ${correctas}/${total}</p>
+    <p><strong>Porcentaje:</strong> ${porcentaje}%</p>
+    <p class="${nivelClase}">${nivelTexto}</p>
+    <canvas id="graficoCircular" width="260" height="260"></canvas>
+    <canvas id="graficoBarras" width="260" height="260"></canvas>
+    <div class="popup-buttons">
+      <button class="boton" onclick="descargarExcel()">📥 Descargar Excel</button>
+      <button class="boton" onclick="cerrarPuntajePopup()">Cerrar</button>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+  cuestionarioCompletado = true;
+
+  // === Dibujar gráficos ===
+  const ctx1 = document.getElementById("graficoCircular").getContext("2d");
+  const ctx2 = document.getElementById("graficoBarras").getContext("2d");
+
+  if (chart1) chart1.destroy();
+  if (chart2) chart2.destroy();
+
+  chart1 = new Chart(ctx1, {
+    type: "doughnut",
+    data: { labels: ["Correctas", "Incorrectas"], datasets: [{ data: [correctas, total - correctas], backgroundColor: ["#4CAF50","#F44336"] }] },
+    options: { plugins: { legend: { position: "bottom" } } }
+  });
+
+  chart2 = new Chart(ctx2, {
+    type: "bar",
+    data: { labels: ["Correctas","Incorrectas"], datasets: [{ data: [correctas, total - correctas], backgroundColor: ["#4CAF50","#F44336"] }] },
+    options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+  });
+}
+
+/* === Cerrar popup === */
+function cerrarPuntajePopup() {
+  const modal = document.getElementById("puntaje-popup");
+  modal.style.display = "none";
+}
+</script>
+
+
+</body>
+
+
+</html>

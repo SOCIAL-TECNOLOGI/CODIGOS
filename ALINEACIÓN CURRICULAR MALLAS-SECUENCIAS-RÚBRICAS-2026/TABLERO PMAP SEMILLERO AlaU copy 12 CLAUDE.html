@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE–RUTA LATAM | EL MONSTRUO FINAL</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root {
+  --bg: #020617;
+  --panel: #0f172a;
+  --card: #111827;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15);
+  --ok: #22c55e;
+  --warn: #f97316;
+  --danger: #ef4444;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+  --saber: #3b82f6;
+  --hacer: #10b981;
+  --ser: #8b5cf6;
+  --transicion: #f59e0b;
+  --primaria: #ef4444;
+  --secundaria: #8b5cf6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+}
+.title-block { display: flex; flex-direction: column; gap: 4px; }
+h1 { font-size: 1.4rem; letter-spacing: .03em; }
+.subtitle { font-size: .85rem; color: var(--muted); }
+.current-student {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.85rem; color: var(--muted);
+}
+.current-student strong { color: var(--accent); }
+.student-management { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 8px 16px; border: none; background: transparent; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s ease; white-space: nowrap;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+.btn {
+  border: none; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent);
+  transition: all 0.2s ease; text-decoration: none;
+}
+.btn:hover { background: rgba(56,189,248,.25); }
+.btn-success { background: rgba(34,197,94,.1); color: var(--ok); }
+.btn-success:hover { background: rgba(34,197,94,.2); }
+.btn-danger { background: rgba(239,68,68,.1); color: var(--danger); }
+.btn-danger:hover { background: rgba(239,68,68,.2); }
+.btn-warning { background: rgba(249,115,22,.1); color: var(--warn); }
+.btn-warning:hover { background: rgba(249,115,22,.2); }
+.estudiante-form { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+.form-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;
+}
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); transition: all 0.2s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.full-width { grid-column: 1 / -1; }
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px; text-align: center;
+  transition: all 0.3s ease; cursor: pointer;
+}
+.upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: var(--accent-soft); }
+.upload-icon { font-size: 3rem; margin-bottom: 12px; }
+.table-container { overflow-x: auto; margin: 16px 0; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.data-table th { background: var(--card); color: var(--muted); font-weight: 600; position: sticky; top: 0; }
+.data-table tr:hover { background: var(--accent-soft); }
+.chart-container {
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border);
+  margin: 16px 0; height: 300px; position: relative;
+}
+.chart-title { margin-bottom: 16px; color: var(--muted); font-size: 1.1rem; }
+.alert { padding: 12px 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid; }
+.alert-warning { background: rgba(249,115,22,.1); border-left-color: var(--warn); color: var(--warn); }
+.alert-success { background: rgba(34,197,94,.1); border-left-color: var(--ok); color: var(--ok); }
+.alert-danger { background: rgba(239,68,68,.1); border-left-color: var(--danger); color: var(--danger); }
+.filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.8rem; color: var(--muted); }
+.filter-group select, .filter-group input {
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); min-width: 120px;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 999px;
+  font-size: 0.75rem; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent);
+}
+.badge-success { background: rgba(34,197,94,.1); color: var(--ok); border-color: var(--ok); }
+.badge-warning { background: rgba(249,115,22,.1); color: var(--warn); border-color: var(--warn); }
+.badge-danger { background: rgba(239,68,68,.1); color: var(--danger); border-color: var(--danger); }
+.dashboard-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+}
+.dashboard-card {
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center;
+}
+.dashboard-card .value { font-size: 2rem; font-weight: bold; margin-bottom: 8px; }
+.dashboard-card .label { font-size: 0.85rem; color: var(--muted); }
+.estudiantes-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;
+}
+.estudiante-card {
+  background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.3s ease;
+}
+.estudiante-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.estudiante-card.active { border-color: var(--accent); background: var(--accent-soft); }
+.estudiante-info { margin-bottom: 12px; }
+.estudiante-nombre { font-weight: 600; margin-bottom: 4px; }
+.estudiante-meta { font-size: 0.8rem; color: var(--muted); }
+.modal {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(2,6,23,0.8); z-index: 1000; align-items: center; justify-content: center;
+}
+.modal.active { display: flex; }
+.modal-content {
+  background: var(--panel); border-radius: 12px; padding: 24px; max-width: 90%;
+  max-height: 90%; overflow: auto; border: 1px solid var(--border); position: relative;
+}
+.modal-close {
+  position: absolute; top: 16px; right: 16px; background: none; border: none;
+  color: var(--muted); font-size: 1.5rem; cursor: pointer;
+}
+.modal-close:hover { color: var(--text); }
+
+/* ===== MAPA DE CALOR - SIN DESBORDAMIENTO ===== */
+.heatmap-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.heatmap-scroll-inner {
+  min-width: 900px; /* permite scroll en móvil sin romper layout */
+}
+.heatmap-fila {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.heatmap-label {
+  min-width: 150px;
+  max-width: 150px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+.heatmap-pills {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.heatmap-pill-q {
+  flex: 1;
+  min-width: 0;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  padding: 6px 2px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.3;
+}
+.heatmap-pill-n {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px;
+  padding: 6px 2px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.heatmap-pill-n.n1 { background: rgba(239,68,68,.2); color: var(--danger); }
+.heatmap-pill-n.n2 { background: rgba(249,115,22,.2); color: var(--warn); }
+.heatmap-pill-n.n3 { background: rgba(56,189,248,.2); color: var(--accent); }
+.heatmap-pill-n.n4 { background: rgba(34,197,94,.2); color: var(--ok); }
+.heatmap-oval {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 1;
+  max-width: 44px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease;
+}
+.heatmap-oval:hover { transform: scale(1.15); }
+.heatmap-oval.correcto { background: rgba(34,197,94,.2); color: var(--ok); border-color: var(--ok); }
+.heatmap-oval.incorrecto { background: rgba(239,68,68,.2); color: var(--danger); border-color: var(--danger); }
+.heatmap-leyenda {
+  display: flex; gap: 24px; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+.heatmap-leyenda-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+.dot { width: 14px; height: 14px; border-radius: 50%; }
+
+/* ===== MATRIZ 3×4 - SIN DESBORDAMIENTO ===== */
+.matriz3x4-wrapper {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.matriz3x4-titulo {
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.matriz3x4-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+}
+.matriz3x4-table th {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.matriz3x4-table th:first-child { text-align: left; }
+.matriz3x4-table td {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+.matriz3x4-table td:first-child {
+  text-align: left;
+  font-size: 0.82rem;
+  min-width: 140px;
+}
+.comp-key { font-weight: 700; display: block; margin-bottom: 2px; }
+.comp-desc { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.pct-alto { background: rgba(34,197,94,.2) !important; color: var(--ok) !important; }
+.pct-medio { background: rgba(249,115,22,.2) !important; color: var(--warn) !important; }
+.pct-bajo { background: rgba(239,68,68,.2) !important; color: var(--danger) !important; }
+.pct-vacio { background: rgba(100,100,100,.1) !important; color: var(--muted) !important; }
+.matriz3x4-leyenda {
+  display: flex; gap: 20px; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--border); flex-wrap: wrap; font-size: 0.82rem;
+}
+
+/* Tarjetas info estudiante */
+.info-tarjetas {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+}
+.info-tarjeta {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+}
+.info-tarjeta .titulo { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px; }
+.info-tarjeta .valor { font-size: 2rem; font-weight: bold; }
+.info-tarjeta .subtitulo { color: var(--muted); font-size: 0.9rem; }
+
+/* micro prioritarias */
+.micro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+.micro-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+  border-left: 4px solid var(--danger);
+}
+
+/* card genérica */
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; margin-bottom: 16px;
+}
+.table-wrap { overflow-x: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.table-wrap th, .table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.table-wrap th { background: var(--panel); color: var(--muted); font-weight: 600; }
+
+/* pmap */
+.pmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 16px; }
+.pmap-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+  transition: all 0.2s;
+}
+.pmap-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.pmap-priority {
+  display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.priority-high { background: rgba(239,68,68,.2); color: var(--danger); }
+.priority-medium { background: rgba(249,115,22,.2); color: var(--warn); }
+.priority-low { background: rgba(56,189,248,.2); color: var(--accent); }
+.notice { background: var(--panel); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.82rem; margin: 10px 0; }
+.small { font-size: 0.82rem; } .muted { color: var(--muted); }
+.actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .estudiantes-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  header { flex-direction: column; align-items: flex-start; }
+  .filters-row { flex-direction: column; align-items: stretch; }
+  .filter-group { width: 100%; }
+}
+@media (max-width: 480px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .tabs { flex-direction: column; }
+  .tab-btn { text-align: left; }
+}
+</style>
+</head>
+<body>
+
+<div id="modalDimension" class="modal"><div class="modal-content"><button class="modal-close" onclick="cerrarModal('modalDimension')">×</button><h3>Detalles</h3><div id="modalDimensionContent"></div></div></div>
+
+<header>
+  <div class="title-block">
+    <h1>🎯 SITE–RUTA LATAM | EL MONSTRUO FINAL</h1>
+    <div class="subtitle">Chasis de lujo + Motor analítico bestial • 240/240 • PMAP • Banco FCRI</div>
+    <div class="current-student">
+      <span>Estudiante actual:</span><strong id="currentStudentName">Selecciona un estudiante</strong>
+    </div>
+  </div>
+  <div class="student-management">
+    <button class="btn btn-success" onclick="volverALista()">👥 Gestionar Estudiantes</button>
+    <button class="btn" onclick="alert('En construcción')">📊 Reportes</button>
+    <button class="btn" onclick="alert('En construcción')">🚨 Alertas</button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%;">
+
+<!-- PANEL PRINCIPAL -->
+<div id="studentsPanel">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista">📋 Lista del Semillero</button>
+    <button class="tab-btn" data-tab="aplicada">📋 Evaluación aplicada</button>
+    <button class="tab-btn" data-tab="zipgrade">📤 ZipGrade</button>
+    <button class="tab-btn" data-tab="diagnostico">📈 Diagnóstico grupal</button>
+    <button class="tab-btn" data-tab="pmap">🧠 PMAP</button>
+    <button class="tab-btn" data-tab="banco">📚 Banco FCRI</button>
+  </div>
+
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row">
+      <div class="filter-group"><label>Institución</label><input type="text" id="filtroInstitucion" placeholder="Filtrar institución"></div>
+      <div class="filter-group"><label>Grado</label><select id="filtroGrado"><option value="todos">Todos</option><option value="9">9°</option><option value="10">10°</option><option value="11">11°</option></select></div>
+      <div class="filter-group"><label>Grupo</label><select id="filtroGrupo"><option value="todos">Todos</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+      <div class="filter-group"><label>Buscar</label><input type="text" id="filtroBusqueda" placeholder="Nombre o código"></div>
+      <button class="btn btn-success" onclick="aplicarFiltros()">🔍 Filtrar</button>
+    </div>
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0; flex-wrap:wrap; gap:10px;">
+      <div style="font-size:0.85rem; color:var(--muted);">
+        Mostrando <strong id="paginationFrom">0</strong>–<strong id="paginationTo">0</strong>
+        de <strong id="totalStudentsCount">0</strong> estudiantes
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-size:0.8rem; color:var(--muted);">Por página:</label>
+        <select id="pageSize" style="padding:5px 8px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:0.82rem;">
+          <option value="6">6</option>
+          <option value="12" selected>12</option>
+          <option value="24">24</option>
+          <option value="48">48</option>
+          <option value="999">Todos</option>
+        </select>
+        <button class="btn" id="btnPrimera" onclick="irAPagina(1)" title="Primera página">«</button>
+        <button class="btn" id="btnAnterior" onclick="irAPagina(paginaActual-1)" title="Anterior">‹</button>
+        <div id="paginaBtns" style="display:flex; gap:4px;"></div>
+        <button class="btn" id="btnSiguiente" onclick="irAPagina(paginaActual+1)" title="Siguiente">›</button>
+        <button class="btn" id="btnUltima" onclick="irAPagina(totalPaginas)" title="Última página">»</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="aplicada" class="tab-pane">
+    <div class="card">
+      <h3>Evaluación aplicada (12 preguntas)</h3>
+      <div class="notice">Pega la tabla con 11 columnas: ID | # | Respuesta | Contenido del ítem | Área conceptual | Competencia ICFES | Tipo evidencia | Nivel | Verbo | Microhabilidad | Microrutina</div>
+      <textarea id="textoAplicada" style="height:200px; width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px;"></textarea>
+      <div class="actions">
+        <button class="btn btn-success" id="cargarAplicadaBtn">📥 Cargar evaluación</button>
+        <button class="btn" onclick="document.getElementById('tablaAplicada').innerHTML=''">🗑️ Limpiar</button>
+      </div>
+      <div id="aplicadaResumen" class="small muted" style="margin:8px 0;"></div>
+      <div class="table-wrap"><table id="tablaAplicada"></table></div>
+    </div>
+  </div>
+
+  <div id="zipgrade" class="tab-pane">
+    <div class="card">
+      <h3>ZipGrade</h3>
+      <input type="file" id="archivoZip" accept=".xlsx,.xls,.csv" style="color:var(--text);">
+      <div class="actions"><button class="btn btn-success" id="leerZipBtn">📄 Leer ZipGrade</button></div>
+      <div id="zipResumen" class="small muted"></div>
+      <div class="table-wrap"><table id="tablaZip"></table></div>
+    </div>
+  </div>
+
+  <div id="diagnostico" class="tab-pane">
+    <div class="card">
+      <h3>Diagnóstico grupal</h3>
+      <div class="actions"><button class="btn btn-success" id="procesarDiagnosticoBtn">🚀 Procesar motor</button></div>
+    </div>
+    <div class="dashboard-grid" id="metricasGrupo">
+      <div class="dashboard-card"><div class="value" id="mEstudiantes">0</div><div class="label">Estudiantes</div></div>
+      <div class="dashboard-card"><div class="value" id="mPromedio">0%</div><div class="label">Promedio grupo</div></div>
+      <div class="dashboard-card"><div class="value" id="mNivel">-</div><div class="label">Nivel dominante</div></div>
+      <div class="dashboard-card"><div class="value" id="mBrecha">-</div><div class="label">Brecha principal</div></div>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:20px;">
+      <div class="chart-container"><div class="chart-title">Errores por pregunta</div><canvas id="chartErrores"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Distribución por niveles</div><canvas id="chartNiveles"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Desempeño por competencia</div><canvas id="chartCompetencias"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Top microhabilidades críticas</div><canvas id="chartMicro"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:20px;">
+      <h4>Resultados por estudiante</h4>
+      <div class="table-wrap"><table id="tablaDiagnostico"></table></div>
+    </div>
+  </div>
+
+  <div id="pmap" class="tab-pane">
+    <div class="card">
+      <h3>PMAP y adaptativo local</h3>
+      <div class="notice">El sistema prioriza microhabilidad → microrutina → nivel meta</div>
+      <div class="actions"><button class="btn btn-success" id="generarPmapBtn">🧠 Generar PMAP</button></div>
+      <div class="table-wrap"><table id="tablaPmap"></table></div>
+    </div>
+  </div>
+
+  <div id="banco" class="tab-pane">
+    <div class="card">
+      <h3>Banco FCRI</h3>
+      <div class="small muted" style="margin-bottom:8px;">Pega tabla con 11 encabezados (igual que evaluación aplicada).</div>
+      <textarea id="textoFcri" style="height:180px; width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px;"></textarea>
+      <div class="actions">
+        <button class="btn btn-success" id="cargarFcriBtn">📥 Cargar FCRI</button>
+        <button class="btn btn-warning" id="exportarBancoBtn">📤 Exportar JSON</button>
+      </div>
+      <div id="bancoResumen" class="small muted"></div>
+      <div class="table-wrap"><table id="tablaBanco"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL INDIVIDUAL DEL ESTUDIANTE -->
+<div id="progressPanel" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <h2 id="studentProgressTitle">Perfil cognitivo</h2>
+    <div style="display:flex; gap:8px;">
+      <button class="btn" onclick="volverALista()">← Volver a la lista</button>
+      <button class="btn btn-success" onclick="generarReporteIndividual()">📄 Reporte Excel</button>
+    </div>
+  </div>
+
+  <div class="info-tarjetas">
+    <div class="info-tarjeta"><div class="titulo">Nivel global</div><div class="valor" id="infoNivelGlobal">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">ZDR – Lo que ya hace solo</div><div class="valor" id="infoZDR">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">ZDP – Lo próximo con ayuda</div><div class="valor" id="infoZDP">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">% aciertos</div><div class="valor" id="infoPct">-</div></div>
+  </div>
+
+  <!-- MAPA DE CALOR -->
+  <div class="card">
+    <h3 style="margin-bottom:16px;">📊 Mapa de calor respuestas</h3>
+    <div id="heatmapIndividual"></div>
+  </div>
+
+  <!-- MICROHABILIDADES PRIORITARIAS -->
+  <div class="card">
+    <h3 style="margin-bottom:16px;">🎯 Microhabilidades prioritarias</h3>
+    <div id="microPrioritarias" class="micro-grid"></div>
+  </div>
+
+  <!-- MATRIZ 3×4 -->
+  <div class="card">
+    <h3 style="margin-bottom:16px;">📐 Matriz 3×4 (% de aciertos por competencia y nivel)</h3>
+    <div id="matrizIndividual"></div>
+  </div>
+
+  <!-- RECOMENDACIONES PMAP -->
+  <div class="card">
+    <h3 style="margin-bottom:16px;">🧠 Recomendaciones PMAP</h3>
+    <div id="recomendacionesPMAP" class="pmap-grid"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===================================================
+// DATOS Y ESTADO
+// ===================================================
+const STORAGE_KEY = "site_ruta_v31";
+let evaluacionAplicada = [];
+let zipRows = [];
+let bancoItems = [];
+let resultadosMotor = null;
+let chartErrores=null, chartNiveles=null, chartCompetencias=null, chartMicro=null;
+
+const SUBJECT_LEVELS = {
+  LC:["N1","N2","N3","N4"], MAT:["N1","N2","N3","N4"],
+  SOC:["N1","N2","N3","N4"], ING:["PreA1","A1","A2","B1"],
+  BIO:["N1","N2","N3","N4"], FIS:["N1","N2","N3","N4"],
+  QUI:["N1","N2","N3","N4"], CTS:["N1","N2","N3","N4"]
+};
+
+// ===================================================
+// HELPERS
+// ===================================================
+function nextLevel(nivelActual, levels){
+  const idx = levels.indexOf(nivelActual);
+  return (idx>=0 && idx<levels.length-1) ? levels[idx+1] : nivelActual;
+}
+function splitCSV(line){
+  const out=[]; let cur="",q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){q=!q;continue;}
+    if(ch===","&&!q){out.push(cur);cur="";continue;}
+    cur+=ch;
+  }
+  out.push(cur); return out;
+}
+function csvToObjects(text){
+  const lines=text.split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+  const headers=splitCSV(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const vals=splitCSV(line); const obj={};
+    headers.forEach((h,i)=>obj[h]=vals[i]??""); return obj;
+  });
+}
+function getChartOptions(){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:"#e5e7eb"}}},
+    scales:{
+      x:{ticks:{color:"#9ca3af"},grid:{color:"#1f2937"}},
+      y:{beginAtZero:true,ticks:{color:"#9ca3af"},grid:{color:"#1f2937"}}
+    }
+  };
+}
+function dominanteDistribucion(dist){
+  let best="-",max=-1;
+  Object.entries(dist).forEach(([k,v])=>{if(v>max){max=v;best=k;}});
+  return best;
+}
+function alertAndThrow(msg){alert(msg);throw new Error(msg);}
+async function parseFileToRows(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith(".csv")){const text=await file.text();return csvToObjects(text);}
+  const data=await file.arrayBuffer();
+  const wb=XLSX.read(data,{type:"array"});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws,{defval:""});
+}
+
+// ===================================================
+// PARSE EVALUACIÓN APLICADA
+// ===================================================
+function parseAplicadaTSV(texto){
+  const rows=texto.split(/\r?\n/).filter(Boolean);
+  const out=[];
+  rows.forEach((row,idx)=>{
+    const c=row.split("\t").map(x=>x.trim());
+    if(c.length<11) return;
+    if(idx===0&&(c[0]||"").toLowerCase()==="id") return;
+    out.push({
+      idLocal:c[0]||`Q${idx}`, orden:Number(c[1])||idx,
+      respuestaCorrecta:c[2]||"", contenido:c[3]||"",
+      areaConceptual:c[4]||"", competencia:c[5]||"",
+      evidencia:c[6]||"", nivel:c[7]||"", verbo:c[8]||"",
+      microhabilidad:c[9]||"", microrutina:c[10]||""
+    });
+  });
+  return out;
+}
+function renderAplicada(){
+  const res=document.getElementById("aplicadaResumen");
+  const tabla=document.getElementById("tablaAplicada");
+  res.textContent=`Preguntas registradas: ${evaluacionAplicada.length}`;
+  if(!evaluacionAplicada.length){tabla.innerHTML="";return;}
+  let html=`<tr><th>ID</th><th>#</th><th>Resp</th><th>Área conceptual</th><th>Competencia</th><th>Nivel</th><th>Microhabilidad</th><th>Microrutina</th></tr>`;
+  evaluacionAplicada.forEach(q=>{
+    html+=`<tr><td>${q.idLocal}</td><td>${q.orden}</td><td>${q.respuestaCorrecta}</td><td>${q.areaConceptual}</td><td>${q.competencia}</td><td>${q.nivel}</td><td>${q.microhabilidad}</td><td>${q.microrutina}</td></tr>`;
+  });
+  tabla.innerHTML=html;
+}
+
+document.getElementById("cargarAplicadaBtn").addEventListener("click",()=>{
+  const texto=document.getElementById("textoAplicada").value.trim();
+  if(!texto) return alert("Pega la tabla.");
+  const arr=parseAplicadaTSV(texto);
+  if(arr.length!==12) return alert(`La evaluación debe tener exactamente 12 preguntas. Se encontraron: ${arr.length}`);
+  evaluacionAplicada=arr; renderAplicada(); saveState();
+});
+
+// ===================================================
+// ZIPGRADE
+// ===================================================
+document.getElementById("leerZipBtn").addEventListener("click",async()=>{
+  const file=document.getElementById("archivoZip").files[0];
+  if(!file) return alert("Sube un archivo.");
+  zipRows=await parseFileToRows(file);
+  renderZipPreview(); saveState();
+});
+function renderZipPreview(){
+  const res=document.getElementById("zipResumen");
+  const tabla=document.getElementById("tablaZip");
+  if(!zipRows.length){res.textContent="";tabla.innerHTML="";return;}
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+  res.textContent=`Filas: ${zipRows.length} • Preguntas: ${qCols.length}`;
+  let html=`<tr><th>Estudiante</th><th>Aciertos</th><th>%</th>`;
+  qCols.slice(0,12).forEach(q=>html+=`<th>${q}</th>`);
+  html+=`</tr>`;
+  zipRows.slice(0,20).forEach(r=>{
+    const nombre=`${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+    html+=`<tr><td>${nombre}</td><td>${r["Num Correct"]||""}</td><td>${r["Percent Correct"]||""}</td>`;
+    qCols.slice(0,12).forEach(q=>html+=`<td>${r[q]}</td>`);
+    html+=`</tr>`;
+  });
+  tabla.innerHTML=html;
+}
+
+// ===================================================
+// BANCO FCRI
+// ===================================================
+function renderBanco(){
+  const res=document.getElementById("bancoResumen");
+  const tabla=document.getElementById("tablaBanco");
+  res.textContent=`Ítems en banco: ${bancoItems.length}`;
+  if(!bancoItems.length){tabla.innerHTML="";return;}
+  let html=`<tr><th>ID</th><th>Nivel</th><th>Competencia</th><th>Microhabilidad</th></tr>`;
+  bancoItems.slice(0,100).forEach(i=>{
+    html+=`<tr><td>${i.id}</td><td>${i.nivel}</td><td>${i.competencia}</td><td>${i.microhabilidad}</td></tr>`;
+  });
+  tabla.innerHTML=html;
+}
+document.getElementById("cargarFcriBtn").addEventListener("click",()=>{
+  const texto=document.getElementById("textoFcri").value.trim();
+  if(!texto) return alert("Pega la tabla FCRI.");
+  bancoItems=bancoItems.concat(parseAplicadaTSV(texto).map(r=>({...r,id:r.idLocal})));
+  saveState(); renderBanco();
+});
+document.getElementById("exportarBancoBtn").addEventListener("click",()=>{
+  if(!bancoItems.length) return alert("No hay ítems en el banco.");
+  const blob=new Blob([JSON.stringify(bancoItems,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="banco_fcri_site_ruta.json"; a.click();
+});
+
+// ===================================================
+// MOTOR ANALÍTICO
+// ===================================================
+document.getElementById("procesarDiagnosticoBtn").addEventListener("click",()=>{
+  resultadosMotor=motorDiagnostico();
+  renderDiagnostico(resultadosMotor);
+  aplicarFiltros();
+});
+
+function motorDiagnostico(){
+  if(evaluacionAplicada.length!==12) alertAndThrow("Primero carga la evaluación aplicada (12 preguntas).");
+  if(!zipRows.length) alertAndThrow("Primero carga el archivo ZipGrade.");
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+  if(qCols.length<12) alertAndThrow("ZipGrade necesita al menos 12 columnas Q.");
+
+  // Detectar asignatura y niveles desde la evaluación aplicada
+  const niveles=[...new Set(evaluacionAplicada.map(i=>i.nivel).filter(Boolean))];
+  const levels=niveles.length>=2 ? niveles : ["N1","N2","N3","N4"];
+
+  // Competencias presentes en la evaluación (dinámico - no hardcoded)
+  const competenciasPresentes=[...new Set(evaluacionAplicada.map(i=>i.competencia).filter(Boolean))];
+
+  const erroresPorPregunta=new Array(12).fill(0);
+  const distNiveles=Object.fromEntries(levels.map(l=>[l,0]));
+  const competenciasGlobal={};
+  const microhabilidadesGlobal={};
+  const estudiantesDiag=[];
+
+  zipRows.forEach(r=>{
+    const nombre=`${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+    const respuestas=qCols.slice(0,12).map(q=>Number(r[q]||0));
+
+    // --- Acumuladores POR NIVEL y POR COMPETENCIA+NIVEL ---
+    const porNivel=Object.fromEntries(levels.map(l=>[l,{ok:0,total:0}]));
+    // cellMap: "competencia|nivel" → {aciertos, total}
+    const cellMap={};
+    competenciasPresentes.forEach(comp=>{
+      levels.forEach(nivel=>{
+        cellMap[`${comp}|${nivel}`]={aciertos:0,total:0};
+      });
+    });
+
+    let totalOk=0;
+
+    respuestas.forEach((resp,idx)=>{
+      const item=evaluacionAplicada[idx];
+      if(resp===0) erroresPorPregunta[idx]++;
+      totalOk+=resp;
+
+      const nivel=item.nivel||levels[0];
+      const comp=item.competencia||"Sin competencia";
+      const mh=item.microhabilidad||"Sin microhabilidad";
+
+      // Por nivel
+      if(porNivel[nivel]){ porNivel[nivel].total++; porNivel[nivel].ok+=resp; }
+
+      // Por celda competencia×nivel ← LA CLAVE DEL FIX
+      const ck=`${comp}|${nivel}`;
+      if(!cellMap[ck]) cellMap[ck]={aciertos:0,total:0};
+      cellMap[ck].total++;
+      cellMap[ck].aciertos+=resp;
+
+      // Global competencias
+      if(!competenciasGlobal[comp]) competenciasGlobal[comp]={ok:0,total:0};
+      competenciasGlobal[comp].total++; competenciasGlobal[comp].ok+=resp;
+
+      // Microhabilidades
+      if(!microhabilidadesGlobal[mh]) microhabilidadesGlobal[mh]={errores:0,aciertos:0,total:0,microrutina:item.microrutina||"",nivel,competencia:comp};
+      microhabilidadesGlobal[mh].total++;
+      microhabilidadesGlobal[mh].aciertos+=resp;
+      if(resp===0) microhabilidadesGlobal[mh].errores++;
+    });
+
+    // Nivel dominante: nivel con mayor ratio de aciertos
+    let nivelDominante=levels[0]; let best=-1;
+    levels.forEach(n=>{
+      const d=porNivel[n];
+      const ratio=d.total?d.ok/d.total:0;
+      if(ratio>best){best=ratio;nivelDominante=n;}
+    });
+
+    // Si todos son 0 (sin datos en ese nivel), usar el nivel que más ítems tiene
+    if(best===0){
+      let maxTotal=0;
+      levels.forEach(n=>{if(porNivel[n].total>maxTotal){maxTotal=porNivel[n].total;nivelDominante=n;}});
+    }
+
+    const zdr=nivelDominante;
+    const zdp=nextLevel(zdr,levels);
+    distNiveles[nivelDominante]=(distNiveles[nivelDominante]||0)+1;
+
+    // Calcular porcentajes finales del cellMap
+    Object.keys(cellMap).forEach(k=>{
+      const c=cellMap[k];
+      c.porcentaje=c.total>0?Math.round((c.aciertos/c.total)*100):null; // null = sin ítems en esa celda
+    });
+
+    estudiantesDiag.push({
+      nombre, totalOk, porcentaje:Math.round((totalOk/12)*100),
+      nivelDominante, zdr, zdp,
+      heat:respuestas.map((r,i)=>({q:i+1,ok:r===1})),
+      cellMap,
+      competenciasPresentes
+    });
+  });
+
+  const promedio=estudiantesDiag.length?Math.round(estudiantesDiag.reduce((a,b)=>a+b.porcentaje,0)/estudiantesDiag.length):0;
+  const rankingComp=Object.entries(competenciasGlobal).map(([k,v])=>({competencia:k,pct:Math.round((v.ok/v.total)*100)})).sort((a,b)=>a.pct-b.pct);
+  const rankingMicro=Object.entries(microhabilidadesGlobal).map(([k,v])=>({microhabilidad:k,errorPct:Math.round((v.errores/v.total)*100),...v})).sort((a,b)=>b.errorPct-a.errorPct);
+  const nivelDomGrupo=dominanteDistribucion(distNiveles);
+  const idxG=levels.indexOf(nivelDomGrupo);
+  const brechaPrincipal=idxG>=0&&idxG<levels.length-1?`${nivelDomGrupo} → ${levels[idxG+1]}`:nivelDomGrupo;
+  const sugerenciasPmap=rankingMicro.slice(0,12).map(m=>{
+    const nivelMeta=nextLevel(m.nivel,levels);
+    const sugeridas=bancoItems.filter(i=>i.microhabilidad===m.microhabilidad&&i.nivel===nivelMeta);
+    return {microhabilidad:m.microhabilidad,microrutina:m.microrutina,competencia:m.competencia,nivelActual:m.nivel,nivelMeta,sugeridas:sugeridas.slice(0,5)};
+  });
+
+  return {levels,competenciasPresentes,estudiantes:estudiantesDiag,promedio,erroresPorPregunta,distNiveles,nivelDominanteGrupo:nivelDomGrupo,brechaPrincipal,rankingComp,rankingMicro,sugerenciasPmap};
+}
+
+// ===================================================
+// RENDER DIAGNÓSTICO GRUPAL
+// ===================================================
+function renderDiagnostico(r){
+  document.getElementById("mEstudiantes").textContent=r.estudiantes.length;
+  document.getElementById("mPromedio").textContent=`${r.promedio}%`;
+  document.getElementById("mNivel").textContent=r.nivelDominanteGrupo;
+  document.getElementById("mBrecha").textContent=r.brechaPrincipal;
+  if(chartErrores) chartErrores.destroy();
+  if(chartNiveles) chartNiveles.destroy();
+  if(chartCompetencias) chartCompetencias.destroy();
+  if(chartMicro) chartMicro.destroy();
+  setTimeout(()=>{
+    chartErrores=new Chart(document.getElementById("chartErrores"),{type:"bar",data:{labels:r.erroresPorPregunta.map((_,i)=>`Q${i+1}`),datasets:[{label:"Errores",data:r.erroresPorPregunta,backgroundColor:"#ef4444"}]},options:getChartOptions()});
+    chartNiveles=new Chart(document.getElementById("chartNiveles"),{type:"bar",data:{labels:r.levels,datasets:[{label:"Estudiantes",data:r.levels.map(l=>r.distNiveles[l]||0),backgroundColor:"#38bdf8"}]},options:getChartOptions()});
+    chartCompetencias=new Chart(document.getElementById("chartCompetencias"),{type:"bar",data:{labels:r.rankingComp.map(x=>x.competencia.substring(0,25)),datasets:[{label:"% logro",data:r.rankingComp.map(x=>x.pct),backgroundColor:"#22c55e"}]},options:getChartOptions()});
+    chartMicro=new Chart(document.getElementById("chartMicro"),{type:"bar",data:{labels:r.rankingMicro.slice(0,8).map(x=>x.microhabilidad.substring(0,20)),datasets:[{label:"% error",data:r.rankingMicro.slice(0,8).map(x=>x.errorPct),backgroundColor:"#f59e0b"}]},options:getChartOptions()});
+    window.dispatchEvent(new Event('resize'));
+  },100);
+  let html=`<tr><th>Estudiante</th><th>%</th><th>Nivel</th><th>ZDR</th><th>ZDP</th></tr>`;
+  r.estudiantes.forEach(e=>{
+    html+=`<tr><td><a href="#" style="color:var(--accent);" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\\'")}');return false;">${e.nombre}</a></td><td>${e.porcentaje}%</td><td>${e.nivelDominante}</td><td>${e.zdr}</td><td>${e.zdp}</td></tr>`;
+  });
+  document.getElementById("tablaDiagnostico").innerHTML=html;
+}
+
+// ===================================================
+// PMAP
+// ===================================================
+document.getElementById("generarPmapBtn").addEventListener("click",()=>{
+  if(!resultadosMotor) return alert("Primero procesa el diagnóstico.");
+  let html=`<tr><th>Microhabilidad</th><th>Microrutina</th><th>Competencia</th><th>Nivel actual</th><th>Nivel meta</th><th>Ítems sugeridos</th></tr>`;
+  resultadosMotor.sugerenciasPmap.forEach(s=>{
+    const sug=s.sugeridas.length?s.sugeridas.map(x=>x.id).join(", "):"Sin ítems aún";
+    html+=`<tr><td>${s.microhabilidad}</td><td>${s.microrutina}</td><td>${s.competencia}</td><td>${s.nivelActual}</td><td>${s.nivelMeta}</td><td>${sug}</td></tr>`;
+  });
+  document.getElementById("tablaPmap").innerHTML=html;
+});
+
+// ===================================================
+// RENDER PERFIL INDIVIDUAL
+// ===================================================
+function mostrarEstudiante(nombre){
+  const est=resultadosMotor?.estudiantes?.find(e=>e.nombre===nombre);
+  if(!est) return alert("Estudiante no encontrado");
+  window.estudianteActual=est;
+  document.getElementById('studentsPanel').style.display='none';
+  document.getElementById('progressPanel').style.display='block';
+  document.getElementById('currentStudentName').textContent=est.nombre;
+  document.getElementById('studentProgressTitle').textContent=`Perfil cognitivo: ${est.nombre}`;
+  document.getElementById('infoNivelGlobal').textContent=est.nivelDominante;
+  document.getElementById('infoZDR').textContent=est.zdr;
+  document.getElementById('infoZDP').textContent=est.zdp;
+  document.getElementById('infoPct').textContent=`${est.porcentaje}%`;
+  renderMapaCalor(est);
+  renderMicroPrioritarias(est);
+  renderMatriz3x4(est);
+  renderRecomendacionesPMAP(est);
+}
+
+// ===================================================
+// MAPA DE CALOR — SIN DESBORDAMIENTO
+// ===================================================
+function nivelClass(n){
+  if(!n) return '';
+  const nl=n.toLowerCase();
+  if(nl==='n1'||nl==='prea1') return 'n1';
+  if(nl==='n2'||nl==='a1') return 'n2';
+  if(nl==='n3'||nl==='a2') return 'n3';
+  return 'n4';
+}
+function renderMapaCalor(est){
+  const cont=document.getElementById('heatmapIndividual');
+  const items=evaluacionAplicada;
+  const heat=est.heat;
+
+  let html=`<div class="heatmap-wrapper"><div class="heatmap-scroll-inner">`;
+
+  // Fila 1: Competencias
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">COMPETENCIA</div><div class="heatmap-pills">`;
+  items.forEach((item,i)=>{
+    const short=item.competencia.length>12?item.competencia.substring(0,12)+'…':item.competencia;
+    html+=`<div class="heatmap-pill-q" title="${item.competencia}">Q${i+1}<br><span style="font-size:0.65rem;">${short}</span></div>`;
+  });
+  html+=`</div></div>`;
+
+  // Fila 2: Niveles
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">NIVEL</div><div class="heatmap-pills">`;
+  items.forEach(item=>{
+    html+=`<div class="heatmap-pill-n ${nivelClass(item.nivel)}">${item.nivel}</div>`;
+  });
+  html+=`</div></div>`;
+
+  // Fila 3: Respuestas del estudiante
+  const primerNombre=est.nombre.split(' ')[0];
+  html+=`<div class="heatmap-fila"><div class="heatmap-label">${primerNombre}<br><span style="font-size:0.7rem;color:var(--accent);">${est.nivelDominante}</span></div><div class="heatmap-pills">`;
+  heat.forEach((h,idx)=>{
+    const item=items[idx];
+    const tooltip=`Q${idx+1} | ${item.nivel} | ${item.microhabilidad} | ${h.ok?'✓ Correcto':'✗ Incorrecto'}`;
+    html+=`<div class="heatmap-oval ${h.ok?'correcto':'incorrecto'}" title="${tooltip}">${h.ok?'✓':'✗'}</div>`;
+  });
+  html+=`</div></div>`;
+
+  // Leyenda
+  html+=`<div class="heatmap-leyenda">
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--ok);"></div><span>Correcto</span></div>
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--danger);"></div><span>Incorrecto</span></div>
+    <div class="heatmap-leyenda-item"><div class="dot" style="background:transparent;border:2px solid var(--accent);border-radius:50%;"></div><span>Hover para detalles</span></div>
+  </div>`;
+
+  html+=`</div></div>`;
+  cont.innerHTML=html;
+}
+
+// ===================================================
+// MICROHABILIDADES PRIORITARIAS
+// ===================================================
+function renderMicroPrioritarias(est){
+  const cont=document.getElementById('microPrioritarias');
+  const micros=resultadosMotor?.rankingMicro?.slice(0,4)||[];
+  if(!micros.length){cont.innerHTML='<div class="muted small">Sin datos</div>';return;}
+  cont.innerHTML=micros.map((m,i)=>`
+    <div class="micro-card">
+      <div style="font-weight:600;margin-bottom:6px;">${m.microhabilidad}</div>
+      <div style="color:var(--danger);font-size:0.85rem;">Error grupo: ${m.errorPct}%</div>
+      <div style="color:var(--muted);font-size:0.78rem;margin-top:6px;">Microrutina: ${m.microrutina}</div>
+    </div>
+  `).join('');
+}
+
+// ===================================================
+// MATRIZ 3×4 — FIX PRINCIPAL (calcula desde cellMap real)
+// ===================================================
+function renderMatriz3x4(est){
+  const cont=document.getElementById('matrizIndividual');
+  if(!est||!est.cellMap){cont.innerHTML='<div class="muted">Sin datos</div>';return;}
+
+  const levels=resultadosMotor?.levels||["N1","N2","N3","N4"];
+  // Usar las competencias REALES de la evaluación (no hardcoded C1/C2/C3)
+  const comps=est.competenciasPresentes||[...new Set(evaluacionAplicada.map(i=>i.competencia).filter(Boolean))];
+
+  function pct(comp,nivel){
+    const key=`${comp}|${nivel}`;
+    const c=est.cellMap[key];
+    if(!c||c.total===0) return null; // null = no hubo ítems en esa celda
+    return c.porcentaje!=null?c.porcentaje:Math.round((c.aciertos/c.total)*100);
+  }
+  function claseColor(val){
+    if(val===null) return 'pct-vacio';
+    if(val>=70) return 'pct-alto';
+    if(val>=40) return 'pct-medio';
+    return 'pct-bajo';
+  }
+  function textoVal(val){
+    return val===null?'—':`${val}%`;
+  }
+
+  let html=`<div class="matriz3x4-wrapper">
+    <table class="matriz3x4-table">
+      <thead><tr>
+        <th>Competencia / proceso</th>
+        ${levels.map(l=>`<th>${l}</th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+
+  comps.forEach(comp=>{
+    // Abreviar competencia larga
+    const compShort=comp.length>30?comp.substring(0,30)+'…':comp;
+    html+=`<tr>
+      <td><span class="comp-key">${compShort}</span></td>
+      ${levels.map(nivel=>{
+        const v=pct(comp,nivel);
+        return `<td class="${claseColor(v)}">${textoVal(v)}</td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  html+=`</tbody></table>
+    <div class="matriz3x4-leyenda">
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(34,197,94,.4);"></div><span>Alto (≥70%)</span></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(249,115,22,.4);"></div><span>Medio (40-69%)</span></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.4);"></div><span>Bajo (<40%)</span></div>
+      <div style="display:flex;align-items:center;gap:6px;"><div style="width:14px;height:14px;border-radius:3px;background:rgba(100,100,100,.2);"></div><span>— Sin ítems en esa celda</span></div>
+    </div>
+  </div>`;
+
+  cont.innerHTML=html;
+}
+
+// ===================================================
+// RECOMENDACIONES PMAP INDIVIDUALES
+// ===================================================
+function renderRecomendacionesPMAP(est){
+  const cont=document.getElementById('recomendacionesPMAP');
+  const micros=resultadosMotor?.rankingMicro?.slice(0,6)||[];
+  const levels=resultadosMotor?.levels||["N1","N2","N3","N4"];
+  if(!micros.length){cont.innerHTML='<div class="muted small">Sin datos</div>';return;}
+  cont.innerHTML=micros.map((m,i)=>{
+    const prioLabel=i<2?'Alta':i<4?'Media':'Baja';
+    const prioClass=i<2?'priority-high':i<4?'priority-medium':'priority-low';
+    const nivelMeta=nextLevel(m.nivel,levels);
+    return `<div class="pmap-card">
+      <span class="pmap-priority ${prioClass}">Prioridad ${prioLabel}</span>
+      <div style="font-weight:600;margin-bottom:6px;">🎯 ${m.microhabilidad}</div>
+      <div style="color:var(--muted);font-size:0.82rem;padding-left:12px;border-left:2px solid var(--accent);margin-bottom:12px;">🔄 ${m.microrutina}</div>
+      <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);font-size:0.82rem;">
+        <span style="background:var(--accent-soft);color:var(--accent);padding:3px 8px;border-radius:4px;">${m.nivel} → ${nivelMeta}</span>
+        <span style="color:var(--muted);">3–4 sesiones/semana</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===================================================
+// LISTA DE ESTUDIANTES CON PAGINACIÓN
+// ===================================================
+let estudiantesFiltrados = [];
+let paginaActual = 1;
+let totalPaginas = 1;
+
+function aplicarFiltros(){
+  const inst=document.getElementById('filtroInstitucion').value.toLowerCase();
+  const grado=document.getElementById('filtroGrado').value;
+  const grupo=document.getElementById('filtroGrupo').value;
+  const busq=document.getElementById('filtroBusqueda').value.toLowerCase();
+  const todos=resultadosMotor?.estudiantes||[];
+  estudiantesFiltrados=todos.filter(e=>
+    (inst===''||e.institucion?.toLowerCase().includes(inst))&&
+    (grado==='todos'||e.grado===grado)&&
+    (grupo==='todos'||e.grupo===grupo)&&
+    (busq===''||e.nombre.toLowerCase().includes(busq))
+  );
+  paginaActual=1;
+  renderPagina();
+}
+
+function renderPagina(){
+  const pageSize=parseInt(document.getElementById('pageSize').value)||12;
+  totalPaginas=Math.max(1,Math.ceil(estudiantesFiltrados.length/pageSize));
+  if(paginaActual<1) paginaActual=1;
+  if(paginaActual>totalPaginas) paginaActual=totalPaginas;
+
+  const desde=(paginaActual-1)*pageSize;
+  const hasta=Math.min(desde+pageSize, estudiantesFiltrados.length);
+  const pagina=estudiantesFiltrados.slice(desde,hasta);
+
+  const lista=document.getElementById('estudiantesList');
+  lista.innerHTML=pagina.map(e=>`
+    <div class="estudiante-card" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\\'")}')">
+      <div class="estudiante-nombre">${e.nombre}</div>
+      <div class="estudiante-meta">
+        Nivel: <strong style="color:var(--accent);">${e.nivelDominante}</strong> |
+        Aciertos: ${e.totalOk}/12 (${e.porcentaje}%) |
+        ZDP: ${e.zdp}
+      </div>
+    </div>
+  `).join('')||`<div class="muted small" style="padding:20px; grid-column:1/-1;">Primero procesa el diagnóstico en la pestaña "Diagnóstico grupal".</div>`;
+
+  // Contadores
+  document.getElementById('totalStudentsCount').textContent=estudiantesFiltrados.length;
+  document.getElementById('paginationFrom').textContent=estudiantesFiltrados.length?desde+1:0;
+  document.getElementById('paginationTo').textContent=hasta;
+
+  // Botones prev/next/primera/ultima
+  document.getElementById('btnPrimera').disabled=paginaActual<=1;
+  document.getElementById('btnAnterior').disabled=paginaActual<=1;
+  document.getElementById('btnSiguiente').disabled=paginaActual>=totalPaginas;
+  document.getElementById('btnUltima').disabled=paginaActual>=totalPaginas;
+
+  // Numeritos de página (máximo 7 visibles)
+  const bDiv=document.getElementById('paginaBtns');
+  bDiv.innerHTML='';
+  const rango=paginasVisibles(paginaActual,totalPaginas,7);
+  let anteriorFueEllipsis=false;
+  rango.forEach(p=>{
+    if(p==='…'){
+      if(!anteriorFueEllipsis){
+        const sp=document.createElement('span');
+        sp.textContent='…';
+        sp.style.cssText='color:var(--muted);padding:0 4px;line-height:34px;';
+        bDiv.appendChild(sp);
+        anteriorFueEllipsis=true;
+      }
+    } else {
+      anteriorFueEllipsis=false;
+      const b=document.createElement('button');
+      b.className='btn'+(p===paginaActual?' active':'');
+      b.textContent=p;
+      if(p===paginaActual){
+        b.style.cssText='background:var(--accent);color:#020617;font-weight:700;';
+      }
+      b.onclick=()=>irAPagina(p);
+      bDiv.appendChild(b);
+    }
+  });
+}
+
+function paginasVisibles(actual, total, maxVisible){
+  if(total<=maxVisible) return Array.from({length:total},(_,i)=>i+1);
+  const mitad=Math.floor(maxVisible/2);
+  let inicio=Math.max(2,actual-mitad+1);
+  let fin=Math.min(total-1,inicio+maxVisible-3);
+  inicio=Math.max(2,fin-maxVisible+3);
+  const pages=[1];
+  if(inicio>2) pages.push('…');
+  for(let i=inicio;i<=fin;i++) pages.push(i);
+  if(fin<total-1) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+function irAPagina(n){
+  paginaActual=n;
+  renderPagina();
+  document.getElementById('estudiantesList').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// Escuchar cambio de tamaño de página
+document.getElementById('pageSize').addEventListener('change',()=>{
+  paginaActual=1; renderPagina();
+});
+function volverALista(){
+  document.getElementById('studentsPanel').style.display='block';
+  document.getElementById('progressPanel').style.display='none';
+  aplicarFiltros();
+}
+function generarReporteIndividual(){alert("Reporte individual en construcción");}
+function cerrarModal(id){document.getElementById(id).classList.remove('active');}
+
+// ===================================================
+// PESTAÑAS
+// ===================================================
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#studentsPanel .tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    const target=document.getElementById(btn.dataset.tab);
+    if(target){target.classList.add('active');}
+    btn.classList.add('active');
+  });
+});
+
+// ===================================================
+// STORAGE
+// ===================================================
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({evaluacionAplicada,zipRows:zipRows.slice(0,200),bancoItems}));}catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const d=JSON.parse(raw);
+    evaluacionAplicada=d.evaluacionAplicada||[];
+    zipRows=d.zipRows||[];
+    bancoItems=d.bancoItems||[];
+    renderAplicada(); renderZipPreview(); renderBanco();
+  }catch(e){}
+}
+
+// ===================================================
+// DEMO: datos de prueba precargados
+// ===================================================
+evaluacionAplicada=[
+  {idLocal:"Q001",orden:1,respuestaCorrecta:"B",contenido:"Solubilidad...",areaConceptual:"Solubilidad",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N2",verbo:"Interpretar",microhabilidad:"leer datos de gráfica",microrutina:"localizar punto de intersección de curvas"},
+  {idLocal:"Q002",orden:2,respuestaCorrecta:"A",contenido:"Vacunas...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar tablas y gráficas",microrutina:"leer tabla → identificar variables → buscar gráfica"},
+  {idLocal:"Q003",orden:3,respuestaCorrecta:"C",contenido:"Métodos separación...",areaConceptual:"Métodos de separación",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"relacionar propiedades con métodos",microrutina:"analizar tabla y mezcla → determinar sustancia y método"},
+  {idLocal:"Q004",orden:4,respuestaCorrecta:"2+",contenido:"Berilio...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Modelo",nivel:"N3",verbo:"Determinar",microhabilidad:"aplicar concepto de enlace y oxidación",microrutina:"recordar que Be pierde 2 electrones → deducir carga 2+"},
+  {idLocal:"Q005",orden:5,respuestaCorrecta:"D",contenido:"Nitrógeno...",areaConceptual:"Ciclos biogeoquímicos",competencia:"Explicación de fenómenos",evidencia:"Texto",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir efecto ecológico",microrutina:"leer información → conectar acidificación con daño a ecosistemas"},
+  {idLocal:"Q006",orden:6,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Diseñar",microhabilidad:"proponer diseño experimental",microrutina:"identificar variables medidas → sugerir mismo procedimiento"},
+  {idLocal:"Q007",orden:7,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Texto",nivel:"N2",verbo:"Identificar",microhabilidad:"localizar información explícita",microrutina:"leer texto → buscar la causa mencionada"},
+  {idLocal:"Q008",orden:8,respuestaCorrecta:"C",contenido:"Isótopos...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar datos y elegir gráfica",microrutina:"analizar tabla → decidir tipo de gráfico"},
+  {idLocal:"Q009",orden:9,respuestaCorrecta:"D",contenido:"Gaseosa...",areaConceptual:"Solubilidad de gases",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N3",verbo:"Explicar",microhabilidad:"interpretar gráfica científica",microrutina:"leer eje temperatura → comparar solubilidad → inferir tendencia"},
+  {idLocal:"Q010",orden:10,respuestaCorrecta:"B",contenido:"Efecto invernadero...",areaConceptual:"Gases efecto invernadero",competencia:"Explicación de fenómenos",evidencia:"Tabla",nivel:"N3",verbo:"Identificar",microhabilidad:"inferir causa a partir de información",microrutina:"leer sobre hidroeléctricas y metano → concluir que no eliminan todos los GEI"},
+  {idLocal:"Q011",orden:11,respuestaCorrecta:"C",contenido:"Electronegatividad...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"aplicar procedimiento con operación aritmética",microrutina:"restar electronegatividades → comparar con umbral"},
+  {idLocal:"Q012",orden:12,respuestaCorrecta:"C",contenido:"Metano...",areaConceptual:"Reacciones químicas",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir relación causal",microrutina:"analizar tabla → identificar patrón → formular hipótesis"}
+];
+zipRows=[
+  {"First Name":"Juan Camilo","Last Name":"Agudelo","Num Correct":"11","Percent Correct":"92","Q1":"1","Q2":"1","Q3":"1","Q4":"1","Q5":"1","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"1","Q11":"1","Q12":"1"},
+  {"First Name":"María Alejandra","Last Name":"Alzate","Num Correct":"8","Percent Correct":"67","Q1":"1","Q2":"0","Q3":"1","Q4":"1","Q5":"1","Q6":"0","Q7":"1","Q8":"0","Q9":"1","Q10":"0","Q11":"1","Q12":"1"},
+  {"First Name":"José Emmanuel","Last Name":"Aranda","Num Correct":"7","Percent Correct":"58","Q1":"0","Q2":"1","Q3":"1","Q4":"0","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"1","Q10":"1","Q11":"0","Q12":"1"},
+  {"First Name":"Victor Alfonso","Last Name":"Araujo","Num Correct":"9","Percent Correct":"75","Q1":"1","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"1","Q11":"1","Q12":"1"},
+  {"First Name":"Andrés Felipe","Last Name":"Bejarano","Num Correct":"6","Percent Correct":"50","Q1":"0","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"0","Q7":"1","Q8":"1","Q9":"1","Q10":"0","Q11":"1","Q12":"1"}
+];
+renderAplicada();
+renderZipPreview();
+resultadosMotor=motorDiagnostico();
+renderDiagnostico(resultadosMotor);
+aplicarFiltros();
+</script>
+</body>
+</html>

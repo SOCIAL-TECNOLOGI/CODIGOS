@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE·RUTA LATAM v5.0 — Demo Institucional</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f6f8;
+    color: #333;
+  }
+  header {
+    background-color: #1F4E78;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 5px solid #2F75B5;
+  }
+  header h1 { margin: 5px 0; font-size: 22px; }
+  header h2 { margin: 0; font-size: 14px; font-weight: normal; }
+  .container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 25px auto;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  label { font-weight: bold; display: block; margin-top: 10px; }
+  input, textarea, select {
+    width: 100%; padding: 8px; margin-top: 5px;
+    border: 1px solid #ccc; border-radius: 5px;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button {
+    background-color: #2F75B5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 15px;
+    margin: 8px 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover { background-color: #1F4E78; }
+  table {
+    width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #2F75B5;
+    color: white;
+  }
+  .footer {
+    background-color: #c62828;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    font-size: 13px;
+    margin-top: 30px;
+  }
+  .rubrica {
+    border: 1px solid #2F75B5;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #eef4fb;
+    margin-top: 15px;
+  }
+  .rubrica h3 {
+    color: #1F4E78;
+    margin-top: 0;
+  }
+  .rubrica button {
+    background-color: #2F75B5;
+    margin: 3px;
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Corporación Bartolomé Mitre — SITE·RUTA LATAM v5.0</h1>
+  <h2>Modelo de Planeación DCE–SIEE–SABER–HACER–SER</h2>
+  <p style="font-size:12px;">Versión demostrativa — Propiedad intelectual de Mario Germán Barbosa Valderrama (2025)</p>
+</header>
+
+<div class="container">
+  <label>Período:</label>
+  <input type="text" id="periodo">
+
+  <label>Área / Grado:</label>
+  <input type="text" id="area">
+
+  <label>Competencia (Saber–Hacer–Ser):</label>
+  <textarea id="competencia"></textarea>
+
+  <label>DBA relacionado:</label>
+  <textarea id="dba"></textarea>
+
+  <label>Afirmación / Evidencia (DCE):</label>
+  <textarea id="evidencia"></textarea>
+
+  <label>Tarea / Descriptor literal (DCE):</label>
+  <textarea id="tarea"></textarea>
+
+  <label>Nivel esperado (SIEE):</label>
+  <input type="text" id="nivel">
+
+  <label>Rúbrica N1–N4 (Integrada):</label>
+  <textarea id="rubrica"></textarea>
+
+  <label>Meta de migración y contexto:</label>
+  <textarea id="meta"></textarea>
+
+  <label>Observaciones del docente:</label>
+  <textarea id="obs"></textarea>
+
+  <!-- Mini rúbrica interactiva -->
+  <div class="rubrica">
+    <h3>🎯 Estratificación por Dimensión</h3>
+    <p><b>Seleccione una dimensión para ver niveles:</b></p>
+    <div>
+      <button onclick="mostrarNivel('saber')">Saber</button>
+      <button onclick="mostrarNivel('hacer')">Hacer</button>
+      <button onclick="mostrarNivel('ser')">Ser</button>
+    </div>
+    <div id="niveles"></div>
+  </div>
+
+  <div style="margin-top:15px;">
+    <button onclick="agregarFila()">Agregar a tabla</button>
+    <button onclick="mostrarTabla()">Mostrar tabla</button>
+    <button onclick="limpiar()">Limpiar</button>
+    <button disabled title="Disponible solo en versión institucional 5.1">Exportar Excel</button>
+  </div>
+
+  <table id="tabla" style="display:none;">
+    <thead>
+      <tr>
+        <th>Período</th>
+        <th>Área / Grado</th>
+        <th>Competencia</th>
+        <th>DBA</th>
+        <th>Evidencia (DCE)</th>
+        <th>Tarea (DCE)</th>
+        <th>Nivel (SIEE)</th>
+        <th>Rúbrica N1–N4</th>
+        <th>Meta</th>
+        <th>Observaciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  ⚠️ Versión de demostración — No autorizada para distribución o descarga.  
+  Todos los derechos reservados © Mario G. Barbosa Valderrama — 2025
+</div>
+
+<script>
+  const rubricas = {
+    saber: [
+      "N1: Recordar – Identifica conceptos básicos.",
+      "N2: Comprender – Explica relaciones simples.",
+      "N3: Analizar – Contrasta e interpreta evidencias.",
+      "N4: Crear – Formula hipótesis o soluciones innovadoras."
+    ],
+    hacer: [
+      "N1: Imita procedimientos básicos.",
+      "N2: Aplica instrucciones con apoyo.",
+      "N3: Ejecuta tareas con autonomía.",
+      "N4: Optimiza, transfiere y crea estrategias propias."
+    ],
+    ser: [
+      "N1: Atiende normas y muestra disposición.",
+      "N2: Participa y coopera con el grupo.",
+      "N3: Asume responsabilidades y reflexiona.",
+      "N4: Lidera, influye positivamente y modela valores."
+    ]
+  };
+
+  function mostrarNivel(tipo) {
+    const div = document.getElementById('niveles');
+    div.innerHTML = "<h4>Niveles de " + tipo.toUpperCase() + "</h4><ul>" +
+      rubricas[tipo].map(x => "<li>" + x + "</li>").join('') + "</ul>";
+  }
+
+  const tabla = document.getElementById('tabla').querySelector('tbody');
+
+  function agregarFila() {
+    const datos = ['periodo','area','competencia','dba','evidencia','tarea','nivel','rubrica','meta','obs']
+      .map(id => document.getElementById(id).value.trim());
+    if (datos.some(x => !x)) { alert('Por favor complete todos los campos.'); return; }
+    const fila = document.createElement('tr');
+    datos.forEach(x => {
+      const td = document.createElement('td');
+      td.textContent = x;
+      fila.appendChild(td);
+    });
+    tabla.appendChild(fila);
+    document.getElementById('tabla').style.display = 'table';
+    limpiar();
+  }
+
+  function mostrarTabla() {
+    document.getElementById('tabla').style.display = 'table';
+  }
+
+  function limpiar() {
+    document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+  }
+</script>
+
+</body>
+</html>

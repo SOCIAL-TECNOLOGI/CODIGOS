@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-RUTA LATAM – Secuencia Didáctica</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root {
+  --azul: #1E88E5;
+  --verde: #009B02;
+  --cian: #65FEFB;
+  --fondo: #f4f6f8;
+  --oscuro: #121212;
+  --texto: #222;
+  --claro: #f4f4f4;
+}
+
+/* ==== BASE ==== */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+body.alto-contraste {
+  background: var(--oscuro);
+  color: #FFEB3B;
+}
+
+/* ==== ENCABEZADO ==== */
+header {
+  background: linear-gradient(90deg, var(--azul), var(--verde));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+header img { height: 55px; margin-right: 15px; }
+header h1 { font-size: 1.1rem; margin: 0; flex: 1; }
+#controls { display: flex; align-items: center; gap: 10px; }
+#controls select, #controls button {
+  padding: 5px 8px; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.9rem;
+}
+#voiceSelect { background: white; }
+#controls button {
+  color: white; background: var(--azul);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ==== BARRA SOCIALTECH - VERSIÓN MÁS PEQUEÑA ==== */
+#barraSocialTech {
+  position: relative;
+  height: 16px;
+  width: 100%;
+  background: linear-gradient(90deg, #009B02, #00FF8A);
+  border-radius: 3px;
+  overflow: hidden;
+}
+#puntoSocialTech {
+  position: absolute;
+  top: 50%; left: 0%;
+  transform: translate(-50%, -50%);
+  transition: left 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#puntoSocialTech .outer {
+  width: 15px; height: 15px;
+  background: #009B02;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #009B02, 0 0 12px rgba(0,255,138,0.5);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+#puntoSocialTech .inner {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 8px; height: 8px;
+  background: #65FEFB;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px #65FEFB;
+}
+@keyframes pulse {
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.2);opacity:.9;}
+}
+
+/* ==== NOTA ==== */
+#notaPC {
+  background: #e0e0e0;
+  color: #333;
+  text-align: center;
+  padding: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ==== CARRUSEL ==== */
+#carousel-container {
+  position: relative;
+  max-width: 1200px;
+  margin: 30px auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.slide {
+  display: none;
+  padding: 30px;
+  animation: fade 0.8s ease-in-out;
+}
+.active-slide { display: block; }
+@keyframes fade { from {opacity:0;} to {opacity:1;} }
+
+/* ==== ETIQUETAS Y CAMPOS ==== */
+label {
+  font-weight: bold;
+  color: #000;
+  display: block;
+  margin: 15px 0 5px 0;
+}
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  font-size: 15px;
+  color: #000;
+  background: #fff;
+  box-sizing: border-box;
+}
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Campos dinámicos */
+.otra-area { display: none; }
+.otro-pais { display: none; }
+
+/* Tablas PAMi */
+.pami-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 0.9rem;
+}
+.pami-table th, .pami-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.pami-table th {
+  background: var(--azul);
+  color: white;
+}
+.pami-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+/* === ALTO CONTRASTE === */
+body.alto-contraste input,
+body.alto-contraste textarea,
+body.alto-contraste select {
+  background: #222;
+  color: #FFEB3B;
+  border: 1px solid #FFEB3B;
+}
+
+/* === IMPRESIÓN Y EXPORTACIÓN === */
+@media print {
+  label { color: #000 !important; }
+  input, textarea, select {
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+}
+
+.buttons {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin-top: 25px;
+}
+button.export {
+  color: white; border: none; border-radius: 8px;
+  padding: 10px 16px; font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.word-btn { background: linear-gradient(90deg,#0078D7,#005BB5); }
+.pdf-btn { background: linear-gradient(90deg,#D32F2F,#B71C1C); }
+.excel-btn { background: linear-gradient(90deg,#43A047,#2E7D32); }
+.print-btn { background: linear-gradient(90deg,#6A1B9A,#4A148C); }
+.clear-btn { background: linear-gradient(90deg,#FB8C00,#EF6C00); }
+
+/* ==== FLECHAS ==== */
+.arrow {
+  position: absolute;
+  top: 15px;
+  font-size: 1.4rem;
+  color: var(--verde);
+  background: rgba(255,255,255,0.95);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+.arrow:hover {
+  background: var(--verde);
+  color: white;
+  transform: scale(1.1);
+}
+#prev { left: 12px; }
+#next { right: 12px; }
+.slide { padding-top: 60px; }
+
+/* ==== PIE ==== */
+footer {
+  text-align: center; font-size: 13px; color: #666;
+  margin: 25px 0;
+}
+
+/* ==== PRINT ==== */
+@media print {
+  header, #barraSocialTech, #notaPC, .arrow, .buttons {display:none!important;}
+  body {background:white;color:black;}
+  .slide {display:block!important;padding-top:20px;}
+}
+
+/* ==== SECCIONES ESPECIALES ==== */
+.seccion-titulo {
+  background: linear-gradient(90deg, var(--azul), var(--verde));
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.pregunta-generadora {
+  background: #e3f2fd;
+  border-left: 4px solid var(--azul);
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+/* ==== DISEÑO RESPONSIVO ==== */
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+.form-col {
+  flex: 1;
+}
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Nuevos estilos para municipios */
+.otro-municipio { 
+  display: none; 
+  margin-top: 10px;
+}
+
+/*Estilos para estratificación DBA*/
+.dba-item {
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--verde) !important;
+}
+
+.dba-item:hover {
+  background: #e8f5e8 !important;
+  border-color: var(--verde) !important;
+}
+
+.btn-eliminar-dba {
+  transition: all 0.3s ease;
+}
+
+.btn-eliminar-dba:hover {
+  background: #c82333 !important;
+  transform: scale(1.05);
+}
+
+#btn-agregar-dba {
+  transition: all 0.3s ease;
+}
+
+#btn-agregar-dba:hover {
+  background: #007a00 !important;
+  transform: scale(1.02);
+}
+
+/* Estilos para impresión */
+@media print {
+  .dba-item {
+    break-inside: avoid;
+    border: 1px solid #000 !important;
+    background: white !important;
+  }
+  
+  .btn-eliminar-dba, #btn-agregar-dba {
+    display: none !important;
+  }
+}
+
+
+/* Animaciones para reforzar la centralidad del DBA */
+.modelo-central {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}
+
+@keyframes pulse-gentle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.dba-item {
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 155, 2, 0.1);
+}
+
+.dba-item:hover {
+  box-shadow: 0 4px 15px rgba(0, 155, 2, 0.2);
+  transform: translateY(-2px);
+}
+
+.cadena-visual div {
+  transition: all 0.3s ease;
+}
+
+.cadena-visual div:hover {
+  transform: scale(1.1);
+}
+
+/* Estilos para impresión */
+@media print {
+  .modelo-central {
+    background: #1E88E5 !important;
+    color: white !important;
+    break-inside: avoid;
+  }
+  
+  .cadena-visual {
+    break-inside: avoid;
+  }
+  
+  .dba-item {
+    break-inside: avoid;
+    border: 2px solid #009B02 !important;
+  }
+}
+
+/* Estilos para los botones del selector DBA */
+.dba-selector-btn {
+  transition: all 0.3s ease !important;
+}
+
+.dba-selector-btn:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 155, 2, 0.3) !important;
+}
+
+/* Estilos para el panel de eliminados */
+.dba-eliminados-panel {
+  background: #f8f9fa !important;
+  border: 2px dashed #dc3545 !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+  margin: 15px 0 !important;
+  transition: all 0.3s ease !important;
+}
+
+.dba-eliminados-panel:hover {
+  border-color: #c82333 !important;
+  background: #fff5f5 !important;
+}
+
+
+</style>
+</head>
+
+<body>
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="Logo SocialTech">
+  <h1>SITE-RUTA LATAM – Secuencia Didáctica (v5.2)</h1>
+  <div id="controls">
+    <button id="vozBtn" title="Activar o pausar narrador"><i class="fa-solid fa-volume-high"></i></button>
+    <select id="voiceSelect" aria-label="Selector de voz"><option>Cargando voces...</option></select>
+    <button id="contrasteBtn" title="Alternar alto contraste"><i class="fa-solid fa-circle-half-stroke"></i> ♿</button>
+  </div>
+</header>
+
+<div id="barraSocialTech">
+  <div id="puntoSocialTech">
+    <div class="outer"></div>
+    <div class="inner"></div>
+  </div>
+</div>
+
+<div id="notaPC">🖥️ Recomendado para uso en computadora. Sistema de Trazabilidad Educativa</div>
+
+<div id="carousel-container">
+  <!-- SLIDE 1: PREGUNTA GENERADORA -->
+  <div class="slide active-slide">
+    <div class="pregunta-generadora">
+      <h2>🎯 Punto de Partida del Diseño</h2>
+      <p><strong>"¿Qué quiero que mis estudiantes SEPAN, sean capaces de HACER y SER al final de esta actividad?"</strong></p>
+      <p><em>Las respuestas constituirán los tres ejes sobre los que se formularán los propósitos, evidencias y rúbricas PAMi.</em></p>
+    </div>
+    
+    <label>¿Qué quiero que mis estudiantes SEPAN? (Conocimientos/conceptos)</label>
+    <textarea id="pregunta-saber" placeholder="Ej: Comprender los principios de herencia genética y variabilidad..."></textarea>
+    
+    <label>¿Qué quiero que mis estudiantes HAGAN? (Habilidades/procedimientos)</label>
+    <textarea id="pregunta-hacer" placeholder="Ej: Aplicar cuadros de Punnett, analizar patrones de herencia..."></textarea>
+    
+    <label>¿Qué quiero que mis estudiantes SEAN? (Actitudes/valores)</label>
+    <textarea id="pregunta-ser" placeholder="Ej: Valorar la diversidad genética, ser curiosos científicos..."></textarea>
+  </div>
+
+  <!-- SLIDE 2: ENCABEZADO CURRICULAR - ACTUALIZADO -->
+  <div class="slide">
+    <div class="seccion-titulo">🧩 SECCIÓN 1. ENCABEZADO CURRICULAR</div>
+    
+    <div class="form-row">
+      <div class="form-col">
+        <label>País:</label>
+        <select id="pais" onchange="mostrarCamposPais()">
+          <option value="">Seleccione un país</option>
+          <option value="Colombia">Colombia</option>
+          <option value="Mexico">México</option>
+          <option value="Argentina">Argentina</option>
+          <option value="Chile">Chile</option>
+          <option value="Peru">Perú</option>
+          <option value="Ecuador">Ecuador</option>
+          <option value="otro">Otro país</option>
+        </select>
+        <div id="otro-pais" class="otro-pais">
+          <label>Nombre del país:</label>
+          <input type="text" id="nombre-otro-pais" placeholder="Escriba el nombre del país">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-col">
+        <label>Departamento:</label>
+        <select id="departamento" onchange="cargarMunicipios()">
+          <option value="">Seleccione país primero</option>
+        </select>
+      </div>
+      <div class="form-col">
+        <label>Municipio:</label>
+        <select id="municipio" onchange="mostrarOtroMunicipio()">
+          <option value="">Seleccione departamento primero</option>
+        </select>
+        <div id="otro-municipio" class="otro-municipio">
+          <label>Nombre del municipio:</label>
+          <input type="text" id="nombre-otro-municipio" placeholder="Escriba el nombre del municipio">
+        </div>
+      </div>
+    </div>
+
+    <!-- El resto del formulario se mantiene igual -->
+    <div class="form-row">
+      <div class="form-col">
+        <label>Institución Educativa:</label>
+        <input type="text" id="institucion" placeholder="Nombre de la institución">
+      </div>
+    </div>
+
+   
+  </div>
+
+
+<!-- SLIDE 3: CADENA DE COHERENCIA - COMPLETO -->
+<div class="slide">
+  <!-- TARJETA DE PRESENTACIÓN DEL MODELO -->
+  <div class="modelo-central" style="background: linear-gradient(135deg, #1E88E5, #009B02); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    <div style="text-align: center;">
+      <h3 style="margin: 0 0 10px 0; font-size: 1.3rem;">
+        <i class="fa-solid fa-star"></i> IDEA CENTRAL DEL DISEÑO CURRICULAR
+      </h3>
+      <p style="margin: 0; font-size: 1rem; line-height: 1.4;">
+        <strong>"El DBA es el concepto estructurante que articula toda la experiencia de aprendizaje<br>desde las evidencias hasta la transformación competencial"</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="seccion-titulo">🔗 CADENA DE COHERENCIA ICFES DCE – SIEE</div>
+  
+  <!-- DIAGRAMA VISUAL DE LA CADENA -->
+  <div class="cadena-visual" style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #1E88E5;">
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #1E88E5; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <small style="font-weight: bold;">EBC</small>
+    </div>
+    
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #2196F3; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-bullseye"></i>
+      </div>
+      <small style="font-weight: bold;">Competencia</small>
+    </div>
+    
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #03A9F4; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-check-double"></i>
+      </div>
+      <small style="font-weight: bold;">Afirmación</small>
+    </div>
+    
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #00BCD4; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-clipboard-check"></i>
+      </div>
+      <small style="font-weight: bold;">Evidencia</small>
+    </div>
+    
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #009688; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-puzzle-piece"></i>
+      </div>
+      <small style="font-weight: bold;">Componente</small>
+    </div>
+    
+    <div style="text-align: center; flex: 1;">
+      <div style="background: #009B02; color: white; padding: 8px; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-gem"></i>
+      </div>
+      <small style="font-weight: bold; color: #009B02;">DBA</small>
+    </div>
+  </div>
+
+  <!-- LEYENDA DEL DIAGRAMA -->
+  <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #e8f5e8; border-radius: 8px; border: 1px solid #009B02;">
+    <small style="color: #009B02; font-weight: bold;">
+      <i class="fa-solid fa-arrow-right"></i> 
+      El <strong style="color: #009B02;">DBA (verde)</strong> es el concepto estructurante que articula y da sentido a toda la cadena
+    </small>
+  </div>
+
+  <!-- INSTRUCCIÓN GENERAL -->
+  <div class="pregunta-generadora" style="background: #fff3e0; border-left: 4px solid #FF9800; margin-bottom: 25px;">
+    <p><strong>💡 Instrucción:</strong> Consulte las guías ICFES de su grado y área. Copie y pegue los elementos correspondientes al DBA seleccionado.</p>
+  </div>
+
+  <!-- CAMPOS DE LA CADENA DE COHERENCIA -->
+  
+  <!-- EBC -->
+  <label>Estándar EBC (MEN, 2006):</label>
+  <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">
+    <i class="fa-solid fa-layer-group"></i> Marco general regulatorio
+  </div>
+  <textarea id="estandar-ebc" placeholder="Ej: Utilizo modelos biológicos, físicos y químicos para explicar la transformación y conservación de la energía..."></textarea>
+
+  <!-- COMPETENCIA ICFES -->
+  <label>Competencia ICFES:</label>
+  <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">
+    <i class="fa-solid fa-bullseye"></i> Capacidad movilizadora del conocimiento
+  </div>
+  <textarea id="competencia" placeholder="Ej: Explicación de fenómenos: Explica cómo las leyes de la herencia y los mecanismos genéticos permiten comprender la transmisión de características..."></textarea>
+  
+  <!-- AFIRMACIÓN ICFES -->
+  <label>Afirmación ICFES:</label>
+  <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">
+    <i class="fa-solid fa-check-double"></i> Enunciado verificable de logro
+  </div>
+  <textarea id="afirmacion" placeholder="Ej: Explica la forma como se transmite la información genética de padres a hijos, identificando las causas de la variabilidad entre organismos..."></textarea>
+  
+  <!-- EVIDENCIA ICFES -->
+  <label>Evidencia ICFES:</label>
+  <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">
+    <i class="fa-solid fa-clipboard-check"></i> Manifestación observable del aprendizaje
+  </div>
+  <textarea id="evidencia-icfes" placeholder="Ej: Diseña experiencias que demuestran las leyes de Mendel, interpreta cuadros de Punnett y predice proporciones de rasgos heredados..."></textarea>
+  
+  <!-- COMPONENTE -->
+  <label>Componente:</label>
+  <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">
+    <i class="fa-solid fa-puzzle-piece"></i> Área específica del conocimiento (solo si aplica)
+  </div>
+  <input type="text" id="componente" placeholder="Ej: Pensamiento científico - Vida">
+
+  <!-- NUEVO SISTEMA DBA CON SELECTOR -->
+  <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #009B02; margin: 25px 0 15px 0;">
+    <h4 style="margin: 0; color: #009B02; display: flex; align-items: center; gap: 10px;">
+      <i class="fa-solid fa-gem"></i>
+      DBA - CONCEPTO ESTRUCTURANTE FUNDAMENTAL
+    </h4>
+    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #2e7d32;">
+      <strong>Articula toda la experiencia de aprendizaje desde las evidencias hasta la transformación competencial</strong>
+    </p>
+  </div>
+
+  <!-- SELECTOR DE DBA -->
+  <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd;">
+    <label style="display: block; margin-bottom: 10px; font-weight: bold;">
+      <i class="fa-solid fa-list-check"></i> Seleccionar DBA para agregar (1-10):
+    </label>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+      <button type="button" onclick="agregarDBASelector(1)" class="dba-selector-btn" id="dba-selector-1" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 1
+      </button>
+      <button type="button" onclick="agregarDBASelector(2)" class="dba-selector-btn" id="dba-selector-2" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 2
+      </button>
+      <button type="button" onclick="agregarDBASelector(3)" class="dba-selector-btn" id="dba-selector-3" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 3
+      </button>
+      <button type="button" onclick="agregarDBASelector(4)" class="dba-selector-btn" id="dba-selector-4" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 4
+      </button>
+      <button type="button" onclick="agregarDBASelector(5)" class="dba-selector-btn" id="dba-selector-5" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 5
+      </button>
+      <button type="button" onclick="agregarDBASelector(6)" class="dba-selector-btn" id="dba-selector-6" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 6
+      </button>
+      <button type="button" onclick="agregarDBASelector(7)" class="dba-selector-btn" id="dba-selector-7" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 7
+      </button>
+      <button type="button" onclick="agregarDBASelector(8)" class="dba-selector-btn" id="dba-selector-8" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 8
+      </button>
+      <button type="button" onclick="agregarDBASelector(9)" class="dba-selector-btn" id="dba-selector-9" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 9
+      </button>
+      <button type="button" onclick="agregarDBASelector(10)" class="dba-selector-btn" id="dba-selector-10" style="background: var(--verde); color: white; border: none; border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-plus"></i> DBA 10
+      </button>
+    </div>
+    <div style="font-size: 0.8rem; color: #666;">
+      <i class="fa-solid fa-circle-info"></i> 
+      <strong>DBA activos:</strong> <span id="contador-dbas-activos">0</span> | 
+      <strong>Disponibles:</strong> <span id="contador-dbas-disponibles">10</span> | 
+      <strong>Eliminados:</strong> <span id="contador-dbas-eliminados">0</span>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR DE DBAS ACTIVOS -->
+  <div id="dba-container">
+    <!-- Los DBA se agregarán dinámicamente aquí -->
+  </div>
+
+  <!-- PANEL DE DBA ELIMINADOS -->
+  <div id="panel-eliminados"></div>
+
+  <!-- CONTADOR DE DBA -->
+  <div style="font-size: 0.9rem; color: #009B02; margin-top: 8px; text-align: right; font-weight: bold;">
+    <i class="fa-solid fa-gem"></i> 
+    <span id="contador-dba-numero">0</span> DBA(s) estructurante(s) definido(s)
+  </div>
+</div>
+
+
+
+
+  <!-- SLIDE 4: ESTRATIFICACIÓN DBA -->
+  <div class="slide">
+    <div class="seccion-titulo">🔹 ESTRATIFICACIÓN DEL DBA (N1–N4)</div>
+    
+    <table class="pami-table">
+      <thead>
+        <tr>
+          <th>Nivel (DCE)</th>
+          <th>Rango SIEE</th>
+          <th>Descriptor observable</th>
+          <th>Verbo rector</th>
+          <th>Tipo de evidencia</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>N1 - Diagnóstico</td>
+          <td>1.0-2.9</td>
+          <td><input type="text" placeholder="Descriptor N1" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Verbo N1" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Evidencia N1" style="border: none; width: 100%;"></td>
+        </tr>
+        <tr>
+          <td>N2 - Aplicación guiada</td>
+          <td>3.0-3.9</td>
+          <td><input type="text" placeholder="Descriptor N2" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Verbo N2" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Evidencia N2" style="border: none; width: 100%;"></td>
+        </tr>
+        <tr>
+          <td>N3 - Análisis autónomo</td>
+          <td>4.0-4.6</td>
+          <td><input type="text" placeholder="Descriptor N3" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Verbo N3" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Evidencia N3" style="border: none; width: 100%;"></td>
+        </tr>
+        <tr>
+          <td>N4 - Transferencia creativa</td>
+          <td>4.7-5.0</td>
+          <td><input type="text" placeholder="Descriptor N4" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Verbo N4" style="border: none; width: 100%;"></td>
+          <td><input type="text" placeholder="Evidencia N4" style="border: none; width: 100%;"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SLIDES 5-7: PAMi TRIPLE -->
+  <div class="slide">
+    <div class="seccion-titulo">🧠 Dimensión SABER - Cognitivo</div>
+    <table class="pami-table">
+      <thead>
+        <tr>
+          <th>Nivel</th>
+          <th>Rango SIEE</th>
+          <th>Propósito (verbo medible)</th>
+          <th>Pregunta PAMi</th>
+          <th>Evidencia derivada</th>
+        </tr>
+      </thead>
+      <tbody id="pami-saber-body">
+        <!-- Se llenará dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="slide">
+    <div class="seccion-titulo">🔬 Dimensión HACER - Procedimental</div>
+    <table class="pami-table">
+      <thead>
+        <tr>
+          <th>Nivel</th>
+          <th>Rango SIEE</th>
+          <th>Propósito (verbo medible)</th>
+          <th>Pregunta PAMi</th>
+          <th>Evidencia derivada</th>
+        </tr>
+      </thead>
+      <tbody id="pami-hacer-body">
+        <!-- Se llenará dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="slide">
+    <div class="seccion-titulo">🌱 Dimensión SER - Actitudinal</div>
+    <table class="pami-table">
+      <thead>
+        <tr>
+          <th>Nivel</th>
+          <th>Rango SIEE</th>
+          <th>Propósito (verbo medible)</th>
+          <th>Pregunta PAMi</th>
+          <th>Evidencia derivada</th>
+        </tr>
+      </thead>
+      <tbody id="pami-ser-body">
+        <!-- Se llenará dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SLIDE 8: EXPORTACIÓN -->
+  <div class="slide">
+    <div class="seccion-titulo">📤 Exportar Secuencia Completa</div>
+    <div class="buttons">
+      <button class="export word-btn" onclick="exportarWord()"><i class="fa-solid fa-file-word"></i> Word</button>
+      <button class="export pdf-btn" onclick="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+      <button class="export excel-btn" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+      <button class="export print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+      <button class="export clear-btn" onclick="limpiarFormulario()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+      <h3>🧩 Trazabilidad SITE-RUTA LATAM</h3>
+      <p><strong>PMAP:</strong> Plan de Migración Académica Progresiva</p>
+      <p><strong>PCVD:</strong> Principio de Coherencia Verbo-Descriptor</p>
+      <p><strong>3 PAMi:</strong> Preguntas de Andamiaje Migratorio (Saber-Hacer-Ser)</p>
+    </div>
+  </div>
+
+  <!-- FLECHAS -->
+  <div id="prev" class="arrow"><i class="fa-solid fa-chevron-left"></i></div>
+  <div id="next" class="arrow"><i class="fa-solid fa-chevron-right"></i></div>
+</div>
+
+<footer>© 2025 SITE-RUTA LATAM | Desarrollado por Mario Germán Barbosa Valderrama | Secuencia Didáctica v5.2</footer>
+
+<script>
+// ===== DATA DE DEPARTAMENTOS COLOMBIANOS =====
+const DEPARTAMENTOS_COLOMBIA = [
+  "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bolívar", "Boyacá", "Caldas", 
+  "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó", "Córdoba", "Cundinamarca", 
+  "Guainía", "Guaviare", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño", 
+  "Norte de Santander", "Putumayo", "Quindío", "Risaralda", "San Andrés y Providencia", 
+  "Santander", "Sucre", "Tolima", "Valle del Cauca", "Vaupés", "Vichada"
+];
+
+
+// ===== DATA COMPLETA DE COLOMBIA =====
+const MUNICIPIOS_COLOMBIA = {
+  "Amazonas": ["Leticia", "Puerto Nariño"],
+  "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó", "Turbo", "Rionegro", "Marinilla", "Santuario", "La Ceja", "Copacabana", "Girardota", "Barbosa", "Caldas", "Sabaneta", "Carepa", "Chigorodó", "Yarumal", "Caucasia", "Segovia", "Amalfi", "Yolombó", "Otro"],
+  "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Sabanalarga", "Baranoa", "Galapa", "Puerto Colombia", "Usiacurí", "Palmar de Varela", "Campo de la Cruz", "Repelón", "Manatí", "Candelaria", "Luruaco", "Ponedera", "Suan", "Piojó", "Juan de Acosta", "Tubará", "Otro"],
+  "Bogotá D.C.": ["Bogotá"],
+  "Bolívar": ["Cartagena", "Magangué", "El Carmen de Bolívar", "Arjona", "Turbaco", "San Juan Nepomuceno", "María la Baja", "San Jacinto", "Calamar", "Santa Rosa del Sur", "San Pablo", "Morales", "Barranco de Loba", "Hatillo de Loba", "Altos del Rosario", "Regidor", "Río Viejo", "Achí", "Tiquisio", "Otro"],
+  "Boyacá": ["Tunja", "Sogamoso", "Duitama", "Chiquinquirá", "Samacá", "Nobsa", "Paipa", "Moniquirá", "Villa de Leyva", "Puerto Boyacá", "Muzo", "Maripí", "Quípama", "San Pablo de Borbur", "Otanche", "Briceño", "Coper", "La Victoria", "Otro"],
+  "Caldas": ["Manizales", "La Dorada", "Chinchiná", "Villamaría", "Samaná", "Riosucio", "Anserma", "Salamina", "Aguadas", "Pácora", "Marmato", "Marulanda", "Pensilvania", "Neira", "Palestina", "Filadelfia", "Norcasia", "Otro"],
+  "Caquetá": ["Florencia", "San Vicente del Caguán", "Cartagena del Chairá", "Solano", "Belén de los Andaquíes", "Albania", "Curillo", "El Doncello", "El Paujil", "Morelia", "Puerto Rico", "San José del Fragua", "Milán", "Valparaíso", "Otro"],
+  "Casanare": ["Yopal", "Aguazul", "Villanueva", "Tauramena", "Trinidad", "San Luis de Palenque", "Pore", "Orocué", "Nunchía", "Monterrey", "La Salina", "Hato Corozal", "Chámeza", "Paz de Ariporo", "Recetor", "Sabanalarga", "Sácama", "Támara", "Otro"],
+  "Cauca": ["Popayán", "Santander de Quilichao", "Puerto Tejada", "Patía", "Guapi", "Caldono", "Piendamó", "El Tambo", "Miranda", "Corinto", "Padilla", "Inzá", "Timbío", "Páez", "Bolívar", "La Vega", "Cajibío", "Sotará", "Otro"],
+  "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi", "Bosconia", "Curumaní", "Chimichagua", "El Copey", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico", "Manaure", "Pailitas", "Pelaya", "Pueblo Bello", "Río de Oro", "San Alberto", "San Diego", "San Martín", "Tamalameque", "Otro"],
+  "Chocó": ["Quibdó", "Istmina", "Nóvita", "Riosucio", "Condoto", "Tadó", "Unguía", "Bagadó", "Lloró", "Medio Atrato", "Medio San Juan", "Sipí", "Certegui", "Unión Panamericana", "Bajo Baudó", "El Carmen de Atrato", "El Cantón del San Pablo", "El Litoral del San Juan", "Itsmina", "Juradó", "Llorente", "Medio Baudó", "Nóvita", "Nuquí", "Río Iró", "Río Quito", "San José del Palmar", "Santa Genoveva de Docordó", "Sipí", "Tadó", "Unguía", "Otro"],
+  "Córdoba": ["Montería", "Cereté", "Sahagún", "Lorica", "Planeta Rica", "Tierralta", "Chinú", "Ciénaga de Oro", "Ayapel", "San Pelayo", "Puerto Escondido", "San Bernardo del Viento", "San Carlos", "San José de Uré", "Pueblo Nuevo", "Los Córdobas", "Cotorra", "Valencia", "Canalete", "La Apartada", "Montelíbano", "Buenavista", "Otro"],
+  "Cundinamarca": ["Soacha", "Fusagasugá", "Girardot", "Facatativá", "Zipaquirá", "Chía", "Mosquera", "Madrid", "Funza", "Cajicá", "Sopo", "Tabio", "Tenjo", "La Calera", "Cota", "El Rosal", "Subachoque", "Pacho", "Tocancipá", "Gachancipá", "Cogua", "Nemocón", "Sesquilé", "Sutatausa", "Tausa", "San Francisco", "Villapinzón", "Chocontá", "Machetá", "Manta", "Guachetá", "Ubaté", "Carmen de Carupa", "Cucunubá", "Susa", "Fúquene", "Guatavita", "Sesquilé", "Sutatausa", "Tausa", "Otro"],
+  "Guainía": ["Inírida", "Barranco Minas", "Mapiripana", "San Felipe", "Puerto Colombia", "La Guadalupe", "Cacahual", "Pana Pana", "Morichal", "Otro"],
+  "Guaviare": ["San José del Guaviare", "Calamar", "Miraflores", "El Retorno", "Otro"],
+  "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata", "Campoalegre", "Palermo", "San Agustín", "Aipe", "Tello", "Baraya", "Yaguará", "Tesalia", "Nataga", "Paicol", "La Argentina", "Nátaga", "Santa María", "Algeciras", "Iquira", "Saladoblanco", "Oporapa", "Elías", "Timaná", "Acevedo", "Suaza", "Tarqui", "Guadalupe", "Altamira", "Otro"],
+  "La Guajira": ["Riohacha", "Maicao", "Uribia", "Manaure", "Fonseca", "Barrancas", "San Juan del Cesar", "Villanueva", "Albania", "Dibulla", "El Molino", "Hatonuevo", "La Jagua del Pilar", "Urumita", "Otro"],
+  "Magdalena": ["Santa Marta", "Ciénaga", "Fundación", "Plato", "El Banco", "Aracataca", "Pivijay", "Pueblo Viejo", "Remolino", "Sitionuevo", "Zona Bananera", "Chibolo", "Sabanas de San Ángel", "Nueva Granada", "Algarrobo", "Concordia", "El Piñón", "Pedraza", "Pijiño del Carmen", "San Zenón", "Santa Bárbara de Pinto", "Tenerife", "Zapayán", "Otro"],
+  "Meta": ["Villavicencio", "Acacías", "Granada", "Puerto López", "San Martín", "Cumaral", "Puerto Gaitán", "Barranca de Upía", "Cabuyaro", "Castilla la Nueva", "Cubarral", "Cumaral", "El Calvario", "El Castillo", "Fuente de Oro", "Guamal", "Mapiripán", "Mesetas", "Puerto Concordia", "Puerto Lleras", "Puerto Rico", "Restrepo", "San Carlos de Guaroa", "San Juan de Arama", "San Juanito", "Uribe", "Lejanías", "Otro"],
+  "Nariño": ["Pasto", "Tumaco", "Ipiales", "Samaniego", "La Unión", "Barbacoas", "Santacruz", "Túquerres", "Pupiales", "Cumbal", "Guachucal", "Sandoná", "Ancuyá", "Arboleda", "Consacá", "Contadero", "Córdoba", "Cuaspud", "Cumbitara", "El Charco", "El Peñol", "El Rosario", "El Tablón", "Francisco Pizarro", "Funes", "Guaitarilla", "Gualmatán", "Iles", "Imués", "La Cruz", "La Florida", "La Llanada", "La Tola", "La Unión", "Leiva", "Linares", "Los Andes", "Magüí", "Mallama", "Mosquera", "Nariño", "Olaya Herrera", "Ospina", "Policarpa", "Potosí", "Providencia", "Puerres", "Ricaurte", "Roberto Payán", "Santa Bárbara", "Santacruz", "Sapuyes", "Taminango", "Tangua", "San Andrés de Tumaco", "Yacuanquer", "Otro"],
+  "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona", "Los Patios", "Villa del Rosario", "El Zulia", "Abrego", "Arboledas", "Bochalema", "Bucarasica", "Cáchira", "Cácota", "Chinácota", "Chitagá", "Convención", "Cucutilla", "Durania", "El Carmen", "El Tarra", "Gramalote", "Hacarí", "Herrán", "La Esperanza", "La Playa", "Labateca", "Lourdes", "Mutiscua", "Pamplonita", "Ragonvalia", "Salazar", "San Calixto", "San Cayetano", "Santiago", "Sardinata", "Silos", "Teorama", "Tibú", "Toledo", "Villa Caro", "Otro"],
+  "Putumayo": ["Mocoa", "Puerto Asís", "Puerto Guzmán", "Puerto Leguízamo", "Orito", "San Francisco", "San Miguel", "Santiago", "Valle del Guamuez", "Villagarzón", "Otro"],
+  "Quindío": ["Armenia", "Calarcá", "La Tebaida", "Montenegro", "Quimbaya", "Circasia", "Filandia", "Génova", "Salento", "Pijao", "Córdoba", "Buenavista", "Otro"],
+  "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Belén de Umbría", "Santuario", "Quinchía", "Marsella", "Pueblo Rico", "Guática", "Apía", "Balboa", "Mistrató", "Otro"],
+  "San Andrés y Providencia": ["San Andrés", "Providencia"],
+  "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Barrancabermeja", "San Gil", "Socorro", "Málaga", "Barbosa", "Rionegro", "Lebrija", "Puerto Wilches", "Sabana de Torres", "Cimitarra", "El Playón", "Bolívar", "Capitanejo", "Cerrito", "Charalá", "Chima", "Confines", "Contratación", "Coromoro", "Curití", "El Guacamayo", "El Peñón", "Encino", "Enciso", "Florián", "Galán", "Gámbita", "Guaca", "Guadalupe", "Guapotá", "Guavatá", "Güepsa", "Jesús María", "Jordán", "La Belleza", "La Paz", "Landázuri", "Los Santos", "Macaravita", "Matanza", "Mogotes", "Molagavita", "Ocamonte", "Oiba", "Onzaga", "Palmar", "Palmas del Socorro", "Páramo", "Pinchote", "Puente Nacional", "Puerto Parra", "Puerto Santander", "San Andrés", "San Benito", "San Joaquín", "San José de Miranda", "San Miguel", "San Vicente de Chucurí", "Santa Bárbara", "Santa Helena del Opón", "Simacota", "Suaita", "Sucre", "Suratá", "Tona", "Valle de San José", "Vélez", "Vetas", "Villanueva", "Zapatoca", "Otro"],
+  "Sucre": ["Sincelejo", "Corozal", "Morroa", "Sampués", "San Marcos", "Coveñas", "Tolú", "San Onofre", "Palmito", "Los Palmitos", "Ovejas", "Chalán", "Colosó", "Tolú Viejo", "San Juan de Betulia", "Buenavista", "Sincé", "Caimito", "La Unión", "San Benito Abad", "San Pedro", "Galeras", "Majagual", "Sucre", "Guaranda", "Otro"],
+  "Tolima": ["Ibagué", "Espinal", "Honda", "Mariquita", "Líbano", "Fresno", "Melgar", "Flandes", "Armero", "Lérida", "Purificación", "Saldaña", "Chaparral", "Coyaima", "Natagaima", "Ortega", "Planadas", "Roncesvalles", "Rovira", "San Luis", "Santa Isabel", "Venadillo", "Villahermosa", "Alvarado", "Anzoátegui", "Cajamarca", "Coello", "Cunday", "Dolores", "Falan", "Herveo", "Icononzo", "Murillo", "Palocabildo", "Piedras", "Rioblanco", "San Antonio", "Valle de San Juan", "Casabianca", "Otro"],
+  "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Buga", "Yumbo", "Zarzal", "Jamundí", "Florida", "Pradera", "Candelaria", "Caicedonia", "Sevilla", "La Unión", "Dagua", "El Cerrito", "Guacarí", "Andalucía", "Roldanillo", "Ansermanuevo", "Bugalagrande", "El Dovio", "La Victoria", "Ginebra", "San Pedro", "Calima", "Restrepo", "Riofrío", "Alcalá", "Versalles", "Bolívar", "El Águila", "Toro", "Ulloa", "Obando", "Argelia", "Cartago", "Otro"],
+  "Vaupés": ["Mitú", "Carurú", "Taraira", "Papunaua", "Yavaraté", "Pacoa", "Otro"],
+  "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo", "Otro"]
+};
+
+
+// ===== FUNCIONES PARA MUNICIPIOS =====
+function cargarMunicipios() {
+  const departamentoSelect = document.getElementById('departamento');
+  const municipioSelect = document.getElementById('municipio');
+  const otroMunicipioDiv = document.getElementById('otro-municipio');
+  
+  const departamento = departamentoSelect.value;
+  
+  // Ocultar campo "otro municipio"
+  otroMunicipioDiv.style.display = 'none';
+  
+  // Limpiar select de municipios
+  municipioSelect.innerHTML = '<option value="">Seleccione municipio</option>';
+  
+  if (departamento && MUNICIPIOS_COLOMBIA[departamento]) {
+    // Cargar municipios del departamento seleccionado
+    MUNICIPIOS_COLOMBIA[departamento].forEach(municipio => {
+      const option = document.createElement('option');
+      option.value = municipio;
+      option.textContent = municipio;
+      municipioSelect.appendChild(option);
+    });
+    
+    // Agregar opción "Otro" si no está ya incluida
+    if (!MUNICIPIOS_COLOMBIA[departamento].includes('Otro')) {
+      const option = document.createElement('option');
+      option.value = 'Otro';
+      option.textContent = 'Otro municipio';
+      municipioSelect.appendChild(option);
+    }
+  } else {
+    municipioSelect.innerHTML = '<option value="">Seleccione departamento primero</option>';
+  }
+}
+
+function mostrarOtroMunicipio() {
+  const municipioSelect = document.getElementById('municipio');
+  const otroMunicipioDiv = document.getElementById('otro-municipio');
+  
+  if (municipioSelect.value === 'Otro') {
+    otroMunicipioDiv.style.display = 'block';
+  } else {
+    otroMunicipioDiv.style.display = 'none';
+  }
+}
+
+
+// ===== CONFIGURACIÓN PRINCIPAL =====
+let currentSlide = 0;
+const slides = document.querySelectorAll(".slide");
+let selectedVoice = null;
+let lecturaActiva = true;
+
+// ===== DATA PAMi FIJA =====
+const DATA_PAMI = {
+  niveles: [
+    { nivel: "N1", rango: "1.0-2.9", nombre: "Diagnóstico" },
+    { nivel: "N2", rango: "3.0-3.9", nombre: "Aplicación guiada" },
+    { nivel: "N3", rango: "4.0-4.6", nombre: "Análisis autónomo" },
+    { nivel: "N4", rango: "4.7-5.0", nombre: "Transferencia creativa" }
+  ]
+};
+
+// ===== INICIALIZACIÓN =====
+function inicializarFormulario() {
+  // Llenar selectores numéricos
+  llenarSelectSemanas();
+  llenarSelectHoras();
+  
+  // Inicializar tablas PAMi
+  inicializarTablaPAMi('saber');
+  inicializarTablaPAMi('hacer');
+  inicializarTablaPAMi('ser');
+}
+
+function llenarSelectSemanas() {
+  const select = document.getElementById('semanas');
+  for (let i = 1; i <= 40; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `${i} semana${i > 1 ? 's' : ''}`;
+    select.appendChild(option);
+  }
+}
+
+function llenarSelectHoras() {
+  const select = document.getElementById('horas-semanales');
+  for (let i = 1; i <= 10; i++) {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `${i} hora${i > 1 ? 's' : ''}`;
+    select.appendChild(option);
+  }
+}
+
+function inicializarTablaPAMi(dimension) {
+  const tbody = document.getElementById(`pami-${dimension}-body`);
+  tbody.innerHTML = '';
+  
+  DATA_PAMI.niveles.forEach(nivel => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${nivel.nivel}<br><small>${nivel.nombre}</small></td>
+      <td>${nivel.rango}</td>
+      <td><input type="text" placeholder="Verbo ${nivel.nivel}" style="border: none; width: 100%; background: transparent;"></td>
+      <td><textarea placeholder="Pregunta PAMi ${nivel.nivel}" style="border: none; width: 100%; height: 60px; resize: vertical; background: transparent;"></textarea></td>
+      <td><textarea placeholder="Evidencia ${nivel.nivel}" style="border: none; width: 100%; height: 60px; resize: vertical; background: transparent;"></textarea></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+
+// ===== FUNCIÓN ACTUALIZADA PARA CARGAR DEPARTAMENTOS =====
+function mostrarCamposPais() {
+  const pais = document.getElementById('pais').value;
+  const otroPaisDiv = document.getElementById('otro-pais');
+  const departamentoSelect = document.getElementById('departamento');
+  const municipioSelect = document.getElementById('municipio');
+  const otroMunicipioDiv = document.getElementById('otro-municipio');
+  
+  // Ocultar campos dependientes
+  otroMunicipioDiv.style.display = 'none';
+  
+  // Mostrar/ocultar campo "otro país"
+  if (pais === 'otro') {
+    otroPaisDiv.style.display = 'block';
+    departamentoSelect.innerHTML = '<option value="">País personalizado</option>';
+    municipioSelect.innerHTML = '<option value="">Seleccione departamento primero</option>';
+  } else {
+    otroPaisDiv.style.display = 'none';
+    
+    // Llenar departamentos según país
+    if (pais === 'Colombia') {
+      llenarDepartamentosColombia();
+    } else if (pais) {
+      departamentoSelect.innerHTML = '<option value="">Seleccione estado/provincia</option>';
+      municipioSelect.innerHTML = '<option value="">Seleccione departamento primero</option>';
+      // Aquí se podrían agregar más países
+    } else {
+      departamentoSelect.innerHTML = '<option value="">Seleccione país primero</option>';
+      municipioSelect.innerHTML = '<option value="">Seleccione departamento primero</option>';
+    }
+  }
+}
+
+function llenarDepartamentosColombia() {
+  const select = document.getElementById('departamento');
+  select.innerHTML = '<option value="">Seleccione departamento</option>';
+  
+  Object.keys(MUNICIPIOS_COLOMBIA).forEach(depto => {
+    const option = document.createElement('option');
+    option.value = depto;
+    option.textContent = depto;
+    select.appendChild(option);
+  });
+}
+
+function mostrarOtraArea() {
+  const area = document.getElementById('area').value;
+  const otraAreaDiv = document.getElementById('otra-area');
+  
+  if (area === 'otro') {
+    otraAreaDiv.style.display = 'block';
+  } else {
+    otraAreaDiv.style.display = 'none';
+  }
+}
+
+
+
+// =============================================================================
+// SISTEMA DE CARRUSEL Y NAVEGACIÓN
+// =============================================================================
+
+/**
+ * Función principal para mostrar slides del carrusel
+ * @param {number} i - Índice del slide a mostrar
+ */
+function showSlide(i) {
+  // Remover clase activa del slide actual
+  slides[currentSlide].classList.remove("active-slide");
+  
+  // Calcular nuevo índice de slide
+  currentSlide = (i + slides.length) % slides.length;
+  
+  // Agregar clase activa al nuevo slide
+  slides[currentSlide].classList.add("active-slide");
+  
+  // Actualizar barra de progreso
+  moverPunto();
+  
+  // Cancelar cualquier narración pendiente
+  speechSynthesis.cancel();
+  
+  // Configurar títulos de narración para cada slide
+  const titulos = [
+    "Pregunta generadora del diseño PAMi. Defina qué quiere que sus estudiantes sepan, hagan y sean",
+    "Encabezado curricular. Complete la información de ubicación e institución", 
+    "Cadena de coherencia ICFES. Defina los elementos curriculares y seleccione los DBA necesarios",
+    "Estratificación del DBA por niveles. Complete los descriptores para cada nivel de desempeño",
+    "Preguntas de Andamiaje Migratorio de la dimensión SABER. Complete los propósitos cognitivos",
+    "Preguntas de Andamiaje Migratorio de la dimensión HACER. Complete los propósitos procedimentales", 
+    "Preguntas de Andamiaje Migratorio de la dimensión SER. Complete los propósitos actitudinales",
+    "Exportación y trazabilidad. Exporte su secuencia didáctica completa"
+  ];
+  
+  // Narrar slide actual si existe título
+  if (titulos[currentSlide]) {
+    setTimeout(() => {
+      // NARRACIÓN ESPECIAL PARA SLIDE 3 - CADENA DE COHERENCIA ICFES
+      if (currentSlide === 2) {
+        const narracionCompleta = new SpeechSynthesisUtterance();
+        narracionCompleta.text = "Cadena de coherencia ICFES. Defina los elementos curriculares y seleccione los D B A necesarios. " +
+                                "Recuerde la idea central: El D B A es el concepto estructurante que articula toda la experiencia de aprendizaje desde las evidencias hasta la transformación competencial. " +
+                                "Utilice el selector de D B A para agregar los derechos básicos de aprendizaje necesarios para su secuencia didáctica.";
+        narracionCompleta.voice = selectedVoice;
+        narracionCompleta.lang = "es-ES";
+        narracionCompleta.rate = 0.9; // Velocidad reducida para mejor comprensión
+        narracionCompleta.pitch = 1;
+        
+        speechSynthesis.speak(narracionCompleta);
+      } else {
+        // NARRACIÓN NORMAL PARA LOS DEMÁS SLIDES
+        const utterance = new SpeechSynthesisUtterance(titulos[currentSlide]);
+        utterance.voice = selectedVoice;
+        utterance.lang = "es-ES";
+        utterance.rate = 1;
+        speechSynthesis.speak(utterance);
+      }
+    }, 500);
+  }
+}
+
+// =============================================================================
+// CONTROL DE NARRACIÓN
+// =============================================================================
+
+/**
+ * Detiene todas las narraciones en curso
+ */
+function stopNarration() {
+  speechSynthesis.cancel();
+}
+
+/**
+ * Función general para narrar texto
+ * @param {string} t - Texto a narrar
+ */
+function narrar(t) {
+  if (!lecturaActiva || !selectedVoice) return;
+  
+  const u = new SpeechSynthesisUtterance(t);
+  u.voice = selectedVoice;
+  u.lang = "es-ES";
+  u.rate = 1;
+  
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+// =============================================================================
+// CONFIGURACIÓN DE VOCES
+// =============================================================================
+
+/**
+ * Carga y configura las voces disponibles del sistema
+ */
+function cargarVoces() {
+  const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
+  const select = document.getElementById("voiceSelect");
+  select.innerHTML = "";
+  
+  // Crear opciones para cada voz disponible
+  voices.forEach((v, i) => {
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = v.name.includes("male") || v.name.includes("Hombre") ? 
+      `🔊 ${v.name} (Masculina)` : `🎤 ${v.name} (Femenina)`;
+    select.appendChild(o);
+  });
+  
+  // Seleccionar voz masculina por defecto o la primera disponible
+  selectedVoice = voices.find(v => /male|Hombre/i.test(v.name)) || voices[0];
+}
+
+// =============================================================================
+// BARRA DE PROGRESO
+// =============================================================================
+
+/**
+ * Actualiza la posición del punto en la barra de progreso
+ */
+function moverPunto() {
+  const porc = ((currentSlide + 1) / slides.length) * 100;
+  document.getElementById("puntoSocialTech").style.left = `${porc}%`;
+}
+
+// =============================================================================
+// EVENT LISTENERS DE NAVEGACIÓN
+// =============================================================================
+
+// Configurar botones de navegación con control de narración
+document.getElementById("next").onclick = () => {
+  stopNarration();
+  showSlide(currentSlide + 1);
+};
+
+document.getElementById("prev").onclick = () => {
+  stopNarration();
+  showSlide(currentSlide - 1);
+};
+
+// =============================================================================
+// EVENT LISTENERS DE CONFIGURACIÓN
+// =============================================================================
+
+// Botón de activar/desactivar voz
+document.getElementById("vozBtn").onclick = () => {
+  lecturaActiva = !lecturaActiva;
+  document.querySelector("#vozBtn i").className = lecturaActiva ? 
+    "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark";
+};
+
+// Botón de modo alto contraste
+document.getElementById("contrasteBtn").onclick = () => {
+  document.body.classList.toggle("alto-contraste");
+};
+
+// Selector de voces
+document.getElementById("voiceSelect").onchange = (e) => {
+  const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
+  selectedVoice = voices[e.target.value];
+};
+
+// =============================================================================
+// INICIALIZACIÓN DEL SISTEMA DE VOCES
+// =============================================================================
+
+// Cargar voces cuando estén disponibles
+speechSynthesis.onvoiceschanged = cargarVoces;
+
+// Cargar voces al iniciar
+window.onload = () => {
+  cargarVoces();
+  inicializarFormulario();
+  
+  const hoy = new Date().toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric", 
+    month: "long",
+    year: "numeric"
+  });
+  
+  narrar(`Bienvenido al generador de Secuencias Didácticas. Hoy es ${hoy}. Comience respondiendo la pregunta generadora: ¿Qué quiere que sus estudiantes sepan, hagan y sean?`);
+};
+
+
+
+// ===== EVENTOS =====
+document.getElementById("vozBtn").onclick = () => {
+  lecturaActiva = !lecturaActiva;
+  document.querySelector("#vozBtn i").className = lecturaActiva ? 
+    "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark";
+};
+
+document.getElementById("contrasteBtn").onclick = () => {
+  document.body.classList.toggle("alto-contraste");
+};
+
+document.getElementById("voiceSelect").onchange = (e) => {
+  const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith("es"));
+  selectedVoice = voices[e.target.value];
+};
+
+// ===== EXPORTACIÓN =====
+function exportarWord() {
+  narrar("Exportando documento Word. Esta función requiere implementación adicional.");
+  alert("Función de exportación a Word en desarrollo");
+}
+
+function exportarPDF() {
+  narrar("Exportando documento PDF. Esta función requiere implementación adicional.");
+  alert("Función de exportación a PDF en desarrollo");
+}
+
+
+// Modificar la función de exportación Excel para incluir DBA
+function exportarExcel() {
+    narrar("Exportando hoja de cálculo Excel.");
+    
+    const dbas = obtenerDBAs();
+    const datosDBA = dbas.map(dba => [`DBA ${dba.numero}`, dba.contenido]);
+    
+    // Implementación básica con SheetJS
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+        ["SECUENCIA DIDÁCTICA 3 PAMi - SITE RUTA LATAM"],
+        ["Institución:", document.getElementById("institucion")?.value || ""],
+        ["Área:", document.getElementById("area")?.value || ""],
+        ["Grado:", document.getElementById("grado")?.value || ""],
+        ["Fecha de exportación:", new Date().toLocaleDateString()],
+        [""], // línea en blanco
+        ["DBA - DERECHOS BÁSICOS DE APRENDIZAJE"],
+        ...datosDBA
+    ]);
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Secuencia PAMi");
+    XLSX.writeFile(wb, "secuencia_pami.xlsx");
+}
+
+
+// ===== INICIALIZACIÓN COMPLETA =====
+window.onload = () => {
+  cargarVoces();
+  inicializarFormulario();
+  
+  const hoy = new Date().toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric", 
+    month: "long",
+    year: "numeric"
+  });
+  
+  narrar(`Bienvenido al generador de Secuencias Didácticas. Hoy es ${hoy}. Comience respondiendo la pregunta generadora: ¿Qué quiere que sus estudiantes sepan, hagan y sean?`);
+}
+
+// Cargar voces cuando estén disponibles
+speechSynthesis.onvoiceschanged = cargarVoces;
+
+
+// === SISTEMA DBA - VARIABLES GLOBALES ===
+let dbaEliminados = [];
+const DBAS_DISPONIBLES = Array.from({length: 10}, (_, i) => i + 1); // DBA 1 al 10
+
+// === SISTEMA DBA - INICIALIZACIÓN ===
+function inicializarSistemaDBA() {
+    console.log("=== INICIALIZANDO SISTEMA DBA ===");
+    
+    // Verificar que el contenedor existe
+    if (!document.getElementById('dba-container')) {
+        console.error("No se encontró el contenedor DBA");
+        return;
+    }
+    
+    actualizarSelectoresDBA();
+    actualizarContadorDBA();
+    console.log("Sistema DBA inicializado correctamente");
+}
+
+// === SISTEMA DBA - FUNCIONES PRINCIPALES ===
+
+// Función para agregar DBA desde el selector
+function agregarDBASelector(numeroDBA) {
+    console.log(`Intentando agregar DBA ${numeroDBA}`);
+    
+    // Verificar si el DBA ya está activo
+    const dbaExistente = document.querySelector(`[data-dba-id="${numeroDBA}"]`);
+    if (dbaExistente) {
+        alert(`El DBA ${numeroDBA} ya está agregado.`);
+        return;
+    }
+
+    // Verificar si el DBA está eliminado
+    const dbaEliminado = dbaEliminados.find(dba => dba.numero === numeroDBA);
+    if (dbaEliminado) {
+        if (confirm(`El DBA ${numeroDBA} fue eliminado anteriormente. ¿Desea recuperarlo?`)) {
+            recuperarDBA(numeroDBA);
+        }
+        return;
+    }
+
+    agregarDBA(numeroDBA);
+}
+
+// Función para agregar DBA
+function agregarDBA(numero) {
+    const nuevoDBA = document.createElement('div');
+    nuevoDBA.className = 'dba-item';
+    nuevoDBA.style.cssText = 'margin-bottom: 15px; padding: 15px; border: 2px solid #009B02; border-radius: 8px; background: #f8f9fa;';
+    nuevoDBA.setAttribute('data-dba-id', numero);
+    
+    nuevoDBA.innerHTML = `
+        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: bold; color: #009B02; margin-right: 10px;">
+                <i class="fa-solid fa-gem"></i> DBA ${numero} - ESTRUCTURANTE
+            </span>
+            <button type="button" class="btn-eliminar-dba" onclick="eliminarDBA(this)" 
+                    style="margin-left: auto; background: #dc3545; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem;">
+                <i class="fa-solid fa-trash"></i> Eliminar
+            </button>
+        </div>
+        <textarea class="dba-textarea" 
+                  placeholder="Ej: DBA ${numero} - Comprende la forma en que los principios genéticos mendelianos y postmendelianos explican la herencia y el mejoramiento de las especies existentes..." 
+                  style="width: 100%; min-height: 100px; padding: 10px; border: 1px solid #009B02; border-radius: 4px; resize: vertical; background: white;"></textarea>
+    `;
+    
+    document.getElementById('dba-container').appendChild(nuevoDBA);
+    
+    actualizarSelectoresDBA();
+    actualizarContadorDBA();
+    actualizarPanelEliminados();
+    
+    console.log(`DBA ${numero} agregado exitosamente.`);
+    narrar(`DBA número ${numero} agregado. Puede escribir la descripción del derecho básico de aprendizaje.`);
+}
+
+// Función para eliminar DBA
+function eliminarDBA(boton) {
+    const dbaItem = boton.closest('.dba-item');
+    const numeroDBA = parseInt(dbaItem.getAttribute('data-dba-id'));
+    
+    console.log(`=== ELIMINANDO DBA ${numeroDBA} ===`);
+    
+    if (confirm(`¿Está seguro de que desea eliminar el DBA ${numeroDBA}? Podrá recuperarlo después desde el panel de eliminados.`)) {
+        // Guardar el contenido antes de eliminar
+        const contenido = dbaItem.querySelector('.dba-textarea').value;
+        
+        // Guardar en array de eliminados
+        dbaEliminados.push({
+            numero: numeroDBA,
+            contenido: contenido,
+            elemento: dbaItem
+        });
+        
+        dbaItem.remove();
+        
+        actualizarSelectoresDBA();
+        actualizarContadorDBA();
+        actualizarPanelEliminados();
+        
+        console.log(`DBA ${numeroDBA} eliminado.`);
+        narrar(`DBA número ${numeroDBA} eliminado. Puede recuperarlo desde el panel de DBA eliminados.`);
+        
+        // Mostrar estado actual en consola
+        const dbasActivos = Array.from(document.querySelectorAll('.dba-item')).map(item => 
+            parseInt(item.getAttribute('data-dba-id'))
+        );
+        console.log("DBA activos después de eliminar:", dbasActivos.sort((a, b) => a - b));
+        console.log("DBA eliminados:", dbaEliminados.map(d => d.numero));
+    }
+}
+
+// Función para recuperar DBA eliminado
+function recuperarDBA(numeroDBA) {
+    console.log(`=== RECUPERANDO DBA ${numeroDBA} ===`);
+    
+    const dbaIndex = dbaEliminados.findIndex(dba => dba.numero === numeroDBA);
+    
+    if (dbaIndex !== -1) {
+        const dbaRecuperado = dbaEliminados[dbaIndex];
+        
+        // Reinsertar en el contenedor (al final)
+        document.getElementById('dba-container').appendChild(dbaRecuperado.elemento);
+        
+        // Restaurar contenido si existe
+        if (dbaRecuperado.contenido) {
+            dbaRecuperado.elemento.querySelector('.dba-textarea').value = dbaRecuperado.contenido;
+        }
+        
+        // Remover de eliminados
+        dbaEliminados.splice(dbaIndex, 1);
+        
+        actualizarSelectoresDBA();
+        actualizarContadorDBA();
+        actualizarPanelEliminados();
+        
+        console.log(`DBA ${numeroDBA} recuperado exitosamente.`);
+        narrar(`DBA número ${numeroDBA} recuperado exitosamente.`);
+        
+        // Mostrar estado actual en consola
+        const dbasActivos = Array.from(document.querySelectorAll('.dba-item')).map(item => 
+            parseInt(item.getAttribute('data-dba-id'))
+        );
+        console.log("DBA activos después de recuperar:", dbasActivos.sort((a, b) => a - b));
+    } else {
+        console.error(`No se encontró el DBA ${numeroDBA} en la lista de eliminados`);
+    }
+}
+
+// Función para actualizar los selectores de DBA
+function actualizarSelectoresDBA() {
+    const dbasActivos = Array.from(document.querySelectorAll('.dba-item')).map(item => 
+        parseInt(item.getAttribute('data-dba-id'))
+    );
+    
+    console.log("Actualizando selectores. DBA activos:", dbasActivos);
+    
+    DBAS_DISPONIBLES.forEach(numero => {
+        const boton = document.getElementById(`dba-selector-${numero}`);
+        if (boton) {
+            const estaActivo = dbasActivos.includes(numero);
+            const estaEliminado = dbaEliminados.some(dba => dba.numero === numero);
+            
+            if (estaActivo) {
+                // DBA activo - deshabilitado
+                boton.innerHTML = `<i class="fa-solid fa-check"></i> DBA ${numero}`;
+                boton.style.background = '#28a745';
+                boton.style.cursor = 'not-allowed';
+                boton.onclick = null;
+            } else if (estaEliminado) {
+                // DBA eliminado - disponible para recuperar
+                boton.innerHTML = `<i class="fa-solid fa-rotate-left"></i> DBA ${numero}`;
+                boton.style.background = '#ffc107';
+                boton.style.color = '#000';
+                boton.onclick = () => recuperarDBA(numero);
+            } else {
+                // DBA disponible
+                boton.innerHTML = `<i class="fa-solid fa-plus"></i> DBA ${numero}`;
+                boton.style.background = 'var(--verde)';
+                boton.style.color = 'white';
+                boton.style.cursor = 'pointer';
+                boton.onclick = () => agregarDBASelector(numero);
+            }
+        }
+    });
+    
+    // Actualizar contadores del selector
+    const activos = dbasActivos.length;
+    const eliminados = dbaEliminados.length;
+    const disponibles = DBAS_DISPONIBLES.length - activos - eliminados;
+    
+    document.getElementById('contador-dbas-activos').textContent = activos;
+    document.getElementById('contador-dbas-disponibles').textContent = disponibles;
+    document.getElementById('contador-dbas-eliminados').textContent = eliminados;
+    
+    console.log(`Contadores: Activos=${activos}, Disponibles=${disponibles}, Eliminados=${eliminados}`);
+}
+
+// Función para actualizar el panel de eliminados
+function actualizarPanelEliminados() {
+    const panel = document.getElementById('panel-eliminados');
+    
+    if (dbaEliminados.length > 0) {
+        panel.innerHTML = `
+            <div class="dba-eliminados-panel" style="background: #f8f9fa; border: 2px dashed #dc3545; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <h4 style="color: #dc3545; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-trash-arrow-up"></i> DBA Eliminados (${dbaEliminados.length})
+                </h4>
+                <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">
+                    Puede recuperar estos DBA manteniendo su identificador original:
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    ${dbaEliminados.map(dba => `
+                        <button onclick="recuperarDBA(${dba.numero})" 
+                                style="background: #dc3545; color: white; border: none; border-radius: 20px; padding: 5px 15px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 5px;">
+                            <i class="fa-solid fa-rotate-left"></i> Recuperar DBA ${dba.numero}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        panel.innerHTML = '';
+    }
+}
+
+// Función para contar DBA activos
+function actualizarContadorDBA() {
+    const dbaActivos = document.querySelectorAll('.dba-item').length;
+    
+    const contadorElement = document.getElementById('contador-dba-numero');
+    if (contadorElement) {
+        contadorElement.textContent = dbaActivos;
+    }
+    
+    console.log(`DBA activos: ${dbaActivos}`);
+}
+
+// Función para obtener todos los DBA ingresados (para exportación)
+function obtenerDBAs() {
+    const dbaTextareas = document.querySelectorAll('.dba-textarea');
+    const dbas = [];
+    
+    dbaTextareas.forEach(textarea => {
+        if (textarea.value.trim()) {
+            const numeroDBA = textarea.closest('.dba-item').getAttribute('data-dba-id');
+            dbas.push({
+                numero: numeroDBA,
+                contenido: textarea.value.trim()
+            });
+        }
+    });
+    
+    console.log("DBA obtenidos para exportación:", dbas);
+    return dbas;
+}
+
+// Función para limpiar todos los DBA
+function limpiarDBAs() {
+    const dbaContainer = document.getElementById('dba-container');
+    if (dbaContainer) {
+        dbaContainer.innerHTML = '';
+        dbaEliminados = [];
+        actualizarSelectoresDBA();
+        actualizarContadorDBA();
+        actualizarPanelEliminados();
+        console.log("Todos los DBA han sido limpiados");
+    }
+}
+
+// === INICIALIZACIÓN DEL SISTEMA DBA ===
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("=== INICIALIZANDO SISTEMA DBA CON SELECTOR ===");
+    // Pequeño delay para asegurar que el DOM esté completamente cargado
+    setTimeout(() => {
+        inicializarSistemaDBA();
+        console.log("Sistema DBA con selector inicializado correctamente");
+    }, 100);
+});
+
+// === INTEGRACIÓN CON EL SISTEMA EXISTENTE ===
+
+// Modificar la función de limpieza general para incluir los DBA
+function limpiarFormulario() {
+    document.querySelectorAll("input, textarea").forEach(e => e.value = "");
+    // Resetear selects
+    document.getElementById('pais').selectedIndex = 0;
+    document.getElementById('departamento').selectedIndex = 0;
+    document.getElementById('municipio').selectedIndex = 0;
+    document.getElementById('area').selectedIndex = 0;
+    document.getElementById('grado').selectedIndex = 0;
+    document.getElementById('semanas').selectedIndex = 0;
+    document.getElementById('horas-semanales').selectedIndex = 0;
+    document.getElementById('periodo').selectedIndex = 0;
+    
+    // Ocultar campos dinámicos
+    document.getElementById('otro-pais').style.display = 'none';
+    document.getElementById('otra-area').style.display = 'none';
+    document.getElementById('otro-municipio').style.display = 'none';
+    
+    // Limpiar DBA
+    limpiarDBAs();
+    
+    // Reinicializar PAMi si existe
+    if (typeof inicializarPAMi === 'function') {
+        inicializarPAMi();
+    }
+    
+    narrar("Formulario limpiado. Puede comenzar una nueva secuencia.");
+}
+
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
+
+

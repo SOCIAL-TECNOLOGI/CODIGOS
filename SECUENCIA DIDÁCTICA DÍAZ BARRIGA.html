@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secuencia Didáctica - Díaz Barriga</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    .form-section { margin-bottom: 20px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    textarea, input { width: 100%; padding: 8px; margin-top: 5px; }
+    button { padding: 10px 15px; background: #0078D7; color: white; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Formulario Secuencia Didáctica</h1>
+<div class="form-section">
+    <label>Asignatura:</label>
+    <input type="text" id="asignatura">
+    <label>Unidad Temática:</label>
+    <input type="text" id="unidad">
+    <label>Tema General:</label>
+    <input type="text" id="tema">
+    <label>Contenidos:</label>
+    <textarea id="contenidos"></textarea>
+    <label>Duración y número de sesiones:</label>
+    <input type="text" id="duracion">
+    <label>Finalidad, propósitos u objetivos:</label>
+    <textarea id="objetivos"></textarea>
+    <label>Actividades de Apertura:</label>
+    <textarea id="apertura"></textarea>
+    <label>Actividades de Desarrollo:</label>
+    <textarea id="desarrollo"></textarea>
+    <label>Actividades de Cierre:</label>
+    <textarea id="cierre"></textarea>
+    <label>Evidencias de Aprendizaje:</label>
+    <textarea id="evidencias"></textarea>
+    <label>Recursos:</label>
+    <textarea id="recursos"></textarea>
+</div>
+<button onclick="exportToWord()">Exportar a Word</button>
+
+<script>
+function exportToWord() {
+    let content = `
+        <h1>Secuencia Didáctica</h1>
+        <p><strong>Asignatura:</strong> ${document.getElementById('asignatura').value}</p>
+        <p><strong>Unidad Temática:</strong> ${document.getElementById('unidad').value}</p>
+        <p><strong>Tema General:</strong> ${document.getElementById('tema').value}</p>
+        <p><strong>Contenidos:</strong> ${document.getElementById('contenidos').value}</p>
+        <p><strong>Duración:</strong> ${document.getElementById('duracion').value}</p>
+        <p><strong>Objetivos:</strong> ${document.getElementById('objetivos').value}</p>
+        <h3>Actividades</h3>
+        <p><strong>Apertura:</strong> ${document.getElementById('apertura').value}</p>
+        <p><strong>Desarrollo:</strong> ${document.getElementById('desarrollo').value}</p>
+        <p><strong>Cierre:</strong> ${document.getElementById('cierre').value}</p>
+        <p><strong>Evidencias:</strong> ${document.getElementById('evidencias').value}</p>
+        <p><strong>Recursos:</strong> ${document.getElementById('recursos').value}</p>
+    `;
+    let blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+    let url = URL.createObjectURL(blob);
+    let link = document.createElement('a');
+    link.href = url;
+    link.download = 'SecuenciaDidactica.doc';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+</body>
+</html>

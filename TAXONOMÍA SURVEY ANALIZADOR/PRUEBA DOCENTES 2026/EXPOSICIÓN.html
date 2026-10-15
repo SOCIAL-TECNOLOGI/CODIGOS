@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Slides DCE — SITE–RUTA LATAM (Offline)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --card:#142447;
+      --text:#e8eefc;
+      --muted:#b6c3e6;
+      --accent:#7bd88f;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 16px 40px rgba(0,0,0,.42);
+      --radius:22px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(123,216,143,.16), transparent),
+        radial-gradient(1000px 500px at 90% 20%, rgba(255,204,102,.12), transparent),
+        var(--bg);
+      color: var(--text);
+      overflow:hidden;
+    }
+
+    /* Top bar */
+    .topbar{
+      position:fixed; left:0; right:0; top:0;
+      padding:12px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(11,18,32,.92), rgba(11,18,32,.60));
+      border-bottom:1px solid var(--border);
+      backdrop-filter: blur(6px);
+      z-index:10;
+    }
+    .brand{ display:flex; flex-direction:column; gap:2px; }
+    .brand b{ font-size:14px; letter-spacing:.2px; }
+    .brand span{ font-size:12px; color:var(--muted); }
+
+    .controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+    button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease;
+      user-select:none;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: scale(.98); }
+    .btn-accent{ border-color: rgba(123,216,143,.35); }
+    .btn-warn{ border-color: rgba(255,204,102,.35); }
+
+    .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .progress{
+      display:flex; align-items:center; gap:8px;
+      min-width:240px;
+    }
+    .bar{
+      height:10px;
+      width:160px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(123,216,143,.95), rgba(255,204,102,.95));
+      transition: width .2s ease;
+    }
+
+    /* Stage */
+    .stage{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:grid;
+      place-items:center;
+      padding: 16px;
+    }
+
+    .slide{
+      width:min(1180px, 96vw);
+      height:min(640px, 86vh);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 44px 54px;
+      display:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .slide.active{ display:block; }
+
+    .kicker{
+      font-size:13px;
+      color: var(--muted);
+      letter-spacing:.35px;
+      text-transform: uppercase;
+    }
+    h1{
+      margin:10px 0 10px;
+      font-size: 44px;
+      line-height:1.08;
+      letter-spacing:.2px;
+    }
+    .lead{
+      margin:0 0 18px;
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 900px;
+    }
+
+    /* Layout variants */
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .box{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(0,0,0,.20);
+      padding: 16px 16px 14px;
+    }
+    .box h3{
+      margin:0 0 10px;
+      font-size: 14px;
+      letter-spacing:.35px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .box p, .box li{
+      font-size: 18px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    ul{ margin: 0; padding-left: 18px; }
+    li{ margin: 8px 0; color: var(--text); }
+
+    /* MANIFESTO (fotografiable) */
+    .slide.manifesto.active{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap: 14px;
+    }
+    .slide.manifesto.active h1{
+      font-size: 40px;
+      margin-top: 10px;
+    }
+
+    .quote{
+      font-family: inherit;
+      white-space: pre-wrap;
+      font-size: 24px;
+      line-height: 1.45;
+      color: var(--text);
+      margin:0;
+      max-width: 980px;
+    }
+
+    /* Auto-fit para manifesto */
+    .quoteWrap{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 16px 16px;
+      overflow:auto;
+      max-height: calc(100% - 140px);
+    }
+    .quoteWrap::-webkit-scrollbar{ width:10px; }
+    .quoteWrap::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.14);
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.25);
+    }
+    .fit-1 .quote{ font-size: 22px; line-height: 1.38; }
+    .fit-2 .quote{ font-size: 20px; line-height: 1.34; }
+    .fit-3 .quote{ font-size: 18.5px; line-height: 1.30; }
+
+    .corner{
+      position:absolute;
+      right:18px; bottom:14px;
+      font-size: 12px;
+      color: rgba(182,195,230,.85);
+    }
+
+    .help{
+      position:fixed;
+      right:14px; bottom:14px;
+      background: rgba(15,27,51,.92);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    @media (max-width: 860px){
+      .slide{ padding: 30px 22px; }
+      h1{ font-size: 34px; }
+      .lead{ font-size: 16px; }
+      .cols{ grid-template-columns: 1fr; }
+      .quote{ font-size: 20px; }
+      .progress{ min-width:auto; }
+      .bar{ width:120px; }
+      .quoteWrap{ max-height: calc(100% - 130px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <b>DCE — Evaluación por Competencias (Offline)</b>
+      <span>SITE–RUTA LATAM • PMAP aplicado a docentes</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn-accent" id="btnPrev">⟵ Anterior</button>
+      <button class="btn-accent" id="btnNext">Siguiente ⟶</button>
+      <button class="btn-warn" id="btnFull">Pantalla completa</button>
+      <span class="pill" id="counter">0/0</span>
+      <div class="progress">
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="help">
+    Atajos: ← → / Space • Home/End • F (pantalla completa)
+  </div>
+
+<script>
+/* =========================================================
+   SLIDES (con definiciones robustecidas + antídoto DCC + chequeo justicia)
+   ========================================================= */
+const SLIDES = [
+  /* === NUEVO BLOQUE ROBUSTO: EVALUAR === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición (fotografiable)",
+    title: "¿Qué es evaluar?",
+    quote:
+`EVALUAR no es “poner una nota”.
+EVALUAR es emitir un juicio profesional
+sobre un desempeño,
+a partir de evidencias observables,
+para tomar decisiones pedagógicas justas.
+
+Evaluar implica:
+— definir qué acción se espera (verbo rector),
+— provocar esa acción (tarea),
+— observar evidencia real (SABER–HACER–SER),
+— interpretar con criterios (descriptores),
+— retroalimentar para que el aprendizaje migre (PMAP).`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición técnica (claridad)",
+    title: "Evaluar vs calificar",
+    quote:
+`Evaluar es un proceso sistemático de recolección, interpretación y uso de evidencias
+para determinar el nivel de desempeño de un estudiante respecto a criterios explícitos,
+y para orientar decisiones de enseñanza, aprendizaje y mejora.
+
+Si no hay criterio explícito + evidencia observable + interpretación coherente,
+no hay evaluación: hay calificación.`
+  },
+
+  /* === NUEVO BLOQUE ROBUSTO: JUSTICIA EVALUATIVA === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Ética evaluativa (fotografiable)",
+    title: "¿Qué es justicia evaluativa?",
+    quote:
+`JUSTICIA EVALUATIVA no es “ser buena gente”.
+Es garantizar que la valoración sea:
+coherente, trazable y comparable.
+
+Si dos docentes observan el mismo desempeño,
+no deberían producir dos juicios incompatibles.
+
+La justicia evaluativa depende de:
+— lectura fina de la acción (no del promedio),
+— criterios explícitos (descriptores),
+— evidencia observable en contexto,
+— coherencia entre lo que se enseña y lo que se evalúa (DCE).`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición operativa",
+    title: "Justicia evaluativa (operacional)",
+    quote:
+`Justicia evaluativa = que la nota sea una consecuencia razonable del desempeño,
+y no del azar del docente, del formato, del “cumplimiento” o del promedio.
+
+Se logra cuando:
+1) el verbo evaluado es explícito,
+2) la tarea permite evidenciarlo,
+3) el descriptor define el estándar (complejidad, autonomía y contexto),
+4) el juicio es justificable con evidencia.`
+  },
+
+  /* === ANTÍDOTO DCC (puente DCE) === */
+  {
+    kind: "manifesto",
+    kicker: "Puente | DCC vs DCE",
+    title: "Calificar ≠ evaluar",
+    quote:
+`CALIFICAR es asignar un número (a menudo por cumplimiento, entrega o promedio).
+EVALUAR es interpretar evidencias de desempeño frente a criterios.
+
+DCC (contenido) suele medir:
+— tareas entregadas,
+— cuaderno al día,
+— cantidad de ejercicios,
+— promedio de actividades.
+
+DCE (competencia) exige leer:
+— acciones cognitivas (SABER),
+— acciones procedimentales (HACER),
+— acciones actitudinales (SER),
+en contexto y con criterios.`
+  },
+
+  /* === CHEQUEO DE JUSTICIA (espejo docente) === */
+  {
+    kind: "manifesto",
+    kicker: "Chequeo | Autoevaluación docente",
+    title: "Chequeo rápido de justicia evaluativa",
+    quote:
+`Chequeo rápido de justicia evaluativa:
+
+✅ 1. ¿Puedo nombrar el VERBO rector que estoy evaluando?
+✅ 2. ¿La TAREA realmente obliga a que aparezca ese verbo?
+✅ 3. ¿Qué evidencia observable (SABER–HACER–SER) voy a mirar?
+✅ 4. ¿Qué descriptor usaré (complejidad, autonomía y contexto)?
+✅ 5. ¿Si otro docente ve lo mismo, llegaría a un juicio similar?
+
+Si alguna respuesta es NO,
+no es un problema del estudiante:
+es calibración pendiente del sistema.`
+  },
+
+  /* === PROBLEMA REAL (ya lo tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Problema real",
+    title: "Promedio ≠ justicia evaluativa",
+    quote:
+`El promedio calcula resultados;
+la justicia evaluativa exige interpretar acciones.
+
+Un Excel suma,
+pero no comprende procesos.
+
+La competencia no se promedia:
+se interpreta.`
+  },
+
+  /* --- Metáfora del amor --- */
+  {
+    kind: "manifesto",
+    kicker: "Puente narrativo | Metáfora",
+    title: "Metáfora del amor (competencia y justicia evaluativa)",
+    quote:
+`La competencia es como el amor:
+no se demuestra con palabras ni se mide con promedios,
+se reconoce en acciones,
+se comprende en contexto
+y se juzga con conciencia profesional.`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Metáfora | 1",
+    title: "1) El verbo rector es AMAR (inmutable)",
+    quote:
+`En la metáfora, el verbo rector es AMAR.
+
+No cambia según el momento.
+No se reemplaza por “gustar”, “acompañarse” o “convivir”.
+Define la naturaleza del vínculo, no su intensidad.
+
+Si cambio AMAR por otro verbo,
+ya no hablo del mismo tipo de relación.
+
+Por eso el verbo rector es inmutable:
+cambiarlo es cambiar la competencia.`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Metáfora | 2",
+    title: "2) Los verbos auxiliares son las formas de amar (estratificables)",
+    quote:
+`Los verbos auxiliares representan cómo se manifiesta el amor.
+
+Formas de amar (acciones observables):
+• cuidar
+• escuchar
+• respetar
+• sostener
+• dialogar
+• perdonar
+• comprometerse
+
+Todos expresan amor,
+pero no al mismo nivel.
+
+Aquí ocurre la estratificación:
+algunas acciones muestran un amor incipiente,
+otras un amor consciente,
+otras un amor responsable,
+otras un amor maduro y autónomo.
+
+El amor no cambia.
+Lo que cambia es cómo se vive.`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Metáfora | 3",
+    title: "3) La tarea es la vida real (situación)",
+    quote:
+`La tarea es la situación concreta donde el amor se pone a prueba:
+
+una dificultad económica,
+una enfermedad,
+una discusión,
+una decisión importante,
+una crisis.
+
+Nadie “demuestra amor” en abstracto.
+El amor se evidencia en situaciones reales,
+no en declaraciones.
+
+Así funciona la tarea en evaluación por competencias:
+provoca la acción,
+no la define.`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Metáfora | 4",
+    title: "4) El descriptor es la mirada ética y consciente",
+    quote:
+`El descriptor es la lectura fina de la acción amorosa:
+
+¿Cómo cuidó?
+¿Con cuánta autonomía?
+¿Con qué nivel de conciencia?
+¿En qué contexto actuó?
+
+Aquí intervienen tres variables:
+1) Complejidad de la acción
+2) Autonomía del sujeto
+3) Contexto de desempeño
+
+El descriptor no juzga la intención.
+Interpreta la acción observable.
+
+Ahí ocurre la justicia relacional…
+y en educación, la justicia evaluativa.`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Metáfora | 5",
+    title: "5) El promedio: contar detalles sin entender la relación",
+    quote:
+`Evaluar el amor con promedio sería decir:
+
+“Esta semana fue atento 3 días,
+distante 2,
+llegó tarde 1 → promedio 3,5”.
+
+Ese número:
+no dice si hay compromiso,
+no explica si hubo crecimiento,
+no distingue entre un error y un patrón,
+no hace justicia a la relación.
+
+El promedio cuantifica episodios,
+pero no interpreta vínculos.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Puente | Aula",
+    title: "Traducción directa al aula",
+    quote:
+`La competencia no se promedia.
+Se interpreta a partir de acciones situadas.
+
+El verbo rector define qué se espera.
+Los verbos auxiliares muestran cómo va emergiendo.
+Las tareas ponen la vida en juego.
+Los descriptores leen con ética la acción.
+El promedio solo acompaña, nunca decide.`
+  },
+
+
+
+
+  
+  /* --- Cadena verbal y descriptores (los bloques que ya venías usando) --- */
+  {
+    kind: "manifesto",
+    kicker: "Cadena verbal | Coherencia",
+    title: "Cadena verbal profesional (para justicia evaluativa)",
+    quote:
+`AFIRMACIÓN (infinitivo) →
+EVIDENCIA (verbo auxiliar en 3.ª persona presente) →
+TAREA (gerundio del mismo verbo auxiliar) →
+DESCRIPTOR (calificador según complejidad, autonomía y contexto)
+
+Clave DCE:
+— El rector define la competencia (no se cambia).
+— El auxiliar hace observable la evidencia (sí progresa).
+— La tarea provoca la acción (no evalúas entrega: evalúas desempeño).
+— El descriptor permite coherencia entre docentes.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Descriptores | Autonomía",
+    title: "Ejemplos: autonomía N1–N4 (observable)",
+    quote:
+`N1: con apoyo constante
+(guía paso a paso, modelamiento).
+
+N2: con apoyo parcial
+(recordatorios, andamiaje puntual).
+
+N3: autónomo con verificación
+(decide, ejecuta, corrige; solicita validación).
+
+N4: autónomo + transferencia
+(aplica, ajusta y puede orientar a otros).
+
+Nota PMAP:
+Antes de empujar hacia la autonomía,
+hay que sostener con presencia
+hasta que la autonomía emerge.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Descriptores | Complejidad",
+    title: "Ejemplos: complejidad N1–N4",
+    quote:
+`Complejidad = tipo de acción (no solo dificultad del ejercicio).
+
+N1: reconocimiento / seguimiento / disposición básica.
+N2: explicación / ejecución con control / colaboración simple.
+N3: análisis / ajuste-calibración / responsabilidad sostenida.
+N4: argumentación-juicio / transferencia-optimización / liderazgo ético.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Descriptores | Contexto",
+    title: "Ejemplos: contexto (cómo se hace explícito)",
+    quote:
+`El contexto se escribe cuando afecta la evidencia:
+
+• con material concreto / sin material
+• con tiempo extendido / con tiempo limitado
+• con mediación docente / sin mediación
+• en trabajo individual / en trabajo colaborativo
+• en situación simulada / en situación real
+
+Sin contexto, dos desempeños distintos pueden parecer iguales.
+Con contexto, la valoración gana equidad: interpreta condiciones reales.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Cierre | Regla de oro",
+    title: "Regla de oro (2026)",
+    quote:
+`El Excel ayuda a registrar.
+
+Pero la justicia evaluativa
+se sostiene en evidencias de acción:
+cognitivas (SABER),
+procedimentales (HACER),
+actitudinales (SER).
+
+Promedio calcula resultados.
+Lectura fina interpreta acciones.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Referencias | APA 7",
+    title: "Bibliografía mínima (soporte)",
+    quote:
+`Bloom, B. S., Engelhart, M. D., Furst, E. J., Hill, W. H., & Krathwohl, D. R. (1956).
+Taxonomy of educational objectives: The classification of educational goals. Handbook I: Cognitive domain.
+Longmans, Green.
+
+Schön, D. A. (1983).
+The reflective practitioner: How professionals think in action.
+Basic Books.
+
+Biggs, J., & Tang, C. (2011).
+Teaching for quality learning at university (4th ed.).
+Open University Press.
+
+Perrenoud, P. (2004).
+Diez nuevas competencias para enseñar.
+Graó.
+
+Brookhart, S. M. (2013).
+How to create and use rubrics for formative assessment and grading.
+ASCD.
+
+Sadler, D. R. (1989). Formative assessment and the design of instructional systems.
+Instructional Science, 18(2), 119–144.
+
+Stiggins, R. J. (2005). From formative assessment to assessment FOR learning.
+Phi Delta Kappan, 87(4), 324–328.`
+  }
+];
+
+/* =========================================================
+   RENDER + NAV
+   ========================================================= */
+const stage = document.getElementById("stage");
+const barFill = document.getElementById("barFill");
+const counter = document.getElementById("counter");
+
+function el(tag, cls){
+  const x = document.createElement(tag);
+  if (cls) x.className = cls;
+  return x;
+}
+
+function renderSlides(){
+  stage.innerHTML = "";
+  SLIDES.forEach((s, i) => {
+    const slide = el("section", "slide");
+    slide.id = "slide_" + i;
+
+    const kicker = el("div","kicker");
+    kicker.textContent = s.kicker || "";
+    slide.appendChild(kicker);
+
+    const h1 = el("h1");
+    h1.textContent = s.title || "";
+    slide.appendChild(h1);
+
+    if (s.kind === "manifesto"){
+      slide.classList.add("manifesto");
+
+      const wrap = el("div","quoteWrap");
+      const p = el("pre","quote");
+      p.textContent = s.quote || "";
+      wrap.appendChild(p);
+      slide.appendChild(wrap);
+
+    } else {
+      const lead = el("p","lead");
+      lead.textContent = s.lead || "";
+      slide.appendChild(lead);
+
+      const cols = el("div","cols");
+
+      const left = el("div","box");
+      const leftH = el("h3");
+      leftH.textContent = s.leftTitle || "—";
+      left.appendChild(leftH);
+
+      if (s.leftText){
+        const lp = el("p");
+        lp.style.whiteSpace = "pre-wrap";
+        lp.textContent = s.leftText;
+        left.appendChild(lp);
+      }
+      if (s.leftList){
+        const ul = el("ul");
+        s.leftList.forEach(t=>{
+          const li = el("li");
+          li.textContent = t;
+          ul.appendChild(li);
+        });
+        left.appendChild(ul);
+      }
+      cols.appendChild(left);
+
+      const right = el("div","box");
+      const rightH = el("h3");
+      rightH.textContent = s.rightTitle || "—";
+      right.appendChild(rightH);
+
+      if (s.rightText){
+        const rp = el("p");
+        rp.style.whiteSpace = "pre-wrap";
+        rp.textContent = s.rightText;
+        right.appendChild(rp);
+      }
+      if (s.rightList){
+        const ul2 = el("ul");
+        s.rightList.forEach(t=>{
+          const li = el("li");
+          li.textContent = t;
+          ul2.appendChild(li);
+        });
+        right.appendChild(ul2);
+      }
+      cols.appendChild(right);
+
+      slide.appendChild(cols);
+    }
+
+    const corner = el("div","corner");
+    corner.textContent = "SITE–RUTA LATAM • Offline";
+    slide.appendChild(corner);
+
+    stage.appendChild(slide);
+  });
+}
+
+let idx = 0;
+function clampIndex(n){ return Math.max(0, Math.min(SLIDES.length-1, n)); }
+
+function applyAutoFit(slide){
+  slide.classList.remove("fit-1","fit-2","fit-3");
+  const wrap = slide.querySelector(".quoteWrap");
+  if (!wrap) return;
+
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.add("fit-1");
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.remove("fit-1");
+  slide.classList.add("fit-2");
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.remove("fit-2");
+  slide.classList.add("fit-3");
+  // si aún desborda, queda scroll interno (aceptable)
+}
+
+function show(i){
+  idx = clampIndex(i);
+  document.querySelectorAll(".slide").forEach(s => s.classList.remove("active","fit-1","fit-2","fit-3"));
+
+  const active = document.getElementById("slide_" + idx);
+  if (active) {
+    active.classList.add("active");
+    requestAnimationFrame(()=> applyAutoFit(active));
+  }
+
+  counter.textContent = `${idx+1}/${SLIDES.length}`;
+  const pct = SLIDES.length ? ((idx+1)/SLIDES.length)*100 : 0;
+  barFill.style.width = pct.toFixed(2) + "%";
+}
+
+function next(){ show(idx+1); }
+function prev(){ show(idx-1); }
+function first(){ show(0); }
+function last(){ show(SLIDES.length-1); }
+
+function toggleFull(){
+  const doc = document;
+  const elRoot = document.documentElement;
+  if (!doc.fullscreenElement){
+    elRoot.requestFullscreen?.();
+  } else {
+    doc.exitFullscreen?.();
+  }
+}
+
+document.getElementById("btnNext").addEventListener("click", next);
+document.getElementById("btnPrev").addEventListener("click", prev);
+document.getElementById("btnFull").addEventListener("click", toggleFull);
+
+document.addEventListener("keydown", (e)=>{
+  const k = e.key;
+  if (k === "ArrowRight" || k === " "){ e.preventDefault(); next(); }
+  if (k === "ArrowLeft"){ e.preventDefault(); prev(); }
+  if (k === "Home"){ e.preventDefault(); first(); }
+  if (k === "End"){ e.preventDefault(); last(); }
+  if (k.toLowerCase() === "f"){ e.preventDefault(); toggleFull(); }
+});
+
+window.addEventListener("resize", ()=>{
+  const active = document.getElementById("slide_" + idx);
+  if (active) applyAutoFit(active);
+});
+
+renderSlides();
+show(0);
+</script>
+</body>
+</html>

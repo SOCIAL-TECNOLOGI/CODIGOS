@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrevista a Directivo Docente</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #e8f1f9, #ffffff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .contenedor {
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    background: #fff;
+    display: flex;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    overflow: hidden;
+    animation: fadeIn 1s;
+  }
+
+  /* Lado izquierdo: foto */
+  .foto-container {
+    flex: 1;
+    background: #dceeff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-right: 4px solid #0056a3;
+  }
+
+  #fotoPreview {
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    display: none;
+    object-fit: cover;
+  }
+
+  input[type="file"] {
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px dashed #0056a3;
+    border-radius: 10px;
+    background-color: #f0f7ff;
+    color: #003366;
+    cursor: pointer;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    transition: 0.3s;
+  }
+
+  input[type="file"]:hover {
+    background-color: #e1f0ff;
+  }
+
+  /* Lado derecho: contenido */
+  .contenido {
+    flex: 1.5;
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  h1 {
+    color: #0056a3;
+    font-size: 1.8em;
+    margin-top: 0;
+  }
+
+  h2 {
+    color: #0056a3;
+    margin-top: 30px;
+  }
+
+  .pregunta {
+    font-size: 1.1em;
+    font-weight: 500;
+    margin: 25px 0 8px;
+    color: #003366;
+  }
+
+  video {
+    margin-top: 10px;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsivo */
+  @media (max-width: 800px) {
+    .contenedor {
+      flex-direction: column;
+      height: auto;
+    }
+    .foto-container {
+      border-right: none;
+      border-bottom: 4px solid #0056a3;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+
+  <!-- LADO IZQUIERDO: FOTO -->
+  <div class="foto-container">
+    <img id="fotoPreview" alt="Foto del entrevistado">
+    <label for="fotoInput"><b>📸 Subir foto del entrevistado</b></label>
+    <input type="file" id="fotoInput" accept="image/*">
+  </div>
+
+  <!-- LADO DERECHO: CONTENIDO -->
+  <div class="contenido">
+    <h1>Entrevista a Directivo Docente</h1>
+
+    <h2>🎬 Introducción</h2>
+    <p class="pregunta">Palabras iniciales del directivo docente</p>
+    <input type="file" id="videoIntroInput" accept="video/mp4">
+    <video id="videoIntro" controls></video>
+
+    <h2>Preguntas y respuestas</h2>
+
+    <div class="pregunta">
+      1️⃣ ¿Cuáles considera que han sido los principales retos que ha enfrentado durante su trayectoria como directivo docente y cómo los ha afrontado?
+    </div>
+    <input type="file" id="video1Input" accept="video/mp4">
+    <video id="video1" controls></video>
+
+    <div class="pregunta">
+      2️⃣ ¿Desde su experiencia en el cargo, qué estrategias ha implementado para fortalecer la calidad educativa y el trabajo colaborativo entre docentes?
+    </div>
+    <input type="file" id="video2Input" accept="video/mp4">
+    <video id="video2" controls></video>
+
+    <div class="pregunta">
+      3️⃣ ¿De qué manera su experiencia como directivo docente ha influido en la construcción de un clima institucional positivo y en la formación integral de los estudiantes?
+    </div>
+    <input type="file" id="video3Input" accept="video/mp4">
+    <video id="video3" controls></video>
+
+    <div class="pregunta">
+      4️⃣ Según su perspectiva y años de experiencia, ¿cuáles son las competencias más importantes que debe desarrollar un directivo docente para liderar con eficacia una institución educativa?
+    </div>
+    <input type="file" id="video4Input" accept="video/mp4">
+    <video id="video4" controls></video>
+  </div>
+</div>
+
+<script>
+  // Mostrar la foto subida
+  document.getElementById('fotoInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const img = document.getElementById('fotoPreview');
+      img.src = URL.createObjectURL(file);
+      img.style.display = 'block';
+    }
+  });
+
+  // Función para conectar inputs de video con sus reproductores
+  function conectarInputVideo(inputId, videoId) {
+    const input = document.getElementById(inputId);
+    const video = document.getElementById(videoId);
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        video.src = URL.createObjectURL(file);
+        video.load();
+      }
+    });
+  }
+
+  // Conectar los 5 videos
+  conectarInputVideo('videoIntroInput', 'videoIntro');
+  conectarInputVideo('video1Input', 'video1');
+  conectarInputVideo('video2Input', 'video2');
+  conectarInputVideo('video3Input', 'video3');
+  conectarInputVideo('video4Input', 'video4');
+
+  // Pausar los demás videos cuando uno se reproduzca
+  const videos = document.querySelectorAll('video');
+  videos.forEach(v => {
+    v.addEventListener('play', () => {
+      videos.forEach(o => { if (o !== v) o.pause(); });
+    });
+  });
+</script>
+
+</body>
+</html>

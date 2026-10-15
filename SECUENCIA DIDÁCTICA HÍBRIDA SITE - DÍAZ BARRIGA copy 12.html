@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-RUTA LATAM – Secuencia Didáctica Accesible</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --azulSocial: #1E88E5;
+  --verdeSocial: #009B02;
+  --verdeLuz: #65FEFB;
+  --grisFondo: #f4f6f8;
+  --grisOscuro: #121212;
+  --textoOscuro: #222;
+  --textoClaro: #f4f4f4;
+}
+
+/* === Base === */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0; padding: 0;
+  background: var(--grisFondo);
+  color: var(--textoOscuro);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* === Encabezado === */
+header {
+  background: linear-gradient(90deg, var(--azulSocial), var(--verdeSocial));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+header img {
+  height: 55px;
+  margin-right: 15px;
+}
+
+header h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#controls select, #controls button {
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+#voiceSelect { background: white; }
+
+#controls button {
+  color: white;
+  background: var(--azulSocial);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === Barra Viva SocialTech === */
+#barraSocialTech{
+  position:relative;
+  height:6px;
+  width:100%;
+  background:linear-gradient(90deg,#009B02,#00FF8A);
+  border-radius:4px;
+  overflow:hidden;
+}
+#puntoSocialTech{
+  position:absolute;
+  top:50%;
+  left:20%;
+  transform:translate(-50%,-50%);
+  transition:left 1.5s cubic-bezier(0.25,1,0.5,1);
+}
+#puntoSocialTech .outer{
+  width:22px;height:22px;
+  background:#009B02;
+  border-radius:50%;
+  box-shadow:0 0 8px #009B02,0 0 15px rgba(0,255,138,0.5);
+  animation:pulse 1.5s infinite ease-in-out;
+}
+#puntoSocialTech .inner{
+  position:absolute;
+  top:50%;left:50%;
+  width:12px;height:12px;
+  background:#65FEFB;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 8px #65FEFB;
+}
+@keyframes pulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.3);opacity:.9;}
+}
+
+/* === Nota PC === */
+#notaPC {
+  background: #e0e0e0;
+  color: #333;
+  text-align: center;
+  padding: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* === Contenedor principal === */
+.form-container {
+  max-width: 1000px;
+  margin: 25px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* === Campos === */
+label {
+  font-weight: bold;
+  color: var(--azulSocial);
+}
+input, textarea, select {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+/* === Botones === */
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 25px;
+}
+button.export {
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.word-btn { background: linear-gradient(90deg,#0078D7,#005BB5); }
+.pdf-btn { background: linear-gradient(90deg,#D32F2F,#B71C1C); }
+.excel-btn { background: linear-gradient(90deg,#43A047,#2E7D32); }
+.print-btn { background: linear-gradient(90deg,#6A1B9A,#4A148C); }
+.clear-btn { background: linear-gradient(90deg,#FB8C00,#EF6C00); }
+
+/* === Pie === */
+footer {
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  margin: 25px 0;
+}
+
+/* === Modo impresión === */
+@media print {
+  header, .buttons, #notaPC, #barraSocialTech { display: none !important; }
+  body { background: white; color: black; }
+  .form-container { box-shadow: none; border: none; }
+  footer { display: block; color: black; }
+}
+</style>
+</head>
+<body>
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="Logo SocialTech">
+  <h1>SITE-RUTA LATAM powered SocialTech — PMAP: Plan de Migración Académica Progresiva</h1>
+  <div id="controls">
+    <button id="vozBtn" title="Activar o pausar narrador"><i class="fa-solid fa-volume-high"></i></button>
+    <select id="voiceSelect" aria-label="Selector de voz"><option value="">Cargando voces...</option></select>
+    <button id="contrasteBtn" title="Alternar alto contraste"><i class="fa-solid fa-circle-half-stroke"></i> ♿</button>
+  </div>
+</header>
+
+<div id="barraSocialTech">
+  <div id="puntoSocialTech">
+    <div class="outer"></div>
+    <div class="inner"></div>
+  </div>
+</div>
+
+<div id="notaPC">🖥️ Recomendado para uso en computadora. Algunas funciones avanzadas pueden no estar disponibles en dispositivos móviles.</div>
+
+<main class="form-container">
+  <label for="asignatura">Asignatura:</label>
+  <input type="text" id="asignatura">
+  <label for="unidad">Unidad Temática:</label>
+  <input type="text" id="unidad">
+  <label for="tema">Tema General:</label>
+  <input type="text" id="tema">
+  <label for="objetivos">Finalidad, propósitos u objetivos:</label>
+  <textarea id="objetivos"></textarea>
+  <label for="apertura">Actividades de Apertura:</label>
+  <textarea id="apertura"></textarea>
+  <label for="desarrollo">Actividades de Desarrollo:</label>
+  <textarea id="desarrollo"></textarea>
+  <label for="cierre">Actividades de Cierre:</label>
+  <textarea id="cierre"></textarea>
+  <label for="evidencias">Evidencias de Aprendizaje:</label>
+  <textarea id="evidencias"></textarea>
+  <label for="recursos">Recursos y Nota Aclaratoria:</label>
+  <textarea id="recursos"></textarea>
+
+  <div class="buttons">
+    <button class="export word-btn"><i class="fa-solid fa-file-word"></i> Word</button>
+    <button class="export pdf-btn"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+    <button class="export excel-btn"><i class="fa-solid fa-file-excel"></i> Excel</button>
+    <button class="export print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+    <button class="export clear-btn" onclick="limpiarFormulario()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+  </div>
+</main>
+
+<footer>© 2025 SITE-RUTA LATAM | Desarrollado por Los Tutores – Fedusocial | Instrumento de planificación docente</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+let selectedVoice=null, lecturaActiva=true;
+
+/* === Cargar voces === */
+function cargarVoces(){
+  const voices=speechSynthesis.getVoices().filter(v=>v.lang.startsWith("es"));
+  const select=document.getElementById("voiceSelect");
+  select.innerHTML="";
+  voices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.textContent=v.name.includes("male")||v.name.includes("Hombre")?`🔊 ${v.name} (Masculina)`: `🎤 ${v.name} (Femenina)`;
+    select.appendChild(o);
+  });
+  const saved=localStorage.getItem("selectedVoice");
+  if(saved && voices[saved]){select.value=saved;selectedVoice=voices[saved];}
+  else{selectedVoice=voices.find(v=>/male|Hombre/i.test(v.name))||voices[0];}
+}
+
+/* === Cambiar voz === */
+document.getElementById("voiceSelect").addEventListener("change",e=>{
+  const voices=speechSynthesis.getVoices().filter(v=>v.lang.startsWith("es"));
+  selectedVoice=voices[e.target.value];
+  localStorage.setItem("selectedVoice",e.target.value);
+});
+
+/* === Narrar texto === */
+function narrar(t){
+  if(!lecturaActiva||!selectedVoice)return;
+  const u=new SpeechSynthesisUtterance(t);
+  u.voice=selectedVoice;u.lang="es-ES";u.rate=1;u.pitch=1;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+
+/* === Bienvenida === */
+window.addEventListener("load",()=>{
+  speechSynthesis.onvoiceschanged=cargarVoces;cargarVoces();
+  const hoy=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  narrar(`Bienvenido Mario Germán Barbosa Valderrama. Hoy es ${hoy}. Iniciemos la planificación docente accesible SITE-RUTA LATAM powered SocialTech, PMAP: Plan de Migración Académica Progresiva.`);
+});
+
+/* === Lectura de campos === */
+document.querySelectorAll("input,textarea").forEach(el=>{
+  el.addEventListener("blur",()=>{if(el.value.trim()) narrar(el.value); moverPunto();});
+});
+
+/* === Punto de progreso === */
+function moverPunto(){
+  const llenos=[...document.querySelectorAll("input,textarea")].filter(e=>e.value.trim()).length;
+  const total=document.querySelectorAll("input,textarea").length;
+  const porc=(llenos/total)*100;
+  document.getElementById("puntoSocialTech").style.left=`${porc}%`;
+}
+
+/* === Botón voz === */
+document.getElementById("vozBtn").addEventListener("click",()=>{
+  lecturaActiva=!lecturaActiva;
+  const icon=document.querySelector("#vozBtn i");
+  icon.className=lecturaActiva?"fa-solid fa-volume-high":"fa-solid fa-volume-xmark";
+});
+
+/* === Contraste === */
+document.getElementById("contrasteBtn").addEventListener("click",()=>{
+  document.body.classList.toggle("alto-contraste");
+  localStorage.setItem("altoContraste",document.body.classList.contains("alto-contraste"));
+});
+if(localStorage.getItem("altoContraste")==="true") document.body.classList.add("alto-contraste");
+
+/* === Limpiar === */
+function limpiarFormulario(){
+  document.querySelectorAll("input,textarea").forEach(e=>e.value="");
+  document.getElementById("puntoSocialTech").style.left="0%";
+  narrar("Formulario limpio.");
+}
+</script>
+</body>
+</html>

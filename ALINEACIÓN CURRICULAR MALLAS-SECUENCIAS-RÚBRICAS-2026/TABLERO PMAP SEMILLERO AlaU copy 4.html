@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Motor Semillero a la U – SITE RUTA LATAM</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f9;
+margin:0;
+padding:0;
+}
+
+header{
+background:#1f3a5f;
+color:white;
+padding:15px;
+font-size:20px;
+text-align:center;
+}
+
+nav{
+display:flex;
+background:#2c5282;
+}
+
+nav button{
+flex:1;
+padding:12px;
+border:none;
+background:#2c5282;
+color:white;
+cursor:pointer;
+}
+
+nav button:hover{
+background:#1a365d;
+}
+
+section{
+display:none;
+padding:20px;
+}
+
+.active{
+display:block;
+}
+
+textarea{
+width:100%;
+height:120px;
+}
+
+table{
+border-collapse:collapse;
+width:100%;
+margin-top:10px;
+}
+
+th,td{
+border:1px solid #ccc;
+padding:6px;
+text-align:center;
+}
+
+th{
+background:#edf2f7;
+}
+
+button{
+margin-top:8px;
+padding:8px 14px;
+}
+
+canvas{
+margin-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+Motor Diagnóstico – SITE RUTA LATAM (Semillero a la U)
+</header>
+
+<nav>
+
+<button onclick="abrir('sesion')">Sesión</button>
+<button onclick="abrir('banco')">Banco de Ítems</button>
+<button onclick="abrir('cuestionario')">Cuestionario</button>
+<button onclick="abrir('zipgrade')">ZipGrade</button>
+<button onclick="abrir('diagnostico')">Diagnóstico</button>
+
+</nav>
+
+<!-- SESIÓN -->
+
+<section id="sesion" class="active">
+
+<h2>Sesión de análisis</h2>
+
+Institución
+<input id="inst">
+
+Grado
+<input id="grado">
+
+Grupo
+<input id="grupo">
+
+Fecha
+<input type="date" id="fecha">
+
+<button onclick="guardarSesion()">Guardar sesión</button>
+
+<div id="sesionInfo"></div>
+
+</section>
+
+<!-- BANCO -->
+
+<section id="banco">
+
+<h2>Banco de Ítems (FCRI)</h2>
+
+<p>Pegar tabla FCRI:</p>
+
+<textarea id="fcri"></textarea>
+
+<button onclick="cargarFCRI()">Cargar banco</button>
+
+<table id="tablaBanco"></table>
+
+</section>
+
+<!-- CUESTIONARIO -->
+
+<section id="cuestionario">
+
+<h2>Cuestionario aplicado (12 preguntas)</h2>
+
+<textarea id="listaPreguntas"></textarea>
+
+<button onclick="cargarCuestionario()">Cargar cuestionario</button>
+
+<div id="cuestionarioInfo"></div>
+
+</section>
+
+<!-- ZIPGRADE -->
+
+<section id="zipgrade">
+
+<h2>Cargar archivo ZipGrade</h2>
+
+<input type="file" id="archivoExcel">
+
+<button onclick="leerZip()">Leer archivo</button>
+
+<table id="tablaZip"></table>
+
+</section>
+
+<!-- DIAGNÓSTICO -->
+
+<section id="diagnostico">
+
+<h2>Diagnóstico</h2>
+
+<button onclick="generarGrafico()">Generar gráfico</button>
+
+<canvas id="graficoErrores"></canvas>
+
+</section>
+
+
+<script>
+
+let banco=[]
+let cuestionario=[]
+let estudiantes=[]
+
+
+function abrir(id){
+
+document.querySelectorAll("section").forEach(s=>{
+s.classList.remove("active")
+})
+
+document.getElementById(id).classList.add("active")
+
+}
+
+
+function guardarSesion(){
+
+let inst=document.getElementById("inst").value
+let grado=document.getElementById("grado").value
+let grupo=document.getElementById("grupo").value
+let fecha=document.getElementById("fecha").value
+
+document.getElementById("sesionInfo").innerHTML=
+`Sesión guardada: ${inst} | ${grado} | ${grupo} | ${fecha}`
+
+}
+
+
+function cargarFCRI(){
+
+let texto=document.getElementById("fcri").value
+
+let filas=texto.split("\n")
+
+banco=[]
+
+filas.forEach(f=>{
+let c=f.split("\t")
+if(c.length>3){
+
+banco.push({
+id:c[0],
+contenido:c[1],
+nivel:c[2],
+micro:c[3]
+})
+
+}
+})
+
+mostrarBanco()
+
+}
+
+
+function mostrarBanco(){
+
+let html="<tr><th>ID</th><th>Contenido</th><th>Nivel</th><th>Microhabilidad</th></tr>"
+
+banco.forEach(i=>{
+html+=`<tr>
+<td>${i.id}</td>
+<td>${i.contenido}</td>
+<td>${i.nivel}</td>
+<td>${i.micro}</td>
+</tr>`
+})
+
+document.getElementById("tablaBanco").innerHTML=html
+
+}
+
+
+function cargarCuestionario(){
+
+let texto=document.getElementById("listaPreguntas").value
+
+cuestionario=texto.split("\n")
+
+document.getElementById("cuestionarioInfo").innerHTML=
+`Preguntas cargadas: ${cuestionario.length}`
+
+}
+
+
+function leerZip(){
+
+let archivo=document.getElementById("archivoExcel").files[0]
+
+let lector=new FileReader()
+
+lector.onload=function(e){
+
+let texto=e.target.result
+
+let filas=texto.split("\n")
+
+estudiantes=[]
+
+filas.forEach((f,i)=>{
+
+let c=f.split(",")
+
+if(i>0){
+
+estudiantes.push({
+nombre:c[4]+" "+c[5],
+respuestas:c.slice(10)
+})
+
+}
+
+})
+
+mostrarZip()
+
+}
+
+lector.readAsText(archivo)
+
+}
+
+
+function mostrarZip(){
+
+let html="<tr><th>Estudiante</th></tr>"
+
+estudiantes.forEach(e=>{
+html+=`<tr><td>${e.nombre}</td></tr>`
+})
+
+document.getElementById("tablaZip").innerHTML=html
+
+}
+
+
+function generarGrafico(){
+
+let errores=new Array(cuestionario.length).fill(0)
+
+estudiantes.forEach(e=>{
+
+e.respuestas.forEach((r,i)=>{
+
+if(r==0) errores[i]++
+
+})
+
+})
+
+let ctx=document.getElementById("graficoErrores")
+
+new Chart(ctx,{
+
+type:"bar",
+
+data:{
+labels:cuestionario,
+
+datasets:[{
+label:"Errores por pregunta",
+data:errores
+}]
+}
+
+})
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-RUTA LATAM × Díaz-Barriga – PMAP contextualizado</title>
+
+<!-- Librerías -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --primary:#1E88E5; --primary-dark:#0D47A1; --accent:#00BFA5;
+  --neutral-light:#f4f6f8; --neutral-dark:#1e1e1e;
+  --card-light:#fff; --card-dark:#2b2b2b;
+  --text-dark:#333; --text-light:#f4f4f4;
+  --shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;margin:0;background:var(--neutral-light);
+  color:var(--text-dark);transition:.4s;
+}
+body.dark{background:var(--neutral-dark);color:var(--text-light);}
+header{
+  text-align:center;padding:20px;background:linear-gradient(90deg,var(--primary-dark),var(--primary));
+  color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+header img{height:80px;margin-bottom:10px;}
+header h1{margin:5px 0 0;font-size:1.6rem;}
+header h2{margin:4px 0;font-size:1rem;color:#CFE2FF;}
+header p{font-size:.9rem;color:#E3F2FD;margin:4px 0;}
+.container{max-width:1100px;margin:40px auto;padding:0 20px;}
+.card{
+  background:var(--card-light);border-radius:14px;box-shadow:var(--shadow);
+  padding:25px 30px;margin-bottom:25px;transition:.4s;
+}
+body.dark .card{background:var(--card-dark);}
+.card h3{
+  border-left:6px solid var(--accent);padding-left:10px;color:var(--primary-dark);
+  margin-top:0;margin-bottom:15px;
+}
+body.dark .card h3{color:var(--accent);}
+label{font-weight:600;color:var(--primary-dark);}
+body.dark label{color:var(--accent);}
+input,textarea,select{
+  width:100%;padding:10px;margin-top:6px;margin-bottom:12px;border:1.5px solid #ccc;
+  border-radius:8px;font-size:15px;background:var(--card-light);color:var(--text-dark);
+  transition:border .3s,background .3s;
+}
+body.dark input,body.dark textarea,body.dark select{
+  background:#3a3a3a;border-color:#555;color:var(--text-light);
+}
+input:focus,textarea:focus,select:focus{
+  outline:none;border-color:var(--primary);
+  box-shadow:0 0 5px rgba(30,136,229,0.4);
+}
+.buttons{
+  display:flex;flex-wrap:wrap;gap:15px;justify-content:center;margin-top:35px;
+}
+button{
+  flex:1 1 150px;padding:14px;border:none;border-radius:8px;color:#fff;
+  font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .2s,opacity .3s;
+}
+button:hover{opacity:.9;transform:translateY(-2px);}
+.word-btn{background:linear-gradient(90deg,#0078D7,#005BB5);}
+.pdf-btn{background:linear-gradient(90deg,#D32F2F,#B71C1C);}
+.excel-btn{background:linear-gradient(90deg,#43A047,#2E7D32);}
+.print-btn{background:linear-gradient(90deg,#6A1B9A,#4A148C);}
+.dark-btn{background:linear-gradient(90deg,#424242,#212121);}
+.clear-btn{background:linear-gradient(90deg,#FB8C00,#EF6C00);}
+footer{text-align:center;padding:20px;font-size:14px;color:#777;background:var(--card-light);
+border-top:1px solid #ccc;}
+body.dark footer{background:var(--card-dark);color:#bbb;}
+.signature{text-align:center;margin-top:30px;}
+.signature hr{width:250px;border:1px solid #999;}
+@media(max-width:768px){.buttons{flex-direction:column;}}
+</style>
+</head>
+
+<body>
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="SITE-RUTA LATAM">
+  <h1>SITE-RUTA LATAM – PMAP</h1>
+  <h2>Sistema Integrado de Trazabilidad Educativa para Latinoamérica</h2>
+  <p>Secuencia Didáctica Contextualizada (inspirada en Díaz-Barriga)</p>
+  <p><em>Instrumento de planificación docente basado en la trazabilidad del aprendizaje significativo</em></p>
+</header>
+
+<div class="container">
+
+  <!-- BLOQUE 1 -->
+  <div class="card">
+    <h3>1. Identificación general</h3>
+    <label>Asignatura:</label><input id="asignatura">
+    <label>Unidad temática / Ubicación en el curso:</label><input id="unidad">
+    <label>Tema general:</label><input id="tema">
+    <label>Docente:</label><input id="docente">
+    <label>Fecha:</label><input id="fecha" type="date">
+    <label>Duración y número de sesiones previstas:</label><input id="duracion">
+  </div>
+
+  <!-- BLOQUE 2 -->
+  <div class="card">
+    <h3>2. Fundamentación y propósito</h3>
+    <label>Finalidad, propósitos u objetivos:</label>
+    <textarea id="objetivos"></textarea>
+    <label>Problema, caso o proyecto (opcional):</label>
+    <textarea id="problema"></textarea>
+    <label>Orientaciones generales para la evaluación:</label>
+    <textarea id="orientaciones"></textarea>
+
+    <label>Dimensión:</label>
+    <select id="dimension">
+      <option value="">Seleccione...</option><option>Saber</option><option>Hacer</option><option>Ser</option>
+    </select>
+
+    <label>Nivel Bloom:</label>
+    <select id="nivelBloom">
+      <option value="">Seleccione...</option>
+      <option>Recordar</option><option>Comprender</option><option>Aplicar</option>
+      <option>Analizar</option><option>Evaluar</option><option>Crear</option>
+    </select>
+
+    <label>Nivel PMAP:</label>
+    <select id="nivelPMAP">
+      <option value="">Seleccione...</option>
+      <option>N1 - Bajo</option><option>N2 - Básico</option>
+      <option>N3 - Alto</option><option>N4 - Superior</option>
+    </select>
+  </div>
+
+  <!-- BLOQUE 3 -->
+  <div class="card">
+    <h3>3. Secuencia didáctica (fases)</h3>
+    <label>Actividades de apertura:</label><textarea id="apertura"></textarea>
+    <label>Actividades de desarrollo:</label><textarea id="desarrollo"></textarea>
+    <label>Actividades de cierre:</label><textarea id="cierre"></textarea>
+  </div>
+
+  <!-- BLOQUE 4 -->
+  <div class="card">
+    <h3>4. Evaluación y evidencias</h3>
+    <label>Tipo de evidencia:</label>
+    <select id="tipoEvidencia">
+      <option value="">Seleccione...</option>
+      <option>Diagnóstica</option><option>Procesual</option><option>Final</option><option>Metacognitiva</option>
+    </select>
+    <label>Línea de evidencias del aprendizaje:</label><textarea id="evidencias"></textarea>
+    <label>Tipo de rúbrica:</label>
+    <select id="tipoRubrica">
+      <option value="">Seleccione...</option><option>Analítica</option><option>Holística</option><option>Descriptiva</option>
+    </select>
+  </div>
+
+  <!-- BLOQUE 5 -->
+  <div class="card">
+    <h3>5. Recursos y referencias</h3>
+    <label>Recursos bibliográficos, hemerográficos y cibergráficos:</label>
+    <textarea id="recursos"></textarea>
+  </div>
+
+  <!-- NOTA ACLARATORIA -->
+  <div class="card" style="background:#E3F2FD;color:#0D47A1;">
+    <h3>Nota aclaratoria</h3>
+    <p><em>Esta propuesta es indicativa y no significa que el profesor deba llenarla en todos sus elementos. Cada docente podrá incorporar, adaptar o contextualizar los apartados de acuerdo con las particularidades de su institución educativa, región o grupo de estudiantes.</em></p>
+  </div>
+
+  <div class="buttons">
+    <button class="word-btn" onclick="exportToWord()"><i class="fa-solid fa-file-word"></i> Word</button>
+    <button class="pdf-btn" onclick="exportToPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+    <button class="excel-btn" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Excel</button>
+    <button class="print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+    <button class="dark-btn" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i> Modo oscuro</button>
+    <button class="clear-btn" onclick="clearForm()"><i class="fa-solid fa-trash"></i> Limpiar</button>
+  </div>
+
+  <div class="signature">
+    <hr><p><em>Firma del docente</em></p>
+  </div>
+</div>
+
+<footer>
+© 2025 SITE-RUTA LATAM | Desarrollado por Los Tutores – Fedusocial | Instrumento de planificación docente
+</footer>
+
+<script>
+const fields=['asignatura','unidad','tema','docente','fecha','duracion','objetivos','problema',
+'orientaciones','dimension','nivelBloom','nivelPMAP','apertura','desarrollo','cierre',
+'tipoEvidencia','evidencias','tipoRubrica','recursos'];
+
+// Guardar en localStorage
+fields.forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener('input',()=>localStorage.setItem(id,el.value));
+  el.addEventListener('change',()=>localStorage.setItem(id,el.value));
+});
+
+// Cargar al iniciar
+window.onload=()=>{
+  fields.forEach(id=>{
+    if(localStorage.getItem(id)) document.getElementById(id).value=localStorage.getItem(id);
+  });
+};
+
+function validate(){
+  for(let id of fields){
+    if(!document.getElementById(id).value.trim()){
+      alert(`Por favor completa el campo: ${id}`);return false;
+    }
+  }return true;
+}
+
+// Exportar a Word
+function exportToWord(){
+  if(!validate())return;
+  let content=`
+  <div style="text-align:center;">
+    <img src='https://www.fedusocial.org/SOCIALTECH.png' style='height:80px;'><br>
+    <h2>SITE-RUTA LATAM – PMAP</h2>
+    <h3>Sistema Integrado de Trazabilidad Educativa para Latinoamérica</h3>
+    <p><em>Instrumento de planificación docente basado en la trazabilidad del aprendizaje significativo</em></p>
+    <hr>
+  </div>`;
+  fields.forEach(id=>{
+    const label=document.querySelector("label[for='"+id+"']")?.innerText||id;
+    content+=`<p><strong>${label}:</strong> ${document.getElementById(id).value}</p>`;
+  });
+  content+=`<br><p style='text-align:center;margin-top:40px;'>_________________________<br><em>Firma del docente</em></p>`;
+  const blob=new Blob(['\ufeff',content],{type:'application/msword'});
+  const link=document.createElement('a');link.href=URL.createObjectURL(blob);
+  link.download='SecuenciaDidactica_SITE-RUTA.doc';link.click();
+}
+
+// Exportar a PDF
+function exportToPDF(){
+  if(!validate())return;
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const img=new Image();img.src='https://www.fedusocial.org/SOCIALTECH.png';
+  doc.addImage(img,'PNG',85,5,40,25);
+  doc.setFontSize(14);doc.text("SITE-RUTA LATAM – PMAP",10,40);
+  doc.setFontSize(11);
+  doc.text("Sistema Integrado de Trazabilidad Educativa para Latinoamérica",10,47);
+  doc.text("Instrumento de planificación docente basado en la trazabilidad del aprendizaje significativo",10,54);
+  doc.line(10,56,200,56);
+  let y=65;
+  fields.forEach(id=>{
+    doc.setFontSize(11);
+    doc.text(`${id}:`,10,y);
+    const t=document.getElementById(id).value;
+    const lines=doc.splitTextToSize(t,180);
+    doc.text(lines,10,y+5);
+    y+=5+(lines.length*5);
+    if(y>270){doc.addPage();y=20;}
+  });
+  y+=10;doc.text("_________________________",70,y);
+  y+=5;doc.text("Firma del docente",90,y);
+  doc.setFontSize(9);
+  doc.text("© 2025 SITE-RUTA LATAM | Desarrollado por Los Tutores – Fedusocial | Instrumento de planificación docente",10,285);
+  doc.save('SecuenciaDidactica_SITE-RUTA.pdf');
+}
+
+// Exportar a Excel
+function exportToExcel(){
+  if(!validate())return;
+  const data=fields.map(id=>[id,document.getElementById(id).value]);
+  const ws=XLSX.utils.aoa_to_sheet([["Campo","Contenido"],...data]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"SITE-RUTA LATAM");
+  XLSX.writeFile(wb,"SecuenciaDidactica_SITE-RUTA.xlsx");
+}
+
+function toggleDarkMode(){document.body.classList.toggle('dark');}
+function clearForm(){
+  if(confirm("¿Deseas limpiar todo el formulario?")){
+    fields.forEach(id=>{document.getElementById(id).value='';localStorage.removeItem(id);});
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE–RUTA LATAM | IMPACTO VISUAL TOTAL</title>
+
+<!-- SheetJS para Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js para gráficos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<style>
+/* ===============================
+   CHASIS MEJORADO - IMPACTO VISUAL
+================================= */
+:root {
+  --bg: #0a0c1a;
+  --panel: #13172b;
+  --card: #1a1f35;
+  --accent: #3b82f6;
+  --accent-soft: rgba(59,130,246,0.2);
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --text: #f0f4fa;
+  --muted: #9aa4bf;
+  --border: #2a3045;
+  --glow-n1: rgba(239,68,68,0.5);
+  --glow-n2: rgba(245,158,11,0.5);
+  --glow-n3: rgba(234,179,8,0.5);
+  --glow-n4: rgba(34,197,94,0.5);
+  --saber: #3b82f6;
+  --hacer: #10b981;
+  --ser: #8b5cf6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  background: radial-gradient(ellipse at 30% 40%, #1a1f35, #0a0c1a);
+  color: var(--text);
+  min-height: 100vh;
+  backdrop-filter: blur(2px);
+}
+header {
+  padding: 20px 30px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(20,30,60,0.9), rgba(10,15,30,0.95));
+  backdrop-filter: blur(10px);
+  display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.current-student {
+  background: var(--panel);
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 15px var(--accent-soft);
+}
+/* Pestañas más llamativas */
+.tabs {
+  display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+.tab-btn {
+  padding: 10px 20px; border: none; background: var(--panel); color: var(--muted);
+  cursor: pointer; border-radius: 40px; transition: all 0.2s ease;
+  font-weight: 600; letter-spacing: 0.3px; border: 1px solid transparent;
+}
+.tab-btn:hover { background: #2a3150; color: white; border-color: var(--accent); }
+.tab-btn.active {
+  background: linear-gradient(145deg, #2563eb, #1d4ed8);
+  color: white; box-shadow: 0 0 20px #3b82f6; border-color: #60a5fa;
+}
+
+/* Tarjetas de estudiante con GLOW según nivel */
+.estudiante-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.estudiante-card:hover { transform: translateY(-4px); }
+.estudiante-card.N1 { box-shadow: 0 0 25px var(--glow-n1); border-color: var(--danger); }
+.estudiante-card.N2 { box-shadow: 0 0 25px var(--glow-n2); border-color: var(--warn); }
+.estudiante-card.N3 { box-shadow: 0 0 25px var(--glow-n3); border-color: #eab308; }
+.estudiante-card.N4 { box-shadow: 0 0 25px var(--glow-n4); border-color: var(--ok); }
+.estudiante-card::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(255,255,255,0.1), transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.estudiante-card:hover::after { opacity: 1; }
+
+.estudiante-nombre { font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; }
+.estudiante-meta { color: var(--muted); font-size: 0.9rem; }
+
+/* Badges con glow */
+.badge-nivel {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+.N1-badge { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid var(--danger); box-shadow: 0 0 10px var(--glow-n1); }
+.N2-badge { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid var(--warn); box-shadow: 0 0 10px var(--glow-n2); }
+.N3-badge { background: rgba(234,179,8,0.2); color: #fde047; border: 1px solid #eab308; box-shadow: 0 0 10px var(--glow-n3); }
+.N4-badge { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid var(--ok); box-shadow: 0 0 10px var(--glow-n4); }
+
+/* Tarjetas de info con vidrio esmerilado */
+.info-tarjetas {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin: 20px 0;
+}
+.info-tarjeta {
+  background: rgba(26,31,53,0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59,130,246,0.3);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+}
+.info-tarjeta:hover { transform: scale(1.02); border-color: var(--accent); }
+.info-tarjeta .titulo { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.info-tarjeta .valor { font-size: 2.5rem; font-weight: 800; margin: 8px 0; }
+.info-tarjeta .subtitulo { color: var(--muted); }
+
+/* Mapa de calor mejorado */
+.heatmap-grid {
+  display: grid;
+  background: var(--panel);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin: 20px 0;
+}
+.heatmap-item {
+  padding: 12px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+.heatmap-header { background: #1e253f; color: white; font-weight: 700; }
+.correcto { background: linear-gradient(145deg, #14532d, #166534); color: #bbf7d0; }
+.incorrecto { background: linear-gradient(145deg, #7f1d1d, #991b1b); color: #fecaca; }
+
+/* Matriz 3×4 como modal flotante */
+.modal-matriz {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-matriz.active { opacity: 1; pointer-events: all; }
+.modal-contenido {
+  background: var(--card);
+  border-radius: 40px;
+  padding: 30px;
+  max-width: 90%;
+  width: 800px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 60px var(--accent);
+  position: relative;
+}
+.btn-cerrar {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: none; border: none;
+  color: var(--muted); font-size: 2rem;
+  cursor: pointer; transition: color 0.2s;
+}
+.btn-cerrar:hover { color: var(--danger); }
+.matriz-cognitiva {
+  display: grid;
+  grid-template-columns: 200px repeat(4, 1fr);
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.matriz-item {
+  padding: 15px;
+  border: 1px solid var(--border);
+  text-align: center;
+  background: rgba(0,0,0,0.2);
+}
+.matriz-header { background: var(--accent); color: white; font-weight: 700; }
+.matriz-competencia { background: #1e253f; font-weight: 600; text-align: left; }
+
+/* Botón de limpiar todo llamativo */
+.btn-reset {
+  background: linear-gradient(145deg, #7f1d1d, #991b1b);
+  color: white;
+  border: 1px solid #ef4444;
+  box-shadow: 0 0 20px rgba(239,68,68,0.5);
+}
+.btn-reset:hover { background: linear-gradient(145deg, #991b1b, #b91c1c); box-shadow: 0 0 30px #ef4444; }
+
+/* Filtros mejorados */
+.filter-group {
+  background: var(--panel);
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+
+/* Animaciones */
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 20px var(--glow-n1); }
+  50% { box-shadow: 0 0 40px var(--glow-n1); }
+  100% { box-shadow: 0 0 20px var(--glow-n1); }
+}
+</style>
+</head>
+<body>
+
+<!-- MODAL MATRIZ FLOTANTE -->
+<div id="modalMatriz" class="modal-matriz">
+  <div class="modal-contenido">
+    <button class="btn-cerrar" onclick="cerrarModalMatriz()">&times;</button>
+    <h2 style="margin-bottom:20px;">📊 Matriz 3×4 cognitiva</h2>
+    <div id="matrizFlotante" class="matriz-cognitiva"></div>
+  </div>
+</div>
+
+<header>
+  <div class="title-block">
+    <h1>⚡ SITE–RUTA LATAM | IMPACTO VISUAL TOTAL</h1>
+    <div class="subtitle">Motor analítico bestial • 240/240 • PMAP adaptativo</div>
+    <div class="current-student">
+      <span>🔍 Estudiante actual:</span><strong id="currentStudentName">Selecciona</strong>
+    </div>
+  </div>
+  <div class="student-management">
+    <button class="btn btn-success" id="btnManageStudents">👥 Gestión</button>
+    <button class="btn btn-reset" id="btnResetTotal">🗑️ Reiniciar TODO</button>
+  </div>
+</header>
+
+<main style="padding: 20px; flex: 1;">
+
+<!-- Panel principal -->
+<div id="studentsPanel" class="tab-pane active">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista">📋 Lista del Semillero</button>
+    <button class="tab-btn" data-tab="aplicada">📋 Evaluación aplicada</button>
+    <button class="tab-btn" data-tab="zipgrade">📤 ZipGrade</button>
+    <button class="tab-btn" data-tab="diagnostico">📈 Diagnóstico grupal</button>
+    <button class="tab-btn" data-tab="pmap">🧠 PMAP</button>
+    <button class="tab-btn" data-tab="banco">📚 Banco FCRI</button>
+  </div>
+
+  <!-- Pestaña Lista (con colores por nivel) -->
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row" style="gap:15px; flex-wrap:wrap;">
+      <div class="filter-group"><label>Institución</label><input id="filtroInstitucion" placeholder="Filtrar"></div>
+      <div class="filter-group"><label>Grado</label><select id="filtroGrado"><option value="todos">Todos</option><option>9</option><option>10</option><option>11</option></select></div>
+      <div class="filter-group"><label>Grupo</label><select id="filtroGrupo"><option value="todos">Todos</option><option>1</option><option>2</option><option>3</option></select></div>
+      <div class="filter-group"><label>Buscar</label><input id="filtroBusqueda" placeholder="Nombre"></div>
+      <button class="btn btn-success" onclick="aplicarFiltros()">🔍 Filtrar</button>
+    </div>
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+    <div class="pagination-controls" style="display:flex; justify-content:space-between; margin:16px 0;">
+      <div><span id="paginationInfo">0-0</span> de <span id="totalStudentsCount">0</span></div>
+      <select id="pageSize"><option>10</option><option selected>20</option><option>50</option></select>
+    </div>
+  </div>
+
+  <!-- Pestaña Evaluación aplicada -->
+  <div id="aplicada" class="tab-pane">
+    <div class="card"><h3>Evaluación aplicada (12 preguntas)</h3>
+      <textarea id="textoAplicada" style="height:200px; width:100%;"></textarea>
+      <div class="actions"><button class="btn btn-success" id="cargarAplicadaBtn">📥 Cargar</button></div>
+      <div id="aplicadaResumen"></div><div class="table-wrap"><table id="tablaAplicada"></table></div>
+      <div class="card"><h4>Matriz 3×4</h4><div id="matrizCuestionario"></div></div>
+    </div>
+  </div>
+
+  <!-- Pestaña ZipGrade -->
+  <div id="zipgrade" class="tab-pane">
+    <div class="card"><h3>ZipGrade</h3><input type="file" id="archivoZip"><button class="btn btn-success" id="leerZipBtn">📄 Leer</button>
+      <div id="zipResumen"></div><div class="table-wrap"><table id="tablaZip"></table></div>
+    </div>
+  </div>
+
+  <!-- Pestaña Diagnóstico grupal -->
+  <div id="diagnostico" class="tab-pane">
+    <div class="card"><button class="btn btn-success" id="procesarDiagnosticoBtn">🚀 Procesar motor</button></div>
+    <div class="dashboard-grid" id="metricasGrupo">
+      <div class="dashboard-card"><div class="value" id="mEstudiantes">0</div><div class="label">Estudiantes</div></div>
+      <div class="dashboard-card"><div class="value" id="mPromedio">0%</div><div class="label">Promedio</div></div>
+      <div class="dashboard-card"><div class="value" id="mNivel">-</div><div class="label">Nivel dominante</div></div>
+      <div class="dashboard-card"><div class="value" id="mBrecha">-</div><div class="label">Brecha</div></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <div class="chart-container"><canvas id="chartErrores"></canvas></div>
+      <div class="chart-container"><canvas id="chartNiveles"></canvas></div>
+      <div class="chart-container"><canvas id="chartCompetencias"></canvas></div>
+      <div class="chart-container"><canvas id="chartMicro"></canvas></div>
+    </div>
+    <div class="card"><h4>Resultados</h4><div class="table-wrap"><table id="tablaDiagnostico"></table></div></div>
+  </div>
+
+  <!-- Pestaña PMAP con filtros -->
+  <div id="pmap" class="tab-pane">
+    <div class="card">
+      <h3>PMAP y adaptativo local</h3>
+      <div class="filters-row" style="margin-bottom:20px;">
+        <div class="filter-group"><label>Filtrar por nivel</label><select id="filtroNivelPmap"><option value="todos">Todos</option><option>N1</option><option>N2</option><option>N3</option><option>N4</option></select></div>
+        <div class="filter-group"><label>Competencia</label><select id="filtroCompetenciaPmap"><option value="todos">Todas</option></select></div>
+        <div class="filter-group"><label>Microhabilidad</label><input id="filtroMicroPmap" placeholder="Buscar..."></div>
+        <button class="btn btn-success" onclick="aplicarFiltrosPmap()">🔍 Filtrar</button>
+      </div>
+      <button class="btn btn-purple" id="generarPmapBtn">🧠 Generar PMAP</button>
+      <div class="table-wrap"><table id="tablaPmap"></table></div>
+    </div>
+  </div>
+
+  <!-- Pestaña Banco FCRI -->
+  <div id="banco" class="tab-pane">
+    <div class="card"><h3>Banco FCRI</h3><textarea id="textoFcri" style="height:200px; width:100%;"></textarea>
+      <div class="actions"><button class="btn btn-success" id="cargarFcriBtn">📥 Cargar</button><button class="btn btn-warning" id="exportarBancoBtn">📤 Exportar</button></div>
+      <div id="bancoResumen"></div><div class="table-wrap"><table id="tablaBanco"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- Panel de Progreso del Estudiante (VISUAL IMPACTANTE) -->
+<div id="progressPanel" class="tab-pane" style="display:none;">
+  <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+    <h2 id="studentProgressTitle">✨ Perfil cognitivo</h2>
+    <button class="btn" onclick="volverALista()">← Volver</button>
+    <button class="btn btn-success" onclick="generarReporteIndividual()">📄 Reporte</button>
+    <button class="btn btn-purple" onclick="abrirModalMatriz()">📊 Ver matriz 3×4</button>
+  </div>
+
+  <!-- Tarjetas con glow -->
+  <div class="info-tarjetas">
+    <div class="info-tarjeta"><div class="titulo">Código</div><div class="valor" id="infoCodigo">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">Nivel global</div><div class="valor" id="infoNivelGlobal">-</div><span id="badgeNivel" class="badge-nivel"></span></div>
+    <div class="info-tarjeta"><div class="titulo">Brecha</div><div class="valor" id="infoBrecha">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">Simulacros</div><div class="valor" id="infoSimulacros">1</div></div>
+  </div>
+
+  <!-- ZDR / ZDP -->
+  <div class="info-tarjetas">
+    <div class="info-tarjeta"><div class="titulo">ZDR</div><div class="valor" id="infoZDR">-</div><div class="subtitulo">Zona de Desarrollo Real</div></div>
+    <div class="info-tarjeta"><div class="titulo">ZDP</div><div class="valor" id="infoZDP">-</div><div class="subtitulo">Zona de Desarrollo Próximo</div></div>
+  </div>
+
+  <!-- Mapa de calor -->
+  <div class="card"><h3>🔥 Mapa de calor respuestas</h3><div id="heatmapIndividual" class="heatmap-grid"></div></div>
+
+  <!-- Recomendaciones PMAP -->
+  <div class="card"><h3>💡 Recomendaciones PMAP</h3><div id="recomendacionesPMAP"></div></div>
+</div>
+
+</main>
+
+<script>
+// ===============================
+// CONFIGURACIÓN (motor analítico bestial)
+// ===============================
+const STORAGE_KEY = "site_ruta_impacto_total";
+let evaluacionAplicada = [], zipRows = [], estudiantes = [], bancoItems = [], resultadosMotor = null;
+let chartErrores, chartNiveles, chartCompetencias, chartMicro;
+
+const SUBJECT_LEVELS = {
+  LC: ["N1","N2","N3","N4"], MAT:["N1","N2","N3","N4"], SOC:["N1","N2","N3","N4"],
+  BIO:["N1","N2","N3","N4"], FIS:["N1","N2","N3","N4"], QUI:["N1","N2","N3","N4"],
+  CTS:["N1","N2","N3","N4"], ING:["PreA1","A1","A2","B1"]
+};
+const SUBJECT_LABELS = {
+  LC:"Lectura Crítica", MAT:"Matemáticas", SOC:"Sociales", ING:"Inglés",
+  BIO:"Biología", FIS:"Física", QUI:"Química", CTS:"CTS"
+};
+
+// ===========================================
+// BASE COGNITIVA (240/240)
+// ===========================================
+const COGNITIVE_CATALOG = {
+  LC:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Localizar información explícita","Identificar referentes pronominales","Reconocer personajes y actores",
+      "Identificar eventos narrados","Reconocer significado contextual de palabras","Identificar ideas principales",
+      "Diferenciar ideas secundarias","Reconocer conectores discursivos","Identificar función de un párrafo",
+      "Reconocer estructura textual","Identificar tesis del texto","Identificar argumentos del autor",
+      "Reconocer ejemplos y evidencias","Reconocer tono discursivo","Identificar intención comunicativa",
+      "Inferir información implícita","Reconstruir la secuencia argumentativa","Identificar supuestos implícitos",
+      "Detectar sesgos ideológicos","Reconocer estrategias discursivas","Relacionar texto y contexto",
+      "Relacionalidad intertextual","Identificar analogías","Evaluar consistencia argumentativa",
+      "Detectar contradicciones internas","Evaluar pertinencia de evidencia","Comparar perspectivas textuales",
+      "Generalizar a partir de casos","Formular interpretación global","Evaluar validez del argumento"
+    ],
+    microrutinas:[
+      "Subrayado focalizado","Rastreo de pronombres","Cadena de eventos narrativos","Diccionario contextual",
+      "Pirámide de ideas","Mapa de conectores","Pregunta por párrafo","Identificación de tesis",
+      "Mapa argumentativo","Clasificación ejemplo-argumento","Análisis de tono","Identificación de intención",
+      "Inferencia guiada","Reconstrucción argumentativa","Identificación de supuestos","Caza de sesgos",
+      "Análisis retórico","Contextualización histórica","Puente intertextual","Detección de analogías",
+      "Evaluación de evidencia","Contraste de perspectivas","Detección de contradicciones","Síntesis progresiva",
+      "Evaluación argumentativa","Paráfrasis guiada","Reformulación textual","Debate interpretativo",
+      "Justificación de interpretación","Evaluación crítica final"
+    ]},
+  MAT:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Leer tablas de datos","Interpretar gráficas","Identificar variables","Reconocer unidades",
+      "Reconocer patrones numéricos","Identificar relaciones proporcionales","Interpretar funciones",
+      "Transformar representaciones","Estimar resultados","Seleccionar operación adecuada",
+      "Organizar datos del problema","Diseñar plan de solución","Ejecutar algoritmo","Resolver ecuaciones simples",
+      "Resolver ecuaciones compuestas","Aplicar propiedades algebraicas","Interpretar resultados",
+      "Verificar coherencia del resultado","Comparar estrategias de solución","Identificar errores de cálculo",
+      "Modelar situaciones reales","Interpretar modelos matemáticos","Evaluar suficiencia de datos",
+      "Estimar orden de magnitud","Analizar comportamiento de funciones","Comparar modelos matemáticos",
+      "Generalizar patrones","Justificar procedimientos","Argumentar validez de solución","Evaluar pertinencia de método"
+    ],
+    microrutinas:[
+      "Lectura sistemática de gráficos","Tabla de variables","Reconocimiento de unidades","Identificación de patrón",
+      "Conversión de representaciones","Estimación previa","Selección de operación","Organización de datos",
+      "Plan paso a paso","Ejecución algorítmica","Sustitución en ecuación","Simplificación algebraica",
+      "Revisión del resultado","Comparación de métodos","Detección de error","Traducción problema-modelo",
+      "Interpretación del modelo","Evaluación de suficiencia","Aproximación numérica","Análisis funcional",
+      "Comparación de modelos","Generalización matemática","Argumentación matemática","Verificación lógica",
+      "Evaluación de procedimiento","Análisis de eficiencia","Justificación formal","Revisión final",
+      "Explicación del resultado","Validación matemática"
+    ]},
+  SOC:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Identificar conceptos sociales básicos","Reconocer instituciones del Estado","Identificar mecanismos de participación",
+      "Reconocer actores sociales","Ubicar eventos en tiempo histórico","Ubicar eventos en espacio geográfico",
+      "Reconocer procesos históricos","Analizar relaciones causa-efecto","Interpretar fuentes históricas",
+      "Contextualizar fuentes","Identificar perspectivas de actores","Comparar perspectivas sociales",
+      "Reconocer intereses en conflicto","Analizar discursos políticos","Detectar prejuicios ideológicos",
+      "Evaluar uso de fuentes","Interpretar indicadores sociales","Analizar problemáticas sociales",
+      "Reconocer dimensiones de un problema","Relacionar variables sociales","Evaluar propuestas de solución",
+      "Analizar impactos sociales","Evaluar decisiones públicas","Analizar sistemas sociales",
+      "Identificar relaciones estructurales","Reconocer dinámicas territoriales","Evaluar políticas públicas",
+      "Comparar modelos sociales","Argumentar posición ciudadana","Evaluar impacto social"
+    ],
+    microrutinas:[
+      "Glosario contextual","Mapa institucional","Clasificación de mecanismos","Identificación de actores",
+      "Línea de tiempo","Mapa geohistórico","Secuencia histórica","Cadena causal histórica","Análisis de fuente",
+      "Ficha de contextualización","Matriz de actores","Comparación de perspectivas","Análisis de intereses",
+      "Lectura crítica de discurso","Caza de prejuicios","Evaluación de fuentes","Interpretación de indicadores",
+      "Análisis de problemática","Mapa sistémico","Relación de variables","Evaluación de soluciones",
+      "Proyección de impactos","Análisis de decisión pública","Modelo sistémico social","Identificación de estructuras",
+      "Lectura territorial","Evaluación de políticas","Comparación de modelos sociales","Debate ciudadano",
+      "Evaluación de impacto social"
+    ]},
+  ING:{ niveles:["PreA1","A1","A2","B1"],
+    microhabilidades:[
+      "Reconocer vocabulario básico","Reconocer expresiones frecuentes","Identificar significado contextual",
+      "Asociar descripción con objeto","Reconocer propósito comunicativo","Identificar contexto de aviso",
+      "Interpretar diálogo breve","Seleccionar respuesta adecuada","Reconocer función del lenguaje",
+      "Completar texto gramaticalmente","Identificar estructura gramatical","Interpretar paráfrasis",
+      "Reconocer equivalencia semántica","Identificar idea principal","Identificar información específica",
+      "Inferir significado por contexto","Identificar intención del autor","Reconocer tono comunicativo",
+      "Interpretar relación entre frases","Reconocer cohesión textual","Interpretar vocabulario en contexto",
+      "Completar textos coherentes","Reconocer referencia pronominal","Inferir conclusión textual",
+      "Evaluar coherencia textual","Interpretar intención comunicativa","Relacionar texto y contexto",
+      "Analizar estructura textual","Inferir significado implícito","Evaluar comprensión global"
+    ],
+    microrutinas:[
+      "Matching palabra-imagen","Asociación descripción-palabra","Context clue reading","Aviso-contexto",
+      "Propósito comunicativo","Dialogue completion","Language function recognition","Grammar selection",
+      "Cloze completion","Paraphrase matching","Meaning equivalence","Main idea scan","Specific information search",
+      "Context inference","Author’s purpose","Tone detection","Sentence relation analysis","Cohesion tracking",
+      "Vocabulary in context","Text completion","Pronoun tracking","Conclusion inference","Coherence check",
+      "Intent interpretation","Contextual relation","Text structure analysis","Implicit meaning inference",
+      "Global comprehension","Summary reconstruction","Communicative evaluation"
+    ]},
+  BIO:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Identificar estructuras celulares","Reconocer funciones celulares","Interpretar procesos metabólicos",
+      "Relacionar órgano-función","Identificar sistemas biológicos","Analizar homeostasis",
+      "Interpretar genética básica","Analizar herencia mendeliana","Identificar mutaciones",
+      "Interpretar evolución biológica","Analizar adaptaciones","Reconocer relaciones ecológicas",
+      "Interpretar cadenas tróficas","Analizar redes tróficas","Interpretar ciclos biogeoquímicos",
+      "Analizar dinámica poblacional","Reconocer biodiversidad","Analizar interacciones ecosistémicas",
+      "Identificar variables ecológicas","Interpretar equilibrio ecológico","Analizar impacto humano",
+      "Evaluar conservación de especies","Interpretar relaciones simbióticas","Analizar nichos ecológicos",
+      "Interpretar dinámica evolutiva","Evaluar cambios ambientales","Modelar sistemas ecológicos",
+      "Comparar organismos","Inferir relaciones evolutivas","Evaluar sostenibilidad biológica"
+    ],
+    microrutinas:[
+      "Mapa célula-función","Comparación estructura-función","Secuencia metabólica","Mapa sistema-órgano",
+      "Análisis homeostasis","Cuadro herencia","Cruce genético guiado","Detección de mutaciones","Árbol evolutivo",
+      "Comparación adaptativa","Red trófica guiada","Análisis ciclo biogeoquímico","Mapa poblacional",
+      "Análisis biodiversidad","Interacción ecosistema","Variable ecológica","Evaluación equilibrio",
+      "Impacto humano","Estrategia conservación","Relación simbiótica","Identificación nicho","Dinámica evolutiva",
+      "Evaluación ambiental","Modelo ecosistémico","Comparación organismos","Inferencia evolutiva",
+      "Proyección ecológica","Evaluación sostenibilidad","Síntesis ecosistémica","Argumentación biológica"
+    ]},
+  FIS:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Identificar magnitudes físicas","Reconocer unidades físicas","Interpretar movimiento","Analizar velocidad",
+      "Analizar aceleración","Aplicar leyes de Newton","Identificar fuerzas","Analizar trabajo mecánico",
+      "Interpretar energía","Analizar conservación de energía","Interpretar potencia","Analizar movimiento circular",
+      "Interpretar ondas","Analizar frecuencia","Analizar longitud de onda","Interpretar sonido","Analizar luz",
+      "Interpretar electricidad","Analizar corriente eléctrica","Interpretar voltaje","Analizar circuitos",
+      "Interpretar magnetismo","Analizar campos magnéticos","Interpretar fenómenos térmicos","Analizar calor",
+      "Interpretar presión","Modelar sistemas físicos","Interpretar gráficas físicas","Evaluar modelos físicos",
+      "Argumentar fenómenos físicos"
+    ],
+    microrutinas:[
+      "Identificación de magnitudes","Reconocimiento de unidades","Análisis de movimiento","Cálculo de velocidad",
+      "Cálculo de aceleración","Diagrama de fuerzas","Aplicación ley de Newton","Análisis trabajo-energía",
+      "Balance energético","Cálculo de potencia","Movimiento circular","Interpretación de ondas","Análisis frecuencia",
+      "Longitud de onda","Fenómeno sonoro","Fenómeno luminoso","Circuito eléctrico","Cálculo de corriente",
+      "Análisis voltaje","Interpretación circuito","Magnetismo básico","Campo magnético","Fenómeno térmico",
+      "Análisis calor","Interpretación presión","Modelado físico","Lectura gráfica","Comparación modelo-realidad",
+      "Explicación física","Validación experimental"
+    ]},
+  QUI:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Identificar estructura atómica","Reconocer elementos químicos","Interpretar tabla periódica",
+      "Analizar enlaces químicos","Identificar moléculas","Clasificar sustancias","Interpretar reacciones químicas",
+      "Balancear ecuaciones","Analizar conservación de masa","Interpretar estequiometría","Analizar soluciones",
+      "Interpretar solubilidad","Analizar gases ideales","Interpretar presión química","Analizar temperatura química",
+      "Interpretar equilibrio químico","Analizar velocidad de reacción","Interpretar pH","Analizar ácidos y bases",
+      "Interpretar electroquímica","Analizar oxidación-reducción","Interpretar química orgánica básica",
+      "Analizar hidrocarburos","Interpretar polímeros","Analizar energía química","Interpretar termodinámica química",
+      "Modelar reacciones","Comparar compuestos","Evaluar procesos químicos","Argumentar transformaciones químicas"
+    ],
+    microrutinas:[
+      "Identificación atómica","Lectura tabla periódica","Clasificación de enlaces","Identificación molecular",
+      "Clasificación de sustancias","Reconocimiento reacción","Balanceo paso a paso","Análisis masa-producto",
+      "Cálculo estequiométrico","Preparación solución","Análisis solubilidad","Interpretación gases",
+      "Relación presión-temperatura","Evaluación equilibrio","Análisis velocidad reacción","Identificación pH",
+      "Clasificación ácido-base","Evaluación redox","Interpretación orgánica","Identificación hidrocarburos",
+      "Clasificación polímeros","Energía química","Termodinámica reacción","Modelado reacción",
+      "Comparación compuestos","Evaluación proceso químico","Predicción reacción","Interpretación experimento",
+      "Explicación reacción","Validación química"
+    ]},
+  CTS:{ niveles:["N1","N2","N3","N4"],
+    microhabilidades:[
+      "Identificar tecnologías","Analizar impacto tecnológico","Interpretar innovación científica",
+      "Evaluar uso de recursos","Analizar sostenibilidad","Evaluar impacto ambiental",
+      "Interpretar relación ciencia-sociedad","Analizar decisiones tecnológicas","Evaluar riesgos tecnológicos",
+      "Analizar desarrollo científico","Interpretar transferencia tecnológica","Evaluar ética científica",
+      "Analizar políticas tecnológicas","Interpretar regulación científica","Analizar innovación social",
+      "Evaluar impactos económicos","Analizar impactos culturales","Interpretar desarrollo sostenible",
+      "Evaluar tecnología ambiental","Analizar soluciones tecnológicas","Interpretar responsabilidad científica",
+      "Evaluar tecnologías emergentes","Analizar decisiones públicas tecnológicas","Interpretar escenarios futuros",
+      "Evaluar impacto global","Analizar gobernanza tecnológica","Interpretar cambio tecnológico",
+      "Evaluar desarrollo científico","Analizar sociedad del conocimiento","Argumentar decisiones tecnocientíficas"
+    ],
+    microrutinas:[
+      "Identificación tecnológica","Evaluación impacto","Análisis innovación","Evaluación recursos",
+      "Diagnóstico sostenibilidad","Impacto ambiental","Ciencia-sociedad","Evaluación tecnológica","Análisis riesgo",
+      "Desarrollo científico","Transferencia tecnológica","Evaluación ética","Análisis política tecnológica",
+      "Regulación científica","Innovación social","Impacto económico","Impacto cultural","Desarrollo sostenible",
+      "Tecnología ambiental","Solución tecnológica","Responsabilidad científica","Tecnología emergente",
+      "Decisión pública","Escenario futuro","Impacto global","Gobernanza tecnológica","Cambio tecnológico",
+      "Desarrollo científico aplicado","Sociedad del conocimiento","Argumentación CTS"
+    ]}
+};
+
+function buildBaseCognitiva(){
+  const microhabilidades = [], microrutinas = [], relaciones = {};
+  Object.entries(COGNITIVE_CATALOG).forEach(([asig, data])=>{
+    data.microhabilidades.forEach((mh, idx)=>{
+      const nivel = data.niveles[idx % data.niveles.length];
+      const mhId = `${asig}_${nivel}_MH_${String(idx+1).padStart(3,"0")}`;
+      const mrId = `${asig}_${nivel}_MR_${String(idx+1).padStart(3,"0")}`;
+      microhabilidades.push({id:mhId, asignatura:asig, asignaturaLabel:SUBJECT_LABELS[asig], nivel, nombre:mh});
+      microrutinas.push({id:mrId, asignatura:asig, asignaturaLabel:SUBJECT_LABELS[asig], nivel, nombre:data.microrutinas[idx]});
+      relaciones[mhId] = mrId;
+    });
+  });
+  return { microhabilidades, microrutinas, relaciones };
+}
+const BASE_COGNITIVA = buildBaseCognitiva();
+
+// ===============================
+// FUNCIONES AUXILIARES
+// ===============================
+function nextLevel(actual, levels){
+  const idx = levels.indexOf(actual);
+  return idx>=0 && idx<levels.length-1 ? levels[idx+1] : actual;
+}
+function dominanteDistribucion(dist){
+  let best="-", max=-1; Object.entries(dist).forEach(([k,v])=>{if(v>max){max=v;best=k;}}); return best;
+}
+function splitCSV(line){
+  const out=[]; let cur="", q=false;
+  for(let i=0;i<line.length;i++){ const ch=line[i];
+    if(ch==='"'){ q=!q; continue; }
+    if(ch===',' && !q){ out.push(cur); cur=""; continue; }
+    cur+=ch;
+  }
+  out.push(cur); return out;
+}
+function csvToObjects(text){
+  const lines=text.split(/\r?\n/).filter(Boolean); if(!lines.length) return [];
+  const headers=splitCSV(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const vals=splitCSV(line); const obj={};
+    headers.forEach((h,i)=> obj[h]=vals[i]??"");
+    return obj;
+  });
+}
+function getChartOptions(){
+  return { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ color:"#e5e7eb" } } },
+    scales:{ x:{ ticks:{ color:"#9ca3af" }, grid:{ color:"#1f2937" } },
+             y:{ beginAtZero:true, ticks:{ color:"#9ca3af" }, grid:{ color:"#1f2937" } } }
+  };
+}
+function alertAndThrow(msg){ alert(msg); throw new Error(msg); }
+
+// ===============================
+// STORAGE
+// ===============================
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({evaluacionAplicada, zipRows, bancoItems}));
+}
+function loadState(){
+  const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return;
+  try{
+    const data=JSON.parse(raw);
+    evaluacionAplicada=data.evaluacionAplicada||[]; zipRows=data.zipRows||[]; bancoItems=data.bancoItems||[];
+    renderAplicada(); renderZipPreview(); renderBanco();
+  }catch(e){}
+}
+
+// ===============================
+// PARSE EVALUACIÓN APLICADA
+// ===============================
+function parseAplicadaTSV(texto){
+  const rows=texto.split(/\r?\n/).filter(Boolean);
+  const out=[];
+  rows.forEach((row,idx)=>{
+    const c=row.split("\t").map(x=>x.trim()); if(c.length<11) return;
+    if(idx===0 && (c[0]||"").toLowerCase()==="id") return;
+    out.push({
+      idLocal:c[0]||`EXT_Q${idx}`, orden:Number(c[1])||idx, respuestaCorrecta:c[2]||"",
+      contenido:c[3]||"", areaConceptual:c[4]||"", competencia:c[5]||"", evidencia:c[6]||"",
+      nivel:c[7]||"", verbo:c[8]||"", microhabilidad:c[9]||"", microrutina:c[10]||""
+    });
+  });
+  return out;
+}
+function normalizarAplicadaDesdeObjetos(rows){
+  return rows.map((r,idx)=>({
+    idLocal:String(r["ID"]||r["id"]||`EXT_Q${idx+1}`).trim(),
+    orden:Number(r["#"]||r["N°"]||r["numero"]||idx+1),
+    respuestaCorrecta:String(r["Respuesta"]||r["respuesta"]||"").trim(),
+    contenido:String(r["Contenido del ítem"]||r["Contenido"]||"").trim(),
+    areaConceptual:String(r["Área conceptual"]||"").trim(),
+    competencia:String(r["Competencia ICFES"]||"").trim(),
+    evidencia:String(r["Tipo evidencia"]||"").trim(),
+    nivel:String(r["Nivel"]||"").trim(),
+    verbo:String(r["Verbo"]||"").trim(),
+    microhabilidad:String(r["Microhabilidad"]||"").trim(),
+    microrutina:String(r["Microrutina"]||"").trim()
+  }));
+}
+async function parseFileToRows(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith(".csv")){ const text=await file.text(); return csvToObjects(text); }
+  if(name.endsWith(".txt")){ return await file.text(); }
+  const data=await file.arrayBuffer(); const wb=XLSX.read(data); const ws=wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws,{defval:""});
+}
+function validarAplicada(arr){ if(arr.length!==12) alertAndThrow("La evaluación aplicada debe tener 12 preguntas."); }
+
+function renderAplicada(){
+  const resumen=document.getElementById("aplicadaResumen");
+  const tabla=document.getElementById("tablaAplicada");
+  resumen.textContent=`Preguntas registradas: ${evaluacionAplicada.length}`;
+  if(!evaluacionAplicada.length){ tabla.innerHTML=""; return; }
+  let html=`<tr><th>ID</th><th>#</th><th>Respuesta</th><th>Contenido</th><th>Área</th><th>Competencia</th><th>Evidencia</th><th>Nivel</th><th>Verbo</th><th>Microhabilidad</th><th>Microrutina</th></tr>`;
+  evaluacionAplicada.forEach(q=>{ html+=`<tr><td>${q.idLocal}</td><td>${q.orden}</td><td>${q.respuestaCorrecta}</td><td>${q.contenido}</td><td>${q.areaConceptual}</td><td>${q.competencia}</td><td>${q.evidencia}</td><td>${q.nivel}</td><td>${q.verbo}</td><td>${q.microhabilidad}</td><td>${q.microrutina}</td></tr>`; });
+  tabla.innerHTML=html;
+}
+document.getElementById("cargarAplicadaBtn").addEventListener("click", ()=>{
+  const texto=document.getElementById("textoAplicada").value.trim();
+  if(!texto) return alert("Pega la tabla.");
+  const arr=parseAplicadaTSV(texto); validarAplicada(arr); evaluacionAplicada=arr; renderAplicada(); saveState();
+});
+
+// ===============================
+// ZIPGRADE
+// ===============================
+document.getElementById("leerZipBtn").addEventListener("click", async ()=>{
+  const file=document.getElementById("archivoZip").files[0]; if(!file) return alert("Sube archivo.");
+  const parsed=await parseFileToRows(file); zipRows=Array.isArray(parsed)?parsed:csvToObjects(parsed);
+  renderZipPreview(); saveState();
+});
+function renderZipPreview(){
+  const resumen=document.getElementById("zipResumen"); const tabla=document.getElementById("tablaZip");
+  if(!zipRows.length){ resumen.textContent=""; tabla.innerHTML=""; return; }
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+  resumen.textContent=`Filas: ${zipRows.length} • Preguntas: ${qCols.length}`;
+  let html=`<tr><th>Estudiante</th><th>Aciertos</th><th>%</th>`;
+  qCols.slice(0,12).forEach(q=> html+=`<th>${q}</th>`); html+=`</tr>`;
+  zipRows.slice(0,20).forEach(r=>{
+    const nombre=`${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+    html+=`<tr><td>${nombre}</td><td>${r["Num Correct"]||""}</td><td>${r["Percent Correct"]||""}</td>`;
+    qCols.slice(0,12).forEach(q=> html+=`<td>${r[q]}</td>`);
+    html+=`</tr>`;
+  });
+  tabla.innerHTML=html;
+}
+
+// ===============================
+// BANCO FCRI
+// ===============================
+function parseFcriTSV(texto){
+  const rows=texto.split(/\r?\n/).filter(Boolean); const out=[];
+  rows.forEach((row,idx)=>{
+    const c=row.split("\t").map(x=>x.trim()); if(c.length<11) return;
+    if(idx===0 && (c[0]||"").toLowerCase()==="id") return;
+    out.push({ id:c[0]||"", pregunta:c[1]||"", respuesta:c[2]||"", contenido:c[3]||"",
+      areaConceptual:c[4]||"", competencia:c[5]||"", evidencia:c[6]||"", nivel:c[7]||"",
+      verbo:c[8]||"", microhabilidad:c[9]||"", microrutina:c[10]||""
+    });
+  });
+  return out;
+}
+function normalizarFcriDesdeObjetos(rows){
+  return rows.map((r,idx)=>({
+    id:String(r["ID"]||r["id"]||`Q${String(idx+1).padStart(3,"0")}`).trim(),
+    pregunta:String(r["#"]||r["pregunta"]||"").trim(),
+    respuesta:String(r["Respuesta"]||r["respuesta"]||"").trim(),
+    contenido:String(r["Contenido del ítem"]||r["Contenido"]||"").trim(),
+    areaConceptual:String(r["Área conceptual"]||"").trim(),
+    competencia:String(r["Competencia ICFES"]||"").trim(),
+    evidencia:String(r["Tipo evidencia"]||"").trim(),
+    nivel:String(r["Nivel"]||"").trim(),
+    verbo:String(r["Verbo"]||"").trim(),
+    microhabilidad:String(r["Microhabilidad"]||"").trim(),
+    microrutina:String(r["Microrutina"]||"").trim()
+  }));
+}
+function renderBanco(){
+  const resumen=document.getElementById("bancoResumen"); const tabla=document.getElementById("tablaBanco");
+  resumen.textContent=`Ítems en banco: ${bancoItems.length}`;
+  if(!bancoItems.length){ tabla.innerHTML=""; return; }
+  let html=`<tr><th>ID</th><th>#</th><th>Respuesta</th><th>Contenido</th><th>Área conceptual</th><th>Competencia</th><th>Evidencia</th><th>Nivel</th><th>Verbo</th><th>Microhabilidad</th><th>Microrutina</th></tr>`;
+  bancoItems.slice(0,150).forEach(i=>{ html+=`<tr><td>${i.id}</td><td>${i.pregunta}</td><td>${i.respuesta}</td><td>${i.contenido}</td><td>${i.areaConceptual}</td><td>${i.competencia}</td><td>${i.evidencia}</td><td>${i.nivel}</td><td>${i.verbo}</td><td>${i.microhabilidad}</td><td>${i.microrutina}</td></tr>`; });
+  tabla.innerHTML=html;
+}
+document.getElementById("cargarFcriBtn").addEventListener("click", ()=>{
+  const texto=document.getElementById("textoFcri").value.trim();
+  if(!texto) return alert("Pega la tabla.");
+  bancoItems=bancoItems.concat(parseFcriTSV(texto)); saveState(); renderBanco();
+});
+document.getElementById("exportarBancoBtn").addEventListener("click", ()=>{
+  if(!bancoItems.length) return alert("No hay ítems.");
+  const blob=new Blob([JSON.stringify(bancoItems,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="banco_fcri.json"; a.click();
+});
+
+// ===============================
+// MOTOR ANALÍTICO
+// ===============================
+document.getElementById("procesarDiagnosticoBtn").addEventListener("click", ()=>{
+  resultadosMotor=motorDiagnostico(); renderDiagnostico(resultadosMotor);
+});
+function motorDiagnostico(){
+  const asignatura="QUI"; const levels=SUBJECT_LEVELS[asignatura]||["N1","N2","N3","N4"];
+  if(evaluacionAplicada.length!==12) alertAndThrow("Carga evaluación de 12 preguntas.");
+  if(!zipRows.length) alertAndThrow("Carga ZipGrade.");
+  const qCols=Object.keys(zipRows[0]).filter(k=>/^Q\d+$/i.test(k)).sort((a,b)=>Number(a.slice(1))-Number(b.slice(1)));
+  if(qCols.length<12) alertAndThrow("ZipGrade debe tener 12 columnas Q.");
+  estudiantes=zipRows.map(r=>{
+    const nombre=`${r["First Name"]||""} ${r["Last Name"]||""}`.trim();
+    const respuestas=qCols.slice(0,12).map(q=>Number(r[q]||0));
+    return { nombre, respuestas, institucion:"Demo", grupo:"1", grado:"11" };
+  });
+  const erroresPorPregunta=new Array(12).fill(0);
+  const distNiveles=Object.fromEntries(levels.map(l=>[l,0]));
+  const competencias={}; const microhabilidades={}; const diagnosticoEstudiantes=[];
+  estudiantes.forEach(est=>{
+    const aciertosPorNivel=Object.fromEntries(levels.map(l=>[l,{ok:0,total:0}]));
+    const aciertosPorComp={}; let totalOk=0;
+    est.respuestas.forEach((resp,idx)=>{
+      const item=evaluacionAplicada[idx];
+      if(resp===0) erroresPorPregunta[idx]++; totalOk+=resp;
+      const comp=item.competencia||"Sin competencia";
+      if(!aciertosPorComp[comp]) aciertosPorComp[comp]={ok:0,total:0};
+      aciertosPorComp[comp].total++; aciertosPorComp[comp].ok+=resp;
+      if(!competencias[comp]) competencias[comp]={ok:0,total:0};
+      competencias[comp].total++; competencias[comp].ok+=resp;
+      if(aciertosPorNivel[item.nivel]){
+        aciertosPorNivel[item.nivel].total++; aciertosPorNivel[item.nivel].ok+=resp;
+      }
+      const mh=item.microhabilidad||"Sin microhabilidad";
+      if(!microhabilidades[mh]){
+        microhabilidades[mh]={ errores:0, aciertos:0, total:0, microrutina:item.microrutina||"",
+          nivel:item.nivel||"", competencia:comp, areaConceptual:item.areaConceptual||"" };
+      }
+      microhabilidades[mh].total++; microhabilidades[mh].aciertos+=resp;
+      if(resp===0) microhabilidades[mh].errores++;
+    });
+    let nivelDominante=levels[0]; let best=-1;
+    levels.forEach(n=>{
+      const d=aciertosPorNivel[n]; const ratio=d.total?d.ok/d.total:0;
+      if(ratio>best){ best=ratio; nivelDominante=n; }
+    });
+    const zdr=nivelDominante; const zdp=nextLevel(zdr,levels);
+    distNiveles[nivelDominante]++;
+    diagnosticoEstudiantes.push({
+      nombre:est.nombre, institucion:est.institucion, grupo:est.grupo, grado:est.grado,
+      porcentaje:Math.round((totalOk/12)*100), totalOk, nivelDominante, zdr, zdp,
+      heat:est.respuestas.map((r,i)=>({ q:i+1, ok:r===1 })),
+      cellMap:Object.fromEntries(levels.flatMap(l=> Object.keys(aciertosPorComp).map(comp=>[`${comp}|${l}`, aciertosPorNivel[l]||{aciertos:0,total:0}])))
+    });
+  });
+  const promedio=diagnosticoEstudiantes.length?Math.round(diagnosticoEstudiantes.reduce((a,b)=>a+b.porcentaje,0)/diagnosticoEstudiantes.length):0;
+  const rankingComp=Object.entries(competencias).map(([k,v])=>({ competencia:k, pct:Math.round((v.ok/v.total)*100) })).sort((a,b)=>a.pct-b.pct);
+  const rankingMicro=Object.entries(microhabilidades).map(([k,v])=>({ microhabilidad:k, errorPct:Math.round((v.errores/v.total)*100), ...v })).sort((a,b)=>b.errorPct-a.errorPct);
+  const nivelDominanteGrupo=dominanteDistribucion(distNiveles);
+  const idxGrupo=levels.indexOf(nivelDominanteGrupo);
+  const brechaPrincipal=idxGrupo>=0 && idxGrupo<levels.length-1?`${nivelDominanteGrupo} → ${levels[idxGrupo+1]}`:nivelDominanteGrupo;
+  const sugerenciasPmap=rankingMicro.slice(0,20).map(m=>{
+    const nivelMeta=nextLevel(m.nivel, levels);
+    const sugeridas=bancoItems.filter(i=> i.microhabilidad===m.microhabilidad && i.nivel===nivelMeta);
+    return { microhabilidad:m.microhabilidad, microrutina:m.microrutina, competencia:m.competencia, areaConceptual:m.areaConceptual, nivelActual:m.nivel, nivelMeta, sugeridas:sugeridas.slice(0,5) };
+  });
+  return { asignatura, levels, estudiantes:diagnosticoEstudiantes, promedio, erroresPorPregunta, distNiveles, nivelDominanteGrupo, brechaPrincipal, rankingComp, rankingMicro, sugerenciasPmap };
+}
+
+function renderDiagnostico(r){
+  document.getElementById("mEstudiantes").textContent=r.estudiantes.length;
+  document.getElementById("mPromedio").textContent=`${r.promedio}%`;
+  document.getElementById("mNivel").textContent=r.nivelDominanteGrupo;
+  document.getElementById("mBrecha").textContent=r.brechaPrincipal;
+  if(chartErrores) chartErrores.destroy(); if(chartNiveles) chartNiveles.destroy();
+  if(chartCompetencias) chartCompetencias.destroy(); if(chartMicro) chartMicro.destroy();
+  setTimeout(()=>{
+    chartErrores=new Chart(document.getElementById("chartErrores"),{ type:"bar", data:{ labels:r.erroresPorPregunta.map((_,i)=>`Q${i+1}`), datasets:[{ label:"Errores", data:r.erroresPorPregunta, backgroundColor:"#ef4444" }]}, options:getChartOptions() });
+    chartNiveles=new Chart(document.getElementById("chartNiveles"),{ type:"bar", data:{ labels:r.levels, datasets:[{ label:"Estudiantes", data:r.levels.map(l=>r.distNiveles[l]||0), backgroundColor:"#38bdf8" }]}, options:getChartOptions() });
+    chartCompetencias=new Chart(document.getElementById("chartCompetencias"),{ type:"bar", data:{ labels:r.rankingComp.map(x=>x.competencia), datasets:[{ label:"% logro", data:r.rankingComp.map(x=>x.pct), backgroundColor:"#22c55e" }]}, options:getChartOptions() });
+    chartMicro=new Chart(document.getElementById("chartMicro"),{ type:"bar", data:{ labels:r.rankingMicro.slice(0,10).map(x=>x.microhabilidad), datasets:[{ label:"% error", data:r.rankingMicro.slice(0,10).map(x=>x.errorPct), backgroundColor:"#f59e0b" }]}, options:getChartOptions() });
+    window.dispatchEvent(new Event('resize'));
+  },100);
+  let html=`<tr><th>Estudiante</th><th>Institución</th><th>Grado</th><th>Grupo</th><th>%</th><th>Nivel</th><th>ZDR</th><th>ZDP</th></tr>`;
+  r.estudiantes.forEach(e=>{ html+=`<tr><td><a href="#" onclick="mostrarEstudiante('${e.nombre}'); return false;">${e.nombre}</a></td><td>${e.institucion}</td><td>${e.grado}</td><td>${e.grupo}</td><td>${e.porcentaje}%</td><td><span class="badge-nivel N${e.nivelDominante[1]}-badge">${e.nivelDominante}</span></td><td>${e.zdr}</td><td>${e.zdp}</td></tr>`; });
+  document.getElementById("tablaDiagnostico").innerHTML=html;
+}
+
+// ===============================
+// PMAP con filtros
+// ===============================
+function aplicarFiltrosPmap(){
+  if(!resultadosMotor) return alert("Procesa diagnóstico primero.");
+  const nivel=document.getElementById("filtroNivelPmap").value;
+  const comp=document.getElementById("filtroCompetenciaPmap").value;
+  const micro=document.getElementById("filtroMicroPmap").value.toLowerCase();
+  let sugeridas=resultadosMotor.sugerenciasPmap;
+  if(nivel!=='todos') sugeridas=sugeridas.filter(s=>s.nivelActual===nivel);
+  if(comp!=='todos') sugeridas=sugeridas.filter(s=>s.competencia===comp);
+  if(micro) sugeridas=sugeridas.filter(s=>s.microhabilidad.toLowerCase().includes(micro));
+  renderPmap({...resultadosMotor, sugerenciasPmap:sugeridas});
+}
+document.getElementById("generarPmapBtn").addEventListener("click", ()=>{
+  if(!resultadosMotor) return alert("Primero procesa el diagnóstico.");
+  const comps=[...new Set(resultadosMotor.sugerenciasPmap.map(s=>s.competencia))];
+  const selectComp=document.getElementById("filtroCompetenciaPmap");
+  selectComp.innerHTML='<option value="todos">Todas</option>'+comps.map(c=>`<option>${c}</option>`).join('');
+  renderPmap(resultadosMotor);
+});
+function renderPmap(r){
+  let html=`<tr><th>Microhabilidad</th><th>Microrutina</th><th>Competencia</th><th>Área</th><th>Nivel actual</th><th>Nivel meta</th><th>Ítems sugeridos</th></tr>`;
+  r.sugerenciasPmap.forEach(s=>{
+    const sug=s.sugeridas.length?s.sugeridas.map(x=>x.id).join(", "):"Sin ítems compatibles";
+    html+=`<tr><td>${s.microhabilidad}</td><td>${s.microrutina}</td><td>${s.competencia}</td><td>${s.areaConceptual}</td><td>${s.nivelActual}</td><td>${s.nivelMeta}</td><td>${sug}</td></tr>`;
+  });
+  document.getElementById("tablaPmap").innerHTML=html;
+}
+
+// ===============================
+// NAVEGACIÓN Y LISTA DE ESTUDIANTES
+// ===============================
+function cambiarPestaña(pId){
+  document.querySelectorAll('#studentsPanel .tab-pane').forEach(p=>p.style.display='none');
+  document.getElementById(pId).style.display='block';
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${pId}"]`).classList.add('active');
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>{ btn.addEventListener('click',()=> cambiarPestaña(btn.dataset.tab)); });
+
+let estudiantesLista=[];
+function aplicarFiltros(){
+  const inst=document.getElementById('filtroInstitucion').value.toLowerCase();
+  const grado=document.getElementById('filtroGrado').value;
+  const grupo=document.getElementById('filtroGrupo').value;
+  const busq=document.getElementById('filtroBusqueda').value.toLowerCase();
+  estudiantesLista=(resultadosMotor?.estudiantes||[]).filter(e=>
+    (inst===''||e.institucion.toLowerCase().includes(inst)) &&
+    (grado==='todos'||e.grado===grado) &&
+    (grupo==='todos'||e.grupo===grupo) &&
+    (busq===''||e.nombre.toLowerCase().includes(busq))
+  );
+  renderizarLista();
+}
+function renderizarLista(){
+  const lista=document.getElementById('estudiantesList');
+  lista.innerHTML=estudiantesLista.map(e=>`
+    <div class="estudiante-card N${e.nivelDominante[1]}" onclick="mostrarEstudiante('${e.nombre}')">
+      <div class="estudiante-nombre">${e.nombre}</div>
+      <div class="estudiante-meta">Nivel: <span class="badge-nivel N${e.nivelDominante[1]}-badge">${e.nivelDominante}</span> | ZDR: ${e.zdr} | ZDP: ${e.zdp}</div>
+    </div>
+  `).join('');
+  document.getElementById('totalStudentsCount').textContent=estudiantesLista.length;
+  document.getElementById('paginationInfo').textContent=`1-${Math.min(20,estudiantesLista.length)}`;
+}
+function volverALista(){ document.getElementById('studentsPanel').style.display='block'; document.getElementById('progressPanel').style.display='none'; aplicarFiltros(); }
+
+// ===============================
+// PANEL DE ESTUDIANTE (IMPACTO VISUAL)
+// ===============================
+function mostrarEstudiante(nombre){
+  const est=resultadosMotor?.estudiantes?.find(e=>e.nombre===nombre);
+  if(!est) return alert("Estudiante no encontrado");
+  document.getElementById('studentsPanel').style.display='none';
+  document.getElementById('progressPanel').style.display='block';
+  document.getElementById('currentStudentName').textContent=est.nombre;
+  document.getElementById('studentProgressTitle').textContent=`✨ Perfil de ${est.nombre}`;
+  document.getElementById('infoCodigo').textContent=est.nombre;
+  document.getElementById('infoNivelGlobal').textContent=est.nivelDominante;
+  document.getElementById('infoBrecha').textContent=`${est.zdr} → ${est.zdp}`;
+  document.getElementById('infoSimulacros').textContent='1';
+  document.getElementById('infoZDR').textContent=est.zdr;
+  document.getElementById('infoZDP').textContent=est.zdp;
+  const badge=document.getElementById('badgeNivel');
+  if(badge) badge.className=`badge-nivel N${est.nivelDominante[1]}-badge`;
+  badge?badge.innerHTML=est.nivelDominante:null;
+
+  // Mapa de calor
+  let heatHtml='<div class="heatmap-grid" style="grid-template-columns:220px repeat(12,1fr);">';
+  heatHtml+='<div class="heatmap-item heatmap-header">Estudiante</div>';
+  for(let i=1;i<=12;i++) heatHtml+=`<div class="heatmap-item heatmap-header">Q${i}</div>`;
+  heatHtml+=`<div class="heatmap-item heatmap-header">${est.nombre}</div>`;
+  est.heat.forEach(h=> heatHtml+=`<div class="heatmap-item ${h.ok?'correcto':'incorrecto'}">${h.ok?'✓':'✗'}</div>`);
+  heatHtml+='</div>';
+  document.getElementById('heatmapIndividual').innerHTML=heatHtml;
+
+  // Recomendaciones
+  let recHtml='<ul>';
+  resultadosMotor?.sugerenciasPmap?.slice(0,5).forEach(s=>{
+    recHtml+=`<li><strong>${s.microhabilidad}</strong>: ${s.microrutina} (${s.nivelActual} → ${s.nivelMeta})</li>`;
+  });
+  recHtml+='</ul>';
+  document.getElementById('recomendacionesPMAP').innerHTML=recHtml;
+
+  // Guardar para matriz flotante
+  window.estudianteActual=est;
+}
+
+// ===============================
+// MODAL MATRIZ FLOTANTE
+// ===============================
+function abrirModalMatriz(){
+  if(!window.estudianteActual) return alert("Selecciona un estudiante primero.");
+  const est=window.estudianteActual;
+  let html='<div class="matriz-cognitiva" style="grid-template-columns:200px repeat(4,1fr);">';
+  html+='<div class="matriz-item matriz-header">Competencia</div><div class="matriz-item matriz-header">N1</div><div class="matriz-item matriz-header">N2</div><div class="matriz-item matriz-header">N3</div><div class="matriz-item matriz-header">N4</div>';
+  ['C1','C2','C3'].forEach(comp=>{
+    html+=`<div class="matriz-item matriz-competencia">${comp}</div>`;
+    ['N1','N2','N3','N4'].forEach(nivel=>{
+      const key=`${comp}|${nivel}`;
+      const cell=est.cellMap[key]||{aciertos:0,total:0};
+      const pct=cell.total?Math.round((cell.aciertos/cell.total)*100):0;
+      const cls=pct>=70?'correcto':pct>=40?'warn':'incorrecto';
+      html+=`<div class="matriz-item ${cls}">${pct}%</div>`;
+    });
+  });
+  html+='</div>';
+  document.getElementById('matrizFlotante').innerHTML=html;
+  document.getElementById('modalMatriz').classList.add('active');
+}
+function cerrarModalMatriz(){ document.getElementById('modalMatriz').classList.remove('active'); }
+
+// ===============================
+// RESET TOTAL
+// ===============================
+document.getElementById("btnResetTotal").addEventListener("click", ()=>{
+  if(confirm("¿Seguro que quieres reiniciar TODO? Se borrarán todas las evaluaciones, banco y resultados.")){
+    localStorage.removeItem(STORAGE_KEY);
+    evaluacionAplicada=[]; zipRows=[]; bancoItems=[]; resultadosMotor=null;
+    location.reload();
+  }
+});
+
+// ===============================
+// FUNCIONES AUXILIARES MODALES
+// ===============================
+function cerrarModal(id){ document.getElementById(id).classList.remove('active'); }
+function generarReporteIndividual(){ alert("Reporte individual (próximamente)"); }
+
+// ===============================
+// INICIALIZACIÓN CON DATOS DE DEMO
+// ===============================
+loadState();
+if(evaluacionAplicada.length===0){
+  evaluacionAplicada=[
+    {idLocal:"Q001",orden:1,respuestaCorrecta:"B",contenido:"Solubilidad...",areaConceptual:"Solubilidad",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N2",verbo:"Interpretar",microhabilidad:"leer datos de gráfica",microrutina:"localizar punto de intersección"},
+    {idLocal:"Q002",orden:2,respuestaCorrecta:"A",contenido:"Vacunas...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar tablas y gráficas",microrutina:"leer tabla → identificar variables"},
+    {idLocal:"Q003",orden:3,respuestaCorrecta:"C",contenido:"Vacunas...",areaConceptual:"Métodos de separación",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"relacionar propiedades con métodos",microrutina:"analizar mezcla → determinar método"},
+    {idLocal:"Q004",orden:4,respuestaCorrecta:"2+",contenido:"Berilio...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Modelo",nivel:"N3",verbo:"Determinar",microhabilidad:"aplicar concepto de enlace y oxidación",microrutina:"deducir carga 2+"},
+    {idLocal:"Q005",orden:5,respuestaCorrecta:"D",contenido:"Nitrógeno...",areaConceptual:"Ciclos biogeoquímicos",competencia:"Explicación de fenómenos",evidencia:"Texto",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir efecto ecológico",microrutina:"conectar acidificación con daño"},
+    {idLocal:"Q006",orden:6,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Diseñar",microhabilidad:"proponer diseño experimental",microrutina:"identificar variables medidas"},
+    {idLocal:"Q007",orden:7,respuestaCorrecta:"B",contenido:"Minas...",areaConceptual:"Impacto ambiental",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Texto",nivel:"N2",verbo:"Identificar",microhabilidad:"localizar información explícita",microrutina:"buscar causa mencionada"},
+    {idLocal:"Q008",orden:8,respuestaCorrecta:"(barras dobles)",contenido:"Isótopos...",areaConceptual:"Representación gráfica",competencia:"Indagación",evidencia:"Gráfica",nivel:"N2",verbo:"Seleccionar",microhabilidad:"interpretar datos y elegir gráfica",microrutina:"analizar tabla → decidir tipo"},
+    {idLocal:"Q009",orden:9,respuestaCorrecta:"D",contenido:"Gaseosa...",areaConceptual:"Solubilidad de gases",competencia:"Explicación de fenómenos",evidencia:"Gráfica",nivel:"N3",verbo:"Explicar",microhabilidad:"interpretar gráfica científica",microrutina:"leer temperatura → comparar solubilidad"},
+    {idLocal:"Q010",orden:10,respuestaCorrecta:"B",contenido:"Efecto invernadero...",areaConceptual:"Gases efecto invernadero",competencia:"Explicación de fenómenos",evidencia:"Tabla",nivel:"N3",verbo:"Identificar",microhabilidad:"inferir causa",microrutina:"leer sobre hidroeléctricas y metano"},
+    {idLocal:"Q011",orden:11,respuestaCorrecta:"C",contenido:"Electronegatividad...",areaConceptual:"Enlace químico",competencia:"Uso comprensivo del conocimiento científico",evidencia:"Tabla",nivel:"N3",verbo:"Aplicar",microhabilidad:"aplicar operación aritmética",microrutina:"restar electronegatividades"},
+    {idLocal:"Q012",orden:12,respuestaCorrecta:"C",contenido:"Metano...",areaConceptual:"Reacciones químicas",competencia:"Indagación",evidencia:"Tabla",nivel:"N3",verbo:"Inferir",microhabilidad:"inferir relación causal",microrutina:"analizar patrón → formular hipótesis"}
+  ];
+  renderAplicada();
+}
+if(zipRows.length===0){
+  zipRows=[
+    {"First Name":"Juan Camilo","Last Name":"Agudelo","Num Correct":"12","Percent Correct":"60","Q1":"0","Q2":"1","Q3":"1","Q4":"0","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"0","Q11":"0","Q12":"1"},
+    {"First Name":"María Alejandra","Last Name":"Alzate Saldarriaga","Num Correct":"8","Percent Correct":"40","Q1":"0","Q2":"0","Q3":"1","Q4":"1","Q5":"1","Q6":"0","Q7":"1","Q8":"0","Q9":"0","Q10":"0","Q11":"0","Q12":"1"},
+    {"First Name":"José Emmanuel","Last Name":"Aranda Benjumea","Num Correct":"12","Percent Correct":"60","Q1":"0","Q2":"0","Q3":"1","Q4":"0","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"1","Q10":"1","Q11":"1","Q12":"1"},
+    {"First Name":"Victor Alfonso","Last Name":"Araujo Asprilla","Num Correct":"15","Percent Correct":"75","Q1":"0","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"1","Q7":"1","Q8":"1","Q9":"0","Q10":"1","Q11":"1","Q12":"1"},
+    {"First Name":"Andrés Felipe","Last Name":"Bejarano Mosquera","Num Correct":"11","Percent Correct":"55","Q1":"0","Q2":"1","Q3":"1","Q4":"1","Q5":"0","Q6":"0","Q7":"1","Q8":"1","Q9":"1","Q10":"0","Q11":"1","Q12":"1"}
+  ];
+  renderZipPreview();
+}
+</script>
+</body>
+</html>

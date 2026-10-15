@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SITE·RUTA LATAM — DEMO Gastronomía v5.2</title>
+<style>
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f7fb;margin:0;color:#1b2838;position:relative;}
+  header{background:#123b5a;color:#fff;padding:18px 20px;border-bottom:6px solid #2f75b5;}
+  header h1{margin:0;font-size:21px;}
+  header p{margin:4px 0 0;font-size:13px;opacity:.95;}
+  .wrap{max-width:1100px;margin:22px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(18,59,90,0.06);}
+  label{display:block;font-weight:600;margin-top:10px;font-size:13px;}
+  select,textarea{width:100%;padding:8px;border:1px solid #d6dbe3;border-radius:6px;margin-top:6px;font-size:14px;}
+  textarea{min-height:70px;resize:vertical;}
+  button{background:#2f75b5;color:#fff;border:0;padding:9px 14px;border-radius:6px;cursor:pointer;font-weight:700;margin-right:8px;}
+  button:hover{background:#1f4e78;}
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px;}
+  th,td{border:1px solid #e2e8f0;padding:8px;text-align:left;vertical-align:top;}
+  th{background:#eff6ff;color:#123b5a;}
+  .info{background:#eef7f1;border-left:4px solid #2f9d6f;padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px;}
+  footer{margin-top:14px;padding:12px;text-align:center;font-size:12px;color:#fff;background:#c0392b;border-radius:6px;}
+  #marcaAgua{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    pointer-events:none;z-index:9999;
+    background-repeat:repeat;
+    opacity:0.08;
+    font-size:24px;
+    color:#0a0a0a;
+    font-weight:bold;
+    transform:rotate(-25deg);
+    white-space:nowrap;
+    line-height:2em;
+  }
+</style>
+</head>
+<body>
+<div id="marcaAgua"></div>
+<header>
+  <h1>SITE·RUTA LATAM — DEMO (Gastronomía)</h1>
+  <p>Manipulación de alimentos · versión 5.2 con marca de agua dinámica</p>
+</header>
+
+<div class="wrap">
+  <div class="info">
+    🧾 Demo institucional ficticia. Las instituciones, niveles y datos son inventados.  
+    Cada guardado genera marca de agua personalizada con usuario y fecha.
+  </div>
+
+  <label>Institución</label>
+  <select id="institucion" onchange="actualizarMarcaAgua()">
+    <option>Seleccionar...</option>
+    <option>Bartolomé Mitre (sede demo)</option>
+    <option>Instituto Culinario del Valle</option>
+    <option>Escuela Gastronómica Andina</option>
+    <option>Centro Técnico Sabores Urbanos</option>
+    <option>Academia del Fogón del Sur</option>
+  </select>
+
+  <label>Docente / Usuario</label>
+  <input id="usuario" placeholder="Ej: Chef Mariana López" oninput="actualizarMarcaAgua()"/>
+
+  <label>Competencia (SABER–HACER–SER)</label>
+  <select id="competencia">
+    <option>Aplica buenas prácticas de manipulación de alimentos garantizando inocuidad</option>
+    <option>Organiza estaciones de trabajo con higiene y eficiencia</option>
+    <option>Valora la responsabilidad ética en el manejo de alimentos</option>
+  </select>
+
+  <label>Tarea / Descriptor literal (DCE) — ejemplo ficticio</label>
+  <textarea id="tarea">Realiza la preparación de un plato aplicando normas de higiene alimentaria y registra evidencia fotográfica del proceso.</textarea>
+
+  <label>Nivel esperado (demo)</label>
+  <select id="nivel">
+    <option>Bajo (Demo)</option>
+    <option>Básico (Demo)</option>
+    <option>Alto (Demo)</option>
+    <option>Superior (Demo)</option>
+  </select>
+
+  <button onclick="guardarRegistro()">Guardar registro (demo)</button>
+  <button onclick="mostrarRegistros()">Mostrar registros</button>
+  <button onclick="limpiarCampos()">Limpiar</button>
+
+  <table id="tabla" style="display:none">
+    <thead><tr>
+      <th>Institución</th><th>Usuario</th><th>Fecha</th><th>Competencia</th><th>Tarea</th><th>Nivel</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<footer>
+  SITE·RUTA LATAM DEMO GASTRONOMÍA © 2025 · Uso controlado y marca de agua dinámica · Mario G. Barbosa V.
+</footer>
+
+<script>
+function actualizarMarcaAgua(){
+  const inst=document.getElementById('institucion').value||'Institución no definida';
+  const user=document.getElementById('usuario').value||'Usuario sin nombre';
+  const fecha=new Date().toLocaleString();
+  const texto=`${inst} · ${user} · ${fecha} — SITE·RUTA LATAM DEMO`;
+  // generar patrón repetido
+  let pattern='';
+  for(let i=0;i<300;i++){pattern+=texto+'   ';}
+  document.getElementById('marcaAgua').textContent=pattern;
+}
+
+function guardarRegistro(){
+  const inst=document.getElementById('institucion').value;
+  const user=document.getElementById('usuario').value;
+  if(inst==='Seleccionar...'||!user){alert('Debes ingresar institución y usuario.');return;}
+  const data={
+    inst,user,
+    fecha:new Date().toLocaleString(),
+    competencia:document.getElementById('competencia').value,
+    tarea:document.getElementById('tarea').value,
+    nivel:document.getElementById('nivel').value
+  };
+  const regs=JSON.parse(localStorage.getItem('demoGastroMarca')||'[]');
+  regs.push(data);
+  localStorage.setItem('demoGastroMarca',JSON.stringify(regs));
+  actualizarMarcaAgua();
+  alert('Registro guardado con marca de agua actualizada.');
+  mostrarRegistros();
+}
+
+function mostrarRegistros(){
+  const regs=JSON.parse(localStorage.getItem('demoGastroMarca')||'[]');
+  const tbody=document.querySelector('#tabla tbody');
+  tbody.innerHTML='';
+  regs.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.inst}</td><td>${r.user}</td><td>${r.fecha}</td>
+      <td>${r.competencia}</td><td>${r.tarea}</td><td>${r.nivel}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('tabla').style.display='table';
+}
+
+function limpiarCampos(){
+  document.querySelectorAll('input,textarea').forEach(e=>e.value='');
+  document.getElementById('institucion').value='Seleccionar...';
+  actualizarMarcaAgua();
+}
+
+window.onload=actualizarMarcaAgua;
+</script>
+</body>
+</html>

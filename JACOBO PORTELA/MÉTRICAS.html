@@ -1,0 +1,709 @@
+<div class="stats-component" style="display: block; width: 100%;">
+<style>
+    .stats-component .stats-section {
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    /* Fondo decorativo sutil */
+    .stats-component .stats-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(31, 138, 84, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(45, 124, 127, 0.05) 0%, transparent 50%);
+        z-index: 0;
+    }
+
+    .stats-component .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* TARJETA PRINCIPAL GRANDE */
+    .stats-component .main-stat-card {
+        background: linear-gradient(135deg, rgba(31, 138, 84, 0.1), rgba(45, 124, 127, 0.1));
+        backdrop-filter: blur(15px);
+        padding: 60px 40px;
+        border-radius: 24px;
+        box-shadow: 
+            0 15px 40px rgba(31, 138, 84, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        border: 2px solid rgba(31, 138, 84, 0.2);
+        text-align: center;
+        margin-bottom: 60px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* CORREGIDO: Barra superior solo línea delgada */
+    .stats-component .main-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #1f8a54, #2d7c7f, #1c2554);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.6s ease;
+        z-index: 2;
+    }
+
+    .stats-component .main-stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 
+            0 25px 50px rgba(31, 138, 84, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .stats-component .main-stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stats-component .main-stat-icon {
+        font-size: 56px;
+        margin-bottom: 25px;
+        display: inline-block;
+        animation: statsFloatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes statsFloatIcon {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .stats-component .main-stat-number {
+        font-size: 84px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #1c2554 0%, #1f8a54 40%, #2d7c7f 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1;
+        margin-bottom: 15px;
+        font-family: 'Montserrat', sans-serif;
+        text-shadow: 0 4px 20px rgba(31, 138, 84, 0.2);
+        position: relative;
+        display: inline-block;
+    }
+
+    .stats-component .main-stat-number::after {
+        content: '+';
+        font-size: 60px;
+        font-weight: 800;
+        position: absolute;
+        right: -40px;
+        top: 0;
+        opacity: 0.8;
+    }
+
+    .stats-component .main-stat-label {
+        font-size: 24px;
+        color: #1c2554;
+        font-weight: 700;
+        line-height: 1.4;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .stats-component .main-stat-subtitle {
+        font-size: 18px;
+        color: #4a5568;
+        font-weight: 500;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+        opacity: 0.9;
+    }
+
+    /* GRID DE 4 TARJETAS */
+    .stats-component .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        text-align: center;
+    }
+
+    .stats-component .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 35px 25px;
+        border-radius: 20px;
+        box-shadow: 
+            0 10px 30px rgba(0, 0, 0, 0.08),
+            0 4px 12px rgba(31, 138, 84, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-component .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, #1f8a54, #2d7c7f);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.6s ease;
+        z-index: 2;
+    }
+
+    .stats-component .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.12),
+            0 8px 20px rgba(31, 138, 84, 0.1);
+    }
+
+    .stats-component .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stats-component .stat-icon {
+        font-size: 36px;
+        margin-bottom: 20px;
+        display: inline-block;
+        opacity: 0.9;
+        transition: transform 0.3s ease;
+    }
+
+    .stats-component .stat-card:hover .stat-icon {
+        transform: scale(1.1);
+    }
+
+    .stats-component .stat-number {
+        font-size: 52px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1c2554 0%, #1f8a54 50%, #2d7c7f 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1;
+        margin-bottom: 12px;
+        font-family: 'Montserrat', sans-serif;
+        position: relative;
+        display: inline-block;
+    }
+
+    .stats-component .stat-number::after {
+        content: '+';
+        font-size: 36px;
+        font-weight: 700;
+        position: absolute;
+        right: -20px;
+        top: 0;
+        opacity: 0.7;
+    }
+
+    .stats-component .stat-label {
+        font-size: 16px;
+        color: #2d3748;
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .stats-component .stat-subtitle {
+        font-size: 14px;
+        color: #718096;
+        margin-top: 8px;
+        font-weight: 400;
+        opacity: 0.9;
+        line-height: 1.4;
+    }
+
+    /* Animación de conteo */
+    @keyframes statsCountUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .stats-component .main-stat-number.animate,
+    .stats-component .stat-number.animate {
+        animation: statsCountUp 1s ease-out forwards;
+    }
+
+    /* SEPARADOR CON ANIMACIÓN */
+    .stats-component .stats-divider {
+        width: 60%;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(31, 138, 84, 0.4) 50%, 
+            transparent 100%);
+        margin: 40px auto 60px;
+        opacity: 0;
+        transform: scaleX(0.5);
+        transform-origin: center;
+        transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .stats-component .stats-divider.visible {
+        opacity: 0.8;
+        transform: scaleX(1);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-component .main-stat-card {
+            padding: 50px 30px;
+            margin-bottom: 50px;
+        }
+        
+        .stats-component .main-stat-number {
+            font-size: 72px;
+        }
+        
+        .stats-component .main-stat-label {
+            font-size: 22px;
+        }
+        
+        .stats-component .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        
+        .stats-component .stat-card {
+            padding: 30px 20px;
+        }
+        
+        .stats-component .stat-number {
+            font-size: 48px;
+        }
+        
+        .stats-component .stat-subtitle {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-component .stats-section {
+            padding: 60px 15px;
+        }
+        
+        .stats-component .main-stat-card {
+            padding: 40px 25px;
+            margin-bottom: 40px;
+        }
+        
+        .stats-component .main-stat-number {
+            font-size: 60px;
+        }
+        
+        .stats-component .main-stat-number::after {
+            right: -30px;
+            font-size: 48px;
+        }
+        
+        .stats-component .main-stat-label {
+            font-size: 20px;
+        }
+        
+        .stats-component .main-stat-subtitle {
+            font-size: 16px;
+        }
+        
+        .stats-component .main-stat-icon {
+            font-size: 48px;
+        }
+        
+        .stats-component .stats-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .stats-component .stat-card {
+            padding: 35px 25px;
+        }
+        
+        .stats-component .stat-number {
+            font-size: 44px;
+        }
+        
+        .stats-component .stat-icon {
+            font-size: 32px;
+        }
+        
+        .stats-component .stats-divider {
+            width: 80%;
+            margin: 30px auto 50px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-component .main-stat-number {
+            font-size: 52px;
+        }
+        
+        .stats-component .main-stat-number::after {
+            right: -25px;
+            font-size: 40px;
+        }
+        
+        .stats-component .main-stat-label {
+            font-size: 18px;
+        }
+        
+        .stats-component .stat-number {
+            font-size: 40px;
+        }
+        
+        .stats-component .stat-label {
+            font-size: 15px;
+        }
+        
+        .stats-component .main-stat-icon {
+            font-size: 40px;
+        }
+        
+        .stats-component .stats-divider {
+            width: 90%;
+        }
+    }
+
+
+/* INTRODUCCIÓN */
+
+.stats-component .stats-intro{
+    max-width:900px;
+    margin:0 auto 45px;
+    text-align:center;
+}
+
+.stats-component .stats-intro h2{
+    color:#0d4f8b;
+    font-size:34px;
+    font-weight:800;
+    margin-bottom:18px;
+}
+
+.stats-component .stats-intro p{
+    color:#555;
+    font-size:18px;
+    line-height:1.8;
+}
+
+
+
+.stats-component .stats-conclusion{
+
+    max-width:900px;
+    margin:55px auto 0;
+    text-align:center;
+
+}
+
+.stats-component .stats-conclusion p{
+
+    font-size:17px;
+    line-height:1.9;
+    color:#555;
+    margin-bottom:18px;
+
+}
+
+.stats-component .stats-chain{
+
+    margin-top:30px;
+
+    padding:18px 25px;
+
+    border-left:5px solid #1f8a54;
+
+    background:#f7fcf8;
+
+    color:#0d4f8b;
+
+    font-weight:700;
+
+    border-radius:8px;
+
+}
+
+
+
+/*==========================================
+INTRODUCCIÓN A LAS MÉTRICAS
+==========================================*/
+
+.evidence-intro{
+
+    max-width:900px;
+
+    margin:70px auto 40px auto;
+
+    padding:25px 35px;
+
+    text-align:center;
+
+}
+
+.evidence-intro h2{
+
+    font-size:30px;
+
+    line-height:1.35;
+
+    font-weight:700;
+
+    color:#0b2f6b;
+
+    margin-bottom:18px;
+
+}
+
+.evidence-intro p{
+
+    font-size:17px;
+
+    line-height:1.8;
+
+    color:#555;
+
+}
+
+
+</style>
+
+
+
+<!-- INTRODUCCIÓN -->
+<div class="stats-intro">
+    <h2>Evidencias que ya están transformando territorios</h2>
+
+    <p>
+        Las acciones restaurativas solo generan transformación cuando dejan
+        <strong>evidencias verificables</strong>. Cada dato presentado a continuación
+        representa procesos educativos, ambientales y comunitarios desarrollados
+        mediante <strong>SITE-RUTA LATAM</strong>, donde cada evidencia fortalece la
+        base de conocimiento de la red y permite tomar mejores decisiones.
+    </p>
+</div>
+
+
+<!-- ==========================================
+PUENTE EPISTEMOLÓGICO HACIA LAS MÉTRICAS
+=========================================== -->
+
+<div class="evidence-intro">
+
+    <h2>
+        "Lo que no se evidencia, no puede inferirse.
+        <br>
+        Lo que no puede inferirse,
+        difícilmente puede transformarse."
+    </h2>
+
+
+</div>
+
+
+
+<div class="stats-section">
+    <div class="stats-container">
+        <!-- TARJETA PRINCIPAL GRANDE - 16,530 HORAS -->
+        <div class="main-stat-card">
+            <div class="main-stat-icon">⏱️</div>
+            <div class="main-stat-number" data-target="16530">0</div>
+            <div class="main-stat-label">Horas de formación con trazabilidad verificable</div>
+            <div class="main-stat-subtitle">
+                Horas de acompañamiento pedagógico registradas mediante evidencias verificables, orientadas al fortalecimiento de estudiantes, docentes y comunidades educativas.
+            </div>
+        </div>
+
+        <!-- SEPARADOR CON ANIMACIÓN -->
+        <div class="stats-divider" id="stats-animated-divider"></div>
+
+        <!-- GRID DE 4 TARJETAS -->
+        <div class="stats-grid">
+            <!-- Historia 1 -->
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-number" data-target="8595">0</div>
+                <div class="stat-label">Evidencias de transformación</div>
+                <div class="stat-subtitle">Procesos con evidencia verificable</div>
+            </div>
+            
+
+
+            <!-- Historia 2 -->
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🏫</div>
+                <div class="stat-number" data-target="900">0</div>
+                <div class="stat-label">Docentes acompañados</div>
+                <div class="stat-subtitle">Procesos de acompañamiento y fortalecimiento docente</div>
+            </div>
+            
+            <!-- Historia 3 - MUNICIPIOS -->
+            <div class="stat-card">
+                <div class="stat-icon">🗺️</div>
+                <div class="stat-number" data-target="34">0</div>
+                <div class="stat-label">Territorios impactados</div>
+                <div class="stat-subtitle">Municipios donde existen evidencias verificables del modelo</div>
+            </div>
+            
+            <!-- Historia 4 - ESCUELAS -->
+            <div class="stat-card">
+                <div class="stat-icon">🏫</div>
+                <div class="stat-number" data-target="52">0</div>
+                <div class="stat-label">Comunidades educativas articuladas</div>
+                <div class="stat-subtitle">Instituciones que implementan procesos de transformación territorial</div>
+            </div>
+        </div>
+
+<div class="stats-conclusion">
+
+    <p>
+        Cada indicador representa miles de decisiones tomadas por estudiantes,
+        docentes, familias e instituciones.
+    </p>
+
+    <p>
+       <p class="metrics-footer-text">
+    En <strong>SITE-RUTA LATAM</strong> no medimos únicamente actividades;
+    medimos evidencias que reducen la incertidumbre, fortalecen el conocimiento colectivo
+    y mejoran la capacidad para tomar decisiones que transforman el territorio.
+</p>
+
+    <div class="stats-chain">
+
+        Acción verificable →
+        Evidencia →
+        Inferencia →
+        Decisión →
+        Movilización →
+        Transformación territorial
+
+    </div>
+
+</div>
+
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Inicialización cuando el DOM esté listo
+    function initStatsComponent() {
+        // Seleccionar todos los números (principal + grid)
+        const mainStatNumber = document.querySelector('.stats-component .main-stat-number');
+        const statNumbers = document.querySelectorAll('.stats-component .stat-number');
+        const allNumbers = mainStatNumber ? [mainStatNumber, ...statNumbers] : [...statNumbers];
+        const divider = document.getElementById('stats-animated-divider');
+        
+        if (allNumbers.length === 0) return;
+        
+        // Configuración del observer
+        const options = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('stats-divider')) {
+                        // Animación para el divider
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, 300);
+                    } else {
+                        // Animación para números
+                        const targetNumber = parseInt(entry.target.getAttribute('data-target'));
+                        animateCounter(entry.target, targetNumber);
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, options);
+        
+        // Observar cada número + el divider
+        allNumbers.forEach(stat => {
+            if (stat) observer.observe(stat);
+        });
+        if (divider) observer.observe(divider);
+        
+        // Función de animación de conteo
+        function animateCounter(element, target) {
+            const duration = element.classList.contains('main-stat-number') ? 2500 : 1800;
+            const increment = target / (duration / 16);
+            let current = 0;
+            const startTime = Date.now();
+            
+            // Agregar clase de animación
+            element.classList.add('animate');
+            
+            const timer = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function para animación más natural
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                current = target * easeOut;
+                
+                if (progress >= 1) {
+                    // Formatear número final
+                    if (target >= 1000) {
+                        element.textContent = target.toLocaleString() + '+';
+                    } else {
+                        element.textContent = target + '+';
+                    }
+                    clearInterval(timer);
+                    
+                    // Efecto final de celebración
+                    setTimeout(() => {
+                        element.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            element.style.transform = 'scale(1)';
+                        }, 150);
+                    }, 200);
+                } else {
+                    // Formatear número durante la animación
+                    if (target >= 1000) {
+                        element.textContent = Math.floor(current).toLocaleString();
+                    } else {
+                        element.textContent = Math.floor(current);
+                    }
+                }
+            }, 16);
+        }
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStatsComponent);
+    } else {
+        initStatsComponent();
+    }
+})();
+</script>
+</div>

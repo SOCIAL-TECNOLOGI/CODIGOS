@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Cuestionarios – SITE-RUTA LATAM</title>
+
+<style>
+:root {
+  --azul: #1E88E5;
+  --verde: #009B02;
+  --cian: #65FEFB;
+  --fondo: #f4f6f8;
+  --texto: #222;
+}
+
+/* === BASE === */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* === ENCABEZADO === */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, var(--azul), var(--verde));
+  padding: 10px 20px;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+header h1 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+header img {
+  height: 55px;
+  animation: pulseLogo 1.8s infinite ease-in-out;
+}
+@keyframes pulseLogo {
+  0%,100% { transform: scale(1); filter: drop-shadow(0 0 4px #65FEFB); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 10px #65FEFB); }
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+main {
+  max-width: 900px;
+  margin: 30px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+textarea {
+  width: 100%;
+  height: 260px;
+  font-size: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  resize: vertical;
+}
+button {
+  background: var(--azul);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+button:hover { background: var(--verde); }
+
+/* === PREGUNTAS === */
+.pregunta {
+  background: #f9fafb;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin: 15px 0;
+  padding: 15px;
+}
+.opcion { margin: 5px 0; }
+
+/* === MODAL === */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: flex; justify-content: center; align-items: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  z-index: 9999;
+}
+.modal-overlay.show { opacity: 1; visibility: visible; }
+.modal-content {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  max-width: 420px;
+  width: 90%;
+  padding: 25px 30px;
+  text-align: center;
+  transform: translateY(-20px) scale(0.95);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.modal-overlay.show .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.modal-content h2 {
+  color: #102a6b;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+.modal-content button {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 6px;
+  transition: background 0.3s ease;
+}
+.modal-content button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* === NOTA === */
+.nota {
+  font-size: 0.9rem;
+  color: #333;
+  background: #e8f5e9;
+  border-left: 4px solid var(--verde);
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://www.fedusocial.org/SOCIALTECH.png" alt="SocialTech Logo">
+  <h1>Generador de Cuestionarios</h1>
+</header>
+
+<main>
+  <div class="nota">
+    Puedes pegar aquí tus preguntas en cualquier formato (Word, texto o bloc de notas).  
+    El sistema detectará automáticamente las <b>preguntas, opciones, respuestas correctas y retroalimentaciones</b> si las incluyes.  
+    <br><b>Nota:</b> La retroalimentación es opcional, pero mejora el aprendizaje (Hattie, 2009).
+  </div>
+
+  <textarea id="inputPreguntas" placeholder="Pega aquí tus preguntas..."></textarea><br>
+  <button id="generarBtn">Generar Cuestionario</button>
+
+  <div id="cuestionario"></div>
+</main>
+
+<!-- MODAL ADAPTATIVO -->
+<div class="modal-overlay" id="modalInicio">
+  <div class="modal-content">
+    <h2>Bienvenido al Generador SITE-RUTA LATAM</h2>
+    <p>¿Deseas restaurar tu último cuestionario guardado o generar uno nuevo?</p>
+    <button id="restaurarBtn">Restaurar</button>
+    <button id="nuevoBtn">Generar nuevo</button>
+  </div>
+</div>
+
+<script>
+let bancoPreguntas = [];
+
+/* === MODAL INICIAL === */
+window.addEventListener('load', () => {
+  const modal = document.getElementById('modalInicio');
+  modal.classList.add('show');
+  document.getElementById('restaurarBtn').onclick = () => {
+    const data = localStorage.getItem('bancoPreguntas');
+    if (data) {
+      bancoPreguntas = JSON.parse(data);
+      renderCuestionario();
+    } else alert('No hay datos previos.');
+    modal.classList.remove('show');
+  };
+  document.getElementById('nuevoBtn').onclick = () => {
+    localStorage.removeItem('bancoPreguntas');
+    bancoPreguntas = [];
+    document.getElementById('inputPreguntas').value = "";
+    document.getElementById('cuestionario').innerHTML = "";
+    modal.classList.remove('show');
+  };
+});
+
+
+/* === PROCESAR TEXTO PEGADO (versión 10.1 final robusta) === */
+document.getElementById('generarBtn').addEventListener('click', () => {
+  const texto = document.getElementById('inputPreguntas').value.trim();
+  if (!texto) return alert("Pega tus preguntas primero.");
+
+  // Divide por numeración
+  const bloques = texto.split(/\n?\d+\.\s*/).filter(b => b.trim().length > 0);
+
+  bancoPreguntas = bloques.map((bloque, idx) => {
+    // 🔹 Limpieza general
+    const limpio = bloque.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
+
+    // 🔹 Pregunta
+    const pregunta = (limpio.match(/pregunta[:\-]?\s*(.*?)(?=Opciones|Respuesta|Retroalimentación|$)/i) || [])[1]?.trim() 
+      || `Pregunta ${idx+1}`;
+
+    // 🔹 Opciones — tolera pegadas (A.B.) o separadas (A. B.)
+    const opcionesMatch = limpio.match(/opciones[:\-]?\s*([A-H][\.\)]\s*[^R]+)/i);
+    let opcionesTexto = opcionesMatch ? opcionesMatch[1] : "";
+
+    // Extrae dinámicamente A., B., C., D... sin necesidad de espacios
+    const opciones = [...opcionesTexto.matchAll(/([A-H])[\.\)]\s*([^A-H]+)/g)]
+      .map(m => m[2].trim())
+      .filter(txt => txt.length > 0);
+
+    // 🔹 Respuesta correcta (permite “Respuesta” o “Respuesta Correcta”)
+    const respuesta = (limpio.match(/respuesta\s*(correcta)?[:\-]?\s*([A-H])/i) || [])[2] || "";
+
+    // 🔹 Retroalimentación
+    const retro = (limpio.match(/retroalimentaci[óo]n[:\-]?\s*(.*?)(?=$)/i) || [])[1]?.trim() || "";
+
+    // 🔹 URL
+    const url = (limpio.match(/https?:\/\/\S+/) || [])[0] || "";
+
+    return { pregunta, opciones, respuesta, retro, url };
+  });
+
+  localStorage.setItem('bancoPreguntas', JSON.stringify(bancoPreguntas));
+  renderCuestionario();
+});
+
+
+/* === RENDERIZAR CUESTIONARIO === */
+function renderCuestionario() {
+  const cont = document.getElementById('cuestionario');
+  cont.innerHTML = "";
+  if (bancoPreguntas.length === 0) return;
+
+  bancoPreguntas.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = "pregunta";
+    const opcionesHTML = p.opciones.map((opt, idx) => `
+      <div class="opcion">
+        <label>
+          <input type="radio" name="preg${i}" value="${String.fromCharCode(65+idx)}"> 
+          ${String.fromCharCode(65+idx)}. ${opt}
+        </label>
+      </div>`).join("");
+    div.innerHTML = `
+      <p><b>${i+1}. ${p.pregunta}</b></p>
+      ${opcionesHTML}
+      ${p.url ? `<p><a href="${p.url}" target="_blank">🔗 Recurso</a></p>` : ""}
+      ${p.retro ? `<div class="nota"><b>Retroalimentación:</b> ${p.retro}</div>` : ""}
+    `;
+    cont.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>

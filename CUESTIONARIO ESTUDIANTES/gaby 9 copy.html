@@ -93,7 +93,7 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Contenedor de retroalimentación */
+/* Contenedor de retroalimentación (base original) */
 .retroalimentacion-container {
     padding: 10px;
     margin-top: 5px;
@@ -301,9 +301,67 @@ body {
 }
 
 
+/* ========== CORRECCIONES ========== */
 
+/* 1) Evitar desbordes en las EXPLICACIONES (especialmente <pre>) */
+.explicacion,
+.explicacion p,
+.explicacion pre {
+  max-width: 100%;
+  white-space: pre-wrap;   /* preserva saltos pero permite ajuste */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+}
 
+/* 2) Retroalimentación contenida y visible en todas las preguntas */
+.retroalimentacion-container {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 12px 18px;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 20px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  overflow: hidden;              /* que no se salga el fondo */
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-weight: bold;
+  opacity: 1 !important;        /* Asegura que SÍ se vea */
+  transform: none !important;   /* sin animación por defecto */
+}
 
+/* Colores para correcta/incorrecta (si tu JS añade clases) */
+.retroalimentacion-container.respuesta-correcta {
+  background-color: #E8F8F5;
+  border-left: 6px solid #28A745;
+  color: #155724;
+}
+.retroalimentacion-container.respuesta-incorrecta {
+  background-color: #FDECEA;
+  border-left: 6px solid #DC3545;
+  color: #721C24;
+}
+
+/* El contenedor de la pregunta no recorta contenido */
+.pregunta {
+  position: relative;
+  overflow: visible !important;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #fff;
+}
+
+/* Imágenes responsivas dentro de preguntas */
+.pregunta img {
+  max-width: 100%;
+  height: auto;
+}
 
 </style>
 
@@ -1150,7 +1208,8 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 })();
 
-  
+  document.querySelector('.retroalimentacion-container').classList.add('mostrar');
+
     </script>
 </body>
 </html>

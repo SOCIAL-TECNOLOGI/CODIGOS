@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE–RUTA LATAM | MOTOR ADAPTATIVO MULTIÁREA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root {
+  --bg: #020617;
+  --panel: #0f172a;
+  --card: #111827;
+  --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15);
+  --ok: #22c55e;
+  --warn: #f97316;
+  --danger: #ef4444;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -20%, #0f172a, #020617);
+  color: var(--text);
+  min-height: 100vh;
+}
+header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(56,189,248,.15), transparent);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+}
+.title-block { display: flex; flex-direction: column; gap: 4px; }
+h1 { font-size: 1.4rem; }
+.subtitle { font-size: .85rem; color: var(--muted); }
+.current-student { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.85rem; color: var(--muted); }
+.current-student strong { color: var(--accent); }
+.student-management { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 8px 16px; border: none; background: transparent; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+.btn {
+  border: none; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent);
+}
+.btn:hover { background: rgba(56,189,248,.25); }
+.btn-success { background: rgba(34,197,94,.1); color: var(--ok); }
+.btn-success:hover { background: rgba(34,197,94,.2); }
+.btn-danger { background: rgba(239,68,68,.1); color: var(--danger); }
+.btn-danger:hover { background: rgba(239,68,68,.2); }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;
+}
+.dashboard-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+}
+.dashboard-card {
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center;
+}
+.dashboard-card .value { font-size: 2rem; font-weight: bold; }
+.dashboard-card .label { font-size: 0.85rem; color: var(--muted); }
+.chart-container {
+  background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border);
+  margin: 16px 0; height: 300px;
+}
+.chart-title { margin-bottom: 16px; color: var(--muted); }
+.alert { padding: 12px 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid; }
+.alert-warning { background: rgba(249,115,22,.1); border-left-color: var(--warn); color: var(--warn); }
+.estudiantes-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 16px;
+}
+.estudiante-card {
+  background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border);
+  cursor: pointer;
+}
+.estudiante-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.estudiante-nombre { font-weight: 600; margin-bottom: 4px; }
+.estudiante-meta { font-size: 0.8rem; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.table-wrap th, .table-wrap td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.table-wrap th { background: var(--panel); color: var(--muted); }
+.area-selector-bar {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: linear-gradient(90deg, rgba(56,189,248,.08), rgba(139,92,246,.05));
+  border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.area-selector-bar select {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent);
+  background: var(--panel); color: var(--accent); font-size: 0.88rem; min-width: 200px;
+}
+.area-badge {
+  padding: 4px 10px; border-radius: 999px; background: var(--accent-soft);
+  color: var(--accent); border: 1px solid var(--accent); font-size: 0.78rem;
+}
+.area-badge.hidden { display: none; }
+.info-tarjetas {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0;
+}
+.info-tarjeta {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+}
+.info-tarjeta .titulo { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+.info-tarjeta .valor { font-size: 2rem; font-weight: bold; }
+.micro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
+.micro-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+  border-left: 4px solid var(--danger);
+}
+.pmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 16px; }
+.pmap-card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+}
+.pmap-card:hover { border-color: var(--accent); }
+.pmap-priority {
+  display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.priority-high { background: rgba(239,68,68,.2); color: var(--danger); }
+.priority-medium { background: rgba(249,115,22,.2); color: var(--warn); }
+.priority-low { background: rgba(56,189,248,.2); color: var(--accent); }
+.notice { background: var(--panel); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.82rem; margin: 10px 0; }
+.small { font-size: 0.82rem; }
+.muted { color: var(--muted); }
+.actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-group label { font-size: 0.8rem; color: var(--muted); }
+.filter-group input, .filter-group select {
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text); min-width: 120px;
+}
+.modal {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(2,6,23,0.8); z-index: 1000; align-items: center; justify-content: center;
+}
+.modal.active { display: flex; }
+.modal-content {
+  background: var(--panel); border-radius: 12px; padding: 24px; max-width: 90%;
+  max-height: 90%; overflow: auto; border: 1px solid var(--border);
+}
+.modal-close {
+  float: right; background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer;
+}
+
+/* MAPA DE CALOR HORIZONTAL */
+.heatmap-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.heatmap-scroll-inner {
+  min-width: 900px;
+}
+.heatmap-fila {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.heatmap-label {
+  min-width: 150px;
+  max-width: 150px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+.heatmap-pills {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.heatmap-pill-q {
+  flex: 1;
+  min-width: 0;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  padding: 6px 2px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.3;
+}
+.heatmap-pill-n {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px;
+  padding: 6px 2px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.heatmap-pill-n.n1 { background: rgba(239,68,68,.2); color: var(--danger); }
+.heatmap-pill-n.n2 { background: rgba(249,115,22,.2); color: var(--warn); }
+.heatmap-pill-n.n3 { background: rgba(56,189,248,.2); color: var(--accent); }
+.heatmap-pill-n.n4 { background: rgba(34,197,94,.2); color: var(--ok); }
+.heatmap-oval {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 1;
+  max-width: 44px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease;
+}
+.heatmap-oval:hover { transform: scale(1.15); }
+.heatmap-oval.correcto { background: rgba(34,197,94,.2); color: var(--ok); border-color: var(--ok); }
+.heatmap-oval.incorrecto { background: rgba(239,68,68,.2); color: var(--danger); border-color: var(--danger); }
+.heatmap-leyenda {
+  display: flex; gap: 24px; margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+.heatmap-leyenda-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+.dot { width: 14px; height: 14px; border-radius: 50%; }
+
+/* MATRIZ 3×4 */
+.matriz3x4-wrapper {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.matriz3x4-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+}
+.matriz3x4-table th {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.matriz3x4-table th:first-child { text-align: left; }
+.matriz3x4-table td {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+.matriz3x4-table td:first-child { text-align: left; font-size: 0.82rem; min-width: 140px; }
+.pct-alto { background: rgba(34,197,94,.2) !important; color: var(--ok); }
+.pct-medio { background: rgba(249,115,22,.2) !important; color: var(--warn); }
+.pct-bajo { background: rgba(239,68,68,.2) !important; color: var(--danger); }
+.pct-vacio { background: rgba(100,100,100,.1) !important; color: var(--muted); }
+
+@media (max-width: 768px) {
+  .estudiantes-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .tabs { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div id="modalReinicio" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="cerrarModal('modalReinicio')">×</button>
+    <div style="font-size:3rem; text-align:center;">⚠️</div>
+    <h3 style="text-align:center;">¿Reiniciar la aplicación?</h3>
+    <p style="color:var(--muted); text-align:center;">Esta acción borrará <strong style="color:var(--danger);">todos los datos</strong> almacenados.</p>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+      <button class="btn" onclick="cerrarModal('modalReinicio')">Cancelar</button>
+      <button class="btn btn-danger" onclick="ejecutarReinicio()">🗑️ Sí, reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="title-block">
+    <h1>🎯 SITE–RUTA LATAM | MOTOR ADAPTATIVO MULTIÁREA</h1>
+    <div class="subtitle">Diagnóstico → MH → 3 MR → Intervención inmediata</div>
+    <div class="current-student">Estudiante actual: <strong id="currentStudentName">Selecciona un estudiante</strong></div>
+  </div>
+  <div class="student-management">
+    <button class="btn btn-success" id="btnVolverLista">👥 Gestionar Estudiantes</button>
+    <button class="btn" id="btnReportes">📊 Reportes</button>
+    <button class="btn btn-danger" id="btnReiniciar">🗑️ Reiniciar</button>
+  </div>
+</header>
+
+<main style="padding: 20px; max-width: 1400px; margin: 0 auto;">
+
+<div id="studentsPanel">
+  <div class="area-selector-bar">
+    <label>🔬 Área activa:</label>
+    <select id="selectorArea">
+      <option value="todas">Todas las áreas (24 ítems)</option>
+      <option value="Lectura Crítica">📖 Lectura Crítica (8 ítems)</option>
+      <option value="Sociales">🌍 Sociales (8 ítems)</option>
+      <option value="Matemáticas">🔢 Matemáticas (8 ítems)</option>
+    </select>
+    <span class="area-badge hidden" id="areaBadge"></span>
+    <span id="areaInfoText" class="muted small">Sistema multiárea con 3 MR por microhabilidad</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="lista">📋 Lista</button>
+    <button class="tab-btn" data-tab="aplicada">📋 Evaluación aplicada</button>
+    <button class="tab-btn" data-tab="zipgrade">📤 ZipGrade</button>
+    <button class="tab-btn" data-tab="diagnostico">📈 Diagnóstico grupal</button>
+    <button class="tab-btn" data-tab="pmap">🧠 PMAP (3 MR)</button>
+    <button class="tab-btn" data-tab="banco">📚 Banco FCRI Multiárea</button>
+  </div>
+
+  <div id="lista" class="tab-pane active">
+    <div class="filters-row">
+      <div class="filter-group"><label>Institución</label><input type="text" id="filtroInstitucion"></div>
+      <div class="filter-group"><label>Grado</label><select id="filtroGrado"><option value="todos">Todos</option><option value="9">9°</option><option value="10">10°</option><option value="11">11°</option></select></div>
+      <div class="filter-group"><label>Grupo</label><select id="filtroGrupo"><option value="todos">Todos</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+      <div class="filter-group"><label>Buscar</label><input type="text" id="filtroBusqueda"></div>
+      <button class="btn btn-success" id="btnFiltrar">🔍 Filtrar</button>
+    </div>
+    <div id="estudiantesList" class="estudiantes-grid"></div>
+    <div style="display:flex; justify-content:space-between; margin-top:16px;">
+      <div>Mostrando <strong id="paginationFrom">0</strong>-<strong id="paginationTo">0</strong> de <strong id="totalStudentsCount">0</strong></div>
+      <div><button class="btn" id="btnAnterior">◀</button><span id="paginaInfo"> Página 1 </span><button class="btn" id="btnSiguiente">▶</button></div>
+    </div>
+  </div>
+
+  <div id="aplicada" class="tab-pane">
+    <div class="card">
+      <h3>Evaluación aplicada (24 ítems - Lectura Crítica + Sociales + Matemáticas)</h3>
+      <div class="notice">📋 Datos precargados con 24 ítems reales.</div>
+      <textarea id="textoAplicada" rows="8" style="width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; font-family:monospace; font-size:12px;"></textarea>
+      <div class="actions">
+        <button class="btn btn-success" id="cargarAplicadaBtn">📥 Cargar evaluación</button>
+        <button class="btn" id="restaurarEvaluacionBtn">🔄 Restaurar 24 ítems</button>
+        <button class="btn" id="limpiarAplicadaBtn">🗑️ Limpiar</button>
+      </div>
+      <div id="aplicadaResumen" class="small muted"></div>
+      <div class="table-wrap"><table id="tablaAplicada"></table></div>
+    </div>
+  </div>
+
+  <div id="zipgrade" class="tab-pane">
+    <div class="card">
+      <h3>ZipGrade</h3>
+      <input type="file" id="archivoZip" accept=".xlsx,.xls,.csv">
+      <div class="actions"><button class="btn btn-success" id="leerZipBtn">📄 Leer ZipGrade</button></div>
+      <div id="zipResumen" class="small muted"></div>
+      <div class="table-wrap"><table id="tablaZip"></table></div>
+    </div>
+  </div>
+
+  <div id="diagnostico" class="tab-pane">
+    <div class="card">
+      <h3>Diagnóstico grupal</h3>
+      <div class="actions"><button class="btn btn-success" id="procesarDiagnosticoBtn">🚀 Procesar motor</button></div>
+    </div>
+    <div id="advertenciaCorrespondencia" class="alert alert-warning" style="display:none;"></div>
+    <div class="dashboard-grid" id="metricasGrupo">
+      <div class="dashboard-card"><div class="value" id="mEstudiantes">0</div><div class="label">Estudiantes</div></div>
+      <div class="dashboard-card"><div class="value" id="mPromedio">0%</div><div class="label">Promedio</div></div>
+      <div class="dashboard-card"><div class="value" id="mNivel">-</div><div class="label">Nivel dominante</div></div>
+      <div class="dashboard-card"><div class="value" id="mBrecha">-</div><div class="label">Brecha principal</div></div>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(2,1fr); gap:20px;">
+      <div class="chart-container"><div class="chart-title">Errores por pregunta</div><canvas id="chartErrores"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Distribución por niveles</div><canvas id="chartNiveles"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Desempeño por competencia</div><canvas id="chartCompetencias"></canvas></div>
+      <div class="chart-container"><div class="chart-title">Top microhabilidades críticas</div><canvas id="chartMicro"></canvas></div>
+    </div>
+    <div class="card"><h4>Resultados por estudiante</h4><div class="table-wrap"><table id="tablaDiagnostico"></table></div></div>
+  </div>
+
+  <div id="pmap" class="tab-pane">
+    <div class="card">
+      <h3>PMAP adaptativo | 1 Microhabilidad → 3 Microrutinas de intervención</h3>
+      <div class="notice">🎯 El sistema prioriza microhabilidades críticas y sugiere 3 rutinas de intervención progresiva.</div>
+      <div class="actions"><button class="btn btn-success" id="generarPmapBtn">🧠 Generar PMAP (3 MR)</button></div>
+      <div class="table-wrap"><table id="tablaPmap"></table></div>
+    </div>
+  </div>
+
+  <div id="banco" class="tab-pane">
+    <div class="card">
+      <h3>Banco FCRI Multiárea | 1MH → 3MR por nivel (Sociales, LC, Matemáticas)</h3>
+      <div class="notice">📚 Banco precargado con 36 ítems reales (3 MR × 4 niveles × 3 áreas).</div>
+      <textarea id="textoFcri" rows="6" style="width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; font-family:monospace; font-size:12px;"></textarea>
+      <div class="actions">
+        <button class="btn btn-success" id="cargarFcriBtn">📥 Cargar FCRI</button>
+        <button class="btn" id="restaurarBancoBtn">🔄 Restaurar banco multiárea</button>
+        <button class="btn btn-warning" id="exportarBancoBtn">📤 Exportar JSON</button>
+      </div>
+      <div id="bancoResumen" class="small muted"></div>
+      <div class="table-wrap"><table id="tablaBanco"></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="progressPanel" style="display:none;">
+  <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+    <h2 id="studentProgressTitle">Perfil cognitivo</h2>
+    <div><button class="btn" id="volverListaBtn">← Volver</button><button class="btn btn-success" id="reporteIndividualBtn">📄 Reporte</button></div>
+ <div class="small muted" style="margin-top: 20px; text-align: center; border-top: 1px solid var(--border); padding-top: 12px;">
+    📋 Esta herramienta ofrece una lectura pedagógica diagnóstica. No reemplaza la clasificación oficial de niveles del ICFES.
+</div> 
+
+</div>
+  <div class="info-tarjetas">
+    <div class="info-tarjeta"><div class="titulo">ZDR (Dominio actual)</div><div class="valor" id="infoNivelGlobal">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">ZDR</div><div class="valor" id="infoZDR">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">ZDP</div><div class="valor" id="infoZDP">-</div></div>
+    <div class="info-tarjeta"><div class="titulo">% aciertos</div><div class="valor" id="infoPct">-</div></div>
+</div>
+
+<div class="small muted" style="margin: 8px 0 16px 0; padding: 10px; background: var(--accent-soft); border-radius: 8px;">
+    📘 El porcentaje muestra el total de aciertos. La <strong>ZDR</strong> es el nivel más alto con desempeño consistente. Un porcentaje bajo no significa ausencia de logro; combina fortalezas consolidadas con aspectos que requieren apoyo.
+</div>
+
+
+  <div class="card">
+    <h3 style="margin-bottom:16px;">📊 Mapa de calor respuestas</h3>
+    <div id="heatmapIndividual"></div>
+  </div>
+
+  <div class="card"><h3>🎯 Microhabilidades prioritarias</h3><div id="microPrioritarias" class="micro-grid"></div></div>
+  <div class="card"><h3>📐 Matriz 3×4</h3><div id="matrizIndividual"></div></div>
+  <div class="card"><h3>🧠 Recomendaciones PMAP (3 MR por microhabilidad)</h3><div id="recomendacionesPMAP" class="pmap-grid"></div></div>
+</div>
+
+<script>
+// ==================== DATOS PRECARGADOS ====================
+const EVALUACION_PRECARGADA = `ID	#	Respuesta	Contenido del ítem	Área conceptual	Competencia ICFES	Tipo evidencia	Nivel	Verbo	Microhabilidad	Microrutina
+LC-01	1	A	El autor afirma que "la tecnología mejora la educación". ¿Cuál es la idea valorativa explícita?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N1	Identificar	Localización de juicio explícito	Subrayado guiado de expresiones valorativas
+LC-02	2	B	En el texto, el autor menciona un ejemplo para apoyar su idea. ¿Cuál es la función de ese ejemplo?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N2	Relacionar	Relación función–idea	Tabla función–idea
+LC-03	3	C	El autor usa un tono crítico hacia el sistema educativo. ¿Qué intención se puede inferir?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N3	Inferir	Inferencia de intención comunicativa	Inferencia guiada sin opciones
+LC-04	4	D	¿Cuál de los siguientes argumentos es más sólido según el texto?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N4	Evaluar	Evaluación de argumentos	Jerarquización de argumentos
+LC-05	5	A	El texto afirma que "la lectura es fundamental". ¿Qué expresa esta afirmación?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N1	Identificar	Localización de juicio explícito	Listado de expresiones valorativas
+LC-06	6	B	Un párrafo presenta una causa y otro una consecuencia. ¿Cómo se relacionan?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N2	Relacionar	Relación función–idea	Mapa relacional del texto
+LC-07	7	C	El autor no dice directamente su postura, pero critica ciertos aspectos. ¿Qué se puede inferir?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N3	Inferir	Inferencia de intención comunicativa	Justificación inferencial con evidencia textual
+LC-08	8	D	¿Cuál argumento presenta mejor sustento lógico?	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N4	Evaluar	Evaluación de argumentos	Evaluación con rúbrica
+SOC-01	9	A	Según la fuente, ¿qué actor participa en el conflicto?	Sociales	Interpretación y análisis de perspectivas	Texto	N1	Identificar	Lectura superficial de fuente	Subrayado guiado
+SOC-02	10	B	¿Qué relación existe entre los actores del conflicto?	Sociales	Interpretación y análisis de perspectivas	Texto	N2	Relacionar	Relación de perspectivas	Mapa relacional
+SOC-03	11	C	¿Qué intención tiene uno de los actores según el texto?	Sociales	Interpretación y análisis de perspectivas	Texto	N3	Inferir	Inferencia de postura	Inferencia guiada
+SOC-04	12	D	¿Cuál argumento es más válido según la fuente?	Sociales	Interpretación y análisis de perspectivas	Texto	N4	Evaluar	Evaluación crítica de fuente	Jerarquización argumentativa
+SOC-05	13	A	¿Qué hecho se menciona explícitamente en la fuente?	Sociales	Interpretación y análisis de perspectivas	Texto	N1	Identificar	Lectura superficial de fuente	Listado de ideas explícitas
+SOC-06	14	B	¿Cómo se relacionan los hechos presentados?	Sociales	Interpretación y análisis de perspectivas	Texto	N2	Relacionar	Relación de perspectivas	Tabla comparativa
+SOC-07	15	C	¿Qué postura implícita tiene el autor?	Sociales	Interpretación y análisis de perspectivas	Texto	N3	Inferir	Inferencia de postura	Lectura entre líneas
+SOC-08	16	D	¿Cuál fuente es más confiable?	Sociales	Interpretación y análisis de perspectivas	Texto	N4	Evaluar	Evaluación crítica de fuente	Chequeo de validez
+MAT-01	17	A	En la gráfica, ¿cuál es el valor de y cuando x = 2?	Matemáticas	Interpretación y representación	Gráfico	N1	Identificar	Lectura de información explícita en gráfica	Lectura guiada de ejes y valores
+MAT-02	18	B	¿Cuál variable tiene mayor valor según la gráfica?	Matemáticas	Interpretación y representación	Gráfico	N2	Relacionar	Comparación de variables en gráfica	Tabla comparativa de valores
+MAT-03	19	C	¿Cuál gráfica representa mejor los datos de la tabla?	Matemáticas	Interpretación y representación	Gráfico	N3	Relacionar	Transformación entre representaciones	Cambio de registro
+MAT-04	20	D	¿Qué ocurre con la variable si la tendencia continúa?	Matemáticas	Interpretación y representación	Gráfico	N4	Interpretar	Modelación de situaciones con datos	Proyección de comportamiento
+MAT-05	21	A	¿Cuál punto aparece en la gráfica?	Matemáticas	Interpretación y representación	Gráfico	N1	Identificar	Lectura de información explícita en gráfica	Señalamiento de coordenadas
+MAT-06	22	B	¿Qué variable aumenta más rápido?	Matemáticas	Interpretación y representación	Gráfico	N2	Relacionar	Comparación de variables en gráfica	Identificación de tendencias
+MAT-07	23	C	¿Qué representación corresponde a los datos?	Matemáticas	Interpretación y representación	Gráfico	N3	Relacionar	Transformación entre representaciones	Correspondencia entre representaciones
+MAT-08	24	D	¿Cómo se modela la situación presentada?	Matemáticas	Interpretación y representación	Gráfico	N4	Interpretar	Modelación de situaciones con datos	Representación múltiple`;
+
+const BANCO_PRECARGADO = `ID	#	Resp	Contenido del ítem	Área conceptual	Competencia ICFES	Tipo evidencia	Nivel	Verbo	Microhabilidad	Microrutina
+SOC-N1-MD01-MR1	1	A	Reconocimiento literal de postura o dato en fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N1	Identificar	Lectura superficial de fuente	Subrayado guiado
+SOC-N1-MD01-MR2	1	A	Reconocimiento literal de postura o dato en fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N1	Identificar	Lectura superficial de fuente	Lectura con preguntas focalizadas
+SOC-N1-MD01-MR3	1	A	Reconocimiento literal de postura o dato en fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N1	Identificar	Lectura superficial de fuente	Listado de ideas explícitas
+SOC-N2-MD01-MR1	2	B	Relación entre actores, hechos o posturas	Sociales	Interpretación y análisis de perspectivas	Texto	N2	Relacionar	Relación de perspectivas	Mapa relacional
+SOC-N2-MD01-MR2	2	B	Relación entre actores, hechos o posturas	Sociales	Interpretación y análisis de perspectivas	Texto	N2	Relacionar	Relación de perspectivas	Tabla comparativa de perspectivas
+SOC-N2-MD01-MR3	2	B	Relación entre actores, hechos o posturas	Sociales	Interpretación y análisis de perspectivas	Texto	N2	Relacionar	Relación de perspectivas	Emparejamiento de información
+SOC-N3-MD01-MR1	3	C	Inferencia de intención de un actor social	Sociales	Interpretación y análisis de perspectivas	Texto	N3	Inferir	Inferencia de postura	Inferencia guiada
+SOC-N3-MD01-MR2	3	C	Inferencia de intención de un actor social	Sociales	Interpretación y análisis de perspectivas	Texto	N3	Inferir	Inferencia de postura	Justificación con evidencia
+SOC-N3-MD01-MR3	3	C	Inferencia de intención de un actor social	Sociales	Interpretación y análisis de perspectivas	Texto	N3	Inferir	Inferencia de postura	Lectura entre líneas
+SOC-N4-MD01-MR1	4	D	Evaluación crítica de argumento o fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N4	Evaluar	Evaluación crítica de fuente	Jerarquización argumentativa
+SOC-N4-MD01-MR2	4	D	Evaluación crítica de argumento o fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N4	Evaluar	Evaluación crítica de fuente	Chequeo de validez
+SOC-N4-MD01-MR3	4	D	Evaluación crítica de argumento o fuente	Sociales	Interpretación y análisis de perspectivas	Texto	N4	Evaluar	Evaluación crítica de fuente	Contraargumentación guiada
+LC-N1-MD01-MR1	1	A	Ítem con juicio explícito (valoración directa)	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N1	Identificar	Localización de juicio explícito	Subrayado guiado de expresiones valorativas
+LC-N1-MD01-MR2	1	A	Ítem con juicio explícito (valoración directa)	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N1	Identificar	Localización de juicio explícito	Clasificación de enunciados valorativos vs informativos
+LC-N1-MD01-MR3	1	A	Ítem con juicio explícito (valoración directa)	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N1	Identificar	Localización de juicio explícito	Listado de expresiones valorativas
+LC-N2-MD01-MR1	2	B	Ítem que vincula idea con intención o propósito	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N2	Relacionar	Relación función–idea	Construcción de mapa relacional del texto
+LC-N2-MD01-MR2	2	B	Ítem que vincula idea con intención o propósito	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N2	Relacionar	Relación función–idea	Tabla función–idea (qué dice vs para qué lo dice)
+LC-N2-MD01-MR3	2	B	Ítem que vincula idea con intención o propósito	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N2	Relacionar	Relación función–idea	Emparejamiento de fragmentos con su intención
+LC-N3-MD01-MR1	3	C	Ítem de inferencia de postura del autor	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N3	Inferir	Inferencia de intención comunicativa	Inferencia guiada sin opciones
+LC-N3-MD01-MR2	3	C	Ítem de inferencia de postura del autor	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N3	Inferir	Inferencia de intención comunicativa	Justificación inferencial con evidencia textual
+LC-N3-MD01-MR3	3	C	Ítem de inferencia de postura del autor	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N3	Inferir	Inferencia de intención comunicativa	Detección de pistas lingüísticas de intención
+LC-N4-MD01-MR1	4	D	Ítem de selección de argumento más sólido	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N4	Evaluar	Evaluación de argumentos	Jerarquización de argumentos (criterios explícitos)
+LC-N4-MD01-MR2	4	D	Ítem de selección de argumento más sólido	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N4	Evaluar	Evaluación de argumentos	Evaluación con rúbrica
+LC-N4-MD01-MR3	4	D	Ítem de selección de argumento más sólido	Lectura Crítica	Reflexiona y evalúa el contenido del texto	Texto	N4	Evaluar	Evaluación de argumentos	Construcción de contraargumento fundamentado
+MAT-N1-MD01-MR1	1	A	Lectura puntual de gráfico	Matemáticas	Interpretación y representación	Gráfico	N1	Identificar	Lectura de información explícita en gráfica	Lectura guiada de ejes y valores
+MAT-N1-MD01-MR2	1	A	Lectura puntual de gráfico	Matemáticas	Interpretación y representación	Gráfico	N1	Identificar	Lectura de información explícita en gráfica	Señalamiento de coordenadas específicas
+MAT-N1-MD01-MR3	1	A	Lectura puntual de gráfico	Matemáticas	Interpretación y representación	Gráfico	N1	Identificar	Lectura de información explícita en gráfica	Listado de valores observados en la gráfica
+MAT-N2-MD01-MR1	2	B	Comparación de variables	Matemáticas	Interpretación y representación	Gráfico	N2	Relacionar	Comparación de variables en gráfica	Tabla comparativa de valores
+MAT-N2-MD01-MR2	2	B	Comparación de variables	Matemáticas	Interpretación y representación	Gráfico	N2	Relacionar	Comparación de variables en gráfica	Ordenamiento de datos de mayor a menor
+MAT-N2-MD01-MR3	2	B	Comparación de variables	Matemáticas	Interpretación y representación	Gráfico	N2	Relacionar	Comparación de variables en gráfica	Identificación de tendencias
+MAT-N3-MD01-MR1	3	C	Selección de representación correcta	Matemáticas	Interpretación y representación	Gráfico	N3	Relacionar	Transformación entre representaciones	Cambio de registro (tabla ↔ gráfica)
+MAT-N3-MD01-MR2	3	C	Selección de representación correcta	Matemáticas	Interpretación y representación	Gráfico	N3	Relacionar	Transformación entre representaciones	Correspondencia entre representaciones
+MAT-N3-MD01-MR3	3	C	Selección de representación correcta	Matemáticas	Interpretación y representación	Gráfico	N3	Relacionar	Transformación entre representaciones	Justificación de elección de representación
+MAT-N4-MD01-MR1	4	D	Interpretar y transformar datos	Matemáticas	Interpretación y representación	Gráfico	N4	Interpretar	Modelación de situaciones con datos	Representación múltiple
+MAT-N4-MD01-MR2	4	D	Interpretar y transformar datos	Matemáticas	Interpretación y representación	Gráfico	N4	Interpretar	Modelación de situaciones con datos	Construcción de modelo
+MAT-N4-MD01-MR3	4	D	Interpretar y transformar datos	Matemáticas	Interpretación y representación	Gráfico	N4	Interpretar	Modelación de situaciones con datos	Proyección de comportamiento`;
+
+// ==================== ESTADO ====================
+let evaluacionMaestra = [];
+let evaluacionAplicada = [];
+let zipRows = [];
+let bancoItems = [];
+let resultadosMotor = null;
+let areaActiva = "todas";
+let estudiantesFiltrados = [];
+let paginaActual = 1;
+let pageSize = 12;
+let estudianteActual = null;
+let chartErrores, chartNiveles, chartCompetencias, chartMicro;
+
+// ==================== FUNCIONES AUXILIARES ====================
+function normalizarTexto(valor) {
+    return String(valor || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+}
+
+function nextLevel(nivelActual, levels) {
+    const idx = levels.indexOf(nivelActual);
+    return (idx >= 0 && idx < levels.length - 1) ? levels[idx + 1] : nivelActual;
+}
+
+function nivelClass(n) {
+    if (!n) return "";
+    const nl = n.toLowerCase();
+    if (nl === "n1" || nl === "prea1") return "n1";
+    if (nl === "n2" || nl === "a1") return "n2";
+    if (nl === "n3" || nl === "a2") return "n3";
+    return "n4";
+}
+
+function parseAplicadaTSV(texto) {
+    const rows = texto.split(/\r?\n/).filter(Boolean);
+    const out = [];
+    rows.forEach((row, idx) => {
+        const c = row.split("\t").map(x => x.trim());
+        if (c.length < 11) return;
+        if (idx === 0 && (c[0] || "").toLowerCase() === "id") return;
+        out.push({
+            idLocal: c[0] || `P${idx}`,
+            orden: Number(c[1]) || (idx + 1),
+            respuestaCorrecta: c[2] || "",
+            contenido: c[3] || "",
+            areaConceptual: c[4] || "",
+            competencia: c[5] || "",
+            evidencia: c[6] || "",
+            nivel: c[7] || "",
+            verbo: c[8] || "",
+            microhabilidad: c[9] || "",
+            microrutina: c[10] || ""
+        });
+    });
+    return out;
+}
+
+function getPColsFromRow(row) {
+    return Object.keys(row).filter(k => /^P\d+$/i.test(k)).sort((a,b) => Number(a.slice(1)) - Number(b.slice(1)));
+}
+
+async function parseFileToRows(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".csv")) {
+        const text = await file.text();
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        if (!lines.length) return [];
+        const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ''));
+        return lines.slice(1).map(line => {
+            const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = vals[i] || "");
+            return obj;
+        });
+    }
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data);
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(ws, { defval: "" });
+}
+
+function getMRsFromBanco(microhabilidad, nivel, competencia = "", areaConceptual = "", limite = 3) {
+    const mh = normalizarTexto(microhabilidad);
+    const niv = normalizarTexto(nivel);
+    const comp = normalizarTexto(competencia);
+    const area = normalizarTexto(areaConceptual);
+    
+    let encontrados = bancoItems.filter(i =>
+        normalizarTexto(i.microhabilidad) === mh && normalizarTexto(i.nivel) === niv &&
+        normalizarTexto(i.competencia) === comp && normalizarTexto(i.areaConceptual) === area &&
+        String(i.microrutina || "").trim() !== ""
+    );
+    
+    if (!encontrados.length) {
+        encontrados = bancoItems.filter(i =>
+            normalizarTexto(i.microhabilidad) === mh && normalizarTexto(i.nivel) === niv &&
+            normalizarTexto(i.competencia) === comp &&
+            String(i.microrutina || "").trim() !== ""
+        );
+    }
+    
+    if (!encontrados.length) {
+        encontrados = bancoItems.filter(i =>
+            normalizarTexto(i.microhabilidad) === mh && normalizarTexto(i.nivel) === niv &&
+            String(i.microrutina || "").trim() !== ""
+        );
+    }
+    
+    const mrsUnicas = [];
+    encontrados.forEach(i => {
+        const mr = String(i.microrutina || "").trim();
+        if (mr && !mrsUnicas.includes(mr)) mrsUnicas.push(mr);
+    });
+    
+    return mrsUnicas.slice(0, limite);
+}
+
+// ==================== SELECTOR DE ÁREA ====================
+function reconstruirSelectorArea() {
+    const sel = document.getElementById("selectorArea");
+    const areas = [...new Set(evaluacionMaestra.map(i => i.areaConceptual?.trim()).filter(Boolean))].sort();
+    
+    sel.innerHTML = `<option value="todas">Todas las áreas (${evaluacionMaestra.length} ítems)</option>`;
+    areas.forEach(area => {
+        const count = evaluacionMaestra.filter(i => i.areaConceptual === area).length;
+        sel.innerHTML += `<option value="${area}">${area} (${count} ítems)</option>`;
+    });
+    
+    if (areaActiva !== "todas" && !areas.includes(areaActiva)) areaActiva = "todas";
+    sel.value = areaActiva;
+    
+    const badge = document.getElementById("areaBadge");
+    if (evaluacionMaestra.length === 0) {
+        document.getElementById("areaInfoText").textContent = "Carga la evaluación";
+        badge.classList.add("hidden");
+    } else if (areas.length <= 1) {
+        badge.classList.add("hidden");
+    } else {
+        badge.classList.remove("hidden");
+        badge.textContent = areaActiva === "todas" ? `${evaluacionMaestra.length} ítems` : `${evaluacionAplicada.length} activos`;
+    }
+}
+
+function cambiarAreaActiva() {
+    const sel = document.getElementById("selectorArea");
+    areaActiva = sel.value;
+    
+    if (areaActiva === "todas") {
+        evaluacionAplicada = [...evaluacionMaestra];
+    } else {
+        evaluacionAplicada = evaluacionMaestra.filter(i => i.areaConceptual === areaActiva);
+    }
+    
+    const badge = document.getElementById("areaBadge");
+    if (evaluacionAplicada.length) badge.textContent = `${evaluacionAplicada.length} activos`;
+    document.getElementById("areaInfoText").textContent = areaActiva === "todas" ? "Mostrando todas las áreas" : `Área: ${areaActiva}`;
+    
+    renderAplicada();
+    
+    if (evaluacionAplicada.length > 0 && zipRows.length > 0) {
+        resultadosMotor = motorDiagnostico();
+        if (resultadosMotor) renderDiagnostico(resultadosMotor);
+    }
+    saveState();
+}
+
+// ==================== RENDER APLICADA ====================
+function renderAplicada() {
+    const res = document.getElementById("aplicadaResumen");
+    const tabla = document.getElementById("tablaAplicada");
+    res.textContent = `Preguntas: ${evaluacionAplicada.length} de ${evaluacionMaestra.length}`;
+    if (!evaluacionAplicada.length) { tabla.innerHTML = ""; return; }
+    
+    let html = `<table>
+        <th>ID</th>
+        <th>#</th>
+        <th>Respuesta</th>
+        <th>Contenido del ítem</th>
+        <th>Área conceptual</th>
+        <th>Competencia</th>
+        <th>Nivel</th>
+        <th>Microhabilidad</th>
+        <th>Microrutina</th>
+    </tr>`;
+    evaluacionAplicada.slice(0, 30).forEach(q => {
+        const contenidoCorto = q.contenido 
+            ? (q.contenido.length > 100 ? q.contenido.substring(0, 100) + "…" : q.contenido)
+            : "";
+        
+        // Función para obtener color según nivel
+        const getColorByNivel = (nivel) => {
+            const nl = (nivel || "").toLowerCase();
+            if (nl === "n1" || nl === "prea1") return "var(--danger)";      // 🔴 Rojo
+            if (nl === "n2" || nl === "a1") return "var(--warn)";           // 🟠 Naranja
+            if (nl === "n3" || nl === "a2") return "#eab308";               // 🟡 Amarillo
+            return "var(--ok)";                                              // 🟢 Verde
+        };
+        
+        const nivelColor = getColorByNivel(q.nivel);
+        
+        html += `<tr>
+            <td>${q.idLocal||''}</td>
+            <td>${q.orden||''}</td>
+            <td style="color:${nivelColor}; font-weight:600;">${q.respuestaCorrecta||''}</td>
+            <td style="max-width:300px; white-space:normal; word-break:break-word;">${contenidoCorto}</td>
+            <td>${q.areaConceptual||''}</td>
+            <td>${q.competencia?.substring(0,35)||''}</td>
+            <td style="color:${nivelColor}; font-weight:600;">${q.nivel||''}</td>
+            <td>${q.microhabilidad?.substring(0,40)||''}</td>
+            <td>${q.microrutina?.substring(0,40)||''}</td>
+        </tr>`;
+    });
+    tabla.innerHTML = html;
+    tabla.style.tableLayout = "fixed";
+}
+
+function limpiarAplicada() {
+    evaluacionMaestra = [];
+    evaluacionAplicada = [];
+    areaActiva = "todas";
+    resultadosMotor = null;
+    renderAplicada();
+    reconstruirSelectorArea();
+    saveState();
+}
+
+function cargarEvaluacionPorDefecto() {
+    const arr = parseAplicadaTSV(EVALUACION_PRECARGADA);
+    if (!arr.length) return alert("Error al cargar evaluación");
+    evaluacionMaestra = arr;
+    areaActiva = "todas";
+    evaluacionAplicada = [...evaluacionMaestra];
+    reconstruirSelectorArea();
+    renderAplicada();
+    resultadosMotor = null;
+    saveState();
+    alert(`✅ Cargados ${evaluacionMaestra.length} ítems (Lectura Crítica: 8, Sociales: 8, Matemáticas: 8)`);
+}
+
+function cargarBancoPorDefecto() {
+    const arr = parseAplicadaTSV(BANCO_PRECARGADO);
+    if (!arr.length) return alert("Error al cargar banco");
+    const mapa = new Map();
+    arr.forEach(item => {
+        const key = `${normalizarTexto(item.microhabilidad)}|${normalizarTexto(item.nivel)}|${normalizarTexto(item.microrutina)}`;
+        mapa.set(key, item);
+    });
+    bancoItems = Array.from(mapa.values());
+    renderBanco();
+    saveState();
+    alert(`✅ Cargado banco multiárea con ${bancoItems.length} ítems (3 MR × 4 niveles × 3 áreas = 36 MRs)`);
+}
+
+// ==================== ZIPGRADE ====================
+async function leerZipGrade() {
+    const file = document.getElementById("archivoZip").files[0];
+    if (!file) return alert("Sube un archivo.");
+    const rawRows = await parseFileToRows(file);
+    zipRows = rawRows.map(row => {
+        const nuevo = { ...row };
+        Object.keys(row).forEach(key => {
+            if (/^Q\d+$/i.test(key)) nuevo[`P${key.slice(1)}`] = row[key];
+        });
+        return nuevo;
+    });
+    renderZipPreview();
+    saveState();
+}
+
+function renderZipPreview() {
+    const tabla = document.getElementById("tablaZip");
+    if (!zipRows.length) { tabla.innerHTML = ""; return; }
+    const pCols = getPColsFromRow(zipRows[0]);
+    let html = `<tr><th>Estudiante</th>${pCols.slice(0, 12).map(p => `<th>${p}</th>`).join("")}${pCols.length > 12 ? '<th>...</th>' : ''}</tr>`;
+    zipRows.slice(0, 10).forEach(r => {
+        const nombre = `${r["First Name"] || ""} ${r["Last Name"] || ""}`.trim();
+        html += `<tr><td>${nombre}</td>${pCols.slice(0, 12).map(p => `<td style="color:${Number(r[p]) ? 'var(--ok)' : 'var(--danger)'}">${r[p]||0}</td>`).join("")}${pCols.length > 12 ? '<td>...</td>' : ''}</tr>`;
+    });
+    tabla.innerHTML = html;
+    document.getElementById("zipResumen").textContent = `Filas: ${zipRows.length}, Columnas P: ${pCols.length}`;
+}
+
+// ==================== BANCO FCRI ====================
+function renderBanco() {
+    const tabla = document.getElementById("tablaBanco");
+    if (!bancoItems.length) { tabla.innerHTML = ""; return; }
+    let html = `<table><th>ID</th><th>Área</th><th>Microhabilidad</th><th>Nivel</th><th>Microrutina</th></tr>`;
+    bancoItems.slice(0, 50).forEach(i => {
+        html += `<tr>
+            <td>${i.idLocal||''}</td>
+            <td>${i.areaConceptual||''}</td>
+            <td>${i.microhabilidad?.substring(0,35)||''}</td>
+            <td>${i.nivel||''}</td>
+            <td>${i.microrutina?.substring(0,45)||''}</td>
+        </tr>`;
+    });
+    tabla.innerHTML = html;
+    document.getElementById("bancoResumen").textContent = `Ítems: ${bancoItems.length} (3 MR por nivel por área)`;
+}
+
+function cargarFcri() {
+    const texto = document.getElementById("textoFcri").value.trim();
+    if (!texto) return alert("Pega la tabla o usa 'Restaurar banco multiárea'");
+    const nuevos = parseAplicadaTSV(texto);
+    const mapa = new Map();
+    [...bancoItems, ...nuevos].forEach(item => {
+        const key = `${normalizarTexto(item.microhabilidad)}|${normalizarTexto(item.nivel)}|${normalizarTexto(item.microrutina)}`;
+        mapa.set(key, item);
+    });
+    bancoItems = Array.from(mapa.values());
+    renderBanco();
+    saveState();
+}
+
+function exportarBanco() {
+    const blob = new Blob([JSON.stringify(bancoItems, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "banco_fcri_multiarea.json";
+    a.click();
+}
+
+// ==================== MOTOR DIAGNÓSTICO ====================
+function verificarCorrespondenciaZipgrade() {
+    if (!zipRows.length || !evaluacionAplicada.length) return { ok: false, motivo: "Faltan datos" };
+    
+    const pCols = getPColsFromRow(zipRows[0]);
+    const pNecesarias = evaluacionAplicada.map(item => `P${item.orden}`);
+    const existentes = pNecesarias.filter(p => pCols.includes(p));
+    const faltantes = pNecesarias.filter(p => !pCols.includes(p));
+    
+    return {
+        ok: faltantes.length === 0,
+        existentes: existentes.length,
+        faltantes: faltantes,
+        totalNecesarias: pNecesarias.length,
+        totalDisponibles: pCols.length
+    };
+}
+
+function motorDiagnostico() {
+    if (!evaluacionAplicada.length) { alert("Carga evaluación aplicada"); return null; }
+    if (!zipRows.length) { alert("Carga archivo ZipGrade"); return null; }
+    
+    const correspondencia = verificarCorrespondenciaZipgrade();
+    const advertenciaDiv = document.getElementById("advertenciaCorrespondencia");
+    
+    if (!correspondencia.ok) {
+        advertenciaDiv.style.display = "block";
+        advertenciaDiv.innerHTML = `⚠️ <strong>Advertencia crítica:</strong> El archivo ZipGrade no contiene las columnas necesarias para el área "${areaActiva === 'todas' ? 'seleccionada' : areaActiva}".<br>
+        Faltan: ${correspondencia.faltantes.join(", ")}.<br>
+        El diagnóstico <strong>no se puede calcular</strong> con correspondencia incorrecta. Verifica que el archivo ZipGrade corresponda a las preguntas activas.`;
+        return null;
+    }
+    
+    advertenciaDiv.style.display = "none";
+    
+    const pUsadas = evaluacionAplicada.map(item => `P${item.orden}`);
+    const numPreguntas = pUsadas.length;
+    const levels = [...new Set(evaluacionAplicada.map(i => i.nivel).filter(Boolean))];
+    const nivelesOrdenados = levels.length ? levels.sort() : ["N1", "N2", "N3", "N4"];
+    const competenciasPresentes = [...new Set(evaluacionAplicada.map(i => i.competencia).filter(Boolean))];
+    
+    const erroresPorPregunta = new Array(numPreguntas).fill(0);
+    const distNiveles = Object.fromEntries(nivelesOrdenados.map(l => [l, 0]));
+    const competenciasGlobal = {};
+    const microhabilidadesGlobal = {};
+    const estudiantesDiag = [];
+    
+    zipRows.forEach(r => {
+        const nombre = `${r["First Name"] || ""} ${r["Last Name"] || ""}`.trim();
+        const respuestas = pUsadas.map(p => Number(r[p] || 0));
+        const totalOkReal = respuestas.reduce((s, v) => s + v, 0);
+        const pctReal = Math.round((totalOkReal / numPreguntas) * 100);
+        
+        const porNivel = Object.fromEntries(nivelesOrdenados.map(n => [n, { ok: 0, total: 0, pct: 0 }]));
+        const porCompetenciaNivel = {};
+        const microEstudiante = {};
+        const heat = [];
+        
+        competenciasPresentes.forEach(comp => {
+            nivelesOrdenados.forEach(nivel => {
+                porCompetenciaNivel[`${comp}|${nivel}`] = { aciertos: 0, total: 0, porcentaje: null };
+            });
+        });
+        
+        respuestas.forEach((resp, idx) => {
+            const item = evaluacionAplicada[idx];
+            if (!item) return;
+            const nivel = item.nivel || nivelesOrdenados[0];
+            const comp = item.competencia || "Sin competencia";
+            const mh = item.microhabilidad || "Sin microhabilidad";
+            const area = item.areaConceptual || "Sin área";
+            const mrs = getMRsFromBanco(mh, nivel, comp, area, 3);
+            
+            heat.push({ q: item.orden, ok: resp === 1 });
+            if (resp === 0) erroresPorPregunta[idx]++;
+            
+            porNivel[nivel].total++;
+            porNivel[nivel].ok += resp;
+            
+            const ck = `${comp}|${nivel}`;
+            if (porCompetenciaNivel[ck]) {
+                porCompetenciaNivel[ck].total++;
+                porCompetenciaNivel[ck].aciertos += resp;
+            }
+            
+            if (!competenciasGlobal[comp]) competenciasGlobal[comp] = { ok: 0, total: 0 };
+            competenciasGlobal[comp].total++;
+            competenciasGlobal[comp].ok += resp;
+            
+            if (!microhabilidadesGlobal[mh]) {
+                microhabilidadesGlobal[mh] = { errores: 0, aciertos: 0, total: 0, microrutinas: mrs, nivel, competencia: comp, areaConceptual: area };
+            }
+            microhabilidadesGlobal[mh].total++;
+            microhabilidadesGlobal[mh].aciertos += resp;
+            if (resp === 0) microhabilidadesGlobal[mh].errores++;
+            
+            if (!microEstudiante[mh]) {
+                microEstudiante[mh] = { microhabilidad: mh, microrutinas: mrs, competencia: comp, areaConceptual: area, nivel, aciertos: 0, errores: 0, total: 0, preguntas: [] };
+            }
+            microEstudiante[mh].total++;
+            microEstudiante[mh].aciertos += resp;
+            if (resp === 0) microEstudiante[mh].errores++;
+            microEstudiante[mh].preguntas.push({ q: idx + 1, ok: resp === 1 });
+        });
+        
+        nivelesOrdenados.forEach(n => {
+            const d = porNivel[n];
+            d.pct = d.total ? Math.round((d.ok / d.total) * 100) : null;
+        });
+        
+        Object.keys(porCompetenciaNivel).forEach(k => {
+            const c = porCompetenciaNivel[k];
+            c.porcentaje = c.total ? Math.round((c.aciertos / c.total) * 100) : null;
+        });
+        
+        const microRankingIndividual = Object.values(microEstudiante)
+            .map(m => ({ ...m, errorPct: m.total ? Math.round((m.errores / m.total) * 100) : 0 }))
+            .sort((a, b) => b.errores - a.errores);
+        
+        let zdr = nivelesOrdenados[0];
+        for (let i = 0; i < nivelesOrdenados.length; i++) {
+            const nivel = nivelesOrdenados[i];
+            const d = porNivel[nivel];
+            if (d.total >= 2 && d.pct >= 70) zdr = nivel;
+        }
+        
+        let zdp = nextLevel(zdr, nivelesOrdenados);
+        const idxZdr = nivelesOrdenados.indexOf(zdr);
+        for (let j = idxZdr + 1; j < nivelesOrdenados.length; j++) {
+            const nivel = nivelesOrdenados[j];
+            const d = porNivel[nivel];
+            if (d.total >= 1 && d.pct !== null && d.pct >= 30 && d.pct < 70) { zdp = nivel; break; }
+        }
+        
+        let nivelGlobal = zdr;
+        distNiveles[nivelGlobal] = (distNiveles[nivelGlobal] || 0) + 1;
+        
+        estudiantesDiag.push({
+            nombre, totalOk: totalOkReal, porcentaje: pctReal, nivelGlobal, zdr, zdp,
+            heat, porNivel, cellMap: porCompetenciaNivel, competenciasPresentes, microRankingIndividual
+        });
+    });
+    
+    const promedio = estudiantesDiag.length ? Math.round(estudiantesDiag.reduce((a, b) => a + b.porcentaje, 0) / estudiantesDiag.length) : 0;
+    
+    const rankingComp = Object.entries(competenciasGlobal)
+        .map(([k, v]) => ({ competencia: k, pct: Math.round((v.ok / v.total) * 100) }))
+        .sort((a, b) => a.pct - b.pct);
+    
+    const rankingMicro = Object.entries(microhabilidadesGlobal)
+        .map(([k, v]) => ({ microhabilidad: k, errorPct: Math.round((v.errores / v.total) * 100), ...v }))
+        .sort((a, b) => b.errorPct - a.errorPct);
+    
+    const nivelDomGrupo = Object.entries(distNiveles).sort((a,b) => b[1] - a[1])[0]?.[0] || "-";
+    const brechaPrincipal = `${nivelDomGrupo} → ${nextLevel(nivelDomGrupo, nivelesOrdenados)}`;
+    
+    const sugerenciasPmap = rankingMicro.slice(0, 15).map(m => ({
+        microhabilidad: m.microhabilidad,
+        microrutinas: m.microrutinas,
+        competencia: m.competencia,
+        areaConceptual: m.areaConceptual,
+        nivelActual: m.nivel,
+        nivelMeta: nextLevel(m.nivel, nivelesOrdenados),
+        errorPct: m.errorPct
+    }));
+    
+    return { levels: nivelesOrdenados, estudiantes: estudiantesDiag, promedio, erroresPorPregunta,
+             distNiveles, nivelDominanteGrupo: nivelDomGrupo, brechaPrincipal, rankingComp,
+             rankingMicro, sugerenciasPmap, areaFiltro: areaActiva, numPreguntas };
+}
+
+// ==================== RENDER DIAGNÓSTICO ====================
+function renderDiagnostico(r) {
+    if (!r) return;
+    document.getElementById("mEstudiantes").textContent = r.estudiantes.length;
+    document.getElementById("mPromedio").textContent = `${r.promedio}%`;
+    document.getElementById("mNivel").textContent = r.nivelDominanteGrupo;
+    document.getElementById("mBrecha").textContent = r.brechaPrincipal;
+    
+    if (chartErrores) chartErrores.destroy();
+    if (chartNiveles) chartNiveles.destroy();
+    if (chartCompetencias) chartCompetencias.destroy();
+    if (chartMicro) chartMicro.destroy();
+    
+    setTimeout(() => {
+        chartErrores = new Chart(document.getElementById("chartErrores"), {
+            type: "bar", data: { labels: r.erroresPorPregunta.map((_,i) => `P${i+1}`), datasets: [{ label: "Errores", data: r.erroresPorPregunta, backgroundColor: "#ef4444" }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#e5e7eb" } } } }
+        });
+        chartNiveles = new Chart(document.getElementById("chartNiveles"), {
+            type: "bar", data: { labels: r.levels, datasets: [{ label: "Estudiantes", data: r.levels.map(l => r.distNiveles[l] || 0), backgroundColor: "#38bdf8" }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#e5e7eb" } } } }
+        });
+        chartCompetencias = new Chart(document.getElementById("chartCompetencias"), {
+            type: "bar", data: { labels: r.rankingComp.map(x => x.competencia.substring(0,25)), datasets: [{ label: "% logro", data: r.rankingComp.map(x => x.pct), backgroundColor: "#22c55e" }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#e5e7eb" } } } }
+        });
+        chartMicro = new Chart(document.getElementById("chartMicro"), {
+            type: "bar", data: { labels: r.rankingMicro.slice(0,8).map(x => x.microhabilidad.substring(0,25)), datasets: [{ label: "% error", data: r.rankingMicro.slice(0,8).map(x => x.errorPct), backgroundColor: "#f59e0b" }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: "#e5e7eb" } } } }
+        });
+    }, 100);
+    
+    // CORREGIDO: 4 columnas: Estudiante, %, ZDR, ZDP
+    let html = `<tr><th>Estudiante</th><th>%</th><th>ZDR</th><th>ZDP</th></tr>`;
+    r.estudiantes.slice(0, 50).forEach(e => {
+        html += `<tr>
+            <td><a href="#" style="color:var(--text); font-weight:600; text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\\'")}');return false;">${e.nombre}</a></td>
+            <td>${e.porcentaje}%</td>
+            <td>${e.zdr}</td>
+            <td>${e.zdp}</td>
+        </tr>`;
+    });
+    document.getElementById("tablaDiagnostico").innerHTML = html;
+    aplicarFiltros();
+}
+
+function procesarDiagnostico() {
+    resultadosMotor = motorDiagnostico();
+    if (resultadosMotor) renderDiagnostico(resultadosMotor);
+}
+
+// ==================== PMAP ====================
+function generarPmap() {
+    if (!resultadosMotor) return alert("Procesa el diagnóstico primero.");
+    let html = `<table>
+        <th>Microhabilidad</th><th>Microrutina 1</th><th>Microrutina 2</th><th>Microrutina 3</th>
+        <th>Competencia</th><th>Nivel actual</th><th>Nivel meta</th><th>% error</th>
+    </tr>`;
+    resultadosMotor.sugerenciasPmap.slice(0, 12).forEach(s => {
+        const mr1 = s.microrutinas?.[0] || "Pendiente";
+        const mr2 = s.microrutinas?.[1] || "Pendiente";
+        const mr3 = s.microrutinas?.[2] || "Pendiente";
+        html += `<tr>
+            <td>${s.microhabilidad}</td>
+            <td style="color:var(--ok);">📘 ${mr1}</td>
+            <td style="color:var(--accent);">📗 ${mr2}</td>
+            <td style="color:var(--warn);">📙 ${mr3}</td>
+            <td>${s.competencia?.substring(0,30)||''}</td>
+            <td>${s.nivelActual}</td><td>${s.nivelMeta}</td>
+            <td style="color:${s.errorPct>50?'var(--danger)':'var(--warn)'}">${s.errorPct}%</td>
+        </tr>`;
+    });
+    document.getElementById("tablaPmap").innerHTML = html;
+}
+
+// ==================== PERFIL INDIVIDUAL ====================
+function mostrarEstudiante(nombre) {
+    const est = resultadosMotor?.estudiantes?.find(e => e.nombre === nombre);
+    if (!est) return alert("No encontrado");
+    estudianteActual = est;
+    document.getElementById("studentsPanel").style.display = "none";
+    document.getElementById("progressPanel").style.display = "block";
+    document.getElementById("currentStudentName").textContent = est.nombre;
+    document.getElementById("studentProgressTitle").textContent = `Perfil cognitivo: ${est.nombre}`;
+    document.getElementById("infoNivelGlobal").textContent = est.nivelGlobal;
+    document.getElementById("infoZDR").textContent = est.zdr;
+    document.getElementById("infoZDP").textContent = est.zdp;
+    document.getElementById("infoPct").textContent = `${est.porcentaje}%`;
+    
+    // MAPA DE CALOR HORIZONTAL
+    const items = evaluacionAplicada;
+    const heat = est.heat;
+    const nivelMostrar = est.nivelGlobal;
+    const primerNombre = est.nombre.split(" ")[0];
+    
+    let heatHtml = `<div class="heatmap-wrapper"><div class="heatmap-scroll-inner">`;
+    
+    heatHtml += `<div class="heatmap-fila"><div class="heatmap-label">COMPETENCIA</div><div class="heatmap-pills">`;
+    items.forEach((item, i) => {
+        const short = item.competencia.length > 12 ? item.competencia.substring(0, 12) + "…" : item.competencia;
+        heatHtml += `<div class="heatmap-pill-q" title="${item.competencia}">P${i+1}<br><span style="font-size:0.65rem;">${short}</span></div>`;
+    });
+    heatHtml += `</div></div>`;
+    
+    heatHtml += `<div class="heatmap-fila"><div class="heatmap-label">NIVEL</div><div class="heatmap-pills">`;
+    items.forEach(item => {
+        heatHtml += `<div class="heatmap-pill-n ${nivelClass(item.nivel)}">${item.nivel}</div>`;
+    });
+    heatHtml += `</div></div>`;
+    
+    heatHtml += `<div class="heatmap-fila"><div class="heatmap-label">${primerNombre}<br><span style="font-size:0.7rem;color:var(--accent);">${nivelMostrar}</span></div><div class="heatmap-pills">`;
+    heat.forEach((h, idx) => {
+        const item = items[idx];
+        const mrs = getMRsFromBanco(item.microhabilidad, item.nivel, item.competencia, item.areaConceptual, 2);
+        const tooltip = `P${idx+1} | ${item.nivel} | ${item.microhabilidad} | ${mrs.join(" → ") || item.microrutina} | ${h.ok ? "✓ Correcto" : "✗ Incorrecto"}`;
+        heatHtml += `<div class="heatmap-oval ${h.ok ? "correcto" : "incorrecto"}" title="${tooltip}">${h.ok ? "✓" : "✗"}</div>`;
+    });
+    heatHtml += `</div></div>`;
+    
+    heatHtml += `<div class="heatmap-leyenda">
+        <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--ok);"></div><span>Correcto</span></div>
+        <div class="heatmap-leyenda-item"><div class="dot" style="background:var(--danger);"></div><span>Incorrecto</span></div>
+        <div class="heatmap-leyenda-item"><div class="dot" style="background:transparent;border:2px solid var(--accent);border-radius:50%;"></div><span>Hover para detalles (MH + MR)</span></div>
+    </div>`;
+    heatHtml += `</div></div>`;
+    document.getElementById("heatmapIndividual").innerHTML = heatHtml;
+    
+    // Micro prioritarias
+    const micros = est.microRankingIndividual.filter(m => m.errores > 0).slice(0, 4);
+    document.getElementById("microPrioritarias").innerHTML = micros.map(m => `
+        <div class="micro-card">
+            <strong>🎯 ${m.microhabilidad}</strong><br>
+            <span style="color:var(--danger);">Error: ${m.errorPct}% (${m.errores}/${m.total})</span><br>
+            <span class="muted">Competencia: ${m.competencia}</span><br>
+            <div style="margin-top:8px; padding:8px; background:var(--accent-soft); border-radius:8px;">
+                <strong>📚 3 Microrutinas de intervención:</strong><br>
+                ${m.microrutinas?.map((mr, i) => `<span style="color:${i===0?'var(--ok)':i===1?'var(--accent)':'var(--warn)'}">${i+1}. ${mr}</span>`).join("<br>") || "Pendiente"}
+            </div>
+        </div>
+    `).join("") || "<div class='muted'>Sin microhabilidades críticas</div>";
+    
+    // Matriz 3x4
+    const levels = resultadosMotor?.levels || ["N1","N2","N3","N4"];
+    const comps = est.competenciasPresentes || [];
+    let matrizHtml = `<div class="matriz3x4-wrapper"><table class="matriz3x4-table"><tr><th></th>${levels.map(l=>`<th>${l}</th>`).join("")}</tr>`;
+    comps.forEach(comp => {
+        matrizHtml += `<tr><td style="font-weight:600;">${comp.substring(0,30)}</td>`;
+        levels.forEach(nivel => {
+            const key = `${comp}|${nivel}`;
+            const val = est.cellMap[key]?.porcentaje;
+            let clase = "pct-vacio";
+            if (val !== null && val !== undefined) clase = val >= 70 ? "pct-alto" : val >= 40 ? "pct-medio" : "pct-bajo";
+            matrizHtml += `<td class="${clase}">${val !== null && val !== undefined ? val+"%" : "—"}</td>`;
+        });
+        matrizHtml += `</tr>`;
+    });
+    matrizHtml += `</table><div class="heatmap-leyenda" style="margin-top:16px; justify-content:center;">
+        <div><span style="background:rgba(34,197,94,.2);padding:4px 8px;border-radius:4px;">≥70% Alto</span></div>
+        <div><span style="background:rgba(249,115,22,.2);padding:4px 8px;border-radius:4px;">40-69% Medio</span></div>
+        <div><span style="background:rgba(239,68,68,.2);padding:4px 8px;border-radius:4px;">&lt;40% Bajo</span></div>
+    </div></div>`;
+    document.getElementById("matrizIndividual").innerHTML = matrizHtml;
+    
+    // Recomendaciones PMAP
+    const recoms = micros.slice(0, 4).map((m, i) => {
+        const prioridad = i < 2 ? "Alta" : i < 3 ? "Media" : "Baja";
+        return `<div class="pmap-card">
+            <span class="pmap-priority priority-${prioridad === 'Alta' ? 'high' : prioridad === 'Media' ? 'medium' : 'low'}">Prioridad ${prioridad}</span>
+            <strong>🎯 ${m.microhabilidad}</strong><br>
+            <span class="muted">Nivel: ${m.nivel} → ${nextLevel(m.nivel, levels)}</span><br>
+            <div style="margin-top:10px; padding:8px; background:var(--accent-soft); border-radius:8px;">
+                <strong>📚 Secuencia de intervención (3 MR):</strong><br>
+                ${m.microrutinas?.map((mr, idx) => `<span style="color:${idx===0?'var(--ok)':idx===1?'var(--accent)':'var(--warn)'}">${idx+1}. ${mr}</span>`).join("<br>") || "Pendiente"}
+            </div>
+        </div>`;
+    }).join("");
+    document.getElementById("recomendacionesPMAP").innerHTML = recoms || "<div class='muted'>Sin recomendaciones</div>";
+}
+
+// ==================== LISTA Y PAGINACIÓN ====================
+function aplicarFiltros() {
+    if (!resultadosMotor?.estudiantes) return;
+    const inst = document.getElementById("filtroInstitucion").value.toLowerCase();
+    const grado = document.getElementById("filtroGrado").value;
+    const grupo = document.getElementById("filtroGrupo").value;
+    const busq = document.getElementById("filtroBusqueda").value.toLowerCase();
+    
+    estudiantesFiltrados = resultadosMotor.estudiantes.filter(e =>
+        (inst === "" || (e.institucion || "").toLowerCase().includes(inst)) &&
+        (grado === "todos" || e.grado === grado) &&
+        (grupo === "todos" || e.grupo === grupo) &&
+        (busq === "" || e.nombre.toLowerCase().includes(busq))
+    );
+    paginaActual = 1;
+    renderPagina();
+}
+
+function renderPagina() {
+    const inicio = (paginaActual - 1) * pageSize;
+    const fin = inicio + pageSize;
+    const pagina = estudiantesFiltrados.slice(inicio, fin);
+    document.getElementById("estudiantesList").innerHTML = pagina.map(e => `
+        <div class="estudiante-card" onclick="mostrarEstudiante('${e.nombre.replace(/'/g,"\\'")}')">
+            <div class="estudiante-nombre">${e.nombre}</div>
+            <div class="estudiante-meta">Nivel: ${e.nivelGlobal} | Aciertos: ${e.totalOk}/${resultadosMotor.numPreguntas} (${e.porcentaje}%) | ZDP: ${e.zdp}</div>
+        </div>
+    `).join("");
+    document.getElementById("totalStudentsCount").textContent = estudiantesFiltrados.length;
+    document.getElementById("paginationFrom").textContent = estudiantesFiltrados.length ? inicio + 1 : 0;
+    document.getElementById("paginationTo").textContent = Math.min(fin, estudiantesFiltrados.length);
+    document.getElementById("paginaInfo").textContent = `Página ${paginaActual} de ${Math.ceil(estudiantesFiltrados.length / pageSize) || 1}`;
+}
+
+function cambiarPagina(delta) {
+    const total = Math.ceil(estudiantesFiltrados.length / pageSize);
+    const nueva = paginaActual + delta;
+    if (nueva >= 1 && nueva <= total) {
+        paginaActual = nueva;
+        renderPagina();
+    }
+}
+
+function volverALista() {
+    document.getElementById("progressPanel").style.display = "none";
+    document.getElementById("studentsPanel").style.display = "block";
+    aplicarFiltros();
+}
+
+// ==================== REPORTES ====================
+function limpiarNombre(texto) { 
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "_").toLowerCase(); 
+}
+
+function generarReporteIndividual() {
+    if (!estudianteActual) return alert("Selecciona un estudiante");
+    const wb = XLSX.utils.book_new();
+    const data = [
+        ["SITE-RUTA LATAM - Reporte Individual", ""],
+        ["Estudiante", estudianteActual.nombre],
+        ["Área evaluada", areaActiva === "todas" ? "Todas" : areaActiva],
+        ["% aciertos", `${estudianteActual.porcentaje}%`],
+        ["Aciertos", `${estudianteActual.totalOk}/${resultadosMotor?.numPreguntas || evaluacionAplicada.length}`],
+        ["Nivel global", estudianteActual.nivelGlobal],
+        ["ZDR", estudianteActual.zdr],
+        ["ZDP", estudianteActual.zdp],
+        ["", ""],
+        ["Microhabilidades críticas", ""],
+        ...(estudianteActual.microRankingIndividual.filter(m => m.errores > 0).slice(0, 5).map(m => [m.microhabilidad, `${m.errorPct}% error`, `MR: ${m.microrutinas?.join(" → ")}`]))
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Resumen");
+    XLSX.writeFile(wb, `reporte_${limpiarNombre(estudianteActual.nombre)}.xlsx`);
+}
+
+function generarReporteGrupal() {
+    if (!resultadosMotor) return alert("Procesa el diagnóstico primero");
+    const wb = XLSX.utils.book_new();
+    const resumen = [
+        ["SITE-RUTA LATAM - Reporte Grupal", ""],
+        ["Área evaluada", areaActiva === "todas" ? "Todas las áreas" : areaActiva],
+        ["Estudiantes", resultadosMotor.estudiantes.length],
+        ["Promedio", `${resultadosMotor.promedio}%`],
+        ["Nivel dominante", resultadosMotor.nivelDominanteGrupo],
+        ["Brecha principal", resultadosMotor.brechaPrincipal]
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), "Resumen");
+    
+    const estudiantesData = resultadosMotor.estudiantes.map(e => [e.nombre, `${e.porcentaje}%`, e.nivelGlobal, e.zdr, e.zdp]);
+    estudiantesData.unshift(["Estudiante", "%", "Nivel", "ZDR", "ZDP"]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(estudiantesData), "Estudiantes");
+    
+    const microData = resultadosMotor.rankingMicro.slice(0, 15).map(m => [m.microhabilidad, `${m.errorPct}%`, m.nivel, m.microrutinas?.join(" | ")]);
+    microData.unshift(["Microhabilidad crítica", "% error", "Nivel", "3 MR sugeridas"]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(microData), "Microhabilidades");
+    
+    XLSX.writeFile(wb, `reporte_grupal_${areaActiva === "todas" ? "multiarea" : limpiarNombre(areaActiva)}.xlsx`);
+}
+
+// ==================== REINICIO Y STORAGE ====================
+function cerrarModal(id) { 
+    document.getElementById(id).classList.remove("active"); 
+}
+
+function confirmarReinicio() { 
+    document.getElementById("modalReinicio").classList.add("active"); 
+}
+
+function ejecutarReinicio() {
+    localStorage.removeItem(STORAGE_KEY);
+    evaluacionMaestra = []; evaluacionAplicada = []; zipRows = []; bancoItems = []; resultadosMotor = null;
+    areaActiva = "todas";
+    renderAplicada(); renderZipPreview(); renderBanco();
+    reconstruirSelectorArea();
+    document.getElementById("progressPanel").style.display = "none";
+    document.getElementById("studentsPanel").style.display = "block";
+    cerrarModal("modalReinicio");
+    cargarEvaluacionPorDefecto();
+    cargarBancoPorDefecto();
+}
+
+function saveState() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
+            evaluacionMaestra, 
+            zipRows: zipRows.slice(0, 200), 
+            bancoItems, 
+            areaActiva 
+        }));
+    } catch(e) {}
+}
+
+function loadState() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    try {
+        const d = JSON.parse(raw);
+        if (d.evaluacionMaestra?.length) evaluacionMaestra = d.evaluacionMaestra;
+        areaActiva = d.areaActiva || "todas";
+        if (d.zipRows) zipRows = d.zipRows;
+        if (d.bancoItems) bancoItems = d.bancoItems;
+        
+        if (evaluacionMaestra.length) {
+            if (areaActiva === "todas") evaluacionAplicada = [...evaluacionMaestra];
+            else evaluacionAplicada = evaluacionMaestra.filter(i => i.areaConceptual === areaActiva);
+        }
+        reconstruirSelectorArea();
+        renderAplicada(); 
+        renderZipPreview(); 
+        renderBanco();
+    } catch(e) {}
+}
+
+// ==================== INICIALIZACIÓN ====================
+const STORAGE_KEY = "site_ruta_v32";
+
+// Event Listeners
+document.getElementById("selectorArea")?.addEventListener("change", cambiarAreaActiva);
+document.getElementById("cargarAplicadaBtn")?.addEventListener("click", () => {
+    const texto = document.getElementById("textoAplicada").value;
+    if (!texto) return alert("Pega la tabla");
+    const arr = parseAplicadaTSV(texto);
+    if (!arr.length) return alert("No se encontraron preguntas");
+    evaluacionMaestra = arr;
+    areaActiva = "todas";
+    evaluacionAplicada = [...evaluacionMaestra];
+    reconstruirSelectorArea();
+    renderAplicada();
+    resultadosMotor = null;
+    saveState();
+});
+document.getElementById("restaurarEvaluacionBtn")?.addEventListener("click", cargarEvaluacionPorDefecto);
+document.getElementById("limpiarAplicadaBtn")?.addEventListener("click", limpiarAplicada);
+document.getElementById("leerZipBtn")?.addEventListener("click", leerZipGrade);
+document.getElementById("cargarFcriBtn")?.addEventListener("click", cargarFcri);
+document.getElementById("restaurarBancoBtn")?.addEventListener("click", cargarBancoPorDefecto);
+document.getElementById("exportarBancoBtn")?.addEventListener("click", exportarBanco);
+document.getElementById("procesarDiagnosticoBtn")?.addEventListener("click", procesarDiagnostico);
+document.getElementById("generarPmapBtn")?.addEventListener("click", generarPmap);
+document.getElementById("btnFiltrar")?.addEventListener("click", aplicarFiltros);
+document.getElementById("btnAnterior")?.addEventListener("click", () => cambiarPagina(-1));
+document.getElementById("btnSiguiente")?.addEventListener("click", () => cambiarPagina(1));
+document.getElementById("btnVolverLista")?.addEventListener("click", volverALista);
+document.getElementById("volverListaBtn")?.addEventListener("click", volverALista);
+document.getElementById("btnReportes")?.addEventListener("click", generarReporteGrupal);
+document.getElementById("reporteIndividualBtn")?.addEventListener("click", generarReporteIndividual);
+document.getElementById("btnReiniciar")?.addEventListener("click", confirmarReinicio);
+
+// Tabs
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        const target = document.getElementById(btn.dataset.tab);
+        if (target) target.classList.add("active");
+        btn.classList.add("active");
+    });
+});
+
+// Cargar datos iniciales
+loadState();
+if (!evaluacionMaestra.length) cargarEvaluacionPorDefecto();
+if (!bancoItems.length) cargarBancoPorDefecto();
+
+// Datos demo de ZipGrade si no hay
+if (!zipRows.length) {
+    zipRows = [
+        { "First Name": "Samuel", "Last Name": "Bravo", "Num Correct": "20", "Percent Correct": "83", 
+          "P1": "1","P2":"1","P3":"1","P4":"1","P5":"1","P6":"1","P7":"1","P8":"1",
+          "P9":"1","P10":"1","P11":"0","P12":"0","P13":"1","P14":"1","P15":"0","P16":"1",
+          "P17":"1","P18":"1","P19":"1","P20":"1","P21":"1","P22":"1","P23":"0","P24":"1" },
+        { "First Name": "Isabella", "Last Name": "Belalcazar", "Num Correct": "15", "Percent Correct": "62", 
+          "P1":"1","P2":"1","P3":"0","P4":"0","P5":"1","P6":"1","P7":"0","P8":"1",
+          "P9":"1","P10":"1","P11":"1","P12":"0","P13":"1","P14":"0","P15":"0","P16":"1",
+          "P17":"1","P18":"1","P19":"0","P20":"0","P21":"1","P22":"0","P23":"1","P24":"0" },
+        { "First Name": "Juan", "Last Name": "Agudelo", "Num Correct": "12", "Percent Correct": "50", 
+          "P1":"0","P2":"1","P3":"1","P4":"0","P5":"0","P6":"1","P7":"0","P8":"1",
+          "P9":"1","P10":"0","P11":"1","P12":"0","P13":"0","P14":"1","P15":"0","P16":"1",
+          "P17":"0","P18":"1","P19":"0","P20":"0","P21":"1","P22":"0","P23":"1","P24":"0" }
+    ];
+    renderZipPreview();
+}
+
+// Procesar diagnóstico automáticamente si hay datos
+if (evaluacionAplicada.length && zipRows.length) {
+    setTimeout(() => {
+        resultadosMotor = motorDiagnostico();
+        if (resultadosMotor) renderDiagnostico(resultadosMotor);
+    }, 500);
+}
+</script>
+</body>
+</html>

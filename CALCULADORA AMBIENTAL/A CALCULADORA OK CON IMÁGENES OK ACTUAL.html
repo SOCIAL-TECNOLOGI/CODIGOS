@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Ambiental</title>
+    
+    <!-- Librerías -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        /* ===============================
+           ESTILOS GENERALES Y RESET
+           =============================== */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+            -ms-overflow-style: none;
+        }
+
+        body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background-color: transparent;
+        }
+
+        body::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        body.modal-abierto {
+            overflow: hidden;
+        }
+
+        body.imprimiendo #modalImpacto {
+            display: flex !important;
+        }
+
+        /* ===============================
+           CONTENEDORES PRINCIPALES
+           =============================== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .column {
+            flex: 0 0 30%;
+            margin: 10px 1.5%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .column img {
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .contenido-ancho-total {
+            width: 100%;
+            text-align: center;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        .nuevo-contenedor {
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 20px 0;
+            border: 7px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .nuevo-contenedor a {
+            color: #0077cc;
+            text-decoration: none;
+        }
+
+        .nuevo-contenedor a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===============================
+           TIPOGRAFÍA Y TÍTULOS
+           =============================== */
+        h1 {
+            text-align: center;
+            background-color: #0674a3;
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        h3 {
+            font-size: 30px;
+            font-weight: bold;
+            text-align: center;
+            color: #0077b6;
+            margin: 20px 0;
+        }
+
+        .titulo-strong {
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 1.15em;
+        }
+
+        .resultado-span {
+            font-weight: bold;
+            color: #00cc00;
+            font-size: 1.4em;
+            margin: 0 5px;
+        }
+
+        /* ===============================
+           TABLAS
+           =============================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ccc;
+            color: white;
+            font-weight: bold;
+        }
+
+        th.consumo {
+            background-color: #0674a3;
+            text-align: center;
+        }
+
+        th.pesos-gramos {
+            background-color: #4CAF50;
+            text-align: center;
+        }
+
+        th.recomendaciones {
+            background-color: #0674a3;
+            text-align: center;
+            display: none;
+        }
+
+        td.gramos {
+            font-weight: bold;
+            background-color: #f5f5f5;
+        }
+
+        table.recomendaciones {
+            width: 100%;
+            display: none;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table.recomendaciones th, 
+        table.recomendaciones td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.recomendaciones th {
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        table.recomendaciones tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table.recomendaciones td {
+            font-size: 40px;
+        }
+
+        table.recomendaciones p {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        /* ===============================
+           FORMULARIOS Y CONTROLES
+           =============================== */
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"] {
+            width: 30%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            margin-left: 33%;
+            font-weight: bold;
+        }
+
+        .conteo-reciclaje {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            background-color: #d2dee8;
+            padding: 10px;
+            width: 35%;
+            margin-left: 33%;
+        }
+
+        /* ===============================
+           BOTONES
+           =============================== */
+        button {
+            display: block;
+            width: 20%;
+            background-color: #0674a3;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .boton {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #050771;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+
+        .boton:hover {
+            background-color: #046b49;
+        }
+
+        .BOTONES {
+            display: flex;
+            justify-content: center;
+        }
+
+        .centrar-boton {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #reiniciarBtn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        #reiniciarBtn:hover {
+            background-color: #c0392b;
+        }
+
+        /* ===============================
+           ACORDEÓN
+           =============================== */
+        .acordeon {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 100%;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            background-color: #ffffff;
+        }
+
+        .acordeon-item {
+            border-top: 1px solid #ddd;
+            transition: background-color 0.3s;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+        }
+
+        .acordeon-titulo {
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+        }
+
+        .acordeon-titulo.active {
+            background-color: #007acc;
+            color: #fff;
+        }
+
+        .acordeon-titulo.active::after {
+            content: "\25BC";
+        }
+
+        .acordeon-titulo .flecha {
+            width: 15px;
+            height: 15px;
+            transition: transform 0.3s;
+        }
+
+        .acordeon-titulo.active .flecha {
+            transform: rotate(180deg);
+        }
+
+        .acordeon-contenido {
+            padding: 15px;
+            display: none;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .acordeon-contenido.open {
+            max-height: 1000px;
+            transition: max-height 0.3s ease-in;
+        }
+
+        .acordeon-contenido p {
+            margin: 0;
+        }
+
+        /* ===============================
+           CONTENIDO DE TEXTO Y RESULTADOS
+           =============================== */
+        .hidden {
+            display: block;
+        }
+
+        #huella_ecologica {
+            text-align: center;
+            margin: 20px;
+        }
+
+        #resultado_hectareas {
+            font-size: 20px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e0f2e9;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .texto-descriptivo {
+            text-align: center;
+            background-color: #ffffff;
+            font-weight: bold;
+            font-size: 25px;
+            color: rgb(0, 0, 0);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .texto-descriptivo p {
+            margin: 10px;
+            padding: 10px;
+            background-color: #f7f7f7;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .texto-descriptivo p:hover {
+            background-color: #e0e0e0;
+        }
+
+        .texto-descriptivo a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .texto-descriptivo a:hover {
+            text-decoration: underline;
+        }
+
+        .texto-descriptivo strong {
+            font-weight: bold;
+            color: #009900;
+            font-size: 1.1em;
+        }
+
+        .texto-descriptivo p strong {
+            color: #00704A;
+        }
+
+        .text-container {
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 10px;
+            color: #047816;
+            font-size: 18px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .text-container table {
+            width: 100%;
+        }
+
+        .text-container table td {
+            padding: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .text-container table td strong {
+            color: #5d08b8;
+        }
+
+        .text-container .pesos-gramos {
+            font-weight: bold;
+        }
+
+        /* ===============================
+           BLOQUES DE VISIBILIDAD
+           =============================== */
+        .recomendaciones {
+            display: none;
+        }
+
+        .bloque-recomendaciones {
+            display: none;
+        }
+
+        /* ===============================
+           RECOMENDACIONES TEMÁTICAS
+           =============================== */
+        .reco-energia {
+            background-color: #E8F5E9;
+            color: #1B5E20;
+            border-left: 6px solid #2E7D32;
+            padding: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .reco-agua {
+            background-color: #E3F2FD;
+            color: #000000;
+            border-left: 6px solid #1565C0;
+            padding: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .reco-co2 {
+            background-color: #FFF3E0;
+            color: #000000;
+            border-left: 6px solid #EF6C00;
+            padding: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .reco-energia strong,
+        .reco-agua strong,
+        .reco-co2 strong {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .reco-energia:hover,
+        .reco-agua:hover,
+        .reco-co2:hover {
+            background-color: #F1F8E9;
+            transition: background-color 0.3s ease;
+        }
+
+        /* ===============================
+           MODAL - IMPACTO AMBIENTAL
+           =============================== */
+        .modal-impacto {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-contenido {
+            background-color: #ffffff;
+            padding: 25px 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 850px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            animation: popUp 0.4s ease;
+            scrollbar-width: thin;
+            scrollbar-color: #8bc34a #f1f1f1;
+        }
+
+        .modal-contenido::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .modal-contenido::-webkit-scrollbar-thumb {
+            background-color: #8bc34a;
+            border-radius: 5px;
+        }
+
+        .modal-contenido::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+        }
+
+        .modal-contenido h3 {
+            color: #0674a3;
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid #0674a3;
+            padding-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+
+        .modal-contenido table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 15px;
+        }
+
+        .modal-contenido th {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        .modal-contenido td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* ===============================
+           BOTONES DEL MODAL
+           =============================== */
+        .cerrar-modal,
+        .imprimir-modal {
+            flex: none;
+            min-width: 140px;
+            height: 38px;
+            line-height: 1;
+            border: none;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            letter-spacing: 0.2px;
+            vertical-align: middle;
+            margin-top: 15px;
+        }
+
+        .imprimir-modal {
+            background: linear-gradient(135deg, #00704A, #009060);
+            color: white;
+        }
+
+        .cerrar-modal {
+            background: linear-gradient(135deg, #555, #777);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .imprimir-modal:hover,
+        .cerrar-modal:hover {
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            opacity: 0.95;
+        }
+
+        .imprimir-modal:active,
+        .cerrar-modal:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+            opacity: 1;
+        }
+
+        /* ===============================
+           OVERLAY QR
+           =============================== */
+        #overlayQR {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #contenedorQR {
+            background: #fff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+            min-width: 340px;
+        }
+
+        /* ===============================
+           SWEETALERT2 PERSONALIZADO
+           =============================== */
+        .swal2-container {
+            z-index: 99999 !important;
+            animation: fadeInSwal 0.35s ease-out both;
+        }
+
+        .swal2-container.swal2-hide {
+            animation: fadeOutSwal 0.35s ease-in forwards;
+        }
+
+        .swal2-popup {
+            width: 380px !important;
+            padding: 1.2em !important;
+            font-size: 13px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 12px rgba(0, 80, 50, 0.25) !important;
+            animation: scaleInSwal 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+            transform-origin: center center;
+        }
+
+        .swal2-popup.swal2-hide {
+            animation: scaleOutSwal 0.35s ease-in forwards;
+        }
+
+        .swal2-title {
+            font-size: 16px !important;
+            color: #004d00 !important;
+            font-weight: 700 !important;
+        }
+
+        .swal2-html-container {
+            color: #043b03 !important;
+            font-weight: 500;
+            line-height: 1.4em;
+        }
+
+        .swal2-html-container b,
+        .swal2-html-container span,
+        .swal2-html-container p {
+            display: block;
+            text-align: left !important;
+            margin-left: 28px !important;
+            margin-bottom: 0 !important;
+            line-height: 1.1em !important;
+            font-size: 13px !important;
+        }
+
+        .swal2-input {
+            width: 82% !important;
+            height: 32px !important;
+            font-size: 13px !important;
+            text-align: center !important;
+            border: 1.5px solid #00704A !important;
+            border-radius: 6px !important;
+            margin-top: 8px !important;
+        }
+
+        .swal2-actions {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 12px !important;
+            margin-top: 10px !important;
+        }
+
+        .swal2-confirm,
+        .swal2-cancel {
+            border-radius: 6px !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            min-height: 38px !important;
+            min-width: 115px !important;
+            padding: 6px 14px !important;
+            color: #ffffff !important;
+            text-align: center !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+            transition: all 0.2s ease-in-out !important;
+            text-shadow: none !important;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(135deg,#00704A,#009060) !important;
+        }
+
+        .swal2-cancel {
+            background: linear-gradient(135deg,#777,#555) !important;
+        }
+
+        .swal2-confirm:hover,
+        .swal2-cancel:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            opacity: 0.95;
+        }
+
+/* ===============================
+   IMPRESIÓN (PDF) - MANTENIENDO DISEÑO ORIGINAL
+   =============================== */
+@media print {
+    /* 1. RESET SUAVE - MANTENER DISEÑO */
+    body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+        font-family: Arial, sans-serif !important;
+    }
+    
+    /* 2. OCULTAR TODO EXCEPTO EL MODAL */
+    body > *:not(#modalImpacto) {
+        display: none !important;
+    }
+    
+    /* 3. MODAL COMO PÁGINA COMPLETA */
+    #modalImpacto {
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 15px !important;
+        z-index: 999999 !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+    }
+    
+    .modal-impacto {
+        display: block !important;
+        position: static !important;
+        background: white !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 4. CONTENIDO DEL MODAL (MANTENER ESTILOS ORIGINALES) */
+    .modal-contenido {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 20px !important;
+        margin: 0 auto !important;
+        background: white !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* 5. ENCABEZADO DE EVIDENCIA */
+    #encabezadoEvidencia {
+        display: block !important;
+        text-align: center !important;
+        border-bottom: 2px solid #00704A !important;
+        margin-bottom: 20px !important;
+        padding-bottom: 10px !important;
+    }
+    
+    #encabezadoEvidencia h2 {
+        color: #00704A !important;
+        margin: 0 0 10px 0 !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+    }
+    
+    #encabezadoEvidencia p {
+        margin: 5px 0 !important;
+        font-size: 14px !important;
+    }
+    
+    /* 6. TÍTULO PRINCIPAL */
+    .modal-contenido h3 {
+        color: #0674a3 !important;
+        font-size: 18px !important;
+        text-align: center !important;
+        margin: 15px 0 !important;
+        padding-bottom: 10px !important;
+        border-bottom: 2px solid #0674a3 !important;
+        font-weight: bold !important;
+    }
+    
+    /* 7. TABLAS (MANTENER ESTILO ORIGINAL) */
+    .modal-contenido table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 15px 0 !important;
+        font-size: 13px !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .modal-contenido th {
+        background-color: #4CAF50 !important;
+        color: white !important;
+        padding: 8px !important;
+        border: 1px solid #000 !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    .modal-contenido td {
+        padding: 8px !important;
+        border: 1px solid #000 !important;
+        text-align: center !important;
+    }
+    
+    /* 8. FILA DE PESO TOTAL (ESTILO ESPECIAL) */
+    tr[style*="background-color:#f1f8e9"] {
+        background-color: #f1f8e9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-weight: bold !important;
+    }
+    
+    /* 9. HUELLA ECOLÓGICA */
+    #modal_huella_ecologica {
+        text-align: center !important;
+        margin: 20px 0 !important;
+        font-size: 16px !important;
+    }
+    
+    .titulo-strong {
+        font-weight: bold !important;
+        color: #0066cc !important;
+        font-size: 16px !important;
+    }
+    
+    .resultado-span {
+        font-weight: bold !important;
+        color: #00cc00 !important;
+        font-size: 20px !important;
+        margin: 0 5px !important;
+    }
+    
+    /* 10. TABLA DE RESULTADOS GLOBALES */
+    #modal_tablaResultados {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 15px 0 !important;
+    }
+    
+    #modal_tablaResultados tr:nth-child(1) {
+        background-color: #e0f7fa !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    #modal_tablaResultados tr:nth-child(2) {
+        background-color: #e8f5e9 !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    #modal_tablaResultados tr:nth-child(3) {
+        background-color: #fce4ec !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    #modal_tablaResultados tr:nth-child(4) {
+        background-color: #fff8e1 !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    #modal_tablaResultados td {
+        padding: 10px !important;
+        font-size: 14px !important;
+        font-weight: bold !important;
+    }
+    
+    /* 11. RECOMENDACIONES (MANTENER COLORES ORIGINALES) */
+    .reco-energia {
+        background-color: #E8F5E9 !important;
+        color: #1B5E20 !important;
+        border-left: 6px solid #2E7D32 !important;
+        padding: 10px !important;
+        margin: 8px 0 !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    .reco-agua {
+        background-color: #E3F2FD !important;
+        color: #000000 !important;
+        border-left: 6px solid #1565C0 !important;
+        padding: 10px !important;
+        margin: 8px 0 !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    .reco-co2 {
+        background-color: #FFF3E0 !important;
+        color: #000000 !important;
+        border-left: 6px solid #EF6C00 !important;
+        padding: 10px !important;
+        margin: 8px 0 !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+    
+    /* 12. CONTADOR DE DESCARGA */
+    #contador_linea {
+        display: block !important;
+        text-align: center !important;
+        margin-top: 20px !important;
+        padding-top: 10px !important;
+        border-top: 1px solid #ccc !important;
+        font-size: 13px !important;
+    }
+    
+    /* 13. OCULTAR BOTONES Y ELEMENTOS NO NECESARIOS */
+    .cerrar-modal,
+    .imprimir-modal,
+    button,
+    #botonVoz,
+    .BOTONES,
+    .swal2-container {
+        display: none !important;
+    }
+    
+    /* 14. MÁRGENES DE PÁGINA */
+    @page {
+        margin: 1cm !important;
+        size: A4 portrait !important;
+    }
+    
+    /* 15. PREVENIR PÁGINAS ADICIONALES */
+    html, body {
+        height: auto !important;
+        min-height: 0 !important;
+    }
+    
+    /* 16. EVITAR CORTES */
+    h1, h2, h3, h4, h5, h6,
+    table, .reco-energia, .reco-agua, .reco-co2 {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* 17. COLORES DE IMPRESIÓN */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* 18. ELIMINAR SOMBRAS Y EFECTOS */
+    * {
+        text-shadow: none !important;
+        box-shadow: none !important;
+    }
+}
+        /* ===============================
+           ANIMACIONES
+           =============================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popUp {
+            from { 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInSwal {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes fadeOutSwal {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes scaleInSwal {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes scaleOutSwal {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="acordeon">
+        <div class="acordeon-item">
+            <div class="acordeon-titulo"> ▼ CALCULA TU HUELLA ECOLÓGICA AQUÍ</div>
+            <div class="acordeon-contenido">
+                <h2 class="hidden">Impacto de tu reciclaje:</h2>
+                
+                <div class="hidden">
+                    <div class="container">
+                        <div class="column">
+                            <img src="https://img1.wsimg.com/isteam/ip/76d4d079-c21f-45a3-a472-079f79862568/Imagen%20de%20Bruno%20Marques%20Designer%20en%20Pixabay-0001.jpg/:/rs=w:776,h:583,cg:true,m/cr=w:776,h:583" alt="Latas de aluminio" style="width: 240px; height: 140px;">
+                            
+                            <p style='font-size: 14px; margin-bottom: 8px;'>Ingrese cantidad</p>
+                            <input type="number" id="cantidad_latas" placeholder="0" min="0" step="1" style="display: block; margin: 0 auto; font-size: 15px;"><br>
+
+                            <strong><td>Recursos Ahorrados</td></strong><br>
+                            <br><strong><td><span id="lata_energia">0.00</span> kWh</td></strong><br>
+                            <br><strong><td><span id="lata_agua">0.00</span> litros</td></strong><br>
+                            <br><strong><td><span id="lata_co2">0.00</span> kg</td></strong>
+                            <br><br>
+                        </div>
+
+                        <div class="column">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcScxVEpoR3bIZFcvBesZIcdQgRusfmSuaDn9A&usqp=CAU" alt="Cuadernos" style="width: 200px; height: 110px;">
+                            
+                            <p style='font-size: 14px; margin-bottom: 8px;'>Ingrese cantidad</p>
+                            <input type="number" id="cantidad_cuadernos" placeholder="0" min="0" step="1" style="display: block; margin: 0 auto; font-size: 15px;"><br>
+
+                            <strong><td>Recursos Ahorrados</td></strong><br>
+                            <br><strong><td><span id="cuaderno_energia">0.00</span> kWh</td></strong><br>
+                            <br><strong><td><span id="cuaderno_agua">0.00</span> litros</td></strong><br>
+                            <br><strong><td><span id="cuaderno_co2">0.00</span> kg</td></strong>
+                            <br><br>
+                        </div>
+
+                        <div class="column">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyWggOejQ39UhGciKwdzdqdlqsH-E6SNu8fw&usqp=CAU" alt="Botellas plásticas" style="width: 235px; height: 140px;">
+                            
+                            <p style='font-size: 14px; margin-bottom: 8px;'>Ingrese cantidad</p>
+                            <input type="number" id="cantidad_botellas" placeholder="0" min="0" step="1" style="display: block; margin: 0 auto; font-size: 15px;"><br>
+
+                            <strong><td>Recursos Ahorrados</td></strong><br>
+                            <br><strong><td><span id="botella_energia">0.00</span> kWh</td></strong><br>
+                            <br><strong><td><span id="botella_agua">0.00</span> litros</td></strong><br>
+                            <br><strong><td><span id="botella_co2">0.00</span> kg</td></strong>
+                            <br><br>
+                        </div>
+
+                        <div class="clearfix"></div>
+                    </div>
+                    
+                    <div class="contenido-ancho-total">
+                        <div class="container-below">
+                            <span class="BOTONES">
+                                <button style="font-size: 14px;" onclick="calcularImpacto()">Calcular</button>
+                                <button style="font-size: 14px;" onclick="reiniciarCalculadora()">Reiniciar</button>
+                            </span><br>
+                        </div>
+                    </div>
+                    
+                    <br>
+                    
+                    <div class="text-container">
+                        <table>
+                            <strong><p>ESTE ES TU IMPACTO TOTAL</p></strong>
+                            <tr>
+                                <th class="pesos-gramos">Tipo de Material Reciclable</th>
+                                <th class="pesos-gramos">Peso Promedio (g)</th>
+                                <th class="pesos-gramos">Peso Total (g)</th>
+                                <th class="pesos-gramos">Peso Total (kg)</th>
+                            </tr>
+                            <tr>
+                                <td>Cuaderno de 100 hojas</td>
+                                <td>160</td>
+                                <td id="peso_cuadernos">0</td>
+                                <td id="peso_cuadernos_kg">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Lata de aluminio</td>
+                                <td>12</td>
+                                <td id="peso_latas">0</td>
+                                <td id="peso_latas_kg">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Botella plástica de 500 mL</td>
+                                <td>13</td>
+                                <td id="peso_botellas">0</td>
+                                <td id="peso_botellas_kg">0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Peso Total del Material Reciclado</strong></td>
+                                <td></td>
+                                <td id="peso_total"><strong>0</strong></td>
+                                <td id="peso_total_kg"><strong>0.00</strong></td>
+                            </tr>
+                            
+                            <tbody id="bloqueResultados" style="display:none;">
+                                <tr style="background-color:#e0f7fa;">
+                                    <td colspan="2">Total energía ahorrada</td>
+                                    <td colspan="2" id="total_energia">0.00 kWh</td>
+                                </tr>
+                                <tr style="background-color:#e8f5e9;">
+                                    <td colspan="2">Total agua ahorrada</td>
+                                    <td colspan="2" id="total_agua">0.00 L</td>
+                                </tr>
+                                <tr style="background-color:#fce4ec;">
+                                    <td colspan="2">Total CO₂e evitado</td>
+                                    <td colspan="2" id="total_co2">0.00 kg CO₂e</td>
+                                </tr>
+                                <tr style="background-color:#fff8e1;">
+                                    <td colspan="2">Árboles equivalentes salvados</td>
+                                    <td colspan="2" id="total_arboles">0.00 árboles</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <br>
+                        
+                        <p id="huella_ecologica">
+                            <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                            <span id="resultado_hectareas" class="resultado-span">0.00</span>
+                            <strong class="titulo-strong">t CO₂e sin emitir</strong><br><br>
+                        </p>
+                        
+                        <div id="bloqueRecomendaciones" style="display:none;">
+                            <p class="texto-descriptivo"><strong>Recomendaciones Ambientales</strong></p>
+                            <table>
+                                <tr>
+                                    <th class="recomendaciones">AHORRO DE ENERGÍA</th>
+                                    <th class="recomendaciones">AHORRO DE AGUA</th>
+                                    <th class="recomendaciones">MENOS EMISIONES DE CO₂</th>
+                                </tr>
+                                <tr>
+                                    <td class="reco-energia">
+                                        Reduce el consumo de Energía (kWh) — 
+                                        <strong>Usa Energía Renovable:</strong> cambia a fuentes como la solar o eólica para reducir la dependencia de combustibles fósiles.
+                                        <br><strong>Aplica la Eficiencia Energética:</strong> utiliza bombillas LED, electrodomésticos eficientes y mejora el aislamiento térmico.
+                                    </td>
+                                    <td class="reco-agua">
+                                        Reduce el consumo de Agua (Litros) — 
+                                        <strong>Reutiliza y Recicla:</strong> emplea sistemas de captación de lluvia y aguas grises para riego o limpieza.
+                                        <br><strong>Repara Fugas:</strong> corrige pérdidas en tuberías y grifos, evitando el desperdicio innecesario.
+                                    </td>
+                                    <td class="reco-co2">
+                                        Reduce las emisiones de CO₂ (kg) — 
+                                        <strong>Transporte Sostenible:</strong> opta por transporte público, bicicleta o vehículos eléctricos.
+                                        <br><strong>Menos Combustibles Fósiles:</strong> prioriza combustibles limpios y hábitos de movilidad consciente.
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Impacto Ambiental -->
+    <div id="modalImpacto" class="modal-impacto">
+        <div class="modal-contenido">
+            <!-- Encabezado de trazabilidad -->
+            <div id="encabezadoEvidencia" style="display:none; text-align:center; border-bottom:2px solid #00704A; margin-bottom:10px; padding-bottom:5px;">
+                <h2 style="color:#00704A; margin:0;">SITE-RUTA LATAM – Evidencia Ambiental 2025</h2>
+                <p style="margin:5px 0;"><strong>Nombre del estudiante:</strong> <span id="nombre_estudiante_evidencia">______________________</span></p>
+                <p style="margin:5px 0;"><strong>Fecha y hora de emisión:</strong> <span id="fecha_emision_evidencia"></span></p>
+            </div>
+
+            <h3>🌱 ESTE ES TU IMPACTO TOTAL</h3>
+
+            <!-- Tabla de pesos -->
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <th>Tipo de Material Reciclable</th>
+                    <th>Peso Promedio (g)</th>
+                    <th>Peso Total (g)</th>
+                    <th>Peso Total (kg)</th>
+                </tr>
+                <tr>
+                    <td>Cuaderno de 100 hojas</td>
+                    <td>160</td>
+                    <td id="modal_peso_cuadernos">0</td>
+                    <td id="modal_peso_cuadernos_kg">0.000</td>
+                </tr>
+                <tr>
+                    <td>Lata de aluminio</td>
+                    <td>12</td>
+                    <td id="modal_peso_latas">0</td>
+                    <td id="modal_peso_latas_kg">0.000</td>
+                </tr>
+                <tr>
+                    <td>Botella plástica de 500 mL</td>
+                    <td>13</td>
+                    <td id="modal_peso_botellas">0</td>
+                    <td id="modal_peso_botellas_kg">0.000</td>
+                </tr>
+                <tr style="background-color:#f1f8e9;">
+                    <td><strong>Peso Total del Material Reciclado</strong></td>
+                    <td></td>
+                    <td id="modal_peso_total"><strong>0</strong></td>
+                    <td id="modal_peso_total_kg"><strong>0.000</strong></td>
+                </tr>
+            </table>
+
+            <!-- Huella ecológica -->
+            <p id="modal_huella_ecologica" style="margin-top:20px;">
+                <strong class="titulo-strong">Tu Huella Ecológica:</strong>
+                <span id="modal_resultado_hectareas" class="resultado-span">0.000</span>
+                <strong class="titulo-strong">t CO₂e sin emitir</strong>
+            </p>
+
+            <!-- Resultados globales -->
+            <table id="modal_tablaResultados" style="width:100%; margin-top:15px; border-collapse:collapse;">
+                <tr style="background-color:#e0f7fa;">
+                    <td colspan="2"><strong>Total energía ahorrada</strong></td>
+                    <td colspan="2" id="modal_total_energia">0.00 kWh</td>
+                </tr>
+                <tr style="background-color:#e8f5e9;">
+                    <td colspan="2"><strong>Total agua ahorrada</strong></td>
+                    <td colspan="2" id="modal_total_agua">0.00 L</td>
+                </tr>
+                <tr style="background-color:#fce4ec;">
+                    <td colspan="2"><strong>Total CO₂e evitado</strong></td>
+                    <td colspan="2" id="modal_total_co2">0.00 kg CO₂e</td>
+                </tr>
+                <tr style="background-color:#fff8e1;">
+                    <td colspan="2"><strong>Árboles equivalentes salvados</strong></td>
+                    <td colspan="2" id="modal_total_arboles">0.00 árboles</td>
+                </tr>
+            </table>
+
+            <!-- Recomendaciones ambientales -->
+            <div style="margin-top:20px; text-align:justify;">
+                <h4 style="color:#00704A;">♻️ Recomendaciones Ambientales</h4>
+                <div class="reco-energia" style="margin-bottom:10px;">
+                    <strong>Reduce el consumo de Energía (kWh):</strong>
+                    usa fuentes renovables como solar o eólica y mejora la eficiencia energética en el hogar.
+                </div>
+                <div class="reco-agua" style="margin-bottom:10px;">
+                    <strong>Reduce el consumo de Agua (L):</strong>
+                    instala sistemas de reutilización de agua lluvia, corrige fugas y promueve el ahorro consciente.
+                </div>
+                <div class="reco-co2">
+                    <strong>Reduce las emisiones de CO₂ (kg):</strong>
+                    opta por transporte sostenible, prioriza combustibles limpios y adopta hábitos de movilidad verde.
+                </div>
+            </div>
+
+            <p id="contador_linea" class="solo-impresion" style="text-align:center; margin-top:10px; display:none;">
+                🔢 <strong>Número de veces generada la evidencia:</strong>
+                <span id="contador_descargas">0</span>
+            </p>
+
+            <!-- Botones -->
+            <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:20px; padding-top:15px; border-top:1px solid #f0f0f0;">
+                <button class="imprimir-modal" onclick="opcionesEvidencia()">📄 Generar Evidencia</button>
+                <button class="cerrar-modal" onclick="cerrarModalImpacto()">✕ Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === 1. CALCULAR IMPACTO ===
+        function calcularImpacto() {
+            // Lecturas seguras con fallback a 0
+            var cantidad_latas     = parseFloat(document.getElementById("cantidad_latas").value)     || 0;
+            var cantidad_cuadernos = parseFloat(document.getElementById("cantidad_cuadernos").value) || 0;
+            var cantidad_botellas  = parseFloat(document.getElementById("cantidad_botellas").value)  || 0;
+
+            // Si al menos uno > 0, calculamos y mostramos el modal
+            if (cantidad_latas > 0 || cantidad_cuadernos > 0 || cantidad_botellas > 0) {
+                // === COEFICIENTES BASE (EPA WARM MODEL) ===
+                var lata_energia     = cantidad_latas     * 0.168;
+                var lata_agua        = cantidad_latas     * 0.0168;
+                var lata_co2         = cantidad_latas     * 0.108;
+
+                var cuaderno_energia = cantidad_cuadernos * 0.64;
+                var cuaderno_agua    = cantidad_cuadernos * 4.24;
+                var cuaderno_co2     = cantidad_cuadernos * 0.2192;
+
+                var botella_energia  = cantidad_botellas  * 0.224;
+                var botella_agua     = cantidad_botellas  * 0.0234;
+                var botella_co2      = cantidad_botellas  * 0.0195;
+
+                // === SUMATORIAS ===
+                var total_energia  = lata_energia + cuaderno_energia + botella_energia;
+                var total_agua     = lata_agua    + cuaderno_agua    + botella_agua;
+                var total_co2_kg   = lata_co2     + cuaderno_co2     + botella_co2;
+
+                // 🌳 Equivalencias
+                var total_arboles    = total_co2_kg / 21;
+                var total_co2_tonnes = total_co2_kg / 1000;
+
+                // === ACTUALIZAR RESULTADOS PRINCIPALES ===
+                document.getElementById("lata_energia").textContent     = lata_energia.toFixed(2);
+                document.getElementById("lata_agua").textContent        = lata_agua.toFixed(2);
+                document.getElementById("lata_co2").textContent         = lata_co2.toFixed(2);
+
+                document.getElementById("cuaderno_energia").textContent = cuaderno_energia.toFixed(2);
+                document.getElementById("cuaderno_agua").textContent    = cuaderno_agua.toFixed(2);
+                document.getElementById("cuaderno_co2").textContent     = cuaderno_co2.toFixed(2);
+
+                document.getElementById("botella_energia").textContent  = botella_energia.toFixed(2);
+                document.getElementById("botella_agua").textContent     = botella_agua.toFixed(2);
+                document.getElementById("botella_co2").textContent      = botella_co2.toFixed(2);
+
+                document.getElementById("total_energia").textContent = total_energia.toFixed(2) + " kWh";
+                document.getElementById("total_agua").textContent    = total_agua.toFixed(2) + " L";
+                document.getElementById("total_co2").textContent     = total_co2_kg.toFixed(2) + " kg CO₂e";
+
+                // Mostrar bloque de totales
+                document.getElementById("bloqueResultados").style.display = "table-row-group";
+
+                document.getElementById("total_arboles").textContent       = total_arboles.toFixed(2) + " árboles";
+                document.getElementById("modal_total_arboles").textContent = total_arboles.toFixed(2) + " árboles";
+
+                // === Toneladas de CO₂e ===
+                document.getElementById("resultado_hectareas").textContent        = total_co2_tonnes.toFixed(3);
+                document.getElementById("modal_resultado_hectareas").textContent  = total_co2_tonnes.toFixed(3);
+
+                // === CÁLCULO DE MASAS ===
+                const pesoLatas      = cantidad_latas     * 12;
+                const pesoCuadernos  = cantidad_cuadernos * 160;
+                const pesoBotellas   = cantidad_botellas  * 13;
+                const pesoTotal      = pesoLatas + pesoCuadernos + pesoBotellas;
+
+                const pesoLatas_kg     = pesoLatas     / 1000;
+                const pesoCuadernos_kg = pesoCuadernos / 1000;
+                const pesoBotellas_kg  = pesoBotellas  / 1000;
+                const pesoTotal_kg     = pesoTotal     / 1000;
+
+                // === ACTUALIZAR TABLA DE PESOS PRINCIPAL ===
+                document.getElementById("peso_latas").textContent        = pesoLatas;
+                document.getElementById("peso_cuadernos").textContent    = pesoCuadernos;
+                document.getElementById("peso_botellas").textContent     = pesoBotellas;
+                document.getElementById("peso_total").innerHTML          = "<strong>" + pesoTotal + "</strong>";
+
+                document.getElementById("peso_latas_kg").textContent     = pesoLatas_kg.toFixed(3);
+                document.getElementById("peso_cuadernos_kg").textContent = pesoCuadernos_kg.toFixed(3);
+                document.getElementById("peso_botellas_kg").textContent  = pesoBotellas_kg.toFixed(3);
+                document.getElementById("peso_total_kg").innerHTML       = "<strong>" + pesoTotal_kg.toFixed(3) + "</strong>";
+
+                // === TEXTO PEDAGÓGICO ===
+                let mensaje = `
+                    <p>
+                        🌱 Has recuperado <strong>${pesoTotal_kg.toFixed(3)} kg</strong> de materiales reciclables,
+                        equivalentes a <strong>${pesoTotal}</strong> gramos.
+                        <br>Recuerda: <strong>1 kg = 1000 g</strong>.
+                        Este tipo de relación ayuda a comprender las magnitudes físicas reales en educación ambiental.
+                    </p>`;
+                document.querySelector(".texto-descriptivo").innerHTML = mensaje;
+
+                // === MOSTRAR RECOMENDACIONES ===
+                document.getElementById("bloqueRecomendaciones").style.display = "block";
+
+                // === ACTUALIZAR TAMBIÉN EL MODAL ===
+                document.getElementById("modal_total_energia").textContent = total_energia.toFixed(2) + " kWh";
+                document.getElementById("modal_total_agua").textContent    = total_agua.toFixed(2) + " L";
+                document.getElementById("modal_total_co2").textContent     = total_co2_kg.toFixed(2) + " kg CO₂e";
+
+                document.getElementById("modal_peso_latas").textContent        = pesoLatas;
+                document.getElementById("modal_peso_cuadernos").textContent    = pesoCuadernos;
+                document.getElementById("modal_peso_botellas").textContent     = pesoBotellas;
+                document.getElementById("modal_peso_total").innerHTML          = "<strong>" + pesoTotal + "</strong>";
+
+                document.getElementById("modal_peso_latas_kg").textContent     = pesoLatas_kg.toFixed(3);
+                document.getElementById("modal_peso_cuadernos_kg").textContent = pesoCuadernos_kg.toFixed(3);
+                document.getElementById("modal_peso_botellas_kg").textContent  = pesoBotellas_kg.toFixed(3);
+                document.getElementById("modal_peso_total_kg").innerHTML       = "<strong>" + pesoTotal_kg.toFixed(3) + "</strong>";
+
+                // Mostrar el modal
+                mostrarModalImpacto();
+
+            } else {
+                // === REINICIO DE VALORES ===
+                const ids = [
+                    "lata_energia","lata_agua","lata_co2","cuaderno_energia","cuaderno_agua",
+                    "cuaderno_co2","botella_energia","botella_agua","botella_co2",
+                    "total_energia","total_agua","total_co2","resultado_hectareas",
+                    "peso_latas","peso_cuadernos","peso_botellas","peso_total",
+                    "peso_latas_kg","peso_cuadernos_kg","peso_botellas_kg","peso_total_kg",
+                    "total_arboles","modal_total_arboles"
+                ];
+
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    if (id === "peso_total" || id === "peso_total_kg") return;
+                    el.textContent = "0.00";
+                });
+
+                document.getElementById("peso_total").innerHTML    = "<strong>0</strong>";
+                document.getElementById("peso_total_kg").innerHTML = "<strong>0.000</strong>";
+
+                const txt = document.querySelector(".texto-descriptivo");
+                if (txt) txt.innerHTML = "";
+
+                document.getElementById("bloqueRecomendaciones").style.display = "none";
+                document.getElementById("bloqueResultados").style.display = "none";
+            }
+        }
+
+        // === 2. MOSTRAR MODAL ===
+        function mostrarModalImpacto() {
+            document.getElementById("modalImpacto").style.display = "flex";
+        }
+
+        // === 3. CERRAR MODAL ===
+        function cerrarModalImpacto() {
+            document.getElementById("modalImpacto").style.display = "none";
+        }
+
+        // === 4. REINICIAR CALCULADORA ===
+        function reiniciarCalculadora() {
+            // Resetear campos de entrada
+            document.getElementById("cantidad_latas").value = 0;
+            document.getElementById("cantidad_cuadernos").value = 0;
+            document.getElementById("cantidad_botellas").value = 0;
+            document.getElementById("bloqueResultados").style.display = "none";
+
+            // Resetear resultados
+            const recursos = [
+                "lata_energia", "lata_agua", "lata_co2",
+                "cuaderno_energia", "cuaderno_agua", "cuaderno_co2",
+                "botella_energia", "botella_agua", "botella_co2",
+                "total_energia", "total_agua", "total_co2"
+            ];
+            recursos.forEach(id => {
+                document.getElementById(id).textContent = "0.00";
+            });
+
+            // Resetear métricas
+            document.getElementById("resultado_hectareas").textContent = "0.000";
+
+            // Resetear pesos
+            document.getElementById("peso_latas").textContent = "0";
+            document.getElementById("peso_cuadernos").textContent = "0";
+            document.getElementById("peso_botellas").textContent = "0";
+            document.getElementById("peso_total").innerHTML = "<strong>0</strong>";
+
+            document.getElementById("peso_latas_kg").textContent = "0.000";
+            document.getElementById("peso_cuadernos_kg").textContent = "0.000";
+            document.getElementById("peso_botellas_kg").textContent = "0.000";
+            document.getElementById("peso_total_kg").innerHTML = "<strong>0.000</strong>";
+
+            // Ocultar recomendaciones
+            document.getElementById("bloqueRecomendaciones").style.display = "none";
+            document.getElementById("total_arboles").textContent = "0.00 árboles";
+        }
+
+        // === 5. PREPARAR PARA IMPRESIÓN ===
+        function prepararParaImpresion() {
+            const modal = document.getElementById("modalImpacto");
+            modal.style.display = "flex";
+            
+            // Activar clase de impresión
+            document.body.classList.add("imprimiendo");
+            
+            // Mostrar contador
+            document.getElementById("contador_linea").style.display = "block";
+            
+            // Pequeño delay para asegurar que el DOM se actualice
+            setTimeout(() => {
+                try {
+                    // Forzar un reflow
+                    modal.offsetHeight;
+                    
+                    // Abrir diálogo de impresión
+                    window.print();
+                } catch (error) {
+                    console.error("Error al imprimir:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "❌ Error al generar PDF",
+                        html: "No se pudo abrir el diálogo de impresión. Intenta con Ctrl+P",
+                        confirmButtonColor: "#00704A"
+                    });
+                }
+                
+                // Restaurar después de imprimir
+                setTimeout(() => {
+                    document.body.classList.remove("imprimiendo");
+                    document.getElementById("contador_linea").style.display = "none";
+                }, 500);
+            }, 100);
+        }
+
+        // === 6. OPCIONES DE EVIDENCIA ===
+        function opcionesEvidencia() {
+            const modal = document.getElementById("modalImpacto");
+            if (modal.style.display !== "flex") {
+                Swal.fire({
+                    icon: "info",
+                    title: "🌱 Calcula tu impacto primero",
+                    html: "Debes calcular tu impacto ambiental antes de generar la evidencia.",
+                    confirmButtonText: "Entendido",
+                    confirmButtonColor: "#00704A",
+                    background: "#f0fdf4",
+                    color: "#004d00"
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: "question",
+                title: "🌿 Generar Evidencia Ambiental",
+                html: `
+                    Selecciona una opción:<br><br>
+                    <b>1️⃣ Guardar como PDF (recomendado)</b><br>
+                    <b>2️⃣ Imprimir físicamente</b><br>
+                    <b>3️⃣ Generar código QR trazable</b><br><br>
+                    💡 <i>El PDF es la opción más sostenible.</i>
+                `,
+                input: "text",
+                inputPlaceholder: "Escribe 1, 2 o 3",
+                showCancelButton: true,
+                confirmButtonText: "Continuar",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#00704A",
+                background: "#f0fdf4",
+                color: "#004d00"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    Swal.fire({
+                        icon: "info",
+                        title: "❌ Operación cancelada",
+                        confirmButtonColor: "#00704A",
+                        background: "#f0fdf4"
+                    });
+                    return;
+                }
+
+                const opcion = result.value;
+
+                switch (opcion) {
+                    case "1": // PDF
+                    case "2": // Impresión
+                        Swal.fire({
+                            title: opcion === "1" ? "💾 Nombre del estudiante" : "🖨️ Nombre del estudiante",
+                            input: "text",
+                            inputPlaceholder: "Ingresa el nombre del estudiante",
+                            inputValidator: (value) => {
+                                if (!value) return 'Por favor ingresa tu nombre';
+                            },
+                            confirmButtonText: opcion === "1" ? "Generar PDF" : "Imprimir",
+                            confirmButtonColor: opcion === "1" ? "#00704A" : "#777",
+                            background: opcion === "1" ? "#f0fdf4" : "#f8f8f8",
+                            color: opcion === "1" ? "#004d00" : "#333"
+                        }).then((r) => {
+                            if (r.isConfirmed && r.value) {
+                                const nombre = r.value;
+                                prepararEvidenciaTrazable(nombre);
+                                registrarDescarga();
+                                
+                                // Mostrar instrucciones
+                                const alerta = opcion === "1" 
+                                    ? {
+                                        icon: "success",
+                                        title: "🌿 Guardar como PDF",
+                                        html: `
+                                            <div style="text-align: left;">
+                                                <p>En el diálogo de impresión:</p>
+                                                <ol>
+                                                    <li>Busca <b>"Destino"</b> o <b>"Printer"</b></li>
+                                                    <li>Selecciona <b>"Guardar como PDF"</b></li>
+                                                    <li>Haz clic en <b>"Guardar"</b></li>
+                                                </ol>
+                                            </div>
+                                        `,
+                                        confirmButtonText: "Continuar",
+                                        confirmButtonColor: "#00704A",
+                                        background: "#f0fdf4",
+                                        color: "#004d00"
+                                    }
+                                    : {
+                                        icon: "warning",
+                                        title: "🌳 Impresión Física",
+                                        html: "Imprimir tiene impacto ambiental. Utilízala solo si es indispensable.",
+                                        confirmButtonText: "Continuar",
+                                        confirmButtonColor: "#777",
+                                        background: "#fff8f8",
+                                        color: "#550000"
+                                    };
+
+                                Swal.fire(alerta).then(() => {
+                                    prepararParaImpresion();
+                                });
+                            }
+                        });
+                        break;
+
+                    case "3": // QR
+                        Swal.fire({
+                            title: "🌐 Nombre del estudiante",
+                            input: "text",
+                            inputPlaceholder: "Ingresa el nombre del estudiante",
+                            confirmButtonText: "Generar QR",
+                            confirmButtonColor: "#00704A",
+                            background: "#f0fdf4",
+                            color: "#004d00"
+                        }).then((r3) => {
+                            if (r3.isConfirmed && r3.value) {
+                                const nombre3 = r3.value;
+                                prepararEvidenciaTrazable(nombre3);
+                                registrarDescarga();
+                                generarQREvidencia();
+                            }
+                        });
+                        break;
+
+                    default:
+                        Swal.fire({
+                            icon: "info",
+                            title: "❌ Opción no válida",
+                            html: "Por favor, ingresa 1, 2 o 3 para seleccionar una opción válida.",
+                            confirmButtonColor: "#00704A",
+                            background: "#f0fdf4",
+                            color: "#004d00"
+                        });
+                }
+            });
+        }
+
+        // === 7. PREPARAR EVIDENCIA TRAZABLE ===
+        function prepararEvidenciaTrazable(nombreEstudiante) {
+            const encabezado = document.getElementById("encabezadoEvidencia");
+            if (encabezado) {
+                encabezado.style.display = "block";
+                document.getElementById("nombre_estudiante_evidencia").textContent =
+                    nombreEstudiante || "______________________";
+                const fechaActual = new Date().toLocaleString("es-CO", {
+                    dateStyle: "long",
+                    timeStyle: "short",
+                });
+                document.getElementById("fecha_emision_evidencia").textContent = fechaActual;
+            }
+        }
+
+        // === 8. REGISTRAR DESCARGA ===
+        function registrarDescarga() {
+            let conteo = localStorage.getItem("conteoEvidencias") || 0;
+            conteo = parseInt(conteo) + 1;
+            localStorage.setItem("conteoEvidencias", conteo);
+            const campoConteo = document.getElementById("contador_descargas");
+            if (campoConteo) campoConteo.textContent = conteo;
+            return conteo;
+        }
+
+        // === 9. ACORDEÓN ===
+        document.addEventListener('DOMContentLoaded', function() {
+            // Acordeón
+            const acordeonItems = document.querySelectorAll('.acordeon-item');
+            acordeonItems.forEach((item) => {
+                const titulo = item.querySelector('.acordeon-titulo');
+                const contenido = item.querySelector('.acordeon-contenido');
+                
+                titulo.addEventListener('click', () => {
+                    if (contenido.style.display === 'block') {
+                        contenido.style.display = 'none';
+                    } else {
+                        contenido.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Botón de voz
+            let narracionActiva = localStorage.getItem("narracionActiva") === "true";
+            const botonVoz = document.createElement("button");
+            botonVoz.id = "botonVoz";
+            botonVoz.title = "Narración ON/OFF";
+            botonVoz.textContent = narracionActiva ? "🔊" : "🔇";
+            botonVoz.style.position = "fixed";
+            botonVoz.style.top = "15px";
+            botonVoz.style.right = "15px";
+            botonVoz.style.backgroundColor = narracionActiva ? "#00704A" : "#888";
+            botonVoz.style.color = "white";
+            botonVoz.style.fontWeight = "bold";
+            botonVoz.style.border = "none";
+            botonVoz.style.borderRadius = "50%";
+            botonVoz.style.width = "45px";
+            botonVoz.style.height = "45px";
+            botonVoz.style.cursor = "pointer";
+            botonVoz.style.fontSize = "18px";
+            botonVoz.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+            botonVoz.style.transition = "all 0.3s ease";
+            botonVoz.style.zIndex = "9999";
+            document.body.appendChild(botonVoz);
+
+            botonVoz.addEventListener("click", () => {
+                narracionActiva = !narracionActiva;
+                localStorage.setItem("narracionActiva", narracionActiva);
+                botonVoz.textContent = narracionActiva ? "🔊" : "🔇";
+                botonVoz.style.backgroundColor = narracionActiva ? "#00704A" : "#888";
+            });
+            
+            // Inicializar contador
+            let contador = localStorage.getItem("conteoEvidencias") || "0";
+            document.getElementById("contador_descargas").textContent = contador;
+        });
+
+     // === 10. GENERAR QR (VERSIÓN COMPLETA CON DISEÑO) ===
+function generarQREvidencia() {
+    const energia = document.getElementById("total_energia").textContent;
+    const agua = document.getElementById("total_agua").textContent;
+    const co2 = document.getElementById("total_co2").textContent;
+    const fecha = new Date().toLocaleString("es-CO");
+
+    const pesoLatas = document.getElementById("peso_latas").textContent;
+    const pesoCuadernos = document.getElementById("peso_cuadernos").textContent;
+    const pesoBotellas = document.getElementById("peso_botellas").textContent;
+    const pesoTotal = document.getElementById("peso_total").textContent;
+    const pesoTotalKg = document.getElementById("peso_total_kg").textContent;
+
+    const nombreEst = (
+        document.getElementById("nombre_estudiante_evidencia")?.textContent || "Estudiante"
+    );
+
+    // Generar ID de evidencia único
+    let nroEvidencia = parseInt(localStorage.getItem("nroEvidenciaPMAP") || "0");
+    nroEvidencia++;
+    localStorage.setItem("nroEvidenciaPMAP", nroEvidencia.toString());
+    const evidenciaID = `PMAP-${new Date().getFullYear()}-${nroEvidencia
+        .toString()
+        .padStart(4, "0")}`;
+
+    const urlExacta = "https://archivo.lostutores.co/collection/vpkvi08843cef539e42cab83f2e7906c3d912/external";
+    const contenidoQR = urlExacta;
+
+    // Remover overlay anterior si existe
+    document.getElementById("overlayQR")?.remove();
+
+    // Crear nuevo overlay
+    const overlay = document.createElement("div");
+    overlay.id = "overlayQR";
+    Object.assign(overlay.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0,0,0,0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: "9999",
+    });
+
+    // Crear contenedor QR con diseño completo
+    const contQR = document.createElement("div");
+    contQR.id = "contenedorQR";
+    Object.assign(contQR.style, {
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "12px",
+        textAlign: "center",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
+        minWidth: "340px",
+        maxWidth: "380px",
+        animation: "scaleIn 0.3s ease",
+    });
+
+    // HTML con diseño completo (igual que en el primer código)
+    contQR.innerHTML = `
+        <h3 style="color:#006400; margin:0 0 8px 0; font-size:15px;">
+            📎 Evidencia Ambiental SITE-RUTA LATAM
+        </h3>
+        <div style="font-size:10px; color:#004d00; margin-bottom:12px; background:#e8f5e8; padding:4px 8px; border-radius:4px;">
+            <strong>${evidenciaID}</strong> – Registro PMAP 2025
+        </div>
+
+        <div id="qrcode" style="margin:0 auto 15px auto; width:200px; height:200px; border:2px solid #006400; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f8fff8;">
+            <span style="color:#666; font-size:12px;">Generando QR...</span>
+        </div>
+
+        <div style="margin-bottom:12px; font-size:11px; color:#333; text-align:left; background:linear-gradient(135deg,#f8fff8,#e8f5e8); padding:12px; border-radius:8px; border-left:4px solid #006400;">
+            <strong style="color:#006400;">🌱 MATERIALES RECICLADOS</strong>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
+                <div style="text-align:center;background:white;padding:6px;border-radius:4px;"><b style="color:#006400;">LATAS</b><br>${pesoLatas}g</div>
+                <div style="text-align:center;background:white;padding:6px;border-radius:4px;"><b style="color:#006400;">CUADERNOS</b><br>${pesoCuadernos}g</div>
+                <div style="text-align:center;background:white;padding:6px;border-radius:4px;"><b style="color:#006400;">BOTELLAS</b><br>${pesoBotellas}g</div>
+                <div style="text-align:center;background:#006400;color:white;padding:6px;border-radius:4px;"><b>TOTAL</b><br>${pesoTotal}g<br><small>${pesoTotalKg} kg</small></div>
+            </div>
+        </div>
+
+        <div style="margin-bottom:12px; font-size:11px; color:#333; text-align:left; background:linear-gradient(135deg,#e8f5e8,#d4edda); padding:12px; border-radius:8px; border-left:4px solid #28a745;">
+            <strong style="color:#28a745;">⚡ IMPACTO AMBIENTAL (AHORRO)</strong>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; text-align:center; margin-top:6px;">
+                <div style="background:white;padding:6px;border-radius:4px;"><b style="color:#ff6b00;">ENERGÍA</b><br>${energia}</div>
+                <div style="background:white;padding:6px;border-radius:4px;"><b style="color:#007bff;">AGUA</b><br>${agua}</div>
+                <div style="background:white;padding:6px;border-radius:4px;"><b style="color:#6f42c1;">CO₂e</b><br>${co2}</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;font-size:11px;color:#555;text-align:center;background:#f8f9fa;padding:10px;border-radius:6px;border:1px dashed #006400;">
+            <b>👤 ESTUDIANTE:</b> ${nombreEst}<br>
+            <b>📅 FECHA:</b> ${fecha}
+        </div>
+
+        <div style="margin-bottom:12px;font-size:10px;color:#006400;text-align:center;background:#e8f5e8;padding:6px;border-radius:6px;">
+            <b>📲 Escanear → Plataforma → Ingresar datos → Subir PDF</b>
+        </div>
+
+        <!-- BOTONES -->
+        <div style="display:flex;gap:4px;justify-content:space-between;">
+            <button id="descargarQR" style="flex:0.8;background:linear-gradient(135deg,#006400,#008000);color:white;border:none;border-radius:6px;padding:6px 2px;cursor:pointer;font-weight:600;font-size:11px;min-height:32px;transition:all 0.2s;">📥<br><span style="font-size:11px;">Descargar</span></button>
+            <button id="abrirLink" style="flex:0.8;background:linear-gradient(135deg,#1e88e5,#42a5f5);color:white;border:none;border-radius:6px;padding:6px 2px;cursor:pointer;font-weight:600;font-size:11px;min-height:32px;transition:all 0.2s;">🌐<br><span style="font-size:11px;">Abrir Plataforma</span></button>
+            <button id="cerrarQR" style="flex:0.8;background:linear-gradient(135deg,#b71c1c,#d32f2f);color:white;border:none;border-radius:6px;padding:6px 2px;cursor:pointer;font-weight:600;font-size:11px;min-height:32px;transition:all 0.2s;">✕<br><span style="font-size:11px;">Cerrar</span></button>
+        </div>
+    `;
+
+    overlay.appendChild(contQR);
+    document.body.appendChild(overlay);
+
+    // Agregar animación CSS si no existe
+    if (!document.querySelector("#animScaleIn")) {
+        const style = document.createElement("style");
+        style.id = "animScaleIn";
+        style.textContent = `
+            #contenedorQR { animation: scaleIn 0.3s ease; }
+            @keyframes scaleIn { 
+                from { transform: scale(0.9); opacity: 0; } 
+                to { transform: scale(1); opacity: 1; } 
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Generar el QR después de un pequeño delay
+    setTimeout(() => {
+        const qrContainer = document.getElementById("qrcode");
+        if (!qrContainer || typeof QRCode === "undefined") {
+            console.error("Biblioteca QRCode no cargada");
+            return;
+        }
+
+        qrContainer.innerHTML = "";
+        try {
+            const qrcode = new QRCode(qrContainer, {
+                text: contenidoQR,
+                width: 180,
+                height: 180,
+                colorDark: "#006400",
+                colorLight: "#f8fff8",
+                correctLevel: QRCode.CorrectLevel.Q,
+            });
+
+            // Función para descargar QR con diseño completo
+            document.getElementById("descargarQR").addEventListener("click", function() {
+                const canvas = qrContainer.querySelector("canvas");
+                if (!canvas) {
+                    Swal.fire({
+                        icon: "info",
+                        title: "⏳ Espera un momento",
+                        html: "El QR aún se está generando. Intenta nuevamente en unos segundos.",
+                        confirmButtonColor: "#00704A",
+                        background: "#f0fdf4",
+                        color: "#004d00"
+                    });
+                    return;
+                }
+
+                try {
+                    // Crear canvas completo con toda la información
+                    const canvasCompleto = document.createElement("canvas");
+                    const ctx = canvasCompleto.getContext("2d");
+                    canvasCompleto.width = 400;
+                    canvasCompleto.height = 510;
+
+                    // Fondo blanco
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, 400, 510);
+                    
+                    // Dibujar QR
+                    ctx.drawImage(canvas, 100, 20, 200, 200);
+                    
+                    // Título
+                    ctx.fillStyle = "#006400";
+                    ctx.font = "bold 16px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("SITE-RUTA LATAM", 200, 240);
+                    
+                    // ID de evidencia
+                    ctx.font = "12px Arial";
+                    ctx.fillStyle = "#333";
+                    ctx.fillText(evidenciaID, 200, 260);
+                    
+                    // Información del estudiante
+                    ctx.fillText(`Estudiante: ${nombreEst}`, 200, 280);
+                    ctx.fillText(`Fecha: ${fecha}`, 200, 295);
+                    
+                    // Materiales reciclados
+                    ctx.font = "bold 11px Arial";
+                    ctx.fillText("MATERIALES RECICLADOS", 200, 320);
+                    ctx.font = "10px Arial";
+                    ctx.fillText(`Latas: ${pesoLatas}g | Cuadernos: ${pesoCuadernos}g | Botellas: ${pesoBotellas}g`, 200, 335);
+                    ctx.fillText(`Total: ${pesoTotal}g (${pesoTotalKg} kg)`, 200, 350);
+                    
+                    // Impacto ambiental
+                    ctx.font = "bold 11px Arial";
+                    ctx.fillText("IMPACTO AMBIENTAL", 200, 375);
+                    ctx.font = "10px Arial";
+                    ctx.fillText(`Energía: ${energia}`, 200, 390);
+                    ctx.fillText(`Agua: ${agua}`, 200, 405);
+                    ctx.fillText(`CO₂: ${co2}`, 200, 420);
+                    
+                    // Instrucciones
+                    ctx.font = "9px Arial";
+                    ctx.fillStyle = "#004d00";
+                    ctx.fillText("Escanea este código para subir tu evidencia a la plataforma", 200, 445);
+                    ctx.fillText("https://archivo.lostutores.co", 200, 460);
+                    
+                    // Pie de página
+                    ctx.font = "bold 10px Arial";
+                    ctx.fillStyle = "#004d00";
+                    ctx.fillText(`${evidenciaID} – Sistema de Trazabilidad PMAP 2025`, 200, 498);
+
+                    // Descargar imagen
+                    const enlace = document.createElement("a");
+                    enlace.download = `Evidencia_${evidenciaID}_${nombreEst.replace(/\s+/g, "_")}.png`;
+                    enlace.href = canvasCompleto.toDataURL("image/png");
+                    enlace.click();
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ QR descargado con éxito",
+                        html: "Tu evidencia ha sido generada correctamente.<br><b>Gracias por aportar al planeta 🌍</b>",
+                        confirmButtonColor: "#00704A",
+                        background: "#f0fdf4",
+                        color: "#004d00"
+                    });
+                } catch (error) {
+                    console.error("Error al generar imagen:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "❌ Error al generar imagen",
+                        text: "Intenta nuevamente.",
+                        confirmButtonColor: "#b71c1c"
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error("Error generando QR:", error);
+            Swal.fire({
+                icon: "error",
+                title: "⚠️ Error al generar QR",
+                html: `<a href="${urlExacta}" target="_blank" style="color:#00704A;">Abrir plataforma manualmente</a>`,
+                confirmButtonColor: "#00704A",
+                background: "#f0fdf4",
+                color: "#004d00"
+            });
+        }
+    }, 50);
+
+    // Botón para abrir el link
+    document.getElementById("abrirLink").addEventListener("click", () => {
+        window.open(urlExacta, "_blank");
+    });
+
+    // Botón para cerrar
+    document.getElementById("cerrarQR").addEventListener("click", () => overlay.remove());
+    
+    // Cerrar al hacer clic fuera
+    overlay.addEventListener("click", (e) => { 
+        if (e.target === overlay) overlay.remove(); 
+    });
+
+    // Narración (si existe la función hablar)
+    if (typeof hablar === "function") {
+        hablar(`
+            Has generado la evidencia ${evidenciaID} del sistema PMAP 2025.
+            Reciclaste ${pesoTotal} gramos de materiales, equivalente a ${pesoTotalKg} kilogramos.
+            Evitaste ${co2} de CO₂ y ahorraste ${energia} de energía y ${agua} de agua.
+            Escanea o descarga el código para subir tu evidencia al sistema SITE-RUTA LATAM.
+        `);
+    }
+}
+
+// Función auxiliar para verificar si la biblioteca está cargada
+function verificarBibliotecaQR() {
+    if (typeof QRCode === "undefined") {
+        console.error("QRCode no está definido. Verifica que el script esté cargado.");
+        return false;
+    }
+    return true;
+}
+        // === 11. EVENTOS DE IMPRESIÓN ===
+        window.onbeforeprint = function () {
+            document.body.classList.add("imprimiendo");
+        };
+
+        window.onafterprint = function () {
+            document.body.classList.remove("imprimiendo");
+            document.getElementById("contador_linea").style.display = "none";
+        };
+   
+   // 🔊 Función de narración (si no existe)
+function hablar(texto) {
+    // Verificar si la narración está activa
+    let narracionActiva = localStorage.getItem("narracionActiva") === "true";
+    if (!narracionActiva) return;
+    
+    // Verificar si el navegador soporta speech synthesis
+    if ('speechSynthesis' in window) {
+        const narrador = new SpeechSynthesisUtterance(texto);
+        narrador.lang = "es-ES";
+        narrador.pitch = 1;
+        narrador.rate = 1;
+        narrador.volume = 1;
+        speechSynthesis.speak(narrador);
+    }
+}
+   
+   
+   
+   </script>
+
+</body>
+</html>

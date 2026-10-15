@@ -39,9 +39,16 @@
   <div class="campo"><strong>Actividades/Refuerzos:</strong> <span id="actividades"></span></div>
 </div>
 
+<br>
+
+<input type="text" id="busqueda" placeholder="Buscar palabra clave..." style="padding:8px;border-radius:6px;border:1px solid #aaa;width:60%;">
+
 <script>
 // ====================== DATASET COMPLETO ======================
 const data = [
+
+
+// --- LENGUAJE / LECTURA CRÍTICA — GRADO 3° ---
 
   {
     "Área": "Lenguaje",
@@ -79,6 +86,8 @@ const data = [
     "Tarea/Pregunta": "¿Cuál es la enseñanza del cuento? ¿Estás de acuerdo?",
     "Actividades/Refuerzos": "Escribe un consejo al personaje; Debate: ¿actuó bien el protagonista?; Elabora un cartel con el mensaje central."
   },
+
+  // --- LENGUAJE / LECTURA CRÍTICA — GRADO 5° ---
   {
     "Área": "Lenguaje",
     "Grado": "5°",
@@ -116,6 +125,9 @@ const data = [
     "Actividades/Refuerzos": "Haz un cuadro comparativo de dos textos; Señala qué noticia tiene más argumentos; Elabora tu propia conclusión a partir de ambas fuentes."
   },
 
+
+// --- LENGUAJE / LECTURA CRÍTICA — GRADO 7° ---
+
   {
     "Área": "Lenguaje",
     "Grado": "7°",
@@ -152,6 +164,9 @@ const data = [
     "Tarea/Pregunta": "¿Qué tan efectivo es el argumento de este artículo?",
     "Actividades/Refuerzos": "Haz una lista de razones a favor y en contra; Debate con tus compañeros sobre el texto; Escribe una reseña crítica."
   },
+
+// --- LENGUAJE / LECTURA CRÍTICA — GRADO 9° ---
+
   {
     "Área": "Lenguaje",
     "Grado": "9°",
@@ -189,7 +204,7 @@ const data = [
     "Actividades/Refuerzos": "Escribe un artículo de opinión alterno; Debate oral: ¿estás de acuerdo con el autor?; Diseña un póster con tu postura crítica."
   },
 
-
+ // --- MATEMÁTICAS — GRADO 3° ---
   {
     "Área": "Matemáticas",
     "Grado": "3°",
@@ -226,6 +241,9 @@ const data = [
     "Tarea/Pregunta": "Si un bus lleva 25 niños y hay 4 buses, ¿cuántos niños son?",
     "Actividades/Refuerzos": "Haz una tabla de multiplicación; Representa con dibujos de buses; Explica con tus palabras cómo lo resolviste."
   },
+
+
+   // --- MATEMÁTICAS — GRADO 5° ---
   {
     "Área": "Matemáticas",
     "Grado": "5°",
@@ -262,6 +280,9 @@ const data = [
     "Tarea/Pregunta": "Plantea una ecuación para este problema de compras.",
     "Actividades/Refuerzos": "Haz gráficos con datos; Resuelve con diferentes métodos; Explica a un compañero cómo llegaste al resultado."
   },
+
+ // --- MATEMÁTICAS — GRADO 7° ---
+
   {
     "Área": "Matemáticas",
     "Grado": "7°",
@@ -301,6 +322,9 @@ const data = [
     "Tarea/Pregunta": "Diseña 2 estrategias distintas para este problema.",
     "Actividades/Refuerzos": "Comparar soluciones de varios grupos; Resolver con dibujos y ecuaciones; Debatir cuál estrategia es más eficiente."
   },
+
+ // --- MATEMÁTICAS — GRADO 9° ---
+
   {
     "Área": "Matemáticas",
     "Grado": "9°",
@@ -337,6 +361,8 @@ const data = [
     "Tarea/Pregunta": "Comprueba tu solución al sistema de ecuaciones.",
     "Actividades/Refuerzos": "Resolver con 2 métodos distintos; Revisar con sustitución; Presentar justificación en grupo."
   },
+
+   // --- CIENCIAS NATURALES — GRADO 3° ---
   {
     "Área": "Ciencias Naturales",
     "Grado": "3°",
@@ -375,7 +401,7 @@ const data = [
   },
 
 
-
+ // --- CIENCIAS NATURALES — GRADO 5° ---
   {
     "Área": "Ciencias Naturales",
     "Grado": "5°",
@@ -412,6 +438,8 @@ const data = [
     "Tarea/Pregunta": "¿Por qué debemos reducir la contaminación?",
     "Actividades/Refuerzos": "Debate escolar; Diseña un afiche de concienciación; Redacta 3 acciones que cambiarías."
   },
+
+   // --- CIENCIAS NATURALES — GRADO 7° ---
   {
     "Área": "Ciencias Naturales",
     "Grado": "7°",
@@ -448,6 +476,8 @@ const data = [
     "Tarea/Pregunta": "Defiende la importancia de la biodiversidad.",
     "Actividades/Refuerzos": "Debate con roles; Elabora un mural ambiental; Escribe un ensayo corto."
   },
+
+  // --- CIENCIAS NATURALES — GRADO 9° ---
   {
     "Área": "Ciencias Naturales",
     "Grado": "9°",
@@ -485,6 +515,10 @@ const data = [
     "Actividades/Refuerzos": "Investiga fuentes; Elabora presentación; Debate en clase."
   },
 
+
+// --- SOCIALES / COMPETENCIAS CIUDADANAS — GRADO 3° ---
+
+
   {
     "Área": "Competencias Ciudadanas",
     "Grado": "3°",
@@ -521,6 +555,10 @@ const data = [
     "Tarea/Pregunta": "¿Qué harías si un compañero es excluido?",
     "Actividades/Refuerzos": "Debate grupal; Escribe propuesta de acción; Haz un afiche inclusivo."
   },
+
+// --- SOCIALES / COMPETENCIAS CIUDADANAS — GRADO 5° ---
+
+
   {
     "Área": "Competencias Ciudadanas",
     "Grado": "5°",
@@ -557,6 +595,10 @@ const data = [
     "Tarea/Pregunta": "Diseña una campaña para mejorar la convivencia.",
     "Actividades/Refuerzos": "Elaboración de afiches; Exposición grupal; Implementación piloto en el salón."
   },
+
+// --- SOCIALES / COMPETENCIAS CIUDADANAS — GRADO 7° ---
+
+
   {
     "Área": "Competencias Ciudadanas",
     "Grado": "7°",
@@ -594,6 +636,10 @@ const data = [
     "Actividades/Refuerzos": "Investigación previa; Debate con roles; Redacta conclusiones."
   },
   {
+
+// --- SOCIALES / COMPETENCIAS CIUDADANAS — GRADO 9° ---
+
+
     "Área": "Competencias Ciudadanas",
     "Grado": "9°",
     "Nivel": 1,
@@ -628,42 +674,316 @@ const data = [
     "Verbo Bloom": "Evaluar / Liderar",
     "Tarea/Pregunta": "Redacta un ensayo sobre participación juvenil.",
     "Actividades/Refuerzos": "Escribir ensayo; Debate público; Presentación en feria escolar."
+  },
+
+
+// ====================== DATASET COMPLETO ======================
+
+  // --- LENGUAJE / LECTURA CRÍTICA — GRADO 11° ---
+  {
+    "Área": "Lenguaje / Lectura Crítica",
+    "Grado": "11°",
+    "Nivel": 1,
+    "Descriptor oficial": "Identifica elementos literales en textos continuos y discontinuos sin establecer relaciones de significado. Reconoce información local del texto y la estructura e intención comunicativa explícita.",
+    "Verbo Bloom": "Recordar / Identificar",
+    "Tarea/Pregunta": "¿Cuál de las siguientes afirmaciones aparece explícitamente en el texto?",
+    "Actividades/Refuerzos": "Subraya las frases que repiten información literal; Marca conectores como 'primero', 'luego'; Dibuja un esquema con los personajes y hechos que aparecen tal como están escritos; Relaciona cada párrafo con su idea principal literal."
+  },
+  {
+    "Área": "Lenguaje / Lectura Crítica",
+    "Grado": "11°",
+    "Nivel": 2,
+    "Descriptor oficial": "Comprende textos continuos y discontinuos de manera literal. Reconoce información explícita y la relaciona con el contexto. Jerarquiza información, reconoce la intención comunicativa y analiza y sintetiza información.",
+    "Verbo Bloom": "Comprender / Explicar",
+    "Tarea/Pregunta": "¿Qué relación existe entre estas dos ideas del texto?",
+    "Actividades/Refuerzos": "Organiza ideas en un mapa conceptual; Escribe con tus palabras el propósito del texto; Clasifica frases según su función (introducción, desarrollo, cierre); Identifica conectores que muestran causa o consecuencia."
+  },
+  {
+    "Área": "Lenguaje / Lectura Crítica",
+    "Grado": "11°",
+    "Nivel": 3,
+    "Descriptor oficial": "Interpreta información al inferir contenidos implícitos y reconocer estrategias discursivas o juicios valorativos. Establece relaciones intertextuales y evalúa la validez de argumentos.",
+    "Verbo Bloom": "Analizar / Inferir / Argumentar",
+    "Tarea/Pregunta": "¿Qué se puede inferir de la postura del autor en este fragmento?",
+    "Actividades/Refuerzos": "Completa cuadros de inferencias (dice / significa / implica); Identifica frases que expresan opinión o valoración; Debate cuál es el argumento más sólido; Escribe una conclusión breve sobre la intención del texto."
+  },
+  {
+    "Área": "Lenguaje / Lectura Crítica",
+    "Grado": "11°",
+    "Nivel": 4,
+    "Descriptor oficial": "Reflexiona a partir de un texto sobre la visión de mundo del autor. Valora y contrasta con su posición propia. Propone soluciones a problemas de interpretación, evalúa estrategias discursivas y asume una postura crítica frente al texto.",
+    "Verbo Bloom": "Evaluar / Crear / Justificar",
+    "Tarea/Pregunta": "¿Cuál es la postura del autor frente al tema y qué opinión personal puedes sustentar al respecto?",
+    "Actividades/Refuerzos": "Redacta una respuesta argumentativa con premisas propias; Compara dos textos que aborden el mismo tema desde distintas perspectivas; Crea un artículo breve que refute o complemente la tesis del autor; Participa en un debate sobre la validez de los argumentos."
+  },
+
+  // --- MATEMÁTICAS — GRADO 11° ---
+  {
+    "Área": "Matemáticas",
+    "Grado": "11°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce y usa procedimientos elementales para resolver ejercicios simples. Identifica relaciones numéricas y operaciones básicas. Sustituye datos en fórmulas conocidas y representa información en tablas o gráficos sencillos.",
+    "Verbo Bloom": "Recordar / Aplicar",
+    "Tarea/Pregunta": "Resuelva la operación o sustituya los valores dados según la fórmula presentada.",
+    "Actividades/Refuerzos": "Completa ejercicios con operaciones básicas; Usa tablas para organizar resultados; Relaciona cada fórmula con su uso; Dibuja un gráfico sencillo con los datos obtenidos."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "11°",
+    "Nivel": 2,
+    "Descriptor oficial": "Aplica conceptos y procedimientos para resolver problemas rutinarios. Selecciona representaciones adecuadas (numéricas, gráficas o simbólicas) y explica los pasos seguidos para justificar resultados en situaciones familiares.",
+    "Verbo Bloom": "Comprender / Aplicar / Explicar",
+    "Tarea/Pregunta": "Explique cómo obtuvo su resultado y qué representación utilizó para resolver el problema.",
+    "Actividades/Refuerzos": "Describe paso a paso tu procedimiento; Selecciona la gráfica que corresponde al problema; Compara dos métodos distintos de resolución; Relaciona unidades y magnitudes en tablas de datos."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "11°",
+    "Nivel": 3,
+    "Descriptor oficial": "Resuelve problemas que implican varios procedimientos y relaciones entre variables. Analiza representaciones y selecciona estrategias pertinentes. Modela situaciones usando expresiones algebraicas o gráficas y verifica resultados evaluando su coherencia.",
+    "Verbo Bloom": "Analizar / Modelar / Verificar",
+    "Tarea/Pregunta": "Formule el modelo matemático correspondiente a la situación y verifique si el resultado obtenido es coherente con el contexto.",
+    "Actividades/Refuerzos": "Escriba ecuaciones que representen la situación descrita; Dibuje el gráfico correspondiente al modelo; Compare el resultado numérico con el comportamiento esperado; Analice errores posibles en el procedimiento."
+  },
+  {
+    "Área": "Matemáticas",
+    "Grado": "11°",
+    "Nivel": 4,
+    "Descriptor oficial": "Formula, argumenta y valida conjeturas en diferentes contextos. Evalúa estrategias y resultados, eligiendo las más eficientes. Generaliza propiedades y modelos y justifica razonamientos con base en principios matemáticos.",
+    "Verbo Bloom": "Evaluar / Argumentar / Crear",
+    "Tarea/Pregunta": "Analice la validez de las estrategias utilizadas y proponga una generalización del modelo o una solución alternativa más eficiente.",
+    "Actividades/Refuerzos": "Escriba una justificación detallada de su procedimiento; Compare dos métodos y evalúe cuál es más eficiente; Proponga un modelo general a partir del caso resuelto; Argumente la validez de su respuesta usando principios matemáticos."
+  },
+
+  // --- CIENCIAS NATURALES — GRADO 11° ---
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "11°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce hechos, conceptos y procesos naturales simples. Identifica características de organismos, materiales o fenómenos. Usa información explícita para responder preguntas directas.",
+    "Verbo Bloom": "Recordar / Identificar",
+    "Tarea/Pregunta": "Seleccione la opción que describe correctamente el fenómeno observado o el concepto mencionado.",
+    "Actividades/Refuerzos": "Clasifica imágenes de seres vivos, materiales o sistemas naturales; Subraya palabras clave que indican características observables; Completa oraciones: 'El fenómeno que ocurre es ___'; Dibuja esquemas simples del proceso descrito."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "11°",
+    "Nivel": 2,
+    "Descriptor oficial": "Explica procesos naturales con base en relaciones simples de causa y efecto. Usa conceptos científicos para describir fenómenos cotidianos y establece correspondencias entre datos experimentales y explicaciones conocidas.",
+    "Verbo Bloom": "Comprender / Explicar",
+    "Tarea/Pregunta": "Explique por qué ocurre el fenómeno descrito o cuál es la relación entre las variables mencionadas.",
+    "Actividades/Refuerzos": "Elabora esquemas de causa y efecto; Relaciona diagramas con explicaciones; Redacta con tus palabras la razón de un fenómeno; Diseña una pequeña experiencia que ilustre la relación causa–efecto."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "11°",
+    "Nivel": 3,
+    "Descriptor oficial": "Aplica teorías y conceptos para explicar resultados experimentales. Analiza representaciones, datos y gráficas. Contrasta hipótesis con la evidencia y usa modelos científicos para resolver problemas en diferentes contextos.",
+    "Verbo Bloom": "Analizar / Aplicar / Argumentar",
+    "Tarea/Pregunta": "Según los datos o el gráfico presentado, ¿qué variable explica el cambio observado y cómo se justifica científicamente?",
+    "Actividades/Refuerzos": "Analiza tablas de resultados experimentales; Contrasta dos hipótesis posibles; Representa los datos en un gráfico y explica su tendencia; Relaciona la evidencia empírica con el modelo teórico correspondiente."
+  },
+  {
+    "Área": "Ciencias Naturales",
+    "Grado": "11°",
+    "Nivel": 4,
+    "Descriptor oficial": "Evalúa y argumenta la validez de teorías o conclusiones. Integra diferentes campos del conocimiento para explicar fenómenos. Propone soluciones científicas o tecnológicas a problemas ambientales o sociales y sustenta decisiones con criterios científicos y éticos.",
+    "Verbo Bloom": "Evaluar / Crear / Justificar",
+    "Tarea/Pregunta": "A partir del caso presentado, evalúe la validez de la explicación dada y proponga una alternativa sustentada en principios científicos y éticos.",
+    "Actividades/Refuerzos": "Escriba una conclusión argumentada sobre la validez del experimento; Proponga una solución tecnológica o ambiental basada en evidencia; Analice dilemas éticos de la práctica científica; Diseñe una mejora al modelo experimental original."
+  },
+
+  // --- CIENCIAS SOCIALES Y CIUDADANAS — GRADO 11° ---
+  {
+    "Área": "Ciencias Sociales y Ciudadanas",
+    "Grado": "11°",
+    "Nivel": 1,
+    "Descriptor oficial": "Reconoce algunos derechos ciudadanos en situaciones sencillas. Reconoce factores que generan un conflicto, identifica creencias que explican comportamientos y reconoce acciones cotidianas que favorecen la convivencia. Distingue entre hechos y opiniones en situaciones simples.",
+    "Verbo Bloom": "Recordar / Identificar",
+    "Tarea/Pregunta": "¿Cuál de las siguientes acciones respeta una norma ciudadana o favorece la convivencia?",
+    "Actividades/Refuerzos": "Clasifica ejemplos en 'respeta normas' o 'no respeta normas'; Subraya expresiones que reflejan hechos u opiniones; Dibuja un cartel con derechos y deberes básicos; Escenifica una situación donde se cumpla una norma de convivencia."
+  },
+  {
+    "Área": "Ciencias Sociales y Ciudadanas",
+    "Grado": "11°",
+    "Nivel": 2,
+    "Descriptor oficial": "Reconoce deberes del Estado y situaciones de protección o vulneración de derechos. Explica causas y consecuencias de acciones que afectan la convivencia. Relaciona normas con situaciones cotidianas y diferencia participación ciudadana de proselitismo político.",
+    "Verbo Bloom": "Comprender / Explicar / Relacionar",
+    "Tarea/Pregunta": "Explique las consecuencias que tiene para la convivencia el incumplimiento de una norma o derecho.",
+    "Actividades/Refuerzos": "Analiza ejemplos de vulneración de derechos; Elabora un mapa de causas y consecuencias; Compara distintas formas de participación ciudadana; Escribe un párrafo sobre cómo se puede fortalecer la convivencia en tu comunidad."
+  },
+  {
+    "Área": "Ciencias Sociales y Ciudadanas",
+    "Grado": "11°",
+    "Nivel": 3,
+    "Descriptor oficial": "Identifica prejuicios o intenciones en afirmaciones. Analiza relaciones de poder entre actores sociales y políticos. Explica procesos históricos con causas y consecuencias y argumenta con base en principios democráticos ante situaciones sociales.",
+    "Verbo Bloom": "Analizar / Argumentar / Valorar",
+    "Tarea/Pregunta": "Analice la caricatura o texto presentado e identifique los intereses o prejuicios que se evidencian.",
+    "Actividades/Refuerzos": "Debate sobre las intenciones de los actores en un conflicto; Señala elementos de poder o desigualdad en una situación; Redacta un argumento basado en valores democráticos; Compara dos puntos de vista sobre un mismo problema social."
+  },
+  {
+    "Área": "Ciencias Sociales y Ciudadanas",
+    "Grado": "11°",
+    "Nivel": 4,
+    "Descriptor oficial": "Analiza críticamente puntos de vista sobre una situación o problema. Propone alternativas de solución acordes con los derechos y deberes ciudadanos. Evalúa acciones de instituciones y actores sociales según principios democráticos y sustenta posturas frente a dilemas morales y éticos.",
+    "Verbo Bloom": "Evaluar / Crear / Justificar",
+    "Tarea/Pregunta": "Proponga una alternativa democrática frente al dilema social o ético presentado, justificando su decisión con argumentos y valores ciudadanos.",
+    "Actividades/Refuerzos": "Diseña una propuesta de solución a un problema comunitario; Evalúa las acciones de una institución en un caso social real; Debate en grupo un dilema ético y formula acuerdos; Redacta una postura crítica sustentada en derechos y deberes ciudadanos."
+  },
+
+  // --- INGLÉS — GRADO 11° ---
+  {
+    "Área": "Inglés",
+    "Grado": "11°",
+    "Nivel": "Pre-A1",
+    "Descriptor oficial": "Comprende oraciones, preguntas, instrucciones o conversaciones cuando se utiliza vocabulario simple. Identifica palabras familiares en frases que describen personas, lugares u objetos conocidos.",
+    "Verbo Bloom": "Recordar / Reconocer",
+    "Tarea/Pregunta": "Match the words with the correct pictures or actions.",
+    "Actividades/Refuerzos": "Asocia imágenes con palabras básicas (family, colors, numbers); Repite saludos y expresiones cotidianas; Ordena frases simples; Juega con tarjetas de vocabulario para reforzar reconocimiento visual y auditivo."
+  },
+  {
+    "Área": "Inglés",
+    "Grado": "11°",
+    "Nivel": "A1",
+    "Descriptor oficial": "Comprende enunciados simples relacionados con situaciones comunicativas cotidianas. Identifica información personal, saludos, indicaciones y acciones en presente. Entiende mensajes breves en avisos, correos o letreros.",
+    "Verbo Bloom": "Comprender / Seleccionar",
+    "Tarea/Pregunta": "Read the message and choose the correct answer about what the person is doing or where they are.",
+    "Actividades/Refuerzos": "Completa oraciones con expresiones familiares (I am / You are …); Relaciona señales con su significado; Escucha y marca palabras clave en audios cortos; Escribe frases simples describiendo rutinas o lugares."
+  },
+  {
+    "Área": "Inglés",
+    "Grado": "11°",
+    "Nivel": "A2",
+    "Descriptor oficial": "Comprende información específica en textos breves informativos o narrativos. Identifica vocabulario sobre acciones, lugares y sentimientos. Interpreta enunciados que expresan opiniones sencillas e infiere significados a partir del contexto.",
+    "Verbo Bloom": "Analizar / Inferir / Interpretar",
+    "Tarea/Pregunta": "Read the paragraph and infer what the person feels or thinks about the situation.",
+    "Actividades/Refuerzos": "Subraya conectores de tiempo y causa; Relaciona palabras con sinónimos o antónimos; Identifica frases que expresan opinión; Completa cuadros de inferencia: says / means / implies; Debate brevemente sobre preferencias o gustos."
+  },
+  {
+    "Área": "Inglés",
+    "Grado": "11°",
+    "Nivel": "B1",
+    "Descriptor oficial": "Comprende textos sobre temas generales y específicos. Infiere significados de palabras desconocidas a partir del contexto. Reconoce la intención comunicativa y la actitud del autor. Identifica argumentos y evidencias y formula conclusiones propias.",
+    "Verbo Bloom": "Evaluar / Argumentar / Crear",
+    "Tarea/Pregunta": "According to the text, what is the author's opinion and how can you support or disagree with it?",
+    "Actividades/Refuerzos": "Subraya expresiones de opinión y contraste (however, although); Resume el texto en cinco oraciones; Debate sobre la intención del autor; Escribe una respuesta personal justificando tu punto de vista; Crea un breve artículo o comentario crítico sobre el tema leído."
   }
+
+
+
+
+
+
 
 ];
 
+// ====================== MATRIZ SABER–HACER–SER ======================
+const DATA = { 
+  saber: {
+    4: ["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3: ["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2: ["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1: ["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer: {
+    4: ["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3: ["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2: ["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1: ["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser: {
+    4: ["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3: ["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2: ["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1: ["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
 
 
 // =============================================================
 
-// ======= Rellenar menús desplegables =======
+// ======= Rellenar menús desplegables (versión corregida y completa) =======
 const areaSelect = document.getElementById("areaSelect");
 const gradoSelect = document.getElementById("gradoSelect");
 const nivelSelect = document.getElementById("nivelSelect");
 
-const uniqueAreas = [...new Set(data.map(d => d["Área"]))];
-uniqueAreas.forEach(a => areaSelect.innerHTML += `<option value="${a}">${a}</option>`);
+// 1️⃣ Cargar áreas únicas ordenadas alfabéticamente
+const uniqueAreas = [...new Set(data.map(d => d["Área"]))].sort();
+uniqueAreas.forEach(a => {
+  areaSelect.innerHTML += `<option value="${a}">${a}</option>`;
+});
 
-areaSelect.addEventListener("change", ()=>{
+// 2️⃣ Cuando se selecciona un área, cargar los grados disponibles (incluye 11°)
+areaSelect.addEventListener("change", () => {
   gradoSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
   nivelSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
-  const grados = [...new Set(data.filter(d=>d["Área"]===areaSelect.value).map(d=>d["Grado"]))];
-  grados.forEach(g => gradoSelect.innerHTML += `<option value="${g}">${g}</option>`);
+
+  // Extraer los grados únicos y ordenarlos de menor a mayor (3°,5°,7°,9°,11°)
+  const grados = [...new Set(
+    data.filter(d => d["Área"] === areaSelect.value).map(d => d["Grado"])
+  )].sort((a, b) => parseInt(a) - parseInt(b));
+
+  grados.forEach(g => {
+    gradoSelect.innerHTML += `<option value="${g}">${g}</option>`;
+  });
 });
 
-gradoSelect.addEventListener("change", ()=>{
+// 3️⃣ Cuando se selecciona un grado, cargar niveles asociados
+gradoSelect.addEventListener("change", () => {
   nivelSelect.innerHTML = "<option value=''>-- Seleccionar --</option>";
-  const niveles = [...new Set(data.filter(d=>d["Área"]===areaSelect.value && d["Grado"]===gradoSelect.value).map(d=>d["Nivel"]))];
-  niveles.forEach(n => nivelSelect.innerHTML += `<option value="${n}">${n}</option>`);
+
+  const niveles = [...new Set(
+    data.filter(
+      d => d["Área"] === areaSelect.value && d["Grado"] === gradoSelect.value
+    ).map(d => d["Nivel"])
+  )];
+
+  niveles.forEach(n => {
+    nivelSelect.innerHTML += `<option value="${n}">${n}</option>`;
+  });
 });
 
-nivelSelect.addEventListener("change", ()=>{
-  const registro = data.find(d=> d["Área"]===areaSelect.value && d["Grado"]===gradoSelect.value && String(d["Nivel"])===nivelSelect.value);
+// 4️⃣ Mostrar resultados según el nivel seleccionado (versión con SABER–HACER–SER)
+nivelSelect.addEventListener("change", () => {
+  const registro = data.find(
+    d =>
+      d["Área"] === areaSelect.value &&
+      d["Grado"] === gradoSelect.value &&
+      String(d["Nivel"]) === nivelSelect.value
+  );
+
+  // Descriptores oficiales
   document.getElementById("descriptor").textContent = registro ? registro["Descriptor oficial"] : "";
-  document.getElementById("bloom").textContent = registro ? registro["Verbo Bloom"] : "";
   document.getElementById("tarea").textContent = registro ? registro["Tarea/Pregunta"] : "";
   document.getElementById("actividades").textContent = registro ? registro["Actividades/Refuerzos"] : "";
+
+  // ====== BLOOM EXTENDIDO SABER–HACER–SER ======
+  const nivel = parseInt(nivelSelect.value);
+  let bloomHTML = "";
+
+  if (DATA.saber[nivel]) {
+    bloomHTML += `<div style="background:#E3F2FD;padding:8px;border-radius:6px;margin-bottom:4px;">
+      🧠 <strong>SABER (Nivel ${nivel}):</strong> ${DATA.saber[nivel].join(", ")}
+    </div>`;
+  }
+  if (DATA.hacer[nivel]) {
+    bloomHTML += `<div style="background:#E8F5E9;padding:8px;border-radius:6px;margin-bottom:4px;">
+      🛠️ <strong>HACER (Nivel ${nivel}):</strong> ${DATA.hacer[nivel].join(", ")}
+    </div>`;
+  }
+  if (DATA.ser[nivel]) {
+    bloomHTML += `<div style="background:#FFF8E1;padding:8px;border-radius:6px;">
+      💫 <strong>SER (Nivel ${nivel}):</strong> ${DATA.ser[nivel].join(", ")}
+    </div>`;
+  }
+
+  document.getElementById("bloom").innerHTML = bloomHTML || (registro ? registro["Verbo Bloom"] : "");
 });
+
+
+
+
+
 </script>
 
 </body>

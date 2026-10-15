@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 SITE·RUTA LATAM – Análisis Institucional ICFES</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f7faff;
+  color: #222;
+  margin: 20px;
+  text-align: center;
+}
+h1 {
+  color: #003366;
+  font-size: 1.8em;
+  margin-bottom: 5px;
+}
+h2 {
+  color: #00509e;
+}
+#summary {
+  background: #e9f5ff;
+  border-left: 6px solid #004d99;
+  border-radius: 6px;
+  padding: 10px 15px;
+  width: 70%;
+  margin: 15px auto;
+  text-align: left;
+}
+input[type="file"] {
+  margin: 15px;
+}
+table {
+  width: 95%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th {
+  background: #002855;
+  color: white;
+  padding: 8px;
+  text-align: center;
+}
+td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+tr:nth-child(even) { background: #f1f5f9; }
+canvas {
+  margin: 25px;
+  max-width: 550px;
+}
+#charts-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+button {
+  background: #0077b6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+button:hover {
+  background: #004d73;
+}
+</style>
+</head>
+<body>
+<h1>📈 Análisis Institucional SITE·RUTA LATAM</h1>
+<h2>Resultados ICFES Saber 11 – IED DON JACA 2025</h2>
+
+<input type="file" id="fileInput" accept=".xlsx, .csv">
+<div id="summary"></div>
+<div id="output"></div>
+<div id="charts-container">
+  <canvas id="barChart"></canvas>
+  <canvas id="radarChart"></canvas>
+</div>
+<button id="downloadExcel" style="display:none;">📗 Descargar Excel Técnico</button>
+
+<script>
+document.getElementById("fileInput").addEventListener("change", handleFile);
+
+async function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data, { type: "array" });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+  processResults(jsonData);
+}
+
+function normalize(text) {
+  return text.toString().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase();
+}
+
+function processResults(data) {
+  const areas = {
+    "lecturacritica": "Lectura Crítica",
+    "matematicas": "Matemáticas",
+    "socialesyciudadanas": "Sociales y Ciudadanas",
+    "cienciasnaturales": "Ciencias Naturales",
+    "ingles": "Inglés"
+  };
+
+  const headers = Object.keys(data[0]).map(h => [normalize(h), h]);
+  const stats = {};
+
+  for (const [key, area] of Object.entries(areas)) {
+    const col = headers.find(([norm]) => norm.includes(key));
+    if (!col) continue;
+    const colName = col[1];
+    const puntajes = data.map(row => Number(row[colName]) || 0).filter(v => v > 0);
+    const niveles = puntajes.map(p => getNivel(area, p));
+    stats[area] = { puntajes, niveles };
+  }
+
+  renderTable(stats);
+  renderCharts(stats);
+  renderSummary(stats);
+  createExcel(stats);
+}
+
+function getNivel(area, puntaje) {
+  if (area === "Inglés") {
+    if (puntaje <= 36) return "Pre A1";
+    if (puntaje <= 57) return "A1";
+    if (puntaje <= 70) return "A2";
+    return "B1";
+  } else {
+    if (puntaje <= 40) return "N1";
+    if (puntaje <= 55) return "N2";
+    if (puntaje <= 70) return "N3";
+    return "N4";
+  }
+}
+
+function renderSummary(stats) {
+  const allVals = Object.values(stats).flatMap(s => s.puntajes);
+  const promGlobal = (allVals.reduce((a,b)=>a+b,0)/allVals.length).toFixed(1);
+  let nivelGlobal = "";
+  if (promGlobal <= 40) nivelGlobal = "Nivel 1 (Bajo)";
+  else if (promGlobal <= 55) nivelGlobal = "Nivel 2 (Básico)";
+  else if (promGlobal <= 70) nivelGlobal = "Nivel 3 (Alto)";
+  else nivelGlobal = "Nivel 4 (Superior)";
+
+  document.getElementById("summary").innerHTML = `
+    <strong>📊 Resumen Institucional:</strong><br>
+    Promedio global: <b>${promGlobal}</b> puntos<br>
+    Nivel de desempeño predominante: <b>${nivelGlobal}</b><br>
+    Total de áreas analizadas: ${Object.keys(stats).length}
+  `;
+}
+
+function renderTable(stats) {
+  let html = `<table><tr><th>Área</th><th>N Est.</th><th>Media</th><th>Mediana</th><th>Desv.Est.</th><th>Distribución (%)</th><th>Nivel Predominante</th></tr>`;
+  for (const area in stats) {
+    const vals = stats[area].puntajes;
+    if (!vals.length) continue;
+    const n = vals.length;
+    const media = (vals.reduce((a,b)=>a+b,0)/n).toFixed(1);
+    const mediana = vals.sort((a,b)=>a-b)[Math.floor(n/2)];
+    const desv = (Math.sqrt(vals.map(x=>Math.pow(x-media,2)).reduce((a,b)=>a+b)/n)).toFixed(1);
+    const niveles = stats[area].niveles;
+    const nivelesCount = {};
+    niveles.forEach(nv => nivelesCount[nv] = (nivelesCount[nv]||0)+1);
+    const dist = Object.entries(nivelesCount).map(([k,v]) => `${k}:${((v/n)*100).toFixed(1)}%`).join(", ");
+    const pred = Object.entries(nivelesCount).sort((a,b)=>b[1]-a[1])[0][0];
+    html += `<tr><td>${area}</td><td>${n}</td><td>${media}</td><td>${mediana}</td><td>${desv}</td><td>${dist}</td><td>${pred}</td></tr>`;
+  }
+  html += `</table>`;
+  document.getElementById("output").innerHTML = html;
+}
+
+function renderCharts(stats) {
+  const labels = Object.keys(stats);
+  const medias = labels.map(a => {
+    const vals = stats[a].puntajes;
+    return vals.length ? vals.reduce((x,y)=>x+y,0)/vals.length : 0;
+  });
+
+  // Gráfico de barras
+  const barCtx = document.getElementById("barChart");
+  new Chart(barCtx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Media Institucional por Área",
+        data: medias,
+        backgroundColor: ["#002855","#004d99","#0073e6","#3399ff","#66ccff"]
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Gráfico radar
+  const radarCtx = document.getElementById("radarChart");
+  new Chart(radarCtx, {
+    type: "radar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Media Institucional",
+        data: medias,
+        fill: true,
+        backgroundColor: "rgba(0, 86, 179, 0.2)",
+        borderColor: "#004d99",
+        pointBackgroundColor: "#0066cc"
+      }]
+    },
+    options: { scales: { r: { beginAtZero: true, max: 100 } } }
+  });
+}
+
+function createExcel(stats) {
+  const ws_data = [["Área","N Est.","Media","Mediana","Desv.Est.","Nivel Predominante"]];
+  for (const a in stats) {
+    const vals = stats[a].puntajes;
+    if (!vals.length) continue;
+    const n = vals.length;
+    const media = (vals.reduce((a,b)=>a+b,0)/n).toFixed(1);
+    const mediana = vals.sort((a,b)=>a-b)[Math.floor(n/2)];
+    const desv = (Math.sqrt(vals.map(x=>Math.pow(x-media,2)).reduce((a,b)=>a+b)/n)).toFixed(1);
+    const pred = Object.entries(stats[a].niveles.reduce((acc,v)=>{acc[v]=(acc[v]||0)+1;return acc;},{})).sort((a,b)=>b[1]-a[1])[0][0];
+    ws_data.push([a,n,media,mediana,desv,pred]);
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, "Institucional");
+  document.getElementById("downloadExcel").style.display="inline";
+  document.getElementById("downloadExcel").onclick=()=>{
+    XLSX.writeFile(wb,"IED_Don_Jaca_2025_SITE-RUTA_Institucional.xlsx");
+  };
+}
+</script>
+</body>
+</html>

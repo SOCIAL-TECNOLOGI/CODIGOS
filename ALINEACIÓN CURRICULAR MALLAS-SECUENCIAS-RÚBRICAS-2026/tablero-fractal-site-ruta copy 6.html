@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapa Fractal de Implementación – SITE–RUTA LATAM</title>
+
+<style>
+   :root{
+    --bg:#020617;
+    --panel:#0f172a;
+    --card:#111827;
+    --accent:#38bdf8;
+    --accent-soft:rgba(56,189,248,.15);
+    --ok:#22c55e;
+    --warn:#f97316;
+    --danger:#ef4444;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+    --border:#1f2937;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
+    background:radial-gradient(1200px 800px at 80% -20%,#0f172a,#020617);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:16px 24px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(120deg,rgba(56,189,248,.15),transparent);
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  header .title-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  h1{
+    font-size:1.4rem;
+    letter-spacing:.03em;
+  }
+  .subtitle{
+    font-size:.85rem;
+    color:var(--muted);
+  }
+  .school-management{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+  .school-management label{
+    font-size:.85rem;
+    color:var(--muted);
+  }
+  .school-input{
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:rgba(15,23,42,.9);
+    color:var(--text);
+    min-width:220px;
+    transition: all 0.2s ease;
+  }
+  .school-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .school-input.invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px rgba(239,68,68,.2);
+  }
+  .school-name-display {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .btn{
+    border:none;
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:.8rem;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    transition: all 0.2s ease;
+  }
+  .btn:hover {
+    background: rgba(56,189,248,.25);
+  }
+  .btn-danger{
+    background:rgba(239,68,68,.1);
+    color:var(--danger);
+  }
+  .btn-danger:hover {
+    background: rgba(239,68,68,.2);
+  }
+  .btn-success{
+    background:rgba(34,197,94,.1);
+    color:var(--ok);
+  }
+  .btn-success:hover {
+    background: rgba(34,197,94,.2);
+  }
+  main{
+    flex:1;
+    display:flex;
+    gap:16px;
+    padding:16px 20px 24px;
+  }
+  .sidebar{
+    width:260px;
+    background:var(--panel);
+    border-radius:18px;
+    padding:14px 16px;
+    border:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    position:sticky;
+    top:16px;
+    height:fit-content;
+  }
+  .sidebar-title{
+    font-size:.9rem;
+    font-weight:600;
+  }
+  .progress-ring{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    border:6px solid rgba(15,23,42,1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 8px;
+    background:conic-gradient(var(--accent) 0deg, var(--accent) 0deg, rgba(15,23,42,1) 0deg);
+    position:relative;
+  }
+  .progress-ring-inner{
+    width:82px;
+    height:82px;
+    border-radius:50%;
+    background:var(--panel);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:2px;
+  }
+  .progress-ring-inner span{
+    font-size:.75rem;
+    color:var(--muted);
+  }
+  .progress-ring-inner strong{
+    font-size:1.1rem;
+  }
+  .sidebar-metrics{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:.8rem;
+  }
+  .metric-line{
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+  }
+  .metric-line strong{
+    color:var(--text);
+  }
+  .legend{
+    border-top:1px solid var(--border);
+    padding-top:8px;
+    font-size:.75rem;
+    color:var(--muted);
+  }
+  .legend p{margin-bottom:4px;}
+  .legend span.dot{
+    display:inline-block;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    margin-right:4px;
+  }
+  .dot-low{background:var(--danger);}
+  .dot-mid{background:var(--warn);}
+  .dot-high{background:var(--ok);}
+  .content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .levels-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+  @media(max-width:1000px){
+    main{flex-direction:column;}
+    .sidebar{position:static;width:100%;}
+    .levels-grid{grid-template-columns:1fr;}
+  }
+  .level-card{
+    background:var(--panel);
+    border-radius:18px;
+    border:1px solid var(--border);
+    padding:12px 12px 10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    position:relative;
+  }
+  .level-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:6px;
+  }
+  .level-title{
+    font-size:.9rem;
+    font-weight:600;
+  }
+  .level-code{
+    font-size:.75rem;
+    color:var(--muted);
+  }
+  .badge{
+    font-size:.7rem;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid var(--accent);
+    color:var(--accent);
+    background:rgba(56,189,248,.07);
+  }
+  .progress-bar-wrap{
+    width:100%;
+    height:6px;
+    border-radius:999px;
+    background:#020617;
+    overflow:hidden;
+  }
+  .progress-bar{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--danger),var(--warn),var(--ok),var(--accent));
+    transition:width .25s ease-out;
+  }
+  .steps-list{
+    margin-top:4px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    max-height:220px;
+    overflow:auto;
+  }
+  .step-row{
+    display:grid;
+    grid-template-columns:auto 3.2rem minmax(0,1fr);
+    gap:6px;
+    align-items:flex-start;
+    padding:4px 6px;
+    border-radius:10px;
+    background:rgba(15,23,42,.8);
+    border:1px solid transparent;
+    font-size:.78rem;
+  }
+  .step-row.completed{
+    border-color:rgba(34,197,94,.45);
+    background:rgba(22,163,74,.07);
+  }
+  .step-check{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .step-check input{
+    width:16px;
+    height:16px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+  .step-code{
+    font-weight:600;
+    color:var(--accent);
+    font-size:.78rem;
+  }
+  .step-main{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .step-title{
+    font-weight:500;
+  }
+  .step-meta{
+    font-size:.72rem;
+    color:var(--muted);
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    padding:1px 6px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    font-size:.68rem;
+    color:var(--muted);
+  }
+  .migration-flag{
+    font-size:.7rem;
+    margin-top:2px;
+    color:var(--muted);
+  }
+  .migration-flag strong{color:var(--ok);}
+  .hint{
+    font-size:.78rem;
+    color:var(--muted);
+  }
+  .current-school {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .current-school strong {
+    color: var(--accent);
+  }
+  
+  /* Estilos mejorados para el panel de gestión de colegios */
+  .schools-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100vh;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+    transition: right 0.3s ease;
+    z-index: 1000;
+  }
+  
+  .schools-panel.open {
+    right: 0;
+  }
+  
+  .schools-panel h2 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .schools-panel h2 button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .search-box {
+    margin-bottom: 16px;
+    position: relative;
+  }
+  
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    padding-right: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,.9);
+    color: var(--text);
+  }
+  
+  .search-count {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--panel);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  .add-school-form {
+    background: var(--card);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  
+  .add-school-form h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    color: var(--accent);
+  }
+  
+  .add-school-form input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(15,23,42,.9);
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  
+  .schools-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  
+  .pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+  }
+  
+  .pagination-info {
+    color: var(--muted);
+  }
+  
+  .pagination-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .pagination-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+  }
+  
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .pagination-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  
+  .schools-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+  
+  .school-item {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .school-item:hover {
+    border-color: var(--accent);
+    background: rgba(56,189,248,.05);
+  }
+  
+  .school-item.active {
+    border-color: var(--accent);
+    background: rgba(56,189,248,.1);
+  }
+  
+  .school-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .school-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .school-progress {
+    font-size: 0.75rem;
+    color: var(--accent);
+  }
+  
+  .school-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .school-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  
+  .school-actions .btn {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px 20px;
+  }
+  
+  .empty-state .icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  
+  .filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .filter-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  
+  .progress-indicator {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--danger), var(--warn), var(--ok), var(--accent));
+    transition: width 0.3s ease;
+  }
+
+  /* Grid view para muchos colegios */
+  .schools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+  }
+
+  .school-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .school-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+
+  .school-card.compact .school-meta {
+      display: none;
+  }
+
+  .view-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+  }
+
+  .view-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 6px;
+      cursor: pointer;
+  }
+
+  .view-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+  }
+
+  /* Dashboard en Sidebar */
+  .sidebar-dashboard {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 8px;
+  }
+
+  .dashboard-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+  }
+
+  .stat-card {
+      background: var(--card);
+      padding: 8px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid var(--border);
+  }
+
+  .stat-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--accent);
+  }
+
+  .stat-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+  }
+
+  .levels-distribution h4 {
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      color: var(--muted);
+  }
+
+  .level-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      font-size: 0.75rem;
+  }
+
+  .level-bar .bar {
+      height: 8px;
+      background: var(--accent);
+      border-radius: 4px;
+      flex: 1;
+  }
+
+  /* Notificaciones */
+  .notification-badge {
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: -5px;
+      right: -5px;
+  }
+
+  .notifications-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 380px;
+      height: 100vh;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      z-index: 1001;
+  }
+
+  .notifications-panel.open {
+      right: 0;
+  }
+
+  .notification-item {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      background: var(--card);
+  }
+
+  .notification-item.warning {
+      border-left: 4px solid var(--warn);
+  }
+
+  .notification-item.success {
+      border-left: 4px solid var(--ok);
+  }
+
+  /* Controles de Vista */
+  .view-controls {
+      margin-bottom: 12px;
+  }
+
+  .view-toggle {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+  }
+
+  .view-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      flex: 1;
+  }
+
+  .view-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+  }
+
+  .advanced-filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+  }
+
+  .advanced-filters select,
+  .advanced-filters input {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.75rem;
+  }
+
+  /* Vista Grid */
+  .schools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+  }
+
+  .school-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.3s ease;
+  }
+
+  .school-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+
+  .school-card.active {
+      border-color: var(--accent);
+      background: rgba(56,189,248,.1);
+  }
+
+  .school-card.compact .school-meta {
+      display: none;
+  }
+
+  /* Backup Controls */
+  .backup-controls {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+  }
+
+  .backup-controls .btn {
+      flex: 1;
+      font-size: 0.75rem;
+  }
+
+  .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2,6,23,0.7);
+      z-index: 999;
+      display: none;
+  }
+  
+  .overlay.active {
+      display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- Panel de Gestión de Colegios -->
+<div class="schools-panel" id="schoolsPanel">
+  <h2>
+    Gestión de Colegios
+    <button id="closePanel">×</button>
+  </h2>
+  
+  <!-- FORMULARIO PARA REGISTRAR NUEVO COLEGIO -->
+  <div class="add-school-form">
+    <h3>➕ Registrar nuevo colegio</h3>
+    <input type="text" id="newSchoolName" placeholder="Nombre del colegio (Ej: IE General José María Cabal)">
+    <button class="btn btn-success" id="btnAddSchool" style="width: 100%;">
+      📝 Registrar colegio
+    </button>
+  </div>
+
+  <!-- NUEVO: Controles de Vista -->
+  <div class="view-controls">
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="list">📋 Lista</button>
+      <button class="view-btn" data-view="grid">🧱 Grid</button>
+      <button class="view-btn" data-view="compact">📦 Compacto</button>
+    </div>
+    
+    <div class="advanced-filters">
+      <select id="levelFilter" multiple>
+        <option value="N1">Nivel 1</option>
+        <option value="N2">Nivel 2</option>
+        <option value="N3">Nivel 3</option>
+        <option value="N4">Nivel 4</option>
+      </select>
+      <input type="number" id="minProgress" placeholder="Mín %" min="0" max="100">
+      <input type="number" id="maxProgress" placeholder="Máx %" min="0" max="100">
+    </div>
+  </div>
+  
+  <!-- BÚSQUEDA Y FILTROS -->
+  <div class="search-box">
+    <input type="text" id="schoolSearch" placeholder="Buscar colegio...">
+    <div class="search-count" id="searchCount">0</div>
+  </div>
+  
+  <!-- FILTROS RÁPIDOS -->
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="progress-0">0-25%</button>
+    <button class="filter-btn" data-filter="progress-25">25-50%</button>
+    <button class="filter-btn" data-filter="progress-50">50-75%</button>
+    <button class="filter-btn" data-filter="progress-75">75-100%</button>
+    <button class="filter-btn" data-filter="recent">Recientes</button>
+  </div>
+  
+  <!-- ESTADÍSTICAS -->
+  <div class="schools-stats">
+    <span id="totalSchools">Total: 0 colegios</span>
+    <span id="visibleSchools">Mostrando: 0</span>
+  </div>
+  
+  <!-- PAGINACIÓN -->
+  <div class="pagination-controls">
+    <div class="pagination-info" id="paginationInfo">Página 1 de 1</div>
+    <div class="pagination-buttons">
+      <button class="pagination-btn" id="prevPage" disabled>‹ Anterior</button>
+      <div id="pageNumbers"></div>
+      <button class="pagination-btn" id="nextPage" disabled>Siguiente ›</button>
+    </div>
+  </div>
+  
+  <!-- LISTA DE COLEGIOS -->
+  <div class="schools-list" id="schoolsList">
+    <!-- Lista de colegios se cargará aquí -->
+  </div>
+  
+  <!-- CONTROLES ADICIONALES -->
+  <div class="pagination-controls">
+    <button class="btn btn-danger" id="btnBulkDelete" style="font-size: 0.75rem;">
+      🗑️ Eliminar seleccionados
+    </button>
+    <button class="btn" id="btnExport" style="font-size: 0.75rem;">
+      📤 Exportar lista
+    </button>
+  </div>
+
+  <!-- NUEVO: Controles de Backup -->
+  <div class="backup-controls">
+    <button class="btn" id="btnBackup">💾 Crear Backup</button>
+    <button class="btn" id="btnRestore">📥 Restaurar Backup</button>
+    <input type="file" id="backupFile" accept=".json" style="display: none;">
+  </div>
+</div>
+
+<!-- NUEVO: Panel de Notificaciones -->
+<div class="notifications-panel" id="notificationsPanel">
+  <h2>
+    Notificaciones
+    <button id="closeNotifications">×</button>
+  </h2>
+  <div class="notifications-list" id="notificationsList">
+    <!-- Notificaciones se cargarán aquí -->
+  </div>
+</div>
+
+<header>
+  <div class="title-block">
+    <h1>Mapa Fractal de Implementación – SITE–RUTA LATAM</h1>
+    <div class="subtitle">
+      Migración intra &amp; internivel (N1 → N4) para una institución educativa.
+    </div>
+    <div class="current-school">
+      <span>Institución actual:</span>
+      <strong id="currentSchoolName">Nodo piloto SITE–RUTA LATAM</strong>
+    </div>
+  </div>
+  <div class="school-management">
+    <label for="schoolName">Institución / Nodo SITE–RUTA:</label>
+    <input id="schoolName" class="school-input" placeholder="Ej. IE General José María Cabal" />
+    
+    <!-- NUEVO: Botones de funcionalidades avanzadas -->
+    <button class="btn" id="notificationBell" style="position: relative;">
+      🔔 Notificaciones
+      <span class="notification-badge" style="display: none;">0</span>
+    </button>
+    
+    <button class="btn" id="btnReports">
+      📊 Generar Reporte
+    </button>
+    
+    <button class="btn" id="btnGuardar">
+      💾 Guardar estado
+    </button>
+    <button class="btn btn-success" id="btnManageSchools">
+      🏫 Gestionar colegios
+    </button>
+    <button class="btn btn-danger" id="btnReset">
+      ♻️ Nuevo colegio
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- PANEL LATERAL -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Estado fractal del proceso</div>
+    <div class="progress-ring" id="ringGlobal">
+      <div class="progress-ring-inner">
+        <span>Avance global</span>
+        <strong id="globalPct">0%</strong>
+        <span id="globalLevel">Nivel actual: N1</span>
+      </div>
+    </div>
+
+    <!-- NUEVO: Dashboard Global -->
+    <div class="sidebar-dashboard" id="globalDashboard">
+      <!-- Se llenará dinámicamente con JavaScript -->
+    </div>
+
+    <div class="sidebar-metrics">
+      <div class="metric-line">
+        <span>Hitos completados</span>
+        <strong id="metricHits">0 / 0</strong>
+      </div>
+      <div class="metric-line">
+        <span>Niveles consolidados</span>
+        <strong id="metricLevels">0 / 4</strong>
+      </div>
+    </div>
+    <div class="legend">
+      <p>🧭 Lectura de color del avance:</p>
+      <p><span class="dot dot-low"></span> 0–33%: Siembra / Exploración</p>
+      <p><span class="dot dot-mid"></span> 34–66%: Consolidación</p>
+      <p><span class="dot dot-high"></span> 67–100%: Referente / Migrar al siguiente nivel</p>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <section class="content">
+    <p class="hint">
+      Marca cada micromigración (N1.1, N1.2, …) cuando existan <strong>registros del proceso</strong>.
+      Este tablero no es decorativo: es tu mapa de progreso institucional.
+    </p>
+
+    <div class="levels-grid" id="levelsGrid">
+      <!-- Se rellena dinámicamente con JS -->
+    </div>
+  </section>
+</main>
+
+<script>
+// ===============================
+// CONFIGURACIÓN DE PAGINACIÓN
+// ===============================
+const SCHOOLS_PER_PAGE = 10;
+let currentPage = 1;
+let currentFilter = 'all';
+let currentSearch = '';
+let selectedSchools = new Set();
+
+// ===============================
+// FUNCIONES DE PAGINACIÓN Y FILTRADO
+// ===============================
+
+function filterSchools(schools, filter, search) {
+  let filtered = Object.entries(schools);
+  
+  // Aplicar búsqueda
+  if (search) {
+    filtered = filtered.filter(([name, data]) => 
+      name.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+  
+  // Aplicar filtros
+  switch(filter) {
+    case 'progress-0':
+      filtered = filtered.filter(([name, data]) => getSchoolProgress(data) < 25);
+      break;
+    case 'progress-25':
+      filtered = filtered.filter(([name, data]) => getSchoolProgress(data) >= 25 && getSchoolProgress(data) < 50);
+      break;
+    case 'progress-50':
+      filtered = filtered.filter(([name, data]) => getSchoolProgress(data) >= 50 && getSchoolProgress(data) < 75);
+      break;
+    case 'progress-75':
+      filtered = filtered.filter(([name, data]) => getSchoolProgress(data) >= 75);
+      break;
+    case 'recent':
+      filtered = filtered.sort((a, b) => 
+        new Date(b[1].lastUpdated) - new Date(a[1].lastUpdated)
+      ).slice(0, 10); // Solo los 10 más recientes
+      break;
+    default:
+      // Ordenar por nombre por defecto
+      filtered = filtered.sort((a, b) => a[0].localeCompare(b[0]));
+  }
+  
+  return filtered;
+}
+
+function getSchoolProgress(schoolData) {
+  let totalSteps = 0;
+  let totalCompleted = 0;
+  
+  nivelesData.forEach(n => {
+    totalSteps += n.pasos.length;
+    const completed = n.pasos.filter(p => schoolData.estado.checks[p.codigo]).length;
+    totalCompleted += completed;
+  });
+  
+  return totalSteps > 0 ? Math.round((totalCompleted / totalSteps) * 100) : 0;
+}
+
+function paginateSchools(schools, page, perPage) {
+  const startIndex = (page - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  return schools.slice(startIndex, endIndex);
+}
+
+function updatePagination(totalSchools, currentPage, totalPages) {
+  document.getElementById('paginationInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+  document.getElementById('prevPage').disabled = currentPage === 1;
+  document.getElementById('nextPage').disabled = currentPage === totalPages;
+  
+  // Actualizar números de página
+  const pageNumbers = document.getElementById('pageNumbers');
+  pageNumbers.innerHTML = '';
+  
+  const maxPagesToShow = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+  let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+  
+  if (endPage - startPage + 1 < maxPagesToShow) {
+    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    const pageBtn = document.createElement('button');
+    pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+    pageBtn.textContent = i;
+    pageBtn.addEventListener('click', () => goToPage(i));
+    pageNumbers.appendChild(pageBtn);
+  }
+}
+
+function goToPage(page) {
+  currentPage = page;
+  updateSchoolsList();
+}
+
+// ===============================
+// FUNCIÓN ACTUALIZADA DE LISTA DE COLEGIOS
+// ===============================
+
+function updateSchoolsList() {
+  const schoolsList = document.getElementById('schoolsList');
+  const schools = getAllSchools();
+  
+  // Aplicar filtros y búsqueda
+  const filteredSchools = filterSchools(schools, currentFilter, currentSearch);
+  const paginatedSchools = paginateSchools(filteredSchools, currentPage, SCHOOLS_PER_PAGE);
+  const totalPages = Math.ceil(filteredSchools.length / SCHOOLS_PER_PAGE);
+  
+  // Actualizar estadísticas
+  document.getElementById('totalSchools').textContent = `Total: ${Object.keys(schools).length} colegios`;
+  document.getElementById('visibleSchools').textContent = `Mostrando: ${filteredSchools.length}`;
+  document.getElementById('searchCount').textContent = filteredSchools.length;
+  
+  // Actualizar paginación
+  updatePagination(filteredSchools.length, currentPage, totalPages);
+  
+  // Limpiar lista
+  schoolsList.innerHTML = '';
+  
+  if (paginatedSchools.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.innerHTML = `
+      <div class="icon">🏫</div>
+      <div>No se encontraron colegios</div>
+      <div style="font-size: 0.75rem; margin-top: 8px;">Prueba con otros filtros o términos de búsqueda</div>
+    `;
+    schoolsList.appendChild(emptyState);
+    return;
+  }
+  
+  // Renderizar colegios paginados
+  paginatedSchools.forEach(([name, data]) => {
+    const schoolItem = document.createElement('div');
+    schoolItem.className = `school-item ${name === currentSchoolName ? 'active' : ''}`;
+    
+    const progress = getSchoolProgress(data);
+    const lastUpdated = new Date(data.lastUpdated).toLocaleDateString('es-ES');
+    let totalSteps = 0;
+    let totalCompleted = 0;
+    
+    nivelesData.forEach(n => {
+      totalSteps += n.pasos.length;
+      const completed = n.pasos.filter(p => data.estado.checks[p.codigo]).length;
+      totalCompleted += completed;
+    });
+    
+    schoolItem.innerHTML = `
+      <div class="school-item-header">
+        <div class="school-name">${name}</div>
+        <div class="school-progress">${progress}%</div>
+      </div>
+      <div class="school-meta">
+        <span>${totalCompleted}/${totalSteps} hitos</span>
+        <span>Actualizado: ${lastUpdated}</span>
+      </div>
+      <div class="progress-indicator">
+        <div class="progress-fill" style="width: ${progress}%"></div>
+      </div>
+    `;
+    
+    schoolItem.addEventListener('click', (e) => {
+      if (!e.target.closest('.school-actions')) {
+        loadSchool(name);
+        closeSchoolsPanel();
+      }
+    });
+    
+    // Añadir acciones
+    const actions = document.createElement('div');
+    actions.className = 'school-actions';
+    
+    const selectBtn = document.createElement('button');
+    selectBtn.className = `btn ${selectedSchools.has(name) ? 'btn-success' : ''}`;
+    selectBtn.innerHTML = selectedSchools.has(name) ? '✓ Seleccionado' : '📌 Seleccionar';
+    selectBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSchoolSelection(name);
+      updateSchoolsList();
+    });
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-danger';
+    deleteBtn.textContent = '🗑️ Eliminar';
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm(`¿Estás seguro de que quieres eliminar "${name}"?`)) {
+        deleteSchool(name);
+        selectedSchools.delete(name);
+        updateSchoolsList();
+      }
+    });
+    
+    actions.appendChild(selectBtn);
+    actions.appendChild(deleteBtn);
+    schoolItem.appendChild(actions);
+    schoolsList.appendChild(schoolItem);
+  });
+}
+
+function toggleSchoolSelection(schoolName) {
+  if (selectedSchools.has(schoolName)) {
+    selectedSchools.delete(schoolName);
+  } else {
+    selectedSchools.add(schoolName);
+  }
+}
+
+// ===============================
+// EVENTOS MEJORADOS
+// ===============================
+
+document.getElementById('schoolSearch').addEventListener('input', (e) => {
+  currentSearch = e.target.value;
+  currentPage = 1;
+  updateSchoolsList();
+});
+
+document.getElementById('prevPage').addEventListener('click', () => {
+  if (currentPage > 1) {
+    goToPage(currentPage - 1);
+  }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+  const schools = getAllSchools();
+  const filteredSchools = filterSchools(schools, currentFilter, currentSearch);
+  const totalPages = Math.ceil(filteredSchools.length / SCHOOLS_PER_PAGE);
+  
+  if (currentPage < totalPages) {
+    goToPage(currentPage + 1);
+  }
+});
+
+// Filtros
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    currentPage = 1;
+    updateSchoolsList();
+  });
+});
+
+// Eliminación masiva
+document.getElementById('btnBulkDelete').addEventListener('click', () => {
+  if (selectedSchools.size === 0) {
+    alert('⚠️ No hay colegios seleccionados para eliminar.');
+    return;
+  }
+  
+  if (confirm(`¿Estás seguro de que quieres eliminar ${selectedSchools.size} colegio(s)?`)) {
+    selectedSchools.forEach(schoolName => {
+      deleteSchool(schoolName);
+    });
+    selectedSchools.clear();
+    updateSchoolsList();
+    alert(`✅ ${selectedSchools.size} colegio(s) eliminados correctamente.`);
+  }
+});
+
+// Exportar lista
+document.getElementById('btnExport').addEventListener('click', () => {
+  const schools = getAllSchools();
+  const data = Object.entries(schools).map(([name, data]) => ({
+    nombre: name,
+    progreso: getSchoolProgress(data),
+    ultimaActualizacion: data.lastUpdated
+  }));
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `colegios-siteruta-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ===============================
+// INICIALIZACIÓN MEJORADA
+// ===============================
+
+function openSchoolsPanel() {
+  document.getElementById('schoolsPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('active');
+  currentPage = 1;
+  currentFilter = 'all';
+  currentSearch = '';
+  updateSchoolsList();
+  document.getElementById('newSchoolName').value = '';
+  document.getElementById('schoolSearch').value = '';
+}
+
+// ===============================
+// 1. MODELO DE DATOS – MAPA FRACTAL
+// ===============================
+const nivelesData = [
+  {
+    codigo: "N1",
+    nombre: "Nivel 1 – Siembra",
+    rol: "El modelo nace en la institución",
+    badge: "Siembra • Curiosidad • Emuná inicial",
+    pasos: [
+      {
+        codigo: "N1.1",
+        titulo: "Curiosidad inicial",
+        evidencia: "Comentarios tipo: 'Esto me interesa', mensajes, reacciones.",
+        producto: "Semilla emocional en directivos y docentes."
+      },
+      {
+        codigo: "N1.2",
+        titulo: "Lectura del documento clave",
+        evidencia: "Descarga y lectura del documento 'De la teoría a la praxis'.",
+        producto: "Entendimiento básico de SITE–RUTA LATAM."
+      },
+      {
+        codigo: "N1.3",
+        titulo: "Conexión espiritual / Emuná",
+        evidencia: "Resonancia interna: ver sentido, propósito, paz y reto.",
+        producto: "Disponibilidad interior para avanzar."
+      },
+      {
+        codigo: "N1.4",
+        titulo: "Primer contacto institucional",
+        evidencia: "Reunión inicial con rector(a), coordinación u orientador(a).",
+        producto: "Apertura a explorar el modelo."
+      },
+      {
+        codigo: "N1.5",
+        titulo: "Validación personal",
+        evidencia: "Decisión explícita: 'Quiero probar esto al menos en piloto'.",
+        producto: "Acuerdo verbal de prueba."
+      },
+      {
+        codigo: "N1.6",
+        titulo: "Reconocimiento del problema",
+        evidencia: "Directivos/Docentes expresan una necesidad real que SITE–RUTA podría resolver.",
+        producto: "Alineación entre necesidad institucional y propuesta SITE–RUTA."
+      },
+      {
+        codigo: "N1.7",
+        titulo: "Evaluación de viabilidad",
+        evidencia: "Docentes/directivos validan tiempo, espacio y disposición mínima.",
+        producto: "Identificación de condiciones reales para iniciar pilotos."
+      },
+      {
+        codigo: "N1.8",
+        titulo: "Apertura explícita al acompañamiento",
+        evidencia: "Mensaje o acuerdo donde aceptan orientación inicial del modelo.",
+        producto: "Base emocional y logística para pasar a pilotos."
+      },
+      {
+        codigo: "N1.9",
+        titulo: "Condición de punto de avance",
+        evidencia: "Curiosidad + lectura + apertura + necesidad identificada.",
+        producto: "Autorización para pasar a pilotos (N2)."
+      }
+    ]
+  },
+  {
+    codigo: "N2",
+    nombre: "Nivel 2 – Pilotos",
+    rol: "El modelo se prueba en vivo",
+    badge: "Laboratorio pedagógico • Evidencias iniciales",
+    pasos: [
+      {
+        codigo: "N2.1",
+        titulo: "Primera estrategia didáctica",
+        evidencia: "Uso del juego Bloom, simulacros o actividad corta SITE–RUTA.",
+        producto: "Primera evidencia académica trazable."
+      },
+      {
+        codigo: "N2.2",
+        titulo: "Identificación del grupo piloto",
+        evidencia: "Grado, grupo o curso definido para iniciar la primera prueba.",
+        producto: "Definición del laboratorio inicial de implementación."
+      },
+      {
+        codigo: "N2.3",
+        titulo: "Primer mini-PMAP",
+        evidencia: "Diagnóstico simple de aciertos/errores o niveles.",
+        producto: "Ruta académica inicial por grupo o estudiante."
+      },
+      {
+        codigo: "N2.4",
+        titulo: "Apoyo institucional logístico",
+        evidencia: "Transporte, hotel, refrigerios, tiempo en horario escolar.",
+        producto: "Corresponsabilidad concreta con el modelo."
+      },
+      {
+        codigo: "N2.5",
+        titulo: "Primer registro de evidencias",
+        evidencia: "Fotos, videos, planillas, listas o materiales derivados del piloto.",
+        producto: "Memoria empírica de la prueba piloto."
+      },
+      {
+        codigo: "N2.6",
+        titulo: "PMAP funcional",
+        evidencia: "Al menos un PMAP completo con preguntas PAMi y niveles.",
+        producto: "Evidencias formativas para toma de decisiones."
+      },
+      {
+        codigo: "N2.7",
+        titulo: "Retroalimentación institucional",
+        evidencia: "Comentarios de coordinación, rectoría o docentes después del piloto.",
+        producto: "Ajuste fino del proceso y validación cualitativa."
+      },
+      {
+        codigo: "N2.8",
+        titulo: "Confirmación docente",
+        evidencia: "Docentes expresan: 'Esto sirve, quiero seguir'.",
+        producto: "Aprobación interna y deseo de continuidad."
+      },
+      {
+        codigo: "N2.9",
+        titulo: "Condición de punto de avance",
+        evidencia: "Al menos un piloto completo + validación explícita de continuar.",
+        producto: "Paso a Nivel 3 (festival / red local)."
+      }
+    ]
+  },
+  {
+    codigo: "N3",
+    nombre: "Nivel 3 – Festival y Escuelas Hermanas",
+    rol: "La institución se convierte en referente local",
+    badge: "Visibilidad • Red • Identidad",
+    pasos: [
+      {
+        codigo: "N3.1",
+        titulo: "Primer Festival SITE–RUTA LATAM",
+        evidencia: "Evento institucional con Trueque Ambiental o Escuelas Circulares.",
+        producto: "Visibilidad local y memoria comunitaria."
+      },
+      {
+        codigo: "N3.2",
+        titulo: "Equipo ampliado de docentes SITE–RUTA",
+        evidencia: "Al menos 3–5 docentes aplican estrategias del modelo.",
+        producto: "Multiplicación interna del enfoque."
+      },
+      {
+        codigo: "N3.3",
+        titulo: "Integración en varias áreas",
+        evidencia: "Uso del modelo en 2 o más áreas (ej. Ciencias + Matemáticas).",
+        producto: "Inclusión curricular transversal."
+      },
+      {
+        codigo: "N3.4",
+        titulo: "PMAP interáreas",
+        evidencia: "Evidencias de rutas mezcladas: Ciencias, Lenguaje, Matemáticas.",
+        producto: "Alineación PMAP entre varias disciplinas."
+      },
+      {
+        codigo: "N3.5",
+        titulo: "Escuela hermana",
+        evidencia: "Otra institución se vincula por influencia de esta escuela.",
+        producto: "Formación de red local de Escuelas Hermanas."
+      },
+      {
+        codigo: "N3.6",
+        titulo: "Adhesión emocional",
+        evidencia: "Testimonios de orgullo, sentido de pertenencia, docentes y estudiantes.",
+        producto: "Identidad SITE–RUTA dentro de la comunidad educativa."
+      },
+      {
+        codigo: "N3.7",
+        titulo: "Ampliación comunitaria",
+        evidencia: "Participación de familias, JAC, alcaldía, fundaciones locales.",
+        producto: "Ecosistema comunitario alrededor del modelo."
+      },
+      {
+        codigo: "N3.8",
+        titulo: "Intermunicipalidad",
+        evidencia: "Participación de GAGEM, rectores de otros municipios, redes zonales.",
+        producto: "Expansión regional explícita."
+      },
+      {
+        codigo: "N3.9",
+        titulo: "Condición de punto de avance",
+        evidencia: "Red consolidada + festival + integración curricular estable.",
+        producto: "Paso a Nivel 4 (expansión y financiamiento)."
+      }
+    ]
+  },
+  {
+    codigo: "N4",
+    nombre: "Nivel 4 – Expansión y Financiamiento",
+    rol: "El modelo se vuelve ecosistema regional / internacional",
+    badge: "Sostenibilidad • Cooperación • Política pública",
+    pasos: [
+      {
+        codigo: "N4.1",
+        titulo: "Demanda regional",
+        evidencia: "Más municipios solicitan formalmente la implementación.",
+        producto: "Proyección territorial clara."
+      },
+      {
+        codigo: "N4.2",
+        titulo: "Contratos y convenios",
+        evidencia: "DNDA, licencias, marca sonora, acuerdos escritos.",
+        producto: "Marco jurídico robusto."
+      },
+      {
+        codigo: "N4.3",
+        titulo: "Articulación con secretarías",
+        evidencia: "Mesas técnicas con secretarías de educación/ambiente/mujer.",
+        producto: "Inserción institucional y fortalecimiento legal."
+      },
+      {
+        codigo: "N4.4",
+        titulo: "Cooperación internacional",
+        evidencia: "Participación en programas como What Works, OEI, UNESCO, etc.",
+        producto: "Validación global del modelo."
+      },
+      {
+        codigo: "N4.5",
+        titulo: "Portafolio de inversión",
+        evidencia: "Documento con CAPEX, OPEX, escalabilidad y métricas.",
+        producto: "Base para inversión sostenida y escalable."
+      },
+      {
+        codigo: "N4.6",
+        titulo: "Fondo educativo ambiental",
+        evidencia: "Fondo o bolsa de recursos vinculada a la Red de Escuelas Circulares.",
+        producto: "Sostenibilidad económica y ambiental."
+      },
+      {
+        codigo: "N4.7",
+        titulo: "Expansión multinodal",
+        evidencia: "Al menos 3–5 territorios implementando simultáneamente.",
+        producto: "Adopción multinodal del ecosistema."
+      },
+      {
+        codigo: "N4.8",
+        titulo: "Estándar continental",
+        evidencia: "Adopción del modelo en varios países o sistemas.",
+        producto: "Incidencia en política pública educativa."
+      },
+      {
+        codigo: "N4.9",
+        titulo: "Condición de cierre fractal",
+        evidencia: "Sistema auto-sostenible que permite reiniciar la siembra en nuevos nodos.",
+        producto: "Reinicio fractal: vuelve a N1.x en otro territorio."
+      }
+    ]
+  }
+];
+
+// ===============================
+// 2. GESTIÓN DE COLEGIOS
+// ===============================
+
+// Clave base para localStorage
+const SCHOOLS_STORAGE_KEY = 'siteRuta_schools';
+
+// Estado en memoria
+let estado = {
+  checks: {}, // ej. { "N1.1": true, "N2.3": false }
+  lastUpdated: new Date().toISOString()
+};
+
+let currentSchoolName = "Nodo piloto SITE–RUTA LATAM";
+
+// Obtener todos los colegios guardados
+function getAllSchools() {
+  try {
+    const saved = localStorage.getItem(SCHOOLS_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch(e) {
+    return {};
+  }
+}
+
+// Guardar estado del colegio actual
+function saveCurrentSchool() {
+  const schools = getAllSchools();
+  schools[currentSchoolName] = {
+    estado: estado,
+    lastUpdated: new Date().toISOString()
+  };
+  localStorage.setItem(SCHOOLS_STORAGE_KEY, JSON.stringify(schools));
+}
+
+// Cargar estado de un colegio específico
+function loadSchool(schoolName) {
+  const schools = getAllSchools();
+  if (schools[schoolName]) {
+    estado = schools[schoolName].estado;
+    currentSchoolName = schoolName;
+    document.getElementById('schoolName').value = schoolName;
+    updateSchoolNameDisplay();
+    applyStateToUI();
+    updateGlobalMetrics();
+    return true;
+  }
+  return false;
+}
+
+// Registrar un nuevo colegio
+function registerNewSchool(schoolName) {
+  if (!schoolName.trim()) {
+    alert("⚠️ Por favor, ingresa un nombre para el colegio.");
+    return false;
+  }
+  
+  const schools = getAllSchools();
+  if (schools[schoolName]) {
+    alert("⚠️ Ya existe un colegio con ese nombre.");
+    return false;
+  }
+  
+  // Crear nuevo estado vacío para el colegio
+  schools[schoolName] = {
+    estado: { checks: {}, lastUpdated: new Date().toISOString() },
+    lastUpdated: new Date().toISOString()
+  };
+  
+  localStorage.setItem(SCHOOLS_STORAGE_KEY, JSON.stringify(schools));
+  
+  // Cargar el nuevo colegio
+  loadSchool(schoolName);
+  return true;
+}
+
+// Eliminar un colegio
+function deleteSchool(schoolName) {
+  const schools = getAllSchools();
+  delete schools[schoolName];
+  localStorage.setItem(SCHOOLS_STORAGE_KEY, JSON.stringify(schools));
+  
+  // Si estamos eliminando el colegio actual, crear uno nuevo
+  if (currentSchoolName === schoolName) {
+    createNewSchool();
+  }
+}
+
+// Crear un nuevo colegio
+function createNewSchool() {
+  estado = { checks: {}, lastUpdated: new Date().toISOString() };
+  currentSchoolName = "Nodo piloto SITE–RUTA LATAM";
+  document.getElementById('schoolName').value = currentSchoolName;
+  updateSchoolNameDisplay();
+  applyStateToUI();
+  updateGlobalMetrics();
+  saveCurrentSchool();
+}
+
+// ===============================
+// 3. RENDER DEL TABLERO
+// ===============================
+const levelsGrid = document.getElementById('levelsGrid');
+
+function renderLevels(){
+  levelsGrid.innerHTML = "";
+  nivelesData.forEach((nivel, idx) => {
+    const card = document.createElement('article');
+    card.className = 'level-card';
+    card.dataset.level = nivel.codigo;
+
+    const header = document.createElement('div');
+    header.className = 'level-header';
+
+    const left = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'level-title';
+    title.textContent = `${nivel.nombre}`;
+    const code = document.createElement('div');
+    code.className = 'level-code';
+    code.textContent = `${nivel.codigo} · ${nivel.rol}`;
+    left.appendChild(title);
+    left.appendChild(code);
+
+    const right = document.createElement('div');
+    const badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = nivel.badge;
+    right.appendChild(badge);
+
+    header.appendChild(left);
+    header.appendChild(right);
+
+    const barWrap = document.createElement('div');
+    barWrap.className = 'progress-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar';
+    bar.dataset.levelBar = nivel.codigo;
+    barWrap.appendChild(bar);
+
+    const stepsList = document.createElement('div');
+    stepsList.className = 'steps-list';
+
+    nivel.pasos.forEach(paso => {
+      const row = document.createElement('div');
+      row.className = 'step-row';
+      row.dataset.stepCode = paso.codigo;
+
+      const checkCol = document.createElement('div');
+      checkCol.className = 'step-check';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.dataset.stepInput = paso.codigo;
+      input.addEventListener('change', onToggleStep);
+      checkCol.appendChild(input);
+
+      const codeCol = document.createElement('div');
+      codeCol.className = 'step-code';
+      codeCol.textContent = paso.codigo;
+
+      const mainCol = document.createElement('div');
+      mainCol.className = 'step-main';
+
+      const t = document.createElement('div');
+      t.className = 'step-title';
+      t.textContent = paso.titulo;
+
+      const meta = document.createElement('div');
+      meta.className = 'step-meta';
+      meta.innerHTML =
+        `<div>🧾 Evidencia: ${paso.evidencia}</div>` +
+        `<div>📌 Producto: ${paso.producto}</div>`;
+
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = 'Migración intranivel';
+
+      mainCol.appendChild(t);
+      mainCol.appendChild(meta);
+      if(paso.codigo.endsWith('.9')){
+        const flag = document.createElement('div');
+        flag.className = 'migration-flag';
+        flag.innerHTML = '⚡ Condición de <strong>punto de avance</strong>.';
+        mainCol.appendChild(flag);
+      }else{
+        mainCol.appendChild(chip);
+      }
+
+      row.appendChild(checkCol);
+      row.appendChild(codeCol);
+      row.appendChild(mainCol);
+
+      stepsList.appendChild(row);
+    });
+
+    card.appendChild(header);
+    card.appendChild(barWrap);
+    card.appendChild(stepsList);
+    levelsGrid.appendChild(card);
+  });
+
+  // Cargar estado
+  applyStateToUI();
+  updateGlobalMetrics();
+}
+
+// ===============================
+// 4. ESTADO & UI
+// ===============================
+
+function applyStateToUI(){
+  // Aplicar checks
+  const allInputs = document.querySelectorAll('[data-step-input]');
+  allInputs.forEach(input => {
+    const code = input.dataset.stepInput;
+    const checked = !!estado.checks[code];
+    input.checked = checked;
+    const row = input.closest('.step-row');
+    if(row){
+      row.classList.toggle('completed', checked);
+    }
+  });
+
+  // Actualizar barras por nivel
+  nivelesData.forEach(n => {
+    const bar = document.querySelector(`.progress-bar[data-level-bar="${n.codigo}"]`);
+    if(!bar) return;
+    const total = n.pasos.length;
+    const completed = n.pasos.filter(p => estado.checks[p.codigo]).length;
+    const pct = total>0 ? Math.round((completed/total)*100) : 0;
+    bar.style.width = pct + '%';
+  });
+}
+
+// ===============================
+// 5. EVENTOS
+// ===============================
+function onToggleStep(e){
+  const code = e.target.dataset.stepInput;
+  estado.checks[code] = e.target.checked;
+  estado.lastUpdated = new Date().toISOString();
+  const row = e.target.closest('.step-row');
+  if(row){
+    row.classList.toggle('completed', e.target.checked);
+  }
+  // Actualizar barras y métricas
+  updateLevelBars();
+  updateGlobalMetrics();
+  saveCurrentSchool();
+}
+
+function updateLevelBars(){
+  nivelesData.forEach(n => {
+    const bar = document.querySelector(`.progress-bar[data-level-bar="${n.codigo}"]`);
+    if(!bar) return;
+    const total = n.pasos.length;
+    const completed = n.pasos.filter(p => estado.checks[p.codigo]).length;
+    const pct = total>0 ? Math.round((completed/total)*100) : 0;
+    bar.style.width = pct + '%';
+  });
+}
+
+function updateGlobalMetrics(){
+  // Total pasos
+  let totalSteps = 0;
+  let totalCompleted = 0;
+  let nivelesConsolidados = 0;
+
+  nivelesData.forEach(n => {
+    totalSteps += n.pasos.length;
+    const completed = n.pasos.filter(p => estado.checks[p.codigo]).length;
+    totalCompleted += completed;
+    if(completed === n.pasos.length){
+      nivelesConsolidados += 1;
+    }
+  });
+
+  const pct = totalSteps>0 ? Math.round((totalCompleted/totalSteps)*100) : 0;
+  document.getElementById('metricHits').textContent =
+    `${totalCompleted} / ${totalSteps}`;
+  document.getElementById('metricLevels').textContent =
+    `${nivelesConsolidados} / ${nivelesData.length}`;
+
+  // Anillo global
+  const ring = document.getElementById('ringGlobal');
+  ring.style.background = `conic-gradient(var(--accent) 0deg, var(--accent) ${pct*3.6}deg, rgba(15,23,42,1) ${pct*3.6}deg)`;
+  document.getElementById('globalPct').textContent = pct + '%';
+
+  // Nivel actual aproximado según porcentaje
+  let nivelActual = "N1";
+  if(pct >= 25) nivelActual = "N2";
+  if(pct >= 50) nivelActual = "N3";
+  if(pct >= 75) nivelActual = "N4";
+  document.getElementById('globalLevel').textContent =
+    `Nivel actual: ${nivelActual}`;
+}
+
+// Actualizar el nombre del colegio mostrado
+function updateSchoolNameDisplay() {
+  const schoolName = document.getElementById('schoolName').value.trim();
+  const displayElement = document.getElementById('currentSchoolName');
+  
+  if (schoolName) {
+    displayElement.textContent = schoolName;
+    document.getElementById('schoolName').classList.remove('invalid');
+    currentSchoolName = schoolName;
+  } else {
+    displayElement.textContent = "Nodo piloto SITE–RUTA LATAM";
+    document.getElementById('schoolName').classList.add('invalid');
+    currentSchoolName = "Nodo piloto SITE–RUTA LATAM";
+  }
+}
+
+function closeSchoolsPanel() {
+  document.getElementById('schoolsPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('active');
+}
+
+// ===============================
+// 6. INICIALIZACIÓN
+// ===============================
+
+// Botones de header
+document.getElementById('btnGuardar').addEventListener('click', () => {
+  const schoolName = document.getElementById('schoolName').value.trim();
+  if (!schoolName) {
+    alert("⚠️ Por favor, ingresa un nombre para la institución antes de guardar.");
+    document.getElementById('schoolName').focus();
+    return;
+  }
+  
+  saveCurrentSchool();
+  updateSchoolNameDisplay();
+  alert("✅ Estado guardado para este colegio.\nRecuerda: el tablero es fractal, cada micromigración cuenta.");
+});
+
+document.getElementById('btnManageSchools').addEventListener('click', openSchoolsPanel);
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  if(!confirm("¿Iniciar un nuevo colegio? Se limpiará el estado actual en este navegador.")) return;
+  createNewSchool();
+});
+
+// Registrar nuevo colegio
+document.getElementById('btnAddSchool').addEventListener('click', () => {
+  const newSchoolName = document.getElementById('newSchoolName').value.trim();
+  if (registerNewSchool(newSchoolName)) {
+    document.getElementById('newSchoolName').value = '';
+    updateSchoolsList();
+    closeSchoolsPanel();
+    alert(`✅ Colegio "${newSchoolName}" registrado exitosamente.`);
+  }
+});
+
+// Permitir registrar con Enter
+document.getElementById('newSchoolName').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('btnAddSchool').click();
+  }
+});
+
+// Si cambias el nombre de la institución, recarga el estado asociado
+document.getElementById('schoolName').addEventListener('input', () => {
+  updateSchoolNameDisplay();
+});
+
+document.getElementById('schoolName').addEventListener('change', () => {
+  const schoolName = document.getElementById('schoolName').value.trim();
+  if (schoolName && schoolName !== currentSchoolName) {
+    // Intentar cargar el colegio si existe
+    if (!loadSchool(schoolName)) {
+      // Si no existe, crear uno nuevo con ese nombre
+      estado = { checks: {}, lastUpdated: new Date().toISOString() };
+      currentSchoolName = schoolName;
+      applyStateToUI();
+      updateGlobalMetrics();
+      saveCurrentSchool();
+    }
+  }
+});
+
+// Guardar automáticamente cuando se pierde el foco del campo
+document.getElementById('schoolName').addEventListener('blur', () => {
+  const schoolName = document.getElementById('schoolName').value.trim();
+  if (schoolName && schoolName !== currentSchoolName) {
+    saveCurrentSchool();
+  }
+});
+
+// Cerrar panel de colegios
+document.getElementById('closePanel').addEventListener('click', closeSchoolsPanel);
+document.getElementById('overlay').addEventListener('click', closeSchoolsPanel);
+
+// Buscar colegios
+document.getElementById('schoolSearch').addEventListener('input', (e) => {
+  updateSchoolsList(e.target.value);
+});
+
+// ===============================
+// NUEVAS FUNCIONALIDADES
+// ===============================
+
+// Agregar estadísticas globales en el sidebar
+function updateGlobalDashboard() {
+  const schools = getAllSchools();
+  const totalSchools = Object.keys(schools).length;
+  
+  // Calcular métricas agregadas
+  let totalProgress = 0;
+  let schoolsByLevel = { N1: 0, N2: 0, N3: 0, N4: 0 };
+  
+  Object.values(schools).forEach(school => {
+    const progress = getSchoolProgress(school);
+    totalProgress += progress;
+    
+    // Clasificar por nivel según progreso
+    if (progress < 25) schoolsByLevel.N1++;
+    else if (progress < 50) schoolsByLevel.N2++;
+    else if (progress < 75) schoolsByLevel.N3++;
+    else schoolsByLevel.N4++;
+  });
+  
+  const avgProgress = totalSchools > 0 ? Math.round(totalProgress / totalSchools) : 0;
+  
+  // Actualizar UI del dashboard
+  document.getElementById('globalDashboard').innerHTML = `
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-value">${totalSchools}</div>
+        <div class="stat-label">Colegios Totales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${avgProgress}%</div>
+        <div class="stat-label">Progreso Promedio</div>
+      </div>
+    </div>
+    <div class="levels-distribution">
+      <h4>Distribución por Niveles</h4>
+      <div class="level-bars">
+        <div class="level-bar">
+          <span>N1</span>
+          <div class="bar" style="width: ${totalSchools > 0 ? (schoolsByLevel.N1/totalSchools)*100 : 0}%"></div>
+          <span>${schoolsByLevel.N1}</span>
+        </div>
+        <div class="level-bar">
+          <span>N2</span>
+          <div class="bar" style="width: ${totalSchools > 0 ? (schoolsByLevel.N2/totalSchools)*100 : 0}%"></div>
+          <span>${schoolsByLevel.N2}</span>
+        </div>
+        <div class="level-bar">
+          <span>N3</span>
+          <div class="bar" style="width: ${totalSchools > 0 ? (schoolsByLevel.N3/totalSchools)*100 : 0}%"></div>
+          <span>${schoolsByLevel.N3}</span>
+        </div>
+        <div class="level-bar">
+          <span>N4</span>
+          <div class="bar" style="width: ${totalSchools > 0 ? (schoolsByLevel.N4/totalSchools)*100 : 0}%"></div>
+          <span>${schoolsByLevel.N4}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+class NotificationSystem {
+  constructor() {
+    this.notifications = [];
+  }
+  
+  checkForNotifications() {
+    const schools = getAllSchools();
+    this.notifications = [];
+    
+    Object.entries(schools).forEach(([name, data]) => {
+      const progress = getSchoolProgress(data);
+      const lastUpdated = new Date(data.lastUpdated);
+      const daysInactive = Math.floor((new Date() - lastUpdated) / (1000 * 60 * 60 * 24));
+      
+      // Notificaciones por inactividad
+      if (daysInactive > 30 && progress < 100) {
+        this.notifications.push({
+          type: 'warning',
+          message: `${name} lleva ${daysInactive} días sin actualizaciones`,
+          school: name,
+          action: 'revisar'
+        });
+      }
+      
+      // Notificaciones por hitos próximos
+      if (progress >= 90 && progress < 100) {
+        this.notifications.push({
+          type: 'success', 
+          message: `${name} está cerca de completar el proceso (${progress}%)`,
+          school: name,
+          action: 'finalizar'
+        });
+      }
+    });
+    
+    this.displayNotifications();
+  }
+  
+  displayNotifications() {
+    const notificationBell = document.getElementById('notificationBell');
+    const badge = notificationBell.querySelector('.notification-badge');
+    badge.textContent = this.notifications.length;
+    badge.style.display = this.notifications.length > 0 ? 'block' : 'none';
+  }
+}
+
+class BackupSystem {
+  constructor() {
+    this.backupInterval = 24 * 60 * 60 * 1000; // 24 horas
+  }
+  
+  createBackup() {
+    const schools = getAllSchools();
+    const backup = {
+      timestamp: new Date().toISOString(),
+      data: schools,
+      version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Descarga automática
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup-siteruta-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    localStorage.setItem('lastBackup', new Date().getTime().toString());
+    alert('✅ Backup creado exitosamente');
+  }
+  
+  restoreBackup(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const backup = JSON.parse(e.target.result);
+        if (backup.data && backup.version === '1.0') {
+          localStorage.setItem(SCHOOLS_STORAGE_KEY, JSON.stringify(backup.data));
+          alert('✅ Backup restaurado exitosamente');
+          location.reload();
+        }
+      } catch (error) {
+        alert('❌ Error al restaurar el backup');
+      }
+    };
+    reader.readAsText(file);
+  }
+}
+
+class ReportGenerator {
+  generateProgressReport() {
+    const schools = getAllSchools();
+    const report = {
+      generated: new Date().toISOString(),
+      summary: {
+        totalSchools: Object.keys(schools).length,
+        averageProgress: 0,
+        distribution: { N1: 0, N2: 0, N3: 0, N4: 0 },
+        completionRate: 0
+      },
+      schools: []
+    };
+    
+    let totalProgress = 0;
+    let completedSchools = 0;
+    
+    Object.entries(schools).forEach(([name, data]) => {
+      const progress = getSchoolProgress(data);
+      totalProgress += progress;
+      
+      if (progress === 100) completedSchools++;
+      
+      // Clasificar por nivel
+      if (progress < 25) report.summary.distribution.N1++;
+      else if (progress < 50) report.summary.distribution.N2++;
+      else if (progress < 75) report.summary.distribution.N3++;
+      else report.summary.distribution.N4++;
+      
+      report.schools.push({
+        name,
+        progress,
+        lastUpdated: data.lastUpdated,
+        completedSteps: Object.values(data.estado.checks).filter(Boolean).length
+      });
+    });
+    
+    report.summary.averageProgress = Math.round(totalProgress / Object.keys(schools).length);
+    report.summary.completionRate = Math.round((completedSchools / Object.keys(schools).length) * 100);
+    
+    return report;
+  }
+  
+  exportToPDF(report) {
+    // Crear reporte en formato JSON para descarga
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte-siteruta-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ===============================
+// INICIALIZACIÓN DE NUEVAS FUNCIONALIDADES
+// ===============================
+
+// Inicializar sistemas
+const notificationSystem = new NotificationSystem();
+const backupSystem = new BackupSystem();
+const reportGenerator = new ReportGenerator();
+
+// Eventos para nuevos botones
+document.getElementById('notificationBell').addEventListener('click', openNotificationsPanel);
+document.getElementById('btnReports').addEventListener('click', generateReport);
+document.getElementById('btnBackup').addEventListener('click', () => backupSystem.createBackup());
+document.getElementById('btnRestore').addEventListener('click', () => document.getElementById('backupFile').click());
+document.getElementById('backupFile').addEventListener('change', (e) => backupSystem.restoreBackup(e.target.files[0]));
+document.getElementById('closeNotifications').addEventListener('click', closeNotificationsPanel);
+
+function openNotificationsPanel() {
+  document.getElementById('notificationsPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('active');
+  displayNotificationsList();
+}
+
+function closeNotificationsPanel() {
+  document.getElementById('notificationsPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('active');
+}
+
+function displayNotificationsList() {
+  const notificationsList = document.getElementById('notificationsList');
+  notificationsList.innerHTML = '';
+  
+  if (notificationSystem.notifications.length === 0) {
+    notificationsList.innerHTML = '<div class="empty-state"><div class="icon">🔔</div><div>No hay notificaciones</div></div>';
+    return;
+  }
+  
+  notificationSystem.notifications.forEach(notification => {
+    const notificationItem = document.createElement('div');
+    notificationItem.className = `notification-item ${notification.type}`;
+    notificationItem.innerHTML = `
+      <div style="font-weight: 500;">${notification.message}</div>
+      <div style="font-size: 0.75rem; margin-top: 4px; color: var(--muted);">
+        Acción: ${notification.action}
+      </div>
+    `;
+    notificationsList.appendChild(notificationItem);
+  });
+}
+
+function generateReport() {
+  const report = reportGenerator.generateProgressReport();
+  reportGenerator.exportToPDF(report);
+  alert('✅ Reporte generado exitosamente');
+}
+
+// ===============================
+// INICIALIZACIÓN FINAL
+// ===============================
+
+// Inicializar aplicación
+document.getElementById('schoolName').value = "Nodo piloto SITE–RUTA LATAM";
+// Cargar el último colegio usado o crear uno nuevo
+const schools = getAllSchools();
+const schoolNames = Object.keys(schools);
+if (schoolNames.length > 0) {
+  // Cargar el más reciente
+  const mostRecent = schoolNames.reduce((a, b) => {
+    return new Date(schools[a].lastUpdated) > new Date(schools[b].lastUpdated) ? a : b;
+  });
+  loadSchool(mostRecent);
+} else {
+  createNewSchool();
+}
+
+// Renderizar interfaz
+renderLevels();
+updateGlobalDashboard();
+notificationSystem.checkForNotifications();
+
+// Actualizar dashboard cada vez que se guarda un cambio
+const originalSaveCurrentSchool = saveCurrentSchool;
+saveCurrentSchool = function() {
+  originalSaveCurrentSchool();
+  updateGlobalDashboard();
+  notificationSystem.checkForNotifications();
+};
+</script>
+
+</body>
+</html>

@@ -16,7 +16,7 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
     }
     audio {
@@ -46,6 +46,8 @@
     .btn-parar:hover { background: #e65100; }
     .btn-reanudar { background: #3f51b5; }
     .btn-reanudar:hover { background: #1a237e; }
+    .btn-archivo { background: #9c27b0; }
+    .btn-archivo:hover { background: #7b1fa2; }
     #texto {
       margin-top: 20px;
       padding: 10px;
@@ -53,6 +55,32 @@
       border-radius: 6px;
       text-align: left;
       min-height: 100px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .estado-transcripcion {
+      padding: 8px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .escuchando { background: #d4edda; color: #155724; }
+    .detenido { background: #f8d7da; color: #721c24; }
+    .procesando { background: #fff3cd; color: #856404; }
+    .seccion {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .info {
+      background: #e3f2fd;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      font-size: 0.9em;
+      color: #1565c0;
     }
   </style>
 </head>
@@ -60,69 +88,100 @@
   <div class="contenedor">
     <h2>🎙️ Transcripción de Audio / 🖼️ OCR de Imagen + 🔊 Lectura</h2>
     
-    <!-- Input para audio -->
-    <input type="file" id="archivo" accept=".opus,audio/*"><br><br>
-    <audio id="player" controls></audio><br>
-
-    <!-- Botones transcripción -->
-    <h3>🎧 Transcripción de Audio</h3>
-    <div>
-      <button id="btnTranscribir">Transcribir Audio</button>
-      <button id="btnParar" class="btn-parar">Pausar</button>
-      <button id="btnReanudar" class="btn-reanudar">Reanudar</button>
-      <button id="btnLimpiar" class="btn-limpiar">Limpiar Todo</button>
-    </div>
-
-    <!-- Texto transcrito -->
-    <div id="texto">Aquí aparecerá el texto transcrito...</div>
-
-    <!-- Input para imagen -->
-    <h3>🖼️ Subir Imagen</h3>
-    <input type="file" id="imagenInput" accept="image/*"><br>
-    <img id="previewImagen" alt="Vista previa de la imagen"><br>
-    <button id="btnOCR">Extraer Texto de Imagen</button>
-
-    <!-- Botones lectura -->
-    <h3>🔊 Control de Lectura</h3>
-    <div>
-      <button id="btnLeer">▶️ Iniciar Lectura</button>
-      <button id="btnPausarLectura" class="btn-parar">⏸️ Pausar</button>
-      <button id="btnReanudarLectura" class="btn-reanudar">🔁 Reanudar</button>
-      <button id="btnDetenerLectura" class="btn-limpiar">🛑 Detener</button>
-      <!-- NUEVO: Descargar -->
-      <button id="btnDescargarAudio" style="background:#009688;">💾 Descargar Audio</button>
+    <!-- SECCIÓN 1: TRANSCRIPCIÓN DE ARCHIVOS DE AUDIO -->
+    <div class="seccion">
+      <h3>🎧 1. Transcribir Archivo de Audio Subido</h3>
+      <div class="info">
+        ⚠️ <strong>Importante:</strong> Esta función usa la API del navegador y solo funciona con archivos cortos (hasta 60 segundos).
+      </div>
+      
+      <input type="file" id="archivo" accept=".mp3,.wav,.ogg,.webm,.m4a,.aac,audio/*"><br><br>
+      <audio id="player" controls></audio><br>
+      
+      <div>
+        <button id="btnTranscribirArchivo" class="btn-archivo">Transcribir Archivo de Audio</button>
+        <div class="estado-transcripcion" id="estadoArchivo"></div>
+      </div>
     </div>
     
+    <!-- SECCIÓN 2: TRANSCRIPCIÓN DE VOZ EN TIEMPO REAL -->
+    <div class="seccion">
+      <h3>🎙️ 2. Transcripción de Voz en Tiempo Real (Micrófono)</h3>
+      
+      <div class="estado-transcripcion" id="estadoTranscripcion"></div>
+      <div>
+        <button id="btnTranscribirVoz">🎤 Iniciar Transcripción de Voz</button>
+        <button id="btnParar" class="btn-parar">⏸️ Pausar</button>
+        <button id="btnReanudar" class="btn-reanudar">▶️ Reanudar</button>
+        <button id="btnLimpiar" class="btn-limpiar">🗑️ Limpiar Todo</button>
+      </div>
+    </div>
+
+    <!-- ÁREA DE TEXTO RESULTANTE -->
+    <div id="texto">Aquí aparecerá el texto transcrito...</div>
+
+    <!-- SECCIÓN 3: OCR DE IMÁGENES -->
+    <div class="seccion">
+      <h3>🖼️ 3. Extraer Texto de Imágenes (OCR)</h3>
+      <input type="file" id="imagenInput" accept="image/*"><br>
+      <img id="previewImagen" alt="Vista previa de la imagen"><br>
+      <button id="btnOCR">Extraer Texto de Imagen</button>
+    </div>
+
+    <!-- SECCIÓN 4: LECTURA DE TEXTO -->
+    <div class="seccion">
+      <h3>🔊 4. Lectura de Texto con Karaoke</h3>
+      <div>
+        <button id="btnLeer">▶️ Iniciar Lectura</button>
+        <button id="btnPausarLectura" class="btn-parar">⏸️ Pausar</button>
+        <button id="btnReanudarLectura" class="btn-reanudar">🔁 Reanudar</button>
+        <button id="btnDetenerLectura" class="btn-limpiar">🛑 Detener</button>
+      </div>
+    </div>
+
+    <!-- INFORMACIÓN -->
+    <div class="info">
+      <h4>💡 Instrucciones de Uso:</h4>
+      <ol style="text-align: left; padding-left: 20px;">
+        <li><strong>Transcribir archivo de audio:</strong> Sube un archivo y haz clic en "Transcribir Archivo de Audio"</li>
+        <li><strong>Transcribir voz en tiempo real:</strong> Haz clic en "Iniciar Transcripción de Voz" y habla</li>
+        <li><strong>Extraer texto de imágenes:</strong> Sube una imagen y haz clic en "Extraer Texto"</li>
+        <li><strong>Leer texto:</strong> Extrae texto primero, luego usa los botones de lectura</li>
+      </ol>
+      <p><strong>⚠️ Requisitos:</strong> Chrome/Edge, micrófono habilitado, archivos de audio cortos para transcripción</p>
+    </div>
   </div>
 
   <!-- Importar Tesseract.js -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
-  // --- DOM ---
+  // --- ELEMENTOS DOM ---
   const inputArchivo = document.getElementById("archivo");
   const player = document.getElementById("player");
   const inputImagen = document.getElementById("imagenInput");
   const previewImagen = document.getElementById("previewImagen");
   const btnOCR = document.getElementById("btnOCR");
-
   const btnLeer = document.getElementById("btnLeer");
   const btnPausarLectura = document.getElementById("btnPausarLectura");
   const btnReanudarLectura = document.getElementById("btnReanudarLectura");
   const btnDetenerLectura = document.getElementById("btnDetenerLectura");
-  const btnDescargarAudio = document.getElementById("btnDescargarAudio");
-
-  const btnTranscribir = document.getElementById("btnTranscribir");
+  const btnTranscribirVoz = document.getElementById("btnTranscribirVoz");
+  const btnTranscribirArchivo = document.getElementById("btnTranscribirArchivo");
   const btnParar = document.getElementById("btnParar");
   const btnReanudar = document.getElementById("btnReanudar");
   const btnLimpiar = document.getElementById("btnLimpiar");
-
   const salida = document.getElementById("texto");
+  const estadoTranscripcion = document.getElementById("estadoTranscripcion");
+  const estadoArchivo = document.getElementById("estadoArchivo");
 
-  // --- Estado ---
+  // --- VARIABLES DE ESTADO ---
   let reconocimiento = null;
   let transcripcionParcial = "";
   let textoExtraido = "";
+  let transcripcionActiva = false;
+  let mediaRecorder = null;
+  let audioChunks = [];
 
   // Karaoke
   let utter = null;
@@ -132,7 +191,7 @@
   let lastCharGlobal = 0;   
   let currentToken = -1;    
 
-  // --- Karaoke CSS ---
+  // --- FUNCIONES DE KARAOKE ---
   (function injectKaraokeCSS(){
     const s = document.createElement("style");
     s.textContent = `
@@ -149,7 +208,10 @@
     tokens = text.match(/[\S]+|\s+/g) || [];
     tokenStarts = new Array(tokens.length);
     let acc = 0;
-    for (let i=0;i<tokens.length;i++){ tokenStarts[i]=acc; acc += tokens[i].length; }
+    for (let i=0;i<tokens.length;i++){ 
+      tokenStarts[i]=acc; 
+      acc += tokens[i].length; 
+    }
   }
 
   function renderTokens(){
@@ -183,7 +245,7 @@
     const el = cont.querySelector(`span.k[data-i="${currentToken}"]`);
     if (el){
       el.classList.add("on");
-      el.scrollIntoView({block:"nearest", inline:"nearest"});
+      el.scrollIntoView({block:"nearest", inline:"nearest", behavior: "smooth"});
     }
   }
 
@@ -209,10 +271,254 @@
       highlightToken(tokens.length-1);
     };
 
+    utter.onerror = (e) => {
+      console.error("Error en síntesis de voz:", e);
+    };
+
     speechSynthesis.speak(utter);
   }
 
-  // --- OCR ---
+  // --- ACTUALIZAR ESTADOS ---
+  function actualizarEstadoTranscripcion(mensaje, tipo) {
+    estadoTranscripcion.textContent = mensaje;
+    estadoTranscripcion.className = "estado-transcripcion " + tipo;
+  }
+
+  function actualizarEstadoArchivo(mensaje, tipo) {
+    estadoArchivo.textContent = mensaje;
+    estadoArchivo.className = "estado-transcripcion " + tipo;
+  }
+
+  // --- FUNCIÓN PRINCIPAL: TRANSCRIBIR ARCHIVO DE AUDIO ---
+  async function transcribirArchivoDeAudio(audioFile) {
+    if (!audioFile) {
+      actualizarEstadoArchivo("❌ No se seleccionó ningún archivo", "detenido");
+      return;
+    }
+
+    // Verificar tamaño del archivo (limitar a 10MB para navegador)
+    if (audioFile.size > 10 * 1024 * 1024) {
+      actualizarEstadoArchivo("❌ Archivo demasiado grande (máximo 10MB)", "detenido");
+      return;
+    }
+
+    actualizarEstadoArchivo("⏳ Procesando archivo de audio...", "procesando");
+    
+    try {
+      // Crear un elemento de audio temporal
+      const audioElement = new Audio();
+      audioElement.src = URL.createObjectURL(audioFile);
+      
+      // Esperar a que el audio esté listo
+      await new Promise((resolve, reject) => {
+        audioElement.onloadedmetadata = resolve;
+        audioElement.onerror = reject;
+        setTimeout(resolve, 1000); // Fallback timeout
+      });
+
+      // Verificar duración (limitar a 2 minutos)
+      if (audioElement.duration > 120) {
+        actualizarEstadoArchivo("❌ Audio demasiado largo (máximo 2 minutos)", "detenido");
+        return;
+      }
+
+      actualizarEstadoArchivo("🎤 Grabando audio desde el archivo...", "procesando");
+      
+      // Crear un contexto de audio
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioFile.arrayBuffer();
+      const decodedAudio = await audioContext.decodeAudioData(audioBuffer);
+      
+      // Crear un MediaStreamDestination para redirigir el audio
+      const destination = audioContext.createMediaStreamDestination();
+      const source = audioContext.createBufferSource();
+      source.buffer = decodedAudio;
+      source.connect(destination);
+      source.connect(audioContext.destination);
+      
+      // Configurar MediaRecorder para grabar la salida
+      mediaRecorder = new MediaRecorder(destination.stream);
+      audioChunks = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        // Combinar chunks de audio
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Ahora usar SpeechRecognition con el audio grabado
+        await usarSpeechRecognitionConAudio(audioBlob);
+      };
+      
+      // Iniciar grabación y reproducción
+      mediaRecorder.start();
+      source.start(0);
+      
+      // Detener después de la duración del audio
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          source.stop();
+        }
+      }, audioElement.duration * 1000);
+      
+    } catch (error) {
+      console.error("Error procesando archivo:", error);
+      actualizarEstadoArchivo("❌ Error procesando archivo: " + error.message, "detenido");
+    }
+  }
+
+  // --- FUNCIÓN PARA USAR SPEECHRECOGNITION CON AUDIO GRABADO ---
+  async function usarSpeechRecognitionConAudio(audioBlob) {
+    if (!("SpeechRecognition" in window) && !("webkitSpeechRecognition" in window)) {
+      actualizarEstadoArchivo("❌ API no soportada en este navegador", "detenido");
+      return;
+    }
+
+    // Crear un elemento de audio para reproducir el blob
+    const tempAudio = new Audio(URL.createObjectURL(audioBlob));
+    
+    // Configurar SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = "es-ES";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    let transcriptionResult = "";
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcriptionResult += event.results[i][0].transcript + " ";
+        }
+      }
+      
+      // Actualizar salida en tiempo real
+      salida.innerHTML = "📄 Transcripción del archivo:<br><br>" + 
+                        (transcriptionResult || "Procesando...");
+      salida.scrollTop = salida.scrollHeight;
+    };
+
+    recognition.onend = () => {
+      actualizarEstadoArchivo("✅ Transcripción completada", "escuchando");
+      
+      // Guardar el texto extraído
+      if (transcriptionResult) {
+        textoExtraido = transcriptionResult.trim();
+        
+        // Mostrar en formato karaoke
+        salida.innerHTML = `
+          <strong>📄 Transcripción del archivo:</strong><br><br>
+          <div style="border:1px solid #ccc; padding:10px; border-radius:6px; background:#fafafa;">
+            <div id="textoLeido">${esc(textoExtraido)}</div>
+          </div>`;
+        
+        // Preparar para karaoke
+        tokenize(textoExtraido);
+        renderTokens();
+        currentToken = -1;
+      }
+      
+      // Limpiar recursos
+      tempAudio.pause();
+      URL.revokeObjectURL(tempAudio.src);
+    };
+
+    recognition.onerror = (event) => {
+      actualizarEstadoArchivo("❌ Error en reconocimiento: " + event.error, "detenido");
+    };
+
+    // Iniciar reconocimiento y reproducir audio
+    try {
+      recognition.start();
+      // Pequeño delay para sincronizar
+      setTimeout(() => {
+        tempAudio.play().catch(e => console.log("Auto-play bloqueado:", e));
+      }, 500);
+    } catch (error) {
+      actualizarEstadoArchivo("❌ Error al iniciar reconocimiento", "detenido");
+    }
+  }
+
+  // --- TRANSCRIPCIÓN DE VOZ EN TIEMPO REAL ---
+  function iniciarTranscripcionVoz(){
+    if (!("SpeechRecognition" in window) && !("webkitSpeechRecognition" in window)) {
+      alert("Tu navegador no soporta la API de reconocimiento de voz.\n\nUsa Chrome, Edge o Safari.");
+      actualizarEstadoTranscripcion("❌ API no soportada", "detenido");
+      return;
+    }
+
+    if (reconocimiento) {
+      reconocimiento.stop();
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    reconocimiento = new SpeechRecognition();
+    
+    reconocimiento.lang = "es-ES";
+    reconocimiento.continuous = true;
+    reconocimiento.interimResults = true;
+    reconocimiento.maxAlternatives = 1;
+
+    reconocimiento.onstart = () => {
+      transcripcionActiva = true;
+      actualizarEstadoTranscripcion("🎤 Escuchando... Habla ahora", "escuchando");
+    };
+
+    reconocimiento.onresult = (event) => {
+      let textoInterim = "";
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        
+        if (event.results[i].isFinal) {
+          transcripcionParcial += transcript + " ";
+        } else {
+          textoInterim += transcript;
+        }
+      }
+      
+      let contenidoHTML = transcripcionParcial;
+      if (textoInterim) {
+        contenidoHTML += `<br><em style="color: #666; background: #fff3cd; padding: 2px 5px; border-radius: 3px;">${textoInterim}</em>`;
+      }
+      
+      salida.innerHTML = contenidoHTML;
+      salida.scrollTop = salida.scrollHeight;
+    };
+
+    reconocimiento.onerror = (e) => {
+      transcripcionActiva = false;
+      let mensajeError = "Error: ";
+      switch(e.error) {
+        case 'no-speech': mensajeError = "No se detectó voz"; break;
+        case 'audio-capture': mensajeError = "Error con el micrófono"; break;
+        case 'not-allowed': mensajeError = "Micrófono no permitido"; break;
+        default: mensajeError += e.error;
+      }
+      actualizarEstadoTranscripcion("❌ " + mensajeError, "detenido");
+    };
+
+    reconocimiento.onend = () => {
+      transcripcionActiva = false;
+      actualizarEstadoTranscripcion("🛑 Transcripción finalizada", "detenido");
+    };
+
+    try {
+      reconocimiento.start();
+    } catch (error) {
+      actualizarEstadoTranscripcion("❌ Error al iniciar", "detenido");
+    }
+  }
+
+  // --- OCR DE IMÁGENES ---
   inputImagen.addEventListener("change", e => {
     const archivo = e.target.files[0];
     if (archivo) {
@@ -226,25 +532,39 @@
       alert("Por favor selecciona una imagen primero.");
       return;
     }
-    salida.innerHTML = "⏳ Procesando imagen, por favor espera...";
-    Tesseract.recognize(inputImagen.files[0], 'spa').then(({ data:{ text } })=>{
+    
+    salida.innerHTML = "⏳ Procesando imagen...";
+    
+    Tesseract.recognize(inputImagen.files[0], 'spa').then(({ data: { text } }) => {
       textoExtraido = (text || "").trim();
+      
+      if (!textoExtraido) {
+        salida.innerHTML = "⚠️ No se pudo extraer texto";
+        return;
+      }
+      
       salida.innerHTML = `
-        🖼️ Texto extraído de la imagen:<br><br>
-        <div style="border:1px solid #ccc;padding:8px;border-radius:6px;background:#fafafa">
+        <strong>🖼️ Texto extraído:</strong><br><br>
+        <div style="border:1px solid #ccc; padding:10px; border-radius:6px; background:#fafafa;">
           <div id="textoLeido">${esc(textoExtraido)}</div>
         </div>`;
+      
       tokenize(textoExtraido);
       renderTokens();
       currentToken = -1;
-    }).catch(err=>{
+      
+    }).catch(err => {
       salida.innerHTML = "⚠️ Error en OCR: " + err.message;
     });
   });
 
-  // --- Lectura Karaoke ---
+  // --- LECTURA KARAOKE ---
   btnLeer.addEventListener("click", () => {
-    if (!textoExtraido) { alert("No hay texto para leer."); return; }
+    if (!textoExtraido) { 
+      alert("No hay texto para leer. Extrae texto de imagen o transcribe audio primero.");
+      return; 
+    }
+    
     speechSynthesis.cancel();
     tokenize(textoExtraido);
     renderTokens();
@@ -254,17 +574,17 @@
   });
 
   btnPausarLectura.addEventListener("click", () => {
-    if (speechSynthesis.speaking && !speechSynthesis.paused) speechSynthesis.pause();
+    if (speechSynthesis.speaking && !speechSynthesis.paused) {
+      speechSynthesis.pause();
+    }
   });
 
   btnReanudarLectura.addEventListener("click", () => {
     if (speechSynthesis.paused) {
       speechSynthesis.resume();
-    } else {
-      if (lastCharGlobal < textoExtraido.length) {
-        speechSynthesis.cancel();
-        speakFrom(lastCharGlobal);
-      }
+    } else if (lastCharGlobal < textoExtraido.length) {
+      speechSynthesis.cancel();
+      speakFrom(lastCharGlobal);
     }
   });
 
@@ -274,104 +594,78 @@
     highlightToken(-1);
   });
 
-   // --- Descargar Audio como .webm ---
- btnDescargarAudio.addEventListener("click", async () => {
-  if (!textoExtraido) { alert("No hay texto para convertir."); return; }
-
-  const stream = await navigator.mediaDevices.getDisplayMedia({ 
-    audio: true, 
-    video: false 
-  });
-
-  const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-  let chunks = [];
-  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(chunks, { type: "audio/webm" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "texto.webm";
-    a.click();
-  };
-
-  mediaRecorder.start();
-
-  const utter2 = new SpeechSynthesisUtterance(textoExtraido);
-  utter2.lang = "es-ES";
-  utter2.rate = 1;
-  utter2.onend = () => mediaRecorder.stop();
-
-  speechSynthesis.speak(utter2);
-});
-
-
-
-
-  // --- Audio player ---
+  // --- EVENT LISTENERS ---
   inputArchivo.addEventListener("change", e => {
     const archivo = e.target.files[0];
-    if (archivo) player.src = URL.createObjectURL(archivo);
+    if (archivo) {
+      player.src = URL.createObjectURL(archivo);
+    }
   });
 
-  function iniciarTranscripcion(){
-    if (!("webkitSpeechRecognition" in window)) {
-      alert("Tu navegador no soporta la API de reconocimiento de voz.");
+  btnTranscribirArchivo.addEventListener("click", () => {
+    if (!inputArchivo.files[0]) {
+      alert("Por favor selecciona un archivo de audio primero.");
       return;
     }
-    reconocimiento = new webkitSpeechRecognition();
-    reconocimiento.lang = "es-ES";
-    reconocimiento.continuous = true;
-    reconocimiento.interimResults = true;
-    reconocimiento.start();
-    salida.innerHTML = transcripcionParcial || "🎧 Escuchando...";
-    reconocimiento.onresult = (event) => {
-      let textoNuevo = "";
-      for (let i=0; i<event.results.length; i++) textoNuevo += event.results[i][0].transcript + " ";
-      salida.innerHTML = transcripcionParcial + " " + textoNuevo;
-    };
-    reconocimiento.onerror = (e) => {
-      salida.innerHTML += "<br>⚠️ Error: " + e.error;
-    };
-  }
+    transcribirArchivoDeAudio(inputArchivo.files[0]);
+  });
 
-  btnTranscribir.addEventListener("click", () => {
-    if (reconocimiento) reconocimiento.stop();
-    transcripcionParcial = "";
-    iniciarTranscripcion();
+  btnTranscribirVoz.addEventListener("click", () => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(() => iniciarTranscripcionVoz())
+      .catch(() => alert("Permiso de micrófono denegado."));
   });
 
   btnParar.addEventListener("click", () => {
-    player.pause();
-    if (reconocimiento) {
+    if (reconocimiento && transcripcionActiva) {
       reconocimiento.stop();
-      transcripcionParcial = salida.innerHTML;
-      salida.innerHTML += "<br>⏸️ Transcripción pausada.";
+      actualizarEstadoTranscripcion("⏸️ Transcripción pausada", "detenido");
     }
   });
 
   btnReanudar.addEventListener("click", () => {
-    player.play();
-    iniciarTranscripcion();
-    salida.innerHTML += "<br>▶️ Transcripción reanudada...";
+    if (reconocimiento && !transcripcionActiva) {
+      iniciarTranscripcionVoz();
+    }
   });
 
   btnLimpiar.addEventListener("click", () => {
-    if (reconocimiento) reconocimiento.stop();
+    if (reconocimiento) {
+      reconocimiento.stop();
+      reconocimiento = null;
+    }
+    
     inputArchivo.value = "";
     inputImagen.value = "";
-    player.pause(); player.src = "";
-    previewImagen.src = ""; previewImagen.style.display = "none";
-    transcripcionParcial = ""; textoExtraido = "";
+    player.pause();
+    player.src = "";
+    previewImagen.src = "";
+    previewImagen.style.display = "none";
+    
+    transcripcionParcial = "";
+    textoExtraido = "";
     salida.innerHTML = "Aquí aparecerá el texto transcrito...";
+    actualizarEstadoTranscripcion("", "");
+    actualizarEstadoArchivo("", "");
+    
     speechSynthesis.cancel();
-    tokens = []; tokenStarts = []; currentToken = -1; lastCharGlobal = 0; baseOffset = 0;
+    tokens = [];
+    tokenStarts = [];
+    currentToken = -1;
+    lastCharGlobal = 0;
+    baseOffset = 0;
+  });
+
+  // --- INICIALIZACIÓN ---
+  document.addEventListener('DOMContentLoaded', () => {
+    actualizarEstadoTranscripcion("Listo para transcribir voz", "");
+    actualizarEstadoArchivo("Selecciona un archivo de audio", "");
+    
+    if (!("SpeechRecognition" in window) && !("webkitSpeechRecognition" in window)) {
+      actualizarEstadoTranscripcion("⚠️ Transcripción no disponible", "detenido");
+    }
   });
 </script>
 
-
-
-
 </body>
-
 </html>

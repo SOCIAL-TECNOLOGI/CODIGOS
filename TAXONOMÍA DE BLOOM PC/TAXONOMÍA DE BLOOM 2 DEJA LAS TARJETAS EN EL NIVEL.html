@@ -297,27 +297,39 @@ const DRAG_ROOT = document.body;       // durante el drag, cuelga del body
 const HIT_PAD = 24;                    // tolerancia px para el drop
 const SNAP_DISTANCE = 40;              // px
 
-/* ================== Datos base ================== */
+/* =============== DATA SITE–RUTA LATAM (v1.0) =============== */
+
 const DATA = {
   saber: {
-    4: ["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
-    3: ["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
-    2: ["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
-    1: ["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+    1: ["Recordar", "Identificar", "Reconocer", "Nombrar", "Definir", "Listar"],
+    2: ["Comprender", "Describir", "Explicar", "Interpretar",         // Interpretación literal, no inferencial
+      "Ejemplificar", "Clasificar", "Parafrasear", "Resumir"
+    ],
+    3: ["Aplicar", "Analizar", "Comparar", "Contrastar", "Diferenciar", "Organizar", "Revisar", "Establecer relaciones"],
+    4: ["Evaluar", "Argumentar", "Justificar", "Formular", "Diseñar (conceptual)", // Diseño conceptual, no operativo
+      "Crear", "Sintetizar", "Proponer soluciones", "Construir explicaciones", "Hipotetizar"
+    ]
   },
+
   hacer: {
-    4: ["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
-    3: ["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
-    2: ["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
-    1: ["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+    1: ["Imitar", "Copiar", "Seguir instrucciones", "Manipular con ayuda", "Reproducir", "Ensayar (bajo supervisión)"],
+    2: ["Ejecutar", "Practicar", "Demostrar", "Operar", "Usar", "Manipular con control", "Registrar", "Medir", "Montar (con criterios)", "Desmontar (controlado)"],
+    3: ["Implementar", "Integrar (procedimental)",   // Integración técnica, NO conceptual
+      "Coordinar", "Ajustar", "Calibrar", "Configurar", "Diagnosticar fallas", "Perfeccionar", "Supervisar procesos", "Ensamblar (autónomo)"
+    ],
+    4: ["Optimizar", "Automatizar", "Transferir", "Innovar (técnicamente)", "Prototipar", "Desarrollar procedimientos", "Simular", "Estandarizar", "Validar (funcionalidad técnica)", "Retroalimentar técnicamente", "Diseñar soluciones operativas"  // Ajustado a ontología
+    ]
   },
+
   ser: {
-    4: ["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
-    3: ["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
-    2: ["Responder","Participar","Colaborar","Respetar","Cumplir"],
-    1: ["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+    1: ["Atender", "Escuchar", "Aceptar", "Mostrar disposición", "Reconocer emociones básicas", "Pedir apoyo"],
+    2: ["Participar", "Colaborar", "Respetar", "Cumplir acuerdos simples", "Responder adecuadamente", "Dialogar", "Aportar ideas", "Respetar turnos"],
+    3: ["Asumir responsabilidades", "Valorar diversas perspectivas", "Regular emociones", "Argumentar respetuosamente", "Tomar decisiones responsables", "Resolver conflictos simples", "Cumplir compromisos"],
+    4: ["Liderar procesos colaborativos", "Mediar conflictos con imparcialidad", "Facilitar participación", "Modelar comportamientos respetuosos", "Promover iniciativas colectivas", "Tomar decisiones considerando consecuencias", "Cuidar el entorno y a otros", "Interiorizar principios de convivencia"]
   }
 };
+
+
 
 const bankEl = document.getElementById('bank');
 const okEl = document.getElementById('ok');

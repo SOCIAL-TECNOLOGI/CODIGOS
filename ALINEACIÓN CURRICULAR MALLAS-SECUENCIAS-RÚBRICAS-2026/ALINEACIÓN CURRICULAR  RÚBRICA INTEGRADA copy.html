@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente de Calibración DCE–SIEE</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f5f7fa;
+    color: #222;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #1d4ed8;
+  }
+  .selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  select, button {
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    background: #1d4ed8;
+    color: white;
+    cursor: pointer;
+  }
+  button:hover { background: #2563eb; }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    transition: 0.3s;
+  }
+  .nivel-1 { border-left: 8px solid #ef4444; }
+  .nivel-2 { border-left: 8px solid #f97316; }
+  .nivel-3 { border-left: 8px solid #facc15; }
+  .nivel-4 { border-left: 8px solid #22c55e; }
+
+  h2 { color: #1d4ed8; }
+  p span { font-weight: bold; color: #111; }
+  .descripcion { font-style: italic; color: #374151; margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<h1>🧭 Asistente de Calibración DCE–SIEE</h1>
+
+<div class="selector">
+  <label>Dimensión:</label>
+  <select id="dimension" onchange="actualizarVerbos()">
+    <option value="saber">Saber</option>
+    <option value="hacer">Hacer</option>
+    <option value="ser">Ser</option>
+  </select>
+
+  <label>Nivel:</label>
+  <select id="nivel" onchange="actualizarVerbos()">
+    <option value="1">Nivel 1 (Inicial)</option>
+    <option value="2">Nivel 2 (Básico)</option>
+    <option value="3">Nivel 3 (Alto)</option>
+    <option value="4">Nivel 4 (Superior)</option>
+  </select>
+
+  <label>Verbo:</label>
+  <select id="verbo"></select>
+
+  <button onclick="mostrar()">Mostrar Análisis</button>
+</div>
+
+<div id="resultado"></div>
+
+<script>
+// === BASES DE DATOS ===
+const DATA = {
+  saber:{
+    4:["Evaluar","Argumentar","Justificar","Diseñar","Formular","Crear","Innovar","Planificar","Concebir","Diseñar Prompts"],
+    3:["Aplicar","Analizar","Comparar","Organizar","Diferenciar","Contrastar","Revisar","Refinar"],
+    2:["Comprender","Describir","Explicar","Interpretar","Ejemplificar","Clasificar"],
+    1:["Recordar","Identificar","Reconocer","Definir","Listar","Nombrar"]
+  },
+  hacer:{
+    4:["Automatizar","Optimizar","Transferir","Innovar","Trazar Estrategias","Combinar Herramientas"],
+    3:["Coordinar","Implementar","Integrar","Perfeccionar","Aplicar Con Autonomía"],
+    2:["Ejecutar","Practicar","Demostrar","Operar","Utilizar Con Apoyo"],
+    1:["Imitar","Copiar","Seguir Instrucciones","Manipular Con Ayuda"]
+  },
+  ser:{
+    4:["Interiorizar","Liderar","Modelar","Transformar","Influir Positivamente","Validar Éticamente"],
+    3:["Valorar","Argumentar","Promover","Asumir Responsabilidades","Ser Consciente"],
+    2:["Responder","Participar","Colaborar","Respetar","Cumplir"],
+    1:["Atender","Escuchar","Aceptar","Mostrar Disposición"]
+  }
+};
+
+const LEVEL_CRITERIA = {
+  saber:{
+    1:"Reconoce/recuerda información sin transformarla.",
+    2:"Comprende y explica con sus palabras.",
+    3:"Aplica/analiza en situaciones conocidas.",
+    4:"Crea/valida productos originales."
+  },
+  hacer:{
+    1:"Reproduce con ayuda o siguiendo pautas.",
+    2:"Ejecución básica con apoyo.",
+    3:"Integra y ajusta procedimientos con autonomía.",
+    4:"Optimiza/innova y transfiere a nuevos contextos."
+  },
+  ser:{
+    1:"Muestra disposición/aceptación inicial.",
+    2:"Participa y colabora activamente.",
+    3:"Valora, promueve y asume responsabilidades.",
+    4:"Modela, lidera e influye éticamente."
+  }
+};
+
+const REASONS = {
+  saber: {
+    "Evaluar": "Emite juicios con criterios explícitos y evidencia (nivel 4).",
+    "Analizar": "Descompone partes y relaciones para explicar funcionamiento (nivel 3).",
+    "Comprender": "Reformula con sus palabras mostrando conexiones básicas (nivel 2).",
+    "Recordar": "Evoca hechos o definiciones tal como fueron presentados (nivel 1)."
+  },
+  hacer: {
+    "Automatizar": "Convierte procedimientos en rutinas reproducibles (nivel 4).",
+    "Integrar": "Ensambla componentes o procesos que funcionen de forma conjunta (nivel 3).",
+    "Ejecutar": "Realiza procedimientos básicos siguiendo un plan dado (nivel 2).",
+    "Imitar": "Reproduce una acción observada con apoyo cercano (nivel 1)."
+  },
+  ser: {
+    "Liderar": "Conduce a otros hacia metas compartidas cuidando el clima ético (nivel 4).",
+    "Promover": "Impulsa iniciativas y convoca a la participación (nivel 3).",
+    "Colaborar": "Trabaja con otros aportando y escuchando (nivel 2).",
+    "Atender": "Presta atención y muestra interés inicial (nivel 1)."
+  }
+};
+
+const VERB_FEEDBACK = {
+  saber: {
+    "Evaluar": {
+      def: "Emitir juicios fundamentados con criterios explícitos y evidencia.",
+      orientacion: "Pide que explicite criterios, pese alternativas y cite evidencia.",
+      ejemplo: "¿Con qué criterios evaluarías estas dos soluciones y cuál es más sólida? ¿Por qué?"
+    },
+    "Analizar": {
+      def: "Descomponer partes y relaciones para explicar funcionamiento.",
+      orientacion: "Solicita mapa de componentes y relaciones causa–efecto.",
+      ejemplo: "Analiza X: identifica componentes clave y cómo interactúan para producir Y."
+    },
+    "Comprender": {
+      def: "Reformular con sus palabras mostrando conexiones básicas.",
+      orientacion: "Pide explicar con sus palabras y dar un ejemplo simple.",
+      ejemplo: "Explica con tus palabras X y da un ejemplo sencillo."
+    },
+    "Recordar": {
+      def: "Evocar hechos, fórmulas o definiciones tal como fueron presentados.",
+      orientacion: "Pide recuperar definiciones o listas clave sin interpretación.",
+      ejemplo: "Recuerda la definición de X y enumera sus elementos."
+    }
+  },
+  hacer: {
+    "Automatizar": {
+      def: "Convertir procedimientos en rutinas reproducibles con validación.",
+      orientacion: "Pide pasos, reglas de decisión y comprobación de resultados.",
+      ejemplo: "Automatiza el flujo X: detalla pasos, reglas y cómo validar la salida."
+    },
+    "Integrar": {
+      def: "Ensablar componentes/procesos que funcionen juntos.",
+      orientacion: "Pide describir interfaces y pruebas de integración.",
+      ejemplo: "Integra estos componentes y explica cómo los probarás en conjunto."
+    },
+    "Ejecutar": {
+      def: "Realizar procedimientos básicos siguiendo un plan dado.",
+      orientacion: "Exige seguir pasos, tiempos y estándares de seguridad.",
+      ejemplo: "Ejecuta el procedimiento X y verifica los criterios de calidad."
+    },
+    "Imitar": {
+      def: "Reproducir una acción observada con apoyo cercano.",
+      orientacion: "Pide observar, segmentar y repetir lentamente.",
+      ejemplo: "Imita esta técnica: mírala 2 veces y repite los 3 primeros pasos."
+    }
+  },
+  ser: {
+    "Liderar": {
+      def: "Conducir a otros hacia metas compartidas cuidando el clima.",
+      orientacion: "Solicita metas claras, escucha activa y distribución justa.",
+      ejemplo: "Lidera esta tarea definiendo meta, roles y acuerdos de convivencia."
+    },
+    "Promover": {
+      def: "Impulsar iniciativas y convocar a la participación.",
+      orientacion: "Pide plan de difusión, incentivos y seguimiento.",
+      ejemplo: "Promueve la iniciativa X: ¿cómo convocarás y sostendrás la participación?"
+    },
+    "Colaborar": {
+      def: "Trabajar con otros aportando y escuchando.",
+      orientacion: "Pide acuerdos, distribución de tareas y feedback breve.",
+      ejemplo: "Colabora con tu equipo en X: define tareas y cómo se darán retroalimentaciones."
+    },
+    "Atender": {
+      def: "Prestar atención sostenida a indicaciones y contenidos.",
+      orientacion: "Pide señales observables de atención (contacto visual, notas breves).",
+      ejemplo: "Atiende a la explicación y escribe dos ideas clave."
+    }
+  }
+};
+
+// === FUNCIONES ===
+function actualizarVerbos(){
+  const dim = document.getElementById("dimension").value;
+  const nivel = document.getElementById("nivel").value;
+  const select = document.getElementById("verbo");
+  select.innerHTML = "";
+  DATA[dim][nivel].forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    select.appendChild(opt);
+  });
+}
+
+function mostrar(){
+  const dim = document.getElementById("dimension").value;
+  const nivel = document.getElementById("nivel").value;
+  const verbo = document.getElementById("verbo").value;
+
+  const criterio = LEVEL_CRITERIA[dim][nivel];
+  const reason = REASONS[dim][verbo] || "Sin justificación específica aún.";
+  const fb = VERB_FEEDBACK[dim][verbo];
+
+  let colorClass = `nivel-${nivel}`;
+  const container = document.getElementById("resultado");
+
+  container.innerHTML = `
+  <div class="card ${colorClass}">
+    <h2>${verbo.toUpperCase()} — ${dim.toUpperCase()} (Nivel ${nivel})</h2>
+    <p><span>Criterio general del nivel:</span> ${criterio}</p>
+    <p><span>Razón taxonómica:</span> ${reason}</p>
+    <hr>
+    <p><span>Definición operativa:</span> ${fb?.def || "No disponible."}</p>
+    <p><span>Orientación didáctica:</span> ${fb?.orientacion || "No disponible."}</p>
+    <p><span>Ejemplo de instrucción:</span> ${fb?.ejemplo || "No disponible."}</p>
+  </div>
+  `;
+}
+
+actualizarVerbos();
+</script>
+
+</body>
+</html>

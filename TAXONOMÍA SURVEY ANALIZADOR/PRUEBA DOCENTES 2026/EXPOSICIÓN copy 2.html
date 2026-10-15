@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Slides DCE — SITE–RUTA LATAM (Offline)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1b33;
+      --card:#142447;
+      --text:#e8eefc;
+      --muted:#b6c3e6;
+      --accent:#7bd88f;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 16px 40px rgba(0,0,0,.42);
+      --radius:22px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(123,216,143,.16), transparent),
+        radial-gradient(1000px 500px at 90% 20%, rgba(255,204,102,.12), transparent),
+        var(--bg);
+      color: var(--text);
+      overflow:hidden;
+    }
+
+    .topbar{
+      position:fixed; left:0; right:0; top:0;
+      padding:12px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(11,18,32,.92), rgba(11,18,32,.60));
+      border-bottom:1px solid var(--border);
+      backdrop-filter: blur(6px);
+      z-index:10;
+    }
+    .brand{ display:flex; flex-direction:column; gap:2px; }
+    .brand b{ font-size:14px; letter-spacing:.2px; }
+    .brand span{ font-size:12px; color:var(--muted); }
+
+    .controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+    button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease;
+      user-select:none;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: scale(.98); }
+    .btn-accent{ border-color: rgba(123,216,143,.35); }
+    .btn-warn{ border-color: rgba(255,204,102,.35); }
+
+    .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .progress{
+      display:flex; align-items:center; gap:8px;
+      min-width:240px;
+    }
+    .bar{
+      height:10px;
+      width:160px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(123,216,143,.95), rgba(255,204,102,.95));
+      transition: width .2s ease;
+    }
+
+    .stage{
+      position:fixed;
+      inset:56px 0 0 0;
+      display:grid;
+      place-items:center;
+      padding: 16px;
+    }
+
+    .slide{
+      width:min(1180px, 96vw);
+      height:min(640px, 86vh);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 44px 54px;
+      display:none;
+      position:relative;
+      overflow:hidden;
+    }
+    .slide.active{ display:block; }
+
+    .kicker{
+      font-size:13px;
+      color: var(--muted);
+      letter-spacing:.35px;
+      text-transform: uppercase;
+    }
+    h1{
+      margin:10px 0 10px;
+      font-size: 44px;
+      line-height:1.08;
+      letter-spacing:.2px;
+    }
+    .lead{
+      margin:0 0 18px;
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 980px;
+    }
+
+    /* ====== layout clásico (cols) ====== */
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .box{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(0,0,0,.20);
+      padding: 16px 16px 14px;
+    }
+    .box h3{
+      margin:0 0 10px;
+      font-size: 14px;
+      letter-spacing:.35px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .box p, .box li{
+      font-size: 18px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    ul{ margin: 0; padding-left: 18px; }
+    li{ margin: 8px 0; color: var(--text); }
+
+    /* ====== manifesto ====== */
+    .slide.manifesto.active{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap: 14px;
+    }
+    .slide.manifesto.active h1{
+      font-size: 40px;
+      margin-top: 10px;
+    }
+    .quote{
+      font-family: inherit;
+      white-space: pre-wrap;
+      font-size: 24px;
+      line-height: 1.45;
+      color: var(--text);
+      margin:0;
+      max-width: 980px;
+    }
+    .quoteWrap{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 16px 16px;
+      overflow:auto;
+      max-height: calc(100% - 140px);
+    }
+    .quoteWrap::-webkit-scrollbar{ width:10px; }
+    .quoteWrap::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.14);
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.25);
+    }
+    .fit-1 .quote{ font-size: 22px; line-height: 1.38; }
+    .fit-2 .quote{ font-size: 20px; line-height: 1.34; }
+    .fit-3 .quote{ font-size: 18.5px; line-height: 1.30; }
+
+    /* ====== ✅ TABLA PAMi (se integra SIN cambiar tu motor) ====== */
+    .pamiWrap{
+      margin-top: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      border-radius: 18px;
+      padding: 12px;
+      overflow:auto;
+      max-height: calc(100% - 190px);
+    }
+    .pamiWrap::-webkit-scrollbar{ height:10px; width:10px; }
+    .pamiWrap::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.14);
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.25);
+    }
+
+    table.pami{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 1120px; /* fuerza scroll horizontal si se requiere */
+    }
+    table.pami thead th{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(20,36,71,.92);
+      backdrop-filter: blur(6px);
+      color: var(--text);
+      font-size: 12.5px;
+      text-transform: uppercase;
+      letter-spacing: .25px;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+    }
+    table.pami th, table.pami td{
+      border-right:1px solid rgba(255,255,255,.10);
+      border-bottom:1px solid rgba(255,255,255,.10);
+      padding: 10px 10px;
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    table.pami th:last-child, table.pami td:last-child{ border-right:none; }
+    table.pami tbody tr:hover td{ background: rgba(255,255,255,.04); }
+
+    .tag{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+      margin-right:6px;
+      margin-bottom:6px;
+    }
+    .note{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 980px;
+    }
+
+    .corner{
+      position:absolute;
+      right:18px; bottom:14px;
+      font-size: 12px;
+      color: rgba(182,195,230,.85);
+    }
+
+    .help{
+      position:fixed;
+      right:14px; bottom:14px;
+      background: rgba(15,27,51,.92);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    @media (max-width: 860px){
+      .slide{ padding: 30px 22px; }
+      h1{ font-size: 34px; }
+      .lead{ font-size: 16px; }
+      .cols{ grid-template-columns: 1fr; }
+      .quote{ font-size: 20px; }
+      .progress{ min-width:auto; }
+      .bar{ width:120px; }
+      .quoteWrap{ max-height: calc(100% - 130px); }
+      .pamiWrap{ max-height: calc(100% - 210px); }
+      table.pami{ min-width: 1280px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <b>DCE — Evaluación por Competencias (Offline)</b>
+      <span>SITE–RUTA LATAM • PMAP aplicado a docentes</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn-accent" id="btnPrev">⟵ Anterior</button>
+      <button class="btn-accent" id="btnNext">Siguiente ⟶</button>
+      <button class="btn-warn" id="btnFull">Pantalla completa</button>
+      <span class="pill" id="counter">0/0</span>
+      <div class="progress">
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="help">
+    Atajos: ← → / Space • Home/End • F (pantalla completa)
+  </div>
+
+<script>
+/* =========================================================
+   SLIDES — Con bloque robusto: TAREA vs DESCRIPTOR (alto rigor)
+   + ✅ PAMi v4.0 con TABLA VISIBLE dentro del MISMO motor (sin cambiar tu estructura)
+   ========================================================= */
+
+/* =========================
+   ✅ DATOS PAMi (Ejemplo aplicado)
+   DBA 1 — Ciencias Naturales — Grado 1°
+   Verbo rector: COMPRENDE (inmutable)
+   ========================= */
+const PAMI_HEADERS = [
+  { key:"nivel", label:"Nivel DCE" },
+  { key:"siee", label:"Rango SIEE" },
+  { key:"proposito", label:"Propósito (verbo medible)" },
+  { key:"pregunta", label:"Pregunta PAMi" },
+  { key:"evidencia", label:"Evidencia explícita derivada" },
+  { key:"tipo", label:"Tipo de evidencia (DCE)" },
+  { key:"tarea", label:"Tarea (en gerundio)" },
+  { key:"descriptor", label:"Descriptor (autonomía–complejidad–contexto)" },
+  { key:"verbos", label:"Verbos asociados (Bloom–SITE–RUTA LATAM)" },
+];
+
+const PAMI_DBA1_CN_1 = {
+  saber: [
+    {
+      nivel:"N1", siee:"BAJO (1.0–2.9)",
+      proposito:"Comprende identificando características sensoriales en objetos cercanos.",
+      pregunta:"¿Qué sentido uso para conocer cómo es este objeto?",
+      evidencia:"Nombra el sentido adecuado y señala una característica observable (color, textura, olor) con apoyo total.",
+      tipo:"Cognitiva",
+      tarea:"Identificando el sentido y la característica en objetos del entorno inmediato.",
+      descriptor:"Con apoyo constante; en objetos familiares; reconoce una característica aislada sin justificarla.",
+      verbos:"Reconocer, Identificar, Nombrar"
+    },
+    {
+      nivel:"N2", siee:"BÁSICO (3.0–3.9)",
+      proposito:"Comprende describiendo características sensoriales básicas con vocabulario cotidiano.",
+      pregunta:"¿Cómo describo lo que siento/veo/huelo en este objeto?",
+      evidencia:"Describe 2–3 características sensoriales con vocabulario cotidiano, con apoyo parcial (preguntas guía).",
+      tipo:"Cognitiva",
+      tarea:"Describiendo características sensoriales básicas a partir de una observación guiada.",
+      descriptor:"Con apoyo parcial; en situaciones conocidas; describe varias características sin establecer relaciones causales.",
+      verbos:"Describir, Clasificar, Ejemplificar"
+    },
+    {
+      nivel:"N3", siee:"ALTO (4.0–4.6)",
+      proposito:"Comprende explicando relaciones simples entre estímulos (luz, calor) y sensaciones.",
+      pregunta:"¿Qué pasa con mis sentidos cuando cambia la luz o la temperatura?",
+      evidencia:"Explica una relación simple (calor → sensación; luz → ver detalles) de forma autónoma con ejemplo.",
+      tipo:"Cognitiva",
+      tarea:"Explicando relaciones simples entre estímulos y sensaciones a partir de una experiencia en aula.",
+      descriptor:"Autónomo con verificación; en experiencias controladas; explica relación simple usando ejemplo pertinente.",
+      verbos:"Explicar, Interpretar, Establecer relaciones"
+    },
+    {
+      nivel:"N4", siee:"SUPERIOR (4.7–5.0)",
+      proposito:"Comprende argumentando la elección del sentido o instrumento en situaciones nuevas.",
+      pregunta:"¿Qué sentido o instrumento conviene usar aquí y por qué?",
+      evidencia:"Argumenta la elección del sentido o instrumento (p. ej., lupa) en situación nueva, justificando con criterio.",
+      tipo:"Cognitiva",
+      tarea:"Argumentando la elección del sentido o instrumento adecuado en un caso nuevo.",
+      descriptor:"Autonomía total + transferencia; en situación nueva; justifica con criterio y compara opciones.",
+      verbos:"Argumentar, Justificar, Proponer"
+    }
+  ],
+  hacer: [
+    {
+      nivel:"N1", siee:"BAJO (1.0–2.9)",
+      proposito:"Comprende observando objetos siguiendo instrucciones paso a paso.",
+      pregunta:"¿Qué debo hacer primero para observar bien este objeto?",
+      evidencia:"Observa siguiendo instrucciones directas (mirar/tocar/oler) y responde a una pregunta puntual con apoyo total.",
+      tipo:"Procedimental",
+      tarea:"Observando el objeto siguiendo instrucciones paso a paso.",
+      descriptor:"Con guía paso a paso; en ambiente controlado; ejecuta acciones simples sin registrar por sí mismo.",
+      verbos:"Imitar, Seguir instrucciones, Copiar"
+    },
+    {
+      nivel:"N2", siee:"BÁSICO (3.0–3.9)",
+      proposito:"Comprende comparando propiedades sensoriales simples con acompañamiento.",
+      pregunta:"¿En qué se parecen y en qué se diferencian estos dos objetos?",
+      evidencia:"Compara 1–2 propiedades (textura/temperatura) con acompañamiento y vocabulario dado.",
+      tipo:"Procedimental",
+      tarea:"Comparando propiedades sensoriales simples entre dos objetos con apoyo parcial.",
+      descriptor:"Con apoyo parcial; en tareas conocidas; compara propiedades con criterios dados, sin crear criterios propios.",
+      verbos:"Comparar, Diferenciar, Organizar"
+    },
+    {
+      nivel:"N3", siee:"ALTO (4.0–4.6)",
+      proposito:"Comprende registrando observaciones mediante dibujos u organizadores simples de forma autónoma.",
+      pregunta:"¿Cómo puedo mostrar lo que observé sin que el docente lo diga por mí?",
+      evidencia:"Registra observaciones en dibujo o tabla simple (2 columnas) y comunica lo registrado con claridad básica.",
+      tipo:"Procedimental",
+      tarea:"Registrando observaciones en un dibujo o cuadro simple y comunicándolas.",
+      descriptor:"Autónomo con verificación; en situación guiada; registra y comunica hallazgos básicos con orden y claridad.",
+      verbos:"Registrar, Organizar, Describir"
+    },
+    {
+      nivel:"N4", siee:"SUPERIOR (4.7–5.0)",
+      proposito:"Comprende usando instrumentos (lupa) y ajustando procedimientos para mejorar la observación en contextos nuevos.",
+      pregunta:"¿Qué cambio en mi forma de observar para ver mejor un detalle nuevo?",
+      evidencia:"Usa lupa y ajusta el procedimiento (distancia/luz) para obtener mejor evidencia; explica el ajuste.",
+      tipo:"Procedimental",
+      tarea:"Usando un instrumento y ajustando el procedimiento para mejorar la observación en un caso nuevo.",
+      descriptor:"Autonomía total + transferencia; en contexto nuevo; ajusta variables y justifica la mejora lograda.",
+      verbos:"Ajustar, Verificar, Optimizar"
+    }
+  ],
+  ser: [
+    {
+      nivel:"N1", siee:"BAJO (1.0–2.9)",
+      proposito:"Comprende practicando normas básicas de autocuidado durante la actividad con recordatorios constantes.",
+      pregunta:"¿Qué regla de cuidado debo seguir mientras observo/toco objetos?",
+      evidencia:"Sigue una norma básica (lavarse manos/no llevar objetos a la boca) solo con recordatorios constantes.",
+      tipo:"Actitudinal",
+      tarea:"Aplicando una norma básica de autocuidado durante la actividad con recordatorios.",
+      descriptor:"Con mediación constante; en actividad corta; cumple la norma cuando se le recuerda, sin anticiparse ni sostenerla.",
+      verbos:"Seguir normas, Reconocer, Aceptar"
+    },
+    {
+      nivel:"N2", siee:"BÁSICO (3.0–3.9)",
+      proposito:"Comprende explicando la importancia del cuidado personal y del entorno durante la actividad.",
+      pregunta:"¿Por qué es importante cuidarme y cuidar el material mientras observo?",
+      evidencia:"Explica una razón simple (salud/seguridad/cuidado) y cumple normas con apoyo parcial.",
+      tipo:"Actitudinal",
+      tarea:"Explicando una razón de autocuidado y aplicando normas con apoyo parcial.",
+      descriptor:"Con apoyo parcial; en contexto conocido; sostiene la norma la mayor parte del tiempo y explica una razón simple.",
+      verbos:"Explicar, Reconocer, Respetar"
+    },
+    {
+      nivel:"N3", siee:"ALTO (4.0–4.6)",
+      proposito:"Comprende proponiendo acciones de autocuidado y cuidado de los sentidos de forma autónoma.",
+      pregunta:"¿Qué puedo hacer yo para cuidar mis sentidos y trabajar seguro?",
+      evidencia:"Propone una acción concreta (no mirar luz directa, mantener distancia) y la aplica de forma autónoma.",
+      tipo:"Actitudinal",
+      tarea:"Proponiendo y aplicando una acción de autocuidado durante la actividad.",
+      descriptor:"Autónomo con verificación; en actividad sostenida; anticipa riesgos simples y ajusta su conducta para cuidarse.",
+      verbos:"Proponer, Autorregularse, Cuidar"
+    },
+    {
+      nivel:"N4", siee:"SUPERIOR (4.7–5.0)",
+      proposito:"Comprende actuando responsablemente y promoviendo el cuidado propio y de otros sin mediación docente.",
+      pregunta:"¿Cómo ayudo a que todos trabajemos cuidándonos y cuidando el material?",
+      evidencia:"Modela conductas de cuidado y recuerda acuerdos al grupo de forma respetuosa, sin mediación docente.",
+      tipo:"Actitudinal",
+      tarea:"Promoviendo el autocuidado y el cuidado de otros durante la actividad sin mediación.",
+      descriptor:"Autonomía total + liderazgo ético; en contexto colaborativo; sostiene acuerdos y orienta a otros regulando el ambiente.",
+      verbos:"Promover, Liderar, Mediar"
+    }
+  ]
+};
+
+/* =========================================================
+   SLIDES — se añaden 3 slides tipo "pami" (usan tu rama ELSE)
+   ========================================================= */
+const SLIDES = [
+  /* === EVALUAR (ya tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición (fotografiable)",
+    title: "¿Qué es evaluar?",
+    quote:
+`EVALUAR no es “poner una nota”.
+EVALUAR es emitir un juicio profesional
+sobre un desempeño,
+a partir de evidencias observables,
+para tomar decisiones pedagógicas justas.
+
+Evaluar implica:
+— definir qué acción se espera (verbo rector),
+— provocar esa acción (tarea),
+— observar evidencia real (SABER–HACER–SER),
+— interpretar con criterios (descriptores),
+— retroalimentar para que el aprendizaje migre (PMAP).`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición técnica (claridad)",
+    title: "Evaluar vs calificar",
+    quote:
+`Evaluar es un proceso sistemático de recolección, interpretación y uso de evidencias
+para determinar el nivel de desempeño de un estudiante respecto a criterios explícitos,
+y para orientar decisiones de enseñanza, aprendizaje y mejora.
+
+Si no hay criterio explícito + evidencia observable + interpretación coherente,
+no hay evaluación: hay calificación.`
+  },
+
+  /* =========================================================
+     ✅ NUEVO BLOQUE CRÍTICO: TAREA vs DESCRIPTOR (RIGOR)
+     ========================================================= */
+
+  {
+    kind: "manifesto",
+    kicker: "Núcleo DCE | Distinción crítica",
+    title: "TAREA ≠ DESCRIPTOR (si se confunden, se rompe la justicia evaluativa)",
+    quote:
+`TAREA y DESCRIPTOR cumplen funciones distintas:
+
+TAREA:
+— es el DISEÑO de la situación que PROVOCA la acción.
+— se escribe como “actividad” (qué hará el estudiante).
+— existe ANTES de observar (planeación).
+
+DESCRIPTOR:
+— es el CRITERIO que INTERPRETA la calidad de la acción observada.
+— califica el desempeño por autonomía, contexto y complejidad.
+— existe DURANTE/DESPUÉS de observar (juicio profesional).
+
+Si conviertes la tarea en criterio (“si entregó / si completó / si hizo X”),
+terminas calificando cumplimiento, no competencia.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Definición técnica | En una frase",
+    title: "Definiciones operacionales (sin ambigüedad)",
+    quote:
+`Definición operacional:
+
+TAREA = el reto/situación diseñada para que la evidencia aparezca.
+(Provoca el desempeño)
+
+DESCRIPTOR = la regla explícita que permite decidir el nivel del desempeño.
+(Interpreta la evidencia)
+
+Regla clave:
+La tarea produce evidencia.
+El descriptor juzga la evidencia.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Error típico | Antídoto inmediato",
+    title: "El error más común (y cómo detectarlo en 10 segundos)",
+    quote:
+`ERROR TÍPICO:
+“Mi descriptor es: hizo la guía / completó el taller / entregó el cuaderno”.
+
+Eso NO es descriptor: es control de cumplimiento.
+
+PRUEBA DE 10 SEGUNDOS:
+Si tu “descriptor” puede ser verdadero sin que exista pensamiento, decisión, explicación o criterio,
+entonces NO es descriptor: es verificación administrativa.
+
+Descriptor legítimo siempre responde:
+— ¿Cómo lo hizo? (autonomía)
+— ¿Dónde/en qué condiciones? (contexto)
+— ¿Qué tan exigente fue la acción? (complejidad)
+
+Sin esas tres, la nota es frágil y subjetiva.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Plantilla mínima | Reproducible entre docentes",
+    title: "Plantilla de alta claridad (para escribir bien)",
+    quote:
+`PLANTILLA (mínima) para no confundir:
+
+VERBO rector (qué acción se evalúa):
+— ____________________________
+
+TAREA (qué se propone para provocar la evidencia):
+— “El estudiante, en ____________, realizará ____________ (acción observable) para ________”.
+
+EVIDENCIA (qué observaré):
+— SABER: ____________________
+— HACER: ____________________
+— SER: ______________________
+
+DESCRIPTOR (cómo decidiré el nivel):
+— Autonomía: ___________________________
+— Contexto: ____________________________
+— Complejidad: _________________________
+
+Resultado: el juicio se vuelve trazable y comparable.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Ejemplo 1 | SABER (cognitivo)",
+    title: "Ejemplo completo: TAREA vs DESCRIPTOR (SABER)",
+    quote:
+`EJEMPLO (SABER)
+
+VERBO rector: ARGUMENTAR
+
+TAREA (provocar evidencia):
+— “Con base en un caso, el estudiante redacta y defiende una conclusión usando 2 evidencias del texto/datos”.
+
+EVIDENCIA a observar:
+— Usa evidencia pertinente.
+— Conecta evidencia con conclusión.
+— Responde objeciones.
+
+DESCRIPTOR (interpretar nivel):
+— Autonomía: ¿argumenta sin guion o solo repite frases?
+— Contexto: ¿solo con ejemplo visto o con caso nuevo?
+— Complejidad: ¿solo opina o sostiene con criterios (razones + evidencia + contraargumento)?
+
+Nota: la tarea no define el nivel.
+El descriptor decide el nivel del desempeño observado.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Ejemplo 2 | HACER (procedimental)",
+    title: "Ejemplo completo: TAREA vs DESCRIPTOR (HACER)",
+    quote:
+`EJEMPLO (HACER)
+
+VERBO rector: VALIDAR (funcionalidad)
+
+TAREA (provocar evidencia):
+— “El estudiante prueba un prototipo/procedimiento con 3 casos y registra fallas y ajustes”.
+
+EVIDENCIA a observar:
+— Registra datos.
+— Identifica fallas.
+— Ajusta parámetros y reintenta.
+
+DESCRIPTOR (interpretar nivel):
+— Autonomía: ¿requiere guía paso a paso o se autorregula?
+— Contexto: ¿solo en laboratorio guiado o también en condiciones reales/restricciones?
+— Complejidad: ¿solo ejecuta pruebas o además diagnostica y justifica ajustes?
+
+Si ‘funciona’ pero no sabe explicar ni ajustar,
+la tarea se completó, pero el nivel descriptor no es alto.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Ejemplo 3 | SER (actitudinal)",
+    title: "Ejemplo completo: TAREA vs DESCRIPTOR (SER)",
+    quote:
+`EJEMPLO (SER)
+
+VERBO rector: MEDIAR (conflictos)
+
+TAREA (provocar evidencia):
+— “En una situación de desacuerdo, el estudiante facilita un acuerdo con reglas de diálogo y registro del consenso”.
+
+EVIDENCIA a observar:
+— Escucha y regula el tono.
+— Resume posiciones sin sesgo.
+— Propone acuerdos viables.
+
+DESCRIPTOR (interpretar nivel):
+— Autonomía: ¿media por iniciativa propia o solo cuando el docente interviene?
+— Contexto: ¿solo con amigos o también con tensión real (presión/tiempo/roles)?
+— Complejidad: ¿solo calma o construye solución imparcial con consecuencias?
+
+SER no se evalúa por ‘buena vibra’.
+Se evalúa por conductas observables en situación.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Chequeo | Tarea y descriptor bien alineados",
+    title: "Chequeo rápido: ¿Estoy evaluando competencia o cumplimiento?",
+    quote:
+`CHEQUEO (rápido):
+
+1) ¿Mi TAREA obliga a que aparezca el verbo rector?
+2) ¿La evidencia que observo es visible (SABER–HACER–SER)?
+3) ¿Mi DESCRIPTOR tiene:
+   — autonomía,
+   — contexto,
+   — complejidad?
+4) ¿Dos docentes podrían llegar a un juicio similar?
+
+Si falta el descriptor, el promedio “decide”.
+Si falta la tarea, no aparece la evidencia.
+Si falta la evidencia, no hay evaluación.`
+  },
+
+  /* =========================================================
+     ✅ SLIDE PAMi SABER (TABLA)
+     ========================================================= */
+  {
+    kind: "pami",
+    kicker: "Ejemplo aplicado | PAMi v4.0 • DBA 1 (Ciencias Naturales) • Grado 1°",
+    title: "PAMi – Dimensión SABER (Cognitiva)",
+    lead: "Verbo rector: COMPRENDE. El verbo no cambia; progresa la profundidad (N1–N4).",
+    pami: { headers: PAMI_HEADERS, rows: PAMI_DBA1_CN_1.saber },
+    note: "Mensaje al docente: “No cambió el verbo, cambió la profundidad de la comprensión.”"
+  },
+
+  /* =========================================================
+     ✅ SLIDE PAMi HACER (TABLA)
+     ========================================================= */
+  {
+    kind: "pami",
+    kicker: "Ejemplo aplicado | PAMi v4.0 • DBA 1 (Ciencias Naturales) • Grado 1°",
+    title: "PAMi – Dimensión HACER (Procedimental)",
+    lead: "La comprensión se evidencia en la acción: observar, comparar, registrar y ajustar procedimientos.",
+    pami: { headers: PAMI_HEADERS, rows: PAMI_DBA1_CN_1.hacer },
+    note: "Mensaje clave: “Comprender también es saber hacer, no solo saber decir.”"
+  },
+
+  /* =========================================================
+     ✅ SLIDE PAMi SER (TABLA)
+     ========================================================= */
+  {
+    kind: "pami",
+    kicker: "Ejemplo aplicado | PAMi v4.0 • DBA 1 (Ciencias Naturales) • Grado 1°",
+    title: "PAMi – Dimensión SER (Actitudinal)",
+    lead: "La comprensión también se expresa en conductas observables de cuidado, responsabilidad y conciencia.",
+    pami: { headers: PAMI_HEADERS, rows: PAMI_DBA1_CN_1.ser },
+    note: "Mensaje clave: “La competencia también se ve en cómo el estudiante se cuida y cuida a otros.”"
+  },
+
+  /* === JUSTICIA EVALUATIVA (ya tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Ética evaluativa (fotografiable)",
+    title: "¿Qué es justicia evaluativa?",
+    quote:
+`JUSTICIA EVALUATIVA no es “ser buena gente”.
+Es garantizar que la valoración sea:
+coherente, trazable y comparable.
+
+Si dos docentes observan el mismo desempeño,
+no deberían producir dos juicios incompatibles.
+
+La justicia evaluativa depende de:
+— lectura fina de la acción (no del promedio),
+— criterios explícitos (descriptores),
+— evidencia observable en contexto,
+— coherencia entre lo que se enseña y lo que se evalúa (DCE).`
+  },
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Definición operativa",
+    title: "Justicia evaluativa (operacional)",
+    quote:
+`Justicia evaluativa = que la nota sea una consecuencia razonable del desempeño,
+y no del azar del docente, del formato, del “cumplimiento” o del promedio.
+
+Se logra cuando:
+1) el verbo evaluado es explícito,
+2) la tarea permite evidenciarlo,
+3) el descriptor define el estándar (autonomía, contexto y complejidad),
+4) el juicio es justificable con evidencia.`
+  },
+
+  /* === PUENTE DCC vs DCE (ya tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Puente | DCC vs DCE",
+    title: "Calificar ≠ evaluar",
+    quote:
+`CALIFICAR es asignar un número (a menudo por cumplimiento, entrega o promedio).
+EVALUAR es interpretar evidencias de desempeño frente a criterios.
+
+DCC (contenido) suele medir:
+— tareas entregadas,
+— cuaderno al día,
+— cantidad de ejercicios,
+— promedio de actividades.
+
+DCE (competencia) exige leer:
+— acciones cognitivas (SABER),
+— acciones procedimentales (HACER),
+— acciones actitudinales (SER),
+en contexto y con criterios.`
+  },
+
+  /* === CHEQUEO (ya tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Chequeo | Autoevaluación docente",
+    title: "Chequeo rápido de justicia evaluativa",
+    quote:
+`Chequeo rápido de justicia evaluativa:
+
+✅ 1. ¿Puedo nombrar el VERBO rector que estoy evaluando?
+✅ 2. ¿La TAREA realmente obliga a que aparezca ese verbo?
+✅ 3. ¿Qué evidencia observable (SABER–HACER–SER) voy a mirar?
+✅ 4. ¿Qué descriptor usaré (autonomía, contexto y complejidad)?
+✅ 5. ¿Si otro docente ve lo mismo, llegaría a un juicio similar?
+
+Si alguna respuesta es NO,
+no es un problema del estudiante:
+es calibración pendiente del sistema.`
+  },
+
+  /* === PROBLEMA REAL (ya lo tenías) === */
+  {
+    kind: "manifesto",
+    kicker: "Apertura | Problema real",
+    title: "Promedio ≠ justicia evaluativa",
+    quote:
+`El promedio calcula resultados;
+la justicia evaluativa exige interpretar acciones.
+
+Un Excel suma,
+pero no comprende procesos.
+
+La competencia no se promedia:
+se interpreta.`
+  },
+
+  /* --- Metáfora del amor (ya tenías) --- */
+  {
+    kind: "manifesto",
+    kicker: "Puente narrativo | Metáfora",
+    title: "Metáfora del amor (competencia y justicia evaluativa)",
+    quote:
+`La competencia es como el amor:
+no se demuestra con palabras ni se mide con promedios,
+se reconoce en acciones,
+se comprende en contexto
+y se juzga con conciencia profesional.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Cierre | Anclaje",
+    title: "Cierre",
+    quote:
+`Mismo verbo.
+Tres dimensiones.
+Cuatro niveles.
+Un solo juicio justo.`
+  },
+
+  {
+    kind: "manifesto",
+    kicker: "Referencias | APA 7",
+    title: "Bibliografía mínima (soporte)",
+    quote:
+`Biggs, J., & Tang, C. (2011). Teaching for quality learning at university (4th ed.). Open University Press.
+Black, P., & Wiliam, D. (1998). Assessment and classroom learning. Assessment in Education: Principles, Policy & Practice, 5(1), 7–74.
+Brookhart, S. M. (2013). How to create and use rubrics for formative assessment and grading. ASCD.
+Ministerio de Educación Nacional. (2016). Derechos Básicos de Aprendizaje (DBA). MEN.
+Perrenoud, P. (2008). La evaluación de los alumnos. Colihue.
+Sadler, D. R. (1989). Formative assessment and the design of instructional systems. Instructional Science, 18(2), 119–144.
+Schön, D. A. (1983). The reflective practitioner. Basic Books.
+Stiggins, R. J. (2005). From formative assessment to assessment FOR learning. Phi Delta Kappan, 87(4), 324–328.`
+  }
+];
+
+/* =========================================================
+   RENDER + NAV (tu motor, con 1 extensión mínima: kind==="pami")
+   ========================================================= */
+const stage = document.getElementById("stage");
+const barFill = document.getElementById("barFill");
+const counter = document.getElementById("counter");
+
+function el(tag, cls){
+  const x = document.createElement(tag);
+  if (cls) x.className = cls;
+  return x;
+}
+
+function renderPamiTable(pami){
+  const wrap = el("div","pamiWrap");
+
+  const table = document.createElement("table");
+  table.className = "pami";
+
+  const thead = document.createElement("thead");
+  const trh = document.createElement("tr");
+  pami.headers.forEach(h=>{
+    const th = document.createElement("th");
+    th.textContent = h.label;
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  pami.rows.forEach(row=>{
+    const tr = document.createElement("tr");
+    pami.headers.forEach(h=>{
+      const td = document.createElement("td");
+      const val = (row[h.key] ?? "").toString();
+
+      if (h.key === "verbos"){
+        const parts = val.split(",").map(x=>x.trim()).filter(Boolean);
+        if (parts.length){
+          parts.forEach(p=>{
+            const tag = el("span","tag");
+            tag.textContent = p;
+            td.appendChild(tag);
+          });
+        } else {
+          td.textContent = val;
+        }
+      } else {
+        td.textContent = val;
+      }
+
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function renderSlides(){
+  stage.innerHTML = "";
+  SLIDES.forEach((s, i) => {
+    const slide = el("section", "slide");
+    slide.id = "slide_" + i;
+
+    const kicker = el("div","kicker");
+    kicker.textContent = s.kicker || "";
+    slide.appendChild(kicker);
+
+    const h1 = el("h1");
+    h1.textContent = s.title || "";
+    slide.appendChild(h1);
+
+    if (s.kind === "manifesto"){
+      slide.classList.add("manifesto");
+
+      const wrap = el("div","quoteWrap");
+      const p = el("pre","quote");
+      p.textContent = s.quote || "";
+      wrap.appendChild(p);
+      slide.appendChild(wrap);
+
+    } else if (s.kind === "pami"){
+      const lead = el("p","lead");
+      lead.textContent = s.lead || "";
+      slide.appendChild(lead);
+
+      slide.appendChild(renderPamiTable(s.pami));
+
+      if (s.note){
+        const note = el("div","note");
+        note.textContent = s.note;
+        slide.appendChild(note);
+      }
+
+    } else {
+      const lead = el("p","lead");
+      lead.textContent = s.lead || "";
+      slide.appendChild(lead);
+
+      const cols = el("div","cols");
+
+      const left = el("div","box");
+      const leftH = el("h3");
+      leftH.textContent = s.leftTitle || "—";
+      left.appendChild(leftH);
+
+      if (s.leftText){
+        const lp = el("p");
+        lp.style.whiteSpace = "pre-wrap";
+        lp.textContent = s.leftText;
+        left.appendChild(lp);
+      }
+      if (s.leftList){
+        const ul = el("ul");
+        s.leftList.forEach(t=>{
+          const li = el("li");
+          li.textContent = t;
+          ul.appendChild(li);
+        });
+        left.appendChild(ul);
+      }
+      cols.appendChild(left);
+
+      const right = el("div","box");
+      const rightH = el("h3");
+      rightH.textContent = s.rightTitle || "—";
+      right.appendChild(rightH);
+
+      if (s.rightText){
+        const rp = el("p");
+        rp.style.whiteSpace = "pre-wrap";
+        rp.textContent = s.rightText;
+        right.appendChild(rp);
+      }
+      if (s.rightList){
+        const ul2 = el("ul");
+        s.rightList.forEach(t=>{
+          const li = el("li");
+          li.textContent = t;
+          ul2.appendChild(li);
+        });
+        right.appendChild(ul2);
+      }
+      cols.appendChild(right);
+
+      slide.appendChild(cols);
+    }
+
+    const corner = el("div","corner");
+    corner.textContent = "SITE–RUTA LATAM • Offline";
+    slide.appendChild(corner);
+
+    stage.appendChild(slide);
+  });
+}
+
+let idx = 0;
+function clampIndex(n){ return Math.max(0, Math.min(SLIDES.length-1, n)); }
+
+function applyAutoFit(slide){
+  slide.classList.remove("fit-1","fit-2","fit-3");
+  const wrap = slide.querySelector(".quoteWrap");
+  if (!wrap) return;
+
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.add("fit-1");
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.remove("fit-1");
+  slide.classList.add("fit-2");
+  if (wrap.scrollHeight <= wrap.clientHeight + 2) return;
+
+  slide.classList.remove("fit-2");
+  slide.classList.add("fit-3");
+}
+
+function show(i){
+  idx = clampIndex(i);
+  document.querySelectorAll(".slide").forEach(s => s.classList.remove("active","fit-1","fit-2","fit-3"));
+
+  const active = document.getElementById("slide_" + idx);
+  if (active) {
+    active.classList.add("active");
+    requestAnimationFrame(()=> applyAutoFit(active));
+  }
+
+  counter.textContent = `${idx+1}/${SLIDES.length}`;
+  const pct = SLIDES.length ? ((idx+1)/SLIDES.length)*100 : 0;
+  barFill.style.width = pct.toFixed(2) + "%";
+}
+
+function next(){ show(idx+1); }
+function prev(){ show(idx-1); }
+function first(){ show(0); }
+function last(){ show(SLIDES.length-1); }
+
+function toggleFull(){
+  const doc = document;
+  const elRoot = document.documentElement;
+  if (!doc.fullscreenElement){
+    elRoot.requestFullscreen?.();
+  } else {
+    doc.exitFullscreen?.();
+  }
+}
+
+document.getElementById("btnNext").addEventListener("click", next);
+document.getElementById("btnPrev").addEventListener("click", prev);
+document.getElementById("btnFull").addEventListener("click", toggleFull);
+
+document.addEventListener("keydown", (e)=>{
+  const k = e.key;
+  if (k === "ArrowRight" || k === " "){ e.preventDefault(); next(); }
+  if (k === "ArrowLeft"){ e.preventDefault(); prev(); }
+  if (k === "Home"){ e.preventDefault(); first(); }
+  if (k === "End"){ e.preventDefault(); last(); }
+  if (k.toLowerCase() === "f"){ e.preventDefault(); toggleFull(); }
+});
+
+window.addEventListener("resize", ()=>{
+  const active = document.getElementById("slide_" + idx);
+  if (active) applyAutoFit(active);
+});
+
+renderSlides();
+show(0);
+</script>
+</body>
+</html>

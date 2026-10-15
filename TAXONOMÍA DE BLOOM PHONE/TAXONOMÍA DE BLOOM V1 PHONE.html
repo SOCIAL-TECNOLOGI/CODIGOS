@@ -148,11 +148,39 @@ button{
 </div>
 
 <script>
+/* =============== DATA SITE–RUTA LATAM (v1.0) =============== */
+
 const DATA = {
-  saber:{4:["Evaluar","Argumentar","Justificar"],3:["Aplicar","Analizar"],2:["Comprender","Describir"],1:["Recordar","Nombrar"]},
-  hacer:{4:["Automatizar","Optimizar"],3:["Coordinar","Implementar"],2:["Ejecutar","Practicar"],1:["Imitar","Copiar"]},
-  ser:{4:["Interiorizar","Liderar"],3:["Valorar","Promover"],2:["Responder","Participar"],1:["Atender","Escuchar"]}
+  saber: {
+    1: ["Recordar", "Identificar", "Reconocer", "Nombrar", "Definir", "Listar"],
+    2: ["Comprender", "Describir", "Explicar", "Interpretar",         // Interpretación literal, no inferencial
+      "Ejemplificar", "Clasificar", "Parafrasear", "Resumir"
+    ],
+    3: ["Aplicar", "Analizar", "Comparar", "Contrastar", "Diferenciar", "Organizar", "Revisar", "Establecer relaciones"],
+    4: ["Evaluar", "Argumentar", "Justificar", "Formular", "Diseñar (conceptual)", // Diseño conceptual, no operativo
+      "Crear", "Sintetizar", "Proponer soluciones", "Construir explicaciones", "Hipotetizar"
+    ]
+  },
+
+  hacer: {
+    1: ["Imitar", "Copiar", "Seguir instrucciones", "Manipular con ayuda", "Reproducir", "Ensayar (bajo supervisión)"],
+    2: ["Ejecutar", "Practicar", "Demostrar", "Operar", "Usar", "Manipular con control", "Registrar", "Medir", "Montar (con criterios)", "Desmontar (controlado)"],
+    3: ["Implementar", "Integrar (procedimental)",   // Integración técnica, NO conceptual
+      "Coordinar", "Ajustar", "Calibrar", "Configurar", "Diagnosticar fallas", "Perfeccionar", "Supervisar procesos", "Ensamblar (autónomo)"
+    ],
+    4: ["Optimizar", "Automatizar", "Transferir", "Innovar (técnicamente)", "Prototipar", "Desarrollar procedimientos", "Simular", "Estandarizar", "Validar (funcionalidad técnica)", "Retroalimentar técnicamente", "Diseñar soluciones operativas"  // Ajustado a ontología
+    ]
+  },
+
+  ser: {
+    1: ["Atender", "Escuchar", "Aceptar", "Mostrar disposición", "Reconocer emociones básicas", "Pedir apoyo"],
+    2: ["Participar", "Colaborar", "Respetar", "Cumplir acuerdos simples", "Responder adecuadamente", "Dialogar", "Aportar ideas", "Respetar turnos"],
+    3: ["Asumir responsabilidades", "Valorar diversas perspectivas", "Regular emociones", "Argumentar respetuosamente", "Tomar decisiones responsables", "Resolver conflictos simples", "Cumplir compromisos"],
+    4: ["Liderar procesos colaborativos", "Mediar conflictos con imparcialidad", "Facilitar participación", "Modelar comportamientos respetuosos", "Promover iniciativas colectivas", "Tomar decisiones considerando consecuencias", "Cuidar el entorno y a otros", "Interiorizar principios de convivencia"]
+  }
 };
+
+
 const DIM_ORDER=["saber","hacer","ser"];
 const TITLE={saber:"📘 SABER",hacer:"🛠️ HACER",ser:"🤝 SER"};
 

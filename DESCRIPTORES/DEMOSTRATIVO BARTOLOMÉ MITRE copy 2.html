@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SITE·RUTA — DEMO Gastronomía (Manipulación de alimentos)</title>
+<style>
+  body{font-family:Inter,Segoe UI,Arial,sans-serif;background:#f5f7fb;margin:0;color:#1b2838}
+  header{background:#123b5a;color:#fff;padding:18px 20px;border-bottom:6px solid #2f75b5}
+  header h1{margin:0;font-size:20px}
+  header p{margin:4px 0 0;font-size:13px;opacity:0.95}
+  .wrap{max-width:1100px;margin:22px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(18,59,90,0.06)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  label{display:block;font-weight:600;margin-top:10px;font-size:13px}
+  select,input,textarea{width:100%;padding:8px;border:1px solid #d6dbe3;border-radius:6px;margin-top:6px;font-size:14px}
+  textarea{min-height:70px;resize:vertical}
+  .col{flex:1 1 300px;min-width:260px}
+  .actions{margin-top:14px}
+  button{background:#2f75b5;color:#fff;border:0;padding:9px 14px;border-radius:6px;cursor:pointer;font-weight:700;margin-right:8px}
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+  th,td{border:1px solid #e2e8f0;padding:8px;text-align:left;vertical-align:top}
+  th{background:#eff6ff;color:#123b5a}
+  .info{background:#eef7f1;border-left:4px solid #2f9d6f;padding:10px;border-radius:6px;margin-bottom:12px;font-size:13px}
+  .note{font-size:12px;color:#4b5563;margin-top:8px}
+  footer{margin-top:14px;padding:12px;text-align:center;font-size:12px;color:#fff;background:#c0392b;border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>SITE·RUTA — DEMO (Gastronomía)</h1>
+  <p>Interfaz demostrativa con datos ficticios — Manipulación de alimentos — trazabilidad local</p>
+</header>
+
+<div class="wrap">
+  <div class="info">
+    Demo ficticia: instituciones, niveles y textos inventados. Datos generados a modo de ejemplo para presentación.
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <label>Institución</label>
+      <select id="institucion">
+        <option>Seleccionar...</option>
+        <option>Bartolomé Mitre (sede demo)</option>
+        <option>Instituto Culinario del Valle</option>
+        <option>Escuela Gastronómica Andina</option>
+        <option>Centro Técnico Sabores Urbanos</option>
+        <option>Academia del Fogón del Sur</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>Período</label>
+      <select id="periodo">
+        <option>2025 - Demo</option>
+        <option>2025 Semestre 1</option>
+        <option>2025 Semestre 2</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>Área / Curso</label>
+      <select id="area">
+        <option>Gastronomía — Manipulación de alimentos</option>
+        <option>Gastronomía — Técnicas de cocina básica</option>
+        <option>Gastronomía — Seguridad alimentaria</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <label>Competencia (SABER–HACER–SER) — (ficticia)</label>
+      <select id="competencia">
+        <option>Seleccionar competencia ejemplo...</option>
+        <option>Aplica buenas prácticas de manipulación de alimentos garantizando inocuidad</option>
+        <option>Organiza estaciones de trabajo con higiene y eficiencia</option>
+        <option>Valora la responsabilidad ética en el manejo de alimentos</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>DBA Relacionado (ficticio)</label>
+      <select id="dba">
+        <option>DBA-GAS-1: Reconoce normas básicas de higiene</option>
+        <option>DBA-GAS-2: Aplica técnicas de descontaminación</option>
+        <option>DBA-GAS-3: Analiza riesgos de manipulación</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>DBAs Estratificados (ejemplo inventado)</label>
+      <select id="dbastrata">
+        <option>N1 → Reconoce superficies limpias</option>
+        <option>N2 → Ejecuta protocolos sencillos</option>
+        <option>N3 → Diseña un protocolo adaptado</option>
+        <option>N4 → Lidera auditoría interna de inocuidad</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Afirmación / Evidencia (DCE) — texto de ejemplo</label>
+  <textarea id="evidencia">El estudiante demuestra que selecciona, prepara y almacena alimentos siguiendo protocolos básicos de higiene; evidencia mediante checklist y video de 3 minutos.</textarea>
+
+  <label>Tarea / Descriptor literal (DCE) — texto de ejemplo</label>
+  <textarea id="tarea">Realiza la preparación de una ensalada completa aplicando al menos 3 medidas de control de contaminación cruzada y documenta el proceso (foto + checklist).</textarea>
+
+  <div class="row">
+    <div class="col">
+      <label>Nivel esperado (demo)</label>
+      <select id="nivel">
+        <option>Bajo (Demo)</option>
+        <option>Básico (Demo)</option>
+        <option>Alto (Demo)</option>
+        <option>Superior (Demo)</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>Rúbrica N1–N4 (selecciona plantilla)</label>
+      <select id="rubrica">
+        <option>Plantilla A — Rúbrica simplificada</option>
+        <option>Plantilla B — Rúbrica detallada</option>
+        <option>Plantilla C — Rúbrica coaching</option>
+      </select>
+    </div>
+
+    <div class="col">
+      <label>Meta de migración y contexto (ejemplo)</label>
+      <select id="meta">
+        <option>Migrar N1→N2 en 4 semanas mediante prácticas guiadas</option>
+        <option>Migrar N2→N3 con proyecto de mejora de estación</option>
+        <option>Migrar N3→N4 mediante auditoría y propuesta de cambio</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Observaciones (texto libre)</label>
+  <textarea id="obs" placeholder="Comentario del docente (demo)"></textarea>
+
+  <div class="actions">
+    <button onclick="guardarRegistro()">Guardar registro (local demo)</button>
+    <button onclick="mostrarRegistros()">Mostrar registros</button>
+    <button onclick="limpiarCampos()">Limpiar</button>
+  </div>
+
+  <table id="tabla" style="display:none">
+    <thead>
+      <tr>
+        <th>Institución</th><th>Fecha/Hora</th><th>Período</th><th>Área/Curso</th><th>Competencia</th>
+        <th>DBA</th><th>DBA Estrat.</th><th>Evidencia</th><th>Tarea</th><th>Nivel</th><th>Rúbrica</th><th>Meta</th><th>Obs</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p class="note">Nota demo: Todo lo anterior es ficticio. No se permite exportar desde esta demo. Los registros se guardan en tu navegador (LocalStorage).</p>
+</div>
+
+<footer>
+  DEMO SITE·RUTA — Gastronomía — Uso de ejemplo • Datos inventados • © Demo 2025
+</footer>
+
+<script>
+  // Demo rubricas predefinidas (ficticias)
+  const rubricasDemo = {
+    "Plantilla A — Rúbrica simplificada": [
+      "N1: Observa medidas básicas",
+      "N2: Ejecuta con guía",
+      "N3: Aplica con autonomía",
+      "N4: Optimiza procesos"
+    ],
+    "Plantilla B — Rúbrica detallada": [
+      "N1: Reconoce prácticas de higiene",
+      "N2: Aplica protocolos y documenta",
+      "N3: Analiza riesgos y propone ajustes",
+      "N4: Lidera proyectos de inocuidad"
+    ],
+    "Plantilla C — Rúbrica coaching": [
+      "N1: Seguimiento asistido",
+      "N2: Ejecución reflexiva",
+      "N3: Mejora continua",
+      "N4: Mentoría a pares"
+    ]
+  };
+
+  // Guardado local demo
+  function guardarRegistro(){
+    const data = {
+      institucion: document.getElementById('institucion').value,
+      fecha: new Date().toLocaleString(),
+      periodo: document.getElementById('periodo').value,
+      area: document.getElementById('area').value,
+      competencia: document.getElementById('competencia').value,
+      dba: document.getElementById('dba').value,
+      dbastrata: document.getElementById('dbastrata').value,
+      evidencia: document.getElementById('evidencia').value,
+      tarea: document.getElementById('tarea').value,
+      nivel: document.getElementById('nivel').value,
+      rubrica: document.getElementById('rubrica').value,
+      meta: document.getElementById('meta').value,
+      obs: document.getElementById('obs').value
+    };
+    // Validación ligera
+    if(!data.institucion || data.institucion === "Seleccionar..."){
+      alert("Selecciona una institución demo.");
+      return;
+    }
+    // Guardar en LocalStorage
+    const regs = JSON.parse(localStorage.getItem('demoGastroRegs')||'[]');
+    regs.push(data);
+    localStorage.setItem('demoGastroRegs', JSON.stringify(regs));
+    alert("Registro demo guardado localmente.");
+    limpiarCampos();
+    mostrarRegistros();
+  }
+
+  function mostrarRegistros(){
+    const regs = JSON.parse(localStorage.getItem('demoGastroRegs')||'[]');
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = '';
+    if(regs.length === 0){
+      alert("No hay registros demo guardados.");
+      document.getElementById('tabla').style.display = 'none';
+      return;
+    }
+    regs.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(r.institucion)}</td>
+        <td>${escapeHtml(r.fecha)}</td>
+        <td>${escapeHtml(r.periodo)}</td>
+        <td>${escapeHtml(r.area)}</td>
+        <td>${escapeHtml(r.competencia)}</td>
+        <td>${escapeHtml(r.dba)}</td>
+        <td>${escapeHtml(r.dbastrata)}</td>
+        <td>${escapeHtml(truncate(r.evidencia,80))}</td>
+        <td>${escapeHtml(truncate(r.tarea,80))}</td>
+        <td>${escapeHtml(r.nivel)}</td>
+        <td>${escapeHtml(r.rubrica)}</td>
+        <td>${escapeHtml(r.meta)}</td>
+        <td>${escapeHtml(truncate(r.obs,60))}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('tabla').style.display = 'table';
+  }
+
+  function limpiarCampos(){
+    document.getElementById('obs').value='';
+    document.getElementById('tarea').value='Realiza la preparación de una ensalada completa aplicando al menos 3 medidas de control de contaminación cruzada y documenta el proceso (foto + checklist).';
+    document.getElementById('evidencia').value='El estudiante demuestra que selecciona, prepara y almacena alimentos siguiendo protocolos básicos de higiene; evidencia mediante checklist y video de 3 minutos.';
+  }
+
+  // Helpers
+  function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"\'":'&#39;'}[c])); }
+  function truncate(s,n){ return s && s.length>n ? s.slice(0,n-1)+'…' : s; }
+
+  // Cargar rubrica demo en consola (ejemplo)
+  console.log("Rúbricas demo cargadas:", rubricasDemo);
+
+  // Pre-carga ejemplo
+  (function precarga(){
+    document.getElementById('institucion').value = "Bartolomé Mitre (sede demo)";
+    document.getElementById('periodo').value = "2025 - Demo";
+    document.getElementById('competencia').value = "Aplica buenas prácticas de manipulación de alimentos garantizando inocuidad";
+    document.getElementById('dba').value = "DBA-GAS-1: Reconoce normas básicas de higiene";
+    document.getElementById('nivel').value = "Básico (Demo)";
+    document.getElementById('rubrica').value = "Plantilla B — Rúbrica detallada";
+    document.getElementById('meta').value = "Migrar N1→N2 en 4 semanas mediante prácticas guiadas";
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrevista a Directivo Docente</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: linear-gradient(135deg, #e8f1f9, #ffffff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .contenedor {
+    width: 95vw;
+    height: 90vh;
+    background: #fff;
+    display: flex;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    animation: fadeIn 1s;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* LADO IZQUIERDO: FOTO */
+  .foto-container {
+    flex: 0.9;
+    background: #dceeff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 4px solid #0056a3;
+  }
+
+  #fotoPreview {
+    width: 80%;
+    max-width: 350px;
+    border-radius: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    display: none;
+    object-fit: cover;
+  }
+
+  input[type="file"] {
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px dashed #0056a3;
+    border-radius: 10px;
+    background-color: #f0f7ff;
+    color: #003366;
+    cursor: pointer;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    transition: 0.3s;
+    font-size: 0.9em;
+  }
+
+  input[type="file"]:hover {
+    background-color: #e1f0ff;
+  }
+
+  /* LADO DERECHO: CONTENIDO */
+  .contenido {
+    flex: 1.3;
+    padding: 25px 35px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  h1 {
+    color: #0056a3;
+    font-size: 1.6em;
+    margin: 0 0 5px 0;
+  }
+
+  h2 {
+    color: #0056a3;
+    font-size: 1.1em;
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+
+  .pregunta {
+    font-size: 0.95em;
+    font-weight: 500;
+    margin: 10px 0 6px;
+    color: #003366;
+  }
+
+  audio {
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* BOTÓN FLOTANTE MODO PRESENTACIÓN */
+  .fullscreen-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+    background-color: #0056a3;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 18px;
+    font-size: 0.95em;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: 0.3s ease;
+  }
+
+  .fullscreen-btn:hover {
+    background-color: #0073e6;
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 1000px) {
+    .contenedor {
+      flex-direction: column;
+      height: 95vh;
+      width: 95vw;
+    }
+    .foto-container {
+      flex: none;
+      height: 150%;
+      border-right: none;
+      border-bottom: 4px solid #0056a3;
+    }
+    .contenido {
+      height: 60%;
+      justify-content: flex-start;
+    }
+    #fotoPreview {
+      width: 150%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor" id="contenedor">
+
+  <!-- LADO IZQUIERDO -->
+  <div class="foto-container">
+    <img id="fotoPreview" alt="Foto del entrevistado">
+    <div id="fotoUpload">
+      <label for="fotoInput"></label>
+      <input type="file" id="fotoInput" accept="image/*">
+    </div>
+  </div>
+
+  <!-- LADO DERECHO -->
+  <div class="contenido">
+    <div>
+      <h1>Entrevista a Directivo Docente</h1>
+
+      <h2>🎙️ Introducción</h2>
+      <p class="pregunta">Palabras iniciales del directivo docente</p>
+      <div id="introContainer">
+        <input type="file" id="audioIntroInput" accept="audio/*,video/mp4">
+      </div>
+      <audio id="audioIntro" controls></audio>
+
+      <h2>Preguntas y respuestas</h2>
+
+      <div class="pregunta">
+        1️⃣ Retos enfrentados durante su trayectoria y cómo los ha afrontado.
+      </div>
+      <div id="audio1Container"><input type="file" id="audio1Input" accept="audio/*,video/mp4"></div>
+      <audio id="audio1" controls></audio>
+
+      <div class="pregunta">
+        2️⃣ Estrategias para fortalecer la calidad educativa y el trabajo colaborativo.
+      </div>
+      <div id="audio2Container"><input type="file" id="audio2Input" accept="audio/*,video/mp4"></div>
+      <audio id="audio2" controls></audio>
+
+      <div class="pregunta">
+        3️⃣ Influencia en el clima institucional y la formación integral de los estudiantes.
+      </div>
+      <div id="audio3Container"><input type="file" id="audio3Input" accept="audio/*,video/mp4"></div>
+      <audio id="audio3" controls></audio>
+
+      <div class="pregunta">
+        4️⃣ Competencias esenciales para liderar con eficacia una institución educativa.
+      </div>
+      <div id="audio4Container"><input type="file" id="audio4Input" accept="audio/*,video/mp4"></div>
+      <audio id="audio4" controls></audio>
+    </div>
+  </div>
+
+  <!-- BOTÓN FLOTANTE -->
+  <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+
+</div>
+
+<script>
+  // Mostrar foto y ocultar input
+  document.getElementById('fotoInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const img = document.getElementById('fotoPreview');
+      img.src = URL.createObjectURL(file);
+      img.style.display = 'block';
+      document.getElementById('fotoUpload').style.display = 'none';
+    }
+  });
+
+  // Conectar inputs de audio/mp4 con sus reproductores y ocultar tras carga
+  function conectarInputAudio(inputId, audioId, containerId) {
+    const input = document.getElementById(inputId);
+    const audio = document.getElementById(audioId);
+    const container = document.getElementById(containerId);
+
+    input.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        audio.src = URL.createObjectURL(file);
+        audio.load();
+        container.style.display = 'none';
+      }
+    });
+  }
+
+  conectarInputAudio('audioIntroInput', 'audioIntro', 'introContainer');
+  conectarInputAudio('audio1Input', 'audio1', 'audio1Container');
+  conectarInputAudio('audio2Input', 'audio2', 'audio2Container');
+  conectarInputAudio('audio3Input', 'audio3', 'audio3Container');
+  conectarInputAudio('audio4Input', 'audio4', 'audio4Container');
+
+  // Evitar reproducción simultánea
+  const audios = document.querySelectorAll('audio');
+  audios.forEach(a => {
+    a.addEventListener('play', () => {
+      audios.forEach(b => { if(b !== a) b.pause(); });
+    });
+  });
+
+  // ----- MODO PRESENTACIÓN / PANTALLA COMPLETA -----
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const contenedor = document.getElementById('contenedor');
+
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      contenedor.requestFullscreen().catch(err => {
+        alert(`Error al activar pantalla completa: ${err.message}`);
+      });
+      fullscreenBtn.textContent = '❌';
+    } else {
+      document.exitFullscreen();
+      fullscreenBtn.textContent = '⛶ Pantalla completa';
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      fullscreenBtn.textContent = '⛶ Pantalla completa';
+    }
+  });
+</script>
+
+</body>
+</html>

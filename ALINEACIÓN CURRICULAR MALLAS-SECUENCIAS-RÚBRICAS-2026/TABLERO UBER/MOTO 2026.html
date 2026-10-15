@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Registro Operativo – SITE–RUTA LATAM (Uber / Yango)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#020617;
+  --panel:#0f172a;
+  --card:#111827;
+  --accent:#38bdf8;
+  --ok:#22c55e;
+  --warn:#f97316;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:#1f2937;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:radial-gradient(1200px 800px at 80% -20%,#0f172a,#020617);
+  color:var(--text);
+}
+header{
+  padding:16px 24px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(120deg,rgba(56,189,248,.15),transparent);
+}
+h1{margin:0;font-size:1.35rem}
+.subtitle{color:var(--muted);font-size:.85rem;margin-top:4px}
+
+main{
+  max-width:1250px;
+  margin:auto;
+  padding:16px;
+  display:grid;
+  grid-template-columns:420px 1fr;
+  gap:16px;
+}
+@media(max-width:980px){
+  main{grid-template-columns:1fr}
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+}
+.panel h2{
+  margin:0 0 10px;
+  font-size:1rem;
+  color:var(--accent);
+}
+
+.grid-forms{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+
+form label{
+  font-size:.8rem;
+  color:var(--muted);
+  display:block;
+  margin-top:8px;
+}
+form input{
+  width:100%;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:rgba(15,23,42,.9);
+  color:var(--text);
+}
+.row2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.btn{
+  margin-top:12px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:999px;
+  background:rgba(56,189,248,.2);
+  color:var(--accent);
+  cursor:pointer;
+  font-size:0.9rem;
+  transition:background 0.2s;
+}
+.btn:hover{background:rgba(56,189,248,.35)}
+.btn-danger{
+  background:rgba(239,68,68,.12);
+  color:var(--danger);
+}
+.btn-danger:hover{background:rgba(239,68,68,.22)}
+.btn-ok{
+  background:rgba(34,197,94,.12);
+  color:var(--ok);
+}
+.btn-ok:hover{background:rgba(34,197,94,.22)}
+.btn-small{
+  padding:4px 10px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:rgba(56,189,248,.1);
+  color:var(--accent);
+  cursor:pointer;
+  font-size:0.75rem;
+  transition:all 0.2s;
+  margin:2px;
+}
+.btn-small:hover{
+  background:rgba(56,189,248,.25);
+}
+.btn-danger-small{
+  background:rgba(239,68,68,.1);
+  color:var(--danger);
+}
+.btn-danger-small:hover{
+  background:rgba(239,68,68,.2);
+}
+.btn-edit-small{
+  background:rgba(34,197,94,.1);
+  color:var(--ok);
+}
+.btn-edit-small:hover{
+  background:rgba(34,197,94,.2);
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+@media(max-width:980px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 8px;
+  text-align:center;
+}
+.kpi .v{
+  font-size:1.05rem;
+  color:var(--accent);
+  font-weight:700;
+}
+.kpi .l{
+  font-size:.7rem;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.78rem;
+}
+th,td{
+  padding:7px 6px;
+  border-bottom:1px solid var(--border);
+}
+th{color:var(--muted);text-align:left}
+td{text-align:right;vertical-align:top}
+td:first-child,th:first-child{text-align:left}
+.small{font-size:.72rem;color:var(--muted)}
+.badge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:.7rem;
+}
+canvas{
+  width:100%;
+  background:#020617;
+  border-radius:8px;
+  border:1px solid var(--border);
+}
+hr{
+  border:none;
+  border-top:1px solid var(--border);
+  margin:10px 0;
+}
+.note{
+  font-size:.78rem;
+  color:var(--muted);
+  line-height:1.35;
+}
+.split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media(max-width:980px){ .split{grid-template-columns:1fr} }
+
+/* Modal para edición */
+.modal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(2,6,23,0.8);
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+}
+.modal-content{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+  width:90%;
+  max-width:500px;
+  max-height:90vh;
+  overflow-y:auto;
+}
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+.modal-header h2{
+  margin:0;
+  color:var(--accent);
+}
+.close-modal{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:1.5rem;
+  cursor:pointer;
+  padding:0;
+  width:30px;
+  height:30px;
+}
+.close-modal:hover{color:var(--text)}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Registro Operativo – SITE–RUTA LATAM (Uber / Yango)</h1>
+  <div class="subtitle">Gasolina por "cargas" · Prorrateo por Km · Semana inicia lunes · Campo único "Bonos" · Sin peajes</div>
+</header>
+
+<main>
+
+<!-- IZQUIERDA: CAPTURA -->
+<div class="panel">
+  <h2>🧾 Captura de datos</h2>
+
+  <div class="note">
+    <span class="badge">Regla</span>
+    La gasolina no se registra a diario: se registra cuando tanqueas.  
+    El sistema prorratea gasolina por Km para semana/mes.
+  </div>
+
+  <hr>
+
+  <div class="grid-forms">
+
+    <!-- REGISTRO DIARIO -->
+    <div>
+      <h2 style="margin-top:0;">🗓️ Registro diario (trabajo)</h2>
+      <form id="formLog">
+        <input type="hidden" id="editIndex" value="-1">
+        <label>Fecha</label>
+        <input type="date" id="fecha" required>
+
+        <div class="row2">
+          <div>
+            <label>Horas efectivas</label>
+            <input type="number" id="horas" step="0.1" min="0" required>
+          </div>
+          <div>
+            <label>Viajes</label>
+            <input type="number" id="viajes" min="0" required>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Kilómetros recorridos</label>
+            <input type="number" id="km" step="0.1" min="0" required>
+          </div>
+          <div>
+            <label>Bonos ($)</label>
+            <input type="number" id="bonos" min="0" value="0">
+          </div>
+        </div>
+
+        <label>Ingreso bruto ($)</label>
+        <input type="number" id="bruto" min="0" required>
+
+        <button type="submit" class="btn" id="btnSaveLog">Guardar registro diario</button>
+      </form>
+    </div>
+
+    <!-- CARGA DE GASOLINA -->
+    <div>
+      <h2>⛽ Carga de gasolina (evento)</h2>
+      <form id="formFuel">
+        <label>Fecha de tanqueo</label>
+        <input type="date" id="fechaFuel" required>
+
+        <label>Valor pagado ($)</label>
+        <input type="number" id="valorFuel" min="0" required>
+
+        <button type="submit" class="btn">Guardar carga de gasolina</button>
+      </form>
+    </div>
+
+    <!-- NUEVO: RESUMEN SEMANAL (APP) -->
+    <div>
+      <h2>📲 Resúmenes semanales (App)</h2>
+      <div class="note">
+        Aquí guardas semanas completas como las de tus capturas (ingreso total, horas conectadas y viajes).
+      </div>
+
+      <div class="split">
+        <div>
+          <label>Fecha inicio semana (lunes)</label>
+          <input type="date" id="wkStart">
+        </div>
+        <div>
+          <label>Fecha fin semana</label>
+          <input type="date" id="wkEnd">
+        </div>
+      </div>
+
+      <div class="split">
+        <div>
+          <label>Ingreso total semana ($)</label>
+          <input type="number" id="wkIncome" min="0">
+        </div>
+        <div>
+          <label>Viajes semana</label>
+          <input type="number" id="wkTrips" min="0">
+        </div>
+      </div>
+
+      <div class="split">
+        <div>
+          <label>Horas conectadas (HH)</label>
+          <input type="number" id="wkH" min="0" step="1">
+        </div>
+        <div>
+          <label>Minutos conectados (MM)</label>
+          <input type="number" id="wkM" min="0" max="59" step="1">
+        </div>
+      </div>
+
+      <button class="btn" id="btnSaveWeek">Guardar resumen semanal</button>
+      <button class="btn btn-ok" id="btnLoadWeeks2025">Cargar semanas 2025 (desde capturas)</button>
+      <button class="btn btn-danger" id="btnClearWeeks">Borrar resúmenes semanales</button>
+    </div>
+
+    <button class="btn btn-danger" id="btnResetAll">🧨 Borrar TODO (diarios + gasolina + semanas)</button>
+
+  </div>
+</div>
+
+<!-- DERECHA: KPIs + TABLAS -->
+<div>
+
+  <div class="panel">
+    <h2>📊 KPIs Semana Actual (diarios)</h2>
+    <div class="kpis" id="kpisSemana"></div>
+    <div class="note small" id="notaSemana"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📅 KPIs Mes Actual (diarios)</h2>
+    <div class="kpis" id="kpisMes"></div>
+    <div class="note small" id="notaMes"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📈 Tendencia Neto Diario (estimado por mes)</h2>
+    <canvas id="chart" height="140"></canvas>
+    <div class="note small">La línea usa gasolina estimada por día (costo/km del mes).</div>
+  </div>
+
+  <div class="panel">
+    <h2>📋 Registros diarios (con gasolina estimada)</h2>
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Km</th>
+          <th>Bruto</th>
+          <th>Bonos</th>
+          <th>Gasolina (sem)</th>
+          <th>Gasolina (mes)</th>
+          <th>Neto (mes)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>⛽ Historial de cargas de gasolina</h2>
+    <table id="tablaFuel">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Valor</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>📲 Historial de resúmenes semanales (capturas)</h2>
+    <table id="tablaWeeks">
+      <thead>
+        <tr>
+          <th>Semana</th>
+          <th>Ingreso</th>
+          <th>Horas</th>
+          <th>Viajes</th>
+          <th>$ / hora</th>
+          <th>$ / viaje</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="note small" id="weeksNote"></div>
+  </div>
+
+</div>
+
+</main>
+
+<!-- Modal para edición -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>✏️ Editar registro diario</h2>
+      <button class="close-modal">&times;</button>
+    </div>
+    <form id="formEditLog">
+      <input type="hidden" id="editLogIndex">
+      <label>Fecha</label>
+      <input type="date" id="editFecha" required>
+
+      <div class="row2">
+        <div>
+          <label>Horas efectivas</label>
+          <input type="number" id="editHoras" step="0.1" min="0" required>
+        </div>
+        <div>
+          <label>Viajes</label>
+          <input type="number" id="editViajes" min="0" required>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label>Kilómetros recorridos</label>
+          <input type="number" id="editKm" step="0.1" min="0" required>
+        </div>
+        <div>
+          <label>Bonos ($)</label>
+          <input type="number" id="editBonos" min="0" value="0">
+        </div>
+      </div>
+
+      <label>Ingreso bruto ($)</label>
+      <input type="number" id="editBruto" min="0" required>
+
+      <div style="display:flex;gap:10px;margin-top:15px;">
+        <button type="submit" class="btn" style="flex:1">💾 Guardar cambios</button>
+        <button type="button" class="btn btn-danger" id="btnDeleteLog" style="flex:1">🗑️ Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ===========================
+   STORAGE
+=========================== */
+const STORAGE_LOGS  = "logs_moto_v2";
+const STORAGE_FUEL  = "fuel_moto_v2";
+const STORAGE_WEEKS = "weeks_app_v1";
+
+const $ = id => document.getElementById(id);
+const isoToday = () => new Date().toISOString().slice(0,10);
+
+function getLogs(){ return JSON.parse(localStorage.getItem(STORAGE_LOGS) || "[]"); }
+function saveLogs(logs){ localStorage.setItem(STORAGE_LOGS, JSON.stringify(logs)); }
+
+function getFuel(){ return JSON.parse(localStorage.getItem(STORAGE_FUEL) || "[]"); }
+function saveFuel(fuel){ localStorage.setItem(STORAGE_FUEL, JSON.stringify(fuel)); }
+
+function getWeeks(){ return JSON.parse(localStorage.getItem(STORAGE_WEEKS) || "[]"); }
+function saveWeeks(weeks){ localStorage.setItem(STORAGE_WEEKS, JSON.stringify(weeks)); }
+
+function validarFecha(fecha){ return new Date(fecha) <= new Date(isoToday()); }
+
+function money(x){ return "$" + Math.round(x).toLocaleString("es-CO"); }
+
+/* ===========================
+   FECHAS: semana ISO (lunes)
+=========================== */
+function semanaISO(d){
+  d = new Date(d);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const w = new Date(d.getFullYear(), 0, 4);
+  const weekNo = 1 + Math.round(((d - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
+  return d.getFullYear() + "-W" + String(weekNo).padStart(2,"0");
+}
+function mesISO(d){ return String(d).slice(0,7); }
+
+/* ===========================
+   AGREGACIONES
+=========================== */
+function sumLogs(logs){
+  return logs.reduce((a,l)=>{
+    a.km += l.km;
+    a.bruto += l.bruto;
+    a.bonos += l.bonos;
+    a.horas += l.horas;
+    a.viajes += l.viajes;
+    return a;
+  }, {km:0, bruto:0, bonos:0, horas:0, viajes:0});
+}
+function sumFuel(fuel){ return fuel.reduce((a,f)=> a + f.valor, 0); }
+
+function fuelCostPerKm(totalFuel, totalKm){ return totalKm > 0 ? (totalFuel / totalKm) : 0; }
+function estimatedFuelForDay(kmDay, costPerKm){ return kmDay * costPerKm; }
+
+/* ===========================
+   MODAL FUNCTIONS - CORREGIDO
+=========================== */
+function openEditModal(index){
+  const logs = getLogs();
+  const log = logs[index];
+  
+  if(!log) return;
+  
+  // Usar document.getElementById en lugar de $
+  document.getElementById("editLogIndex").value = index;
+  document.getElementById("editFecha").value = log.fecha;
+  document.getElementById("editHoras").value = log.horas;
+  document.getElementById("editViajes").value = log.viajes;
+  document.getElementById("editKm").value = log.km;
+  document.getElementById("editBruto").value = log.bruto;
+  document.getElementById("editBonos").value = log.bonos;
+  
+  document.getElementById("editModal").style.display = "flex";
+}
+
+function closeEditModal(){
+  document.getElementById("editModal").style.display = "none";
+}
+
+/* ===========================
+   RENDER PRINCIPAL
+=========================== */
+function render(){
+  const logs = getLogs().slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const fuel = getFuel().slice().sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const weeks = getWeeks().slice().sort((a,b)=> b.start.localeCompare(a.start));
+
+  const hoy = isoToday();
+  const semActual = semanaISO(hoy);
+  const mesActual = mesISO(hoy);
+
+  const logsSemana = logs.filter(l => semanaISO(l.fecha) === semActual);
+  const logsMes   = logs.filter(l => mesISO(l.fecha) === mesActual);
+
+  const fuelSemana = fuel.filter(f => semanaISO(f.fecha) === semActual);
+  const fuelMes    = fuel.filter(f => mesISO(f.fecha) === mesActual);
+
+  const sW = sumLogs(logsSemana);
+  const sM = sumLogs(logsMes);
+  const fuelW = sumFuel(fuelSemana);
+  const fuelM = sumFuel(fuelMes);
+
+  const cpkW = fuelCostPerKm(fuelW, sW.km);
+  const cpkM = fuelCostPerKm(fuelM, sM.km);
+
+  paintKPIs("kpisSemana", sW, fuelW, cpkW, logsSemana.length);
+  $("notaSemana").textContent =
+    `Semana ${semActual} · Gasolina: ${money(fuelW)} · Km: ${sW.km.toFixed(1)} · Costo/km: ${money(cpkW)}`;
+
+  paintKPIs("kpisMes", sM, fuelM, cpkM, logsMes.length);
+  $("notaMes").textContent =
+    `Mes ${mesActual} · Gasolina: ${money(fuelM)} · Km: ${sM.km.toFixed(1)} · Costo/km: ${money(cpkM)}`;
+
+  paintDailyTable(logs, cpkW, cpkM, semActual, mesActual);
+  paintFuelTable(fuel);
+  chartMonthlyNet(logsMes.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)), cpkM);
+
+  paintWeeksTable(weeks);
+}
+
+/* ===========================
+   KPIs (DIARIOS)
+=========================== */
+function paintKPIs(containerId, sums, fuelTotal, costPerKm, daysCount){
+  const ingresoTotal = sums.bruto + sums.bonos;
+  const netoTotal = ingresoTotal - fuelTotal;
+
+  const netoDia = daysCount > 0 ? (netoTotal / daysCount) : 0;
+  const kmDia = daysCount > 0 ? (sums.km / daysCount) : 0;
+  const viajesDia = daysCount > 0 ? (sums.viajes / daysCount) : 0;
+
+  $(containerId).innerHTML = `
+    <div class="kpi"><div class="v">${money(netoTotal)}</div><div class="l">Neto total</div></div>
+    <div class="kpi"><div class="v">${money(ingresoTotal)}</div><div class="l">Ingreso (Bruto+Bonos)</div></div>
+    <div class="kpi"><div class="v">${money(fuelTotal)}</div><div class="l">Gasolina (cargas)</div></div>
+    <div class="kpi"><div class="v">${money(costPerKm)}</div><div class="l">Costo gasolina/km</div></div>
+
+    <div class="kpi"><div class="v">${money(netoDia)}</div><div class="l">Neto promedio/día</div></div>
+    <div class="kpi"><div class="v">${viajesDia.toFixed(1)}</div><div class="l">Viajes/día</div></div>
+    <div class="kpi"><div class="v">${kmDia.toFixed(1)}</div><div class="l">Km/día</div></div>
+    <div class="kpi"><div class="v">${sums.horas.toFixed(1)}</div><div class="l">Horas totales</div></div>
+  `;
+}
+
+/* ===========================
+   TABLAS (DIARIOS Y GASOLINA)
+=========================== */
+function paintDailyTable(allLogsDesc, cpkWeek, cpkMonth, weekKey, monthKey){
+  const tbody = $("tabla").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  // Necesitamos el array original para los índices
+  const allLogs = getLogs();
+  
+  allLogsDesc.forEach(l=>{
+    const isThisWeek = semanaISO(l.fecha) === weekKey;
+    const isThisMonth = mesISO(l.fecha) === monthKey;
+
+    const gasSem = isThisWeek ? estimatedFuelForDay(l.km, cpkWeek) : 0;
+    const gasMes = isThisMonth ? estimatedFuelForDay(l.km, cpkMonth) : 0;
+    const netMes = isThisMonth ? (l.bruto + l.bonos - gasMes) : (l.bruto + l.bonos);
+
+    // Encontrar el índice en el array original (no ordenado)
+    const originalIndex = allLogs.findIndex(log => 
+      log.fecha === l.fecha && 
+      log.horas === l.horas &&
+      log.viajes === l.viajes
+    );
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${l.fecha}<div class="small">${semanaISO(l.fecha)} · ${mesISO(l.fecha)}</div></td>
+        <td>${l.km.toFixed(1)}</td>
+        <td>${money(l.bruto)}</td>
+        <td>${money(l.bonos)}</td>
+        <td>${money(gasSem)}</td>
+        <td>${money(gasMes)}</td>
+        <td><b>${money(netMes)}</b></td>
+        <td>
+          <button class="btn-small btn-edit-small edit-log-btn" data-index="${originalIndex}">✏️ Editar</button>
+          <button class="btn-small btn-danger-small delete-log-btn" data-index="${originalIndex}">🗑️ Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function paintFuelTable(fuelDesc){
+  const tbody = $("tablaFuel").querySelector("tbody");
+  tbody.innerHTML = "";
+  
+  const allFuel = getFuel();
+  
+  fuelDesc.forEach(f=>{
+    // Encontrar el índice en el array original
+    const originalIndex = allFuel.findIndex(fuel => 
+      fuel.fecha === f.fecha && 
+      fuel.valor === f.valor
+    );
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${f.fecha}<div class="small">${semanaISO(f.fecha)} · ${mesISO(f.fecha)}</div></td>
+        <td>${money(f.valor)}</td>
+        <td>
+          <button class="btn-small btn-danger-small delete-fuel-btn" data-index="${originalIndex}">🗑️ Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ===========================
+   TABLA RESÚMENES SEMANALES (CAPTURAS)
+=========================== */
+function toMinutes(h, m){ return (+h * 60) + (+m); }
+
+function paintWeeksTable(weeks){
+  const tbody = $("tablaWeeks").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  if(weeks.length === 0){
+    $("weeksNote").textContent = "Aún no hay resúmenes semanales guardados.";
+    return;
+  }
+
+  let totalIncome = 0, totalTrips = 0, totalMin = 0;
+
+  weeks.forEach((w, index)=>{
+    const mins = toMinutes(w.h, w.m);
+    const horasDec = mins / 60;
+    const incomePerHour = horasDec > 0 ? (w.income / horasDec) : 0;
+    const incomePerTrip = w.trips > 0 ? (w.income / w.trips) : 0;
+
+    totalIncome += w.income;
+    totalTrips += w.trips;
+    totalMin += mins;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${w.start} → ${w.end}<div class="small">${semanaISO(w.start)}</div></td>
+        <td>${money(w.income)}</td>
+        <td>${w.h}h ${String(w.m).padStart(2,"0")}m</td>
+        <td>${w.trips}</td>
+        <td>${money(incomePerHour)}</td>
+        <td>${money(incomePerTrip)}</td>
+        <td>
+          <button class="btn-small btn-danger-small delete-week-btn" data-index="${index}">🗑️ Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  const totalHoras = totalMin / 60;
+  const promHora = totalHoras > 0 ? (totalIncome / totalHoras) : 0;
+  const promViaje = totalTrips > 0 ? (totalIncome / totalTrips) : 0;
+
+  $("weeksNote").textContent =
+    `Acumulado (semanas): ${money(totalIncome)} · Horas: ${totalHoras.toFixed(2)} · Viajes: ${totalTrips} · Promedio: ${money(promHora)}/hora · ${money(promViaje)}/viaje`;
+}
+
+/* ===========================
+   GRÁFICA (NETO MENSUAL ESTIMADO)
+=========================== */
+function chartMonthlyNet(logsAsc, cpkMonth){
+  const c = $("chart");
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if(logsAsc.length < 2){
+    ctx.fillStyle = "#9ca3af";
+    ctx.fillText("Datos insuficientes para tendencia (mes actual)", 10, 40);
+    return;
+  }
+
+  const data = logsAsc.map(l => (l.bruto + l.bonos - estimatedFuelForDay(l.km, cpkMonth)));
+  const max = Math.max(...data), min = Math.min(...data);
+
+  const pad=12, w=c.width-24, h=c.height-24;
+  ctx.strokeStyle="#38bdf8";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+
+  data.forEach((v,i)=>{
+    const x = pad + (i/(data.length-1))*w;
+    const y = pad + h - ((v-min)/(max-min || 1))*h;
+    i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+  });
+
+  ctx.stroke();
+}
+
+/* ===========================
+   EVENTOS: GUARDAR DIARIO
+=========================== */
+$("formLog").addEventListener("submit", (e)=>{
+  e.preventDefault();
+
+  const fecha = $("fecha").value;
+  if(!validarFecha(fecha)){ alert("⚠️ Fecha futura no válida."); return; }
+
+  const logs = getLogs();
+  
+  // Verificar si ya existe un registro para esta fecha
+  const existingIndex = logs.findIndex(l => l.fecha === fecha);
+  if(existingIndex > -1){
+    if(!confirm("⚠️ Ya existe un registro para esta fecha. ¿Deseas reemplazarlo?")) return;
+    logs.splice(existingIndex, 1);
+  }
+
+  const payload = {
+    fecha,
+    horas: +$("horas").value,
+    viajes: +$("viajes").value,
+    km: +$("km").value,
+    bruto: +$("bruto").value,
+    bonos: +$("bonos").value
+  };
+
+  saveLogs([...logs, payload]);
+  e.target.reset();
+  render();
+});
+
+/* ===========================
+   EVENTOS: GUARDAR GASOLINA
+=========================== */
+$("formFuel").addEventListener("submit", (e)=>{
+  e.preventDefault();
+
+  const fecha = $("fechaFuel").value;
+  if(!validarFecha(fecha)){ alert("⚠️ Fecha futura no válida."); return; }
+
+  const fuel = getFuel();
+  
+  // Verificar si ya existe una carga para esta fecha
+  const existingIndex = fuel.findIndex(f => f.fecha === fecha);
+  if(existingIndex > -1){
+    if(!confirm("⚠️ Ya existe una carga de gasolina para esta fecha. ¿Deseas reemplazarla?")) return;
+    fuel.splice(existingIndex, 1);
+  }
+
+  const payload = { fecha, valor: +$("valorFuel").value };
+
+  saveFuel([...fuel, payload]);
+  e.target.reset();
+  render();
+});
+
+/* ===========================
+   EVENTOS: ELIMINAR REGISTROS
+=========================== */
+document.addEventListener("click", (e)=>{
+  // Eliminar registro diario
+  if(e.target.classList.contains("delete-log-btn")){
+    const index = parseInt(e.target.dataset.index);
+    if(confirm("¿Eliminar este registro diario?")){
+      const logs = getLogs();
+      logs.splice(index, 1);
+      saveLogs(logs);
+      render();
+    }
+  }
+  
+  // Eliminar carga de gasolina
+  if(e.target.classList.contains("delete-fuel-btn")){
+    const index = parseInt(e.target.dataset.index);
+    if(confirm("¿Eliminar esta carga de gasolina?")){
+      const fuel = getFuel();
+      fuel.splice(index, 1);
+      saveFuel(fuel);
+      render();
+    }
+  }
+  
+  // Eliminar resumen semanal
+  if(e.target.classList.contains("delete-week-btn")){
+    const index = parseInt(e.target.dataset.index);
+    if(confirm("¿Eliminar este resumen semanal?")){
+      const weeks = getWeeks();
+      weeks.splice(index, 1);
+      saveWeeks(weeks);
+      render();
+    }
+  }
+  
+  // Editar registro diario
+  if(e.target.classList.contains("edit-log-btn")){
+    const index = parseInt(e.target.dataset.index);
+    openEditModal(index);
+  }
+});
+
+/* ===========================
+   EVENTOS: MODAL DE EDICIÓN - CORREGIDO
+=========================== */
+document.getElementById("formEditLog").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  
+  const index = parseInt(document.getElementById("editLogIndex").value);
+  const logs = getLogs();
+  
+  const updated = {
+    fecha: document.getElementById("editFecha").value,
+    horas: +document.getElementById("editHoras").value,
+    viajes: +document.getElementById("editViajes").value,
+    km: +document.getElementById("editKm").value,
+    bruto: +document.getElementById("editBruto").value,
+    bonos: +document.getElementById("editBonos").value
+  };
+  
+  logs[index] = updated;
+  saveLogs(logs);
+  closeEditModal();
+  render();
+});
+
+document.getElementById("btnDeleteLog").addEventListener("click", ()=>{
+  const index = parseInt(document.getElementById("editLogIndex").value);
+  if(confirm("¿Eliminar definitivamente este registro?")){
+    const logs = getLogs();
+    logs.splice(index, 1);
+    saveLogs(logs);
+    closeEditModal();
+    render();
+  }
+});
+
+// Cerrar modal con la X
+document.querySelector(".close-modal").addEventListener("click", closeEditModal);
+
+// Cerrar modal haciendo clic fuera
+document.getElementById("editModal").addEventListener("click", (e)=>{
+  if(e.target === document.getElementById("editModal")){
+    closeEditModal();
+  }
+});
+
+/* ===========================
+   EVENTOS: RESUMEN SEMANAL (APP)
+=========================== */
+$("btnSaveWeek").addEventListener("click", ()=>{
+  const start = $("wkStart").value;
+  const end   = $("wkEnd").value;
+  const income = +($("wkIncome").value || 0);
+  const trips  = +($("wkTrips").value || 0);
+  const h = +($("wkH").value || 0);
+  const m = +($("wkM").value || 0);
+
+  if(!start || !end){ alert("⚠️ Debes indicar inicio y fin de la semana."); return; }
+  if(!validarFecha(start) || !validarFecha(end)){ alert("⚠️ No se permiten fechas futuras."); return; }
+  if(new Date(end) < new Date(start)){ alert("⚠️ La fecha fin no puede ser menor que la inicio."); return; }
+  if(income <= 0){ alert("⚠️ El ingreso total debe ser mayor a 0."); return; }
+
+  const weeks = getWeeks();
+  const key = start + "_" + end;
+  
+  // Verificar si ya existe
+  const existingIndex = weeks.findIndex(w => (w.start + "_" + w.end) === key);
+  if(existingIndex > -1){
+    if(!confirm("⚠️ Ya existe un resumen para esta semana. ¿Deseas reemplazarlo?")) return;
+    weeks.splice(existingIndex, 1);
+  }
+
+  weeks.push({ start, end, income, trips, h, m });
+  saveWeeks(weeks);
+
+  $("wkStart").value = "";
+  $("wkEnd").value = "";
+  $("wkIncome").value = "";
+  $("wkTrips").value = "";
+  $("wkH").value = "";
+  $("wkM").value = "";
+
+  render();
+});
+
+/* ===========================
+   CARGAR SEMANAS 2025 (DESDE CAPTURAS)
+=========================== */
+$("btnLoadWeeks2025").addEventListener("click", ()=>{
+  const base = [
+    { start:"2025-01-20", end:"2025-01-27", income:703053, trips:106, h:47, m:18 },
+    { start:"2025-02-10", end:"2025-02-17", income:716696, trips:101, h:44, m:4  },
+    { start:"2025-08-18", end:"2025-08-25", income:743667, trips:120, h:51, m:34 }
+  ];
+
+  const weeks = getWeeks();
+  let added = 0;
+
+  base.forEach(w=>{
+    const key = w.start + "_" + w.end;
+    if(!weeks.some(x => (x.start + "_" + x.end) === key)){
+      weeks.push(w);
+      added++;
+    }
+  });
+
+  saveWeeks(weeks);
+  alert(`✅ Semanas 2025 cargadas: ${added} (si alguna ya existía, no se duplicó).`);
+  render();
+});
+
+$("btnClearWeeks").addEventListener("click", ()=>{
+  if(!confirm("¿Borrar todos los resúmenes semanales?")) return;
+  localStorage.removeItem(STORAGE_WEEKS);
+  render();
+});
+
+/* ===========================
+   RESET TOTAL
+=========================== */
+$("btnResetAll").addEventListener("click", ()=>{
+  if(!confirm("¿Borrar TODO? (diarios + gasolina + semanas)")) return;
+  localStorage.removeItem(STORAGE_LOGS);
+  localStorage.removeItem(STORAGE_FUEL);
+  localStorage.removeItem(STORAGE_WEEKS);
+  render();
+});
+
+/* ===========================
+   INIT
+=========================== */
+render();
+
+// Poner la fecha de hoy por defecto en los formularios
+$("fecha").value = isoToday();
+$("fechaFuel").value = isoToday();
+</script>
+
+</body>
+</html>
