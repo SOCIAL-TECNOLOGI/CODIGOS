@@ -21935,6 +21935,10 @@ function abrirModoPresentador() {
         border-radius:40px;padding:6px 14px;font-weight:700;font-size:0.78rem;
         cursor:pointer;white-space:nowrap;">🔒 Cerrar</button>
 
+      <span id="presenterStatusBadge" style="
+        font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:40px;
+        white-space:nowrap;background:#2d1117;color:#e74c3c;">🔒 Sin pregunta activa</span>
+
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
       <button id="presenterFullscreenBtn" style="
@@ -22839,6 +22843,19 @@ function abrirModoPresentador() {
     const btn = document.getElementById('pvpCloseBtn');
     if (btn) btn.click();
   };
+
+  // Sincronizar badge de estado con el del panel docente
+  const srcBadge = document.getElementById('pvpStatusBadge');
+  const dstBadge = document.getElementById('presenterStatusBadge');
+  if (srcBadge && dstBadge) {
+    const syncBadge = () => {
+      dstBadge.textContent  = srcBadge.textContent;
+      dstBadge.style.background = srcBadge.classList.contains('pvp-open') ? '#0d2818' : '#2d1117';
+      dstBadge.style.color      = srcBadge.classList.contains('pvp-open') ? '#2ecc71' : '#e74c3c';
+    };
+    syncBadge();
+    new MutationObserver(syncBadge).observe(srcBadge, { childList: true, characterData: true, subtree: true, attributes: true });
+  }
 
   // ════════════════════════════════════════════
   // TECLADO
