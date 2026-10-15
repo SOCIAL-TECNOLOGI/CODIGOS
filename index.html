@@ -1,10 +1,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-<title>AlaU 72 · Clase en Línea- – BBB + AUDIO PEERS JS MEJORADO JULIO 20 DE 2026</title>
+<title>AlaU 74 · Clase en Línea- – BBB + AUDIO PEERS JS MEJORADO JULIO 27 DE 2026</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-check-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -2109,13 +2110,23 @@ body.dark #toggleRespuestaBtn:hover {
 #screenStudent.pdf-split #sharedPdfImage {
   width: 100% !important;
   height: auto !important;
-  max-height: none !important;           /* ← sin límite de altura */
-  object-fit: unset !important;          /* ← imagen en tamaño natural */
-  object-position: unset !important;
-  border-radius: 0 0 20px 20px !important;
+  max-height: calc(100vh - 140px) !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 0 !important;
   cursor: default !important;
   pointer-events: none !important;
   display: block !important;
+}
+
+#screenStudent.pdf-split #studentPdfNav {
+  position: sticky !important;
+  bottom: 0 !important;
+  background: white !important;
+  padding: 8px 0 10px !important;
+  border-top: 1px solid #e2edf2 !important;
+  z-index: 10 !important;
+  flex-shrink: 0 !important;
 }
 
 #screenStudent.pdf-split .shared-pdf-info {
@@ -2386,7 +2397,7 @@ body.dark #studentPdfPageInfo {
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: 70vh;
+  max-height: 50vh;
   object-fit: contain;
   display: block;
   margin: 0 auto;
@@ -2406,7 +2417,7 @@ body.dark #studentPdfPageInfo {
   }
   
   #screenStudent.pdf-split #sharedPdfImage {
-    max-height: 65vh;
+    max-height: 45vh;
   }
 }
 
@@ -3793,11 +3804,39 @@ body.dark .resp-col-name { color: white !important; }
     display: flex;
 }
 
+
+.fedusocial-footer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.subtle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity 0.25s ease, color 0.25s ease;
+  border-bottom: 1px dashed transparent;
+}
+
+.subtle-link:hover {
+  opacity: 1;
+  color: var(--text-primary);
+  border-bottom-color: var(--text-secondary);
+}
+
+.link-icon {
+  font-size: 0.9rem;
+}
+
 </style>
 
 
 
-
+<body> 
 
 
 <div id="offlineBanner">⚠️ Sin conexión a Internet</div>
@@ -3807,11 +3846,17 @@ body.dark .resp-col-name { color: white !important; }
   <div class="home-logo">🎓</div>
   <div class="home-title">AlaU Academy<br><span style="font-size:1.1rem;color:var(--text-secondary);">Clase en Línea</span></div>
   <p class="home-sub">Selecciona tu rol</p>
-  
-  
+
   <div class="role-cards">
     <div class="role-card" id="btnRoleTeacher"><div class="rc-icon">👨‍🏫</div><div class="rc-title">Docente</div><div class="rc-desc">Lanzar preguntas</div></div>
     <div class="role-card" id="btnRoleStudent"><div class="rc-icon">🎓</div><div class="rc-title">Estudiante/Invitado</div><div class="rc-desc">Responder en tiempo real</div></div>
+  </div>
+
+  <!-- Enlace sutil a Fedusocial -->
+  <div class="fedusocial-footer">
+    <a href="https://www.fedusocial.org/" target="_blank" rel="noopener noreferrer" class="subtle-link">
+      <span class="link-icon">🏠</span> Fedusocial
+    </a>
   </div>
 </div>
 
@@ -3830,6 +3875,172 @@ body.dark .resp-col-name { color: white !important; }
 </div></div>
 
 
+<div id="screenAdmin" class="screen" style="min-height:100vh;background:#020617;color:#e5e7eb;font-family:system-ui,sans-serif;">
+ 
+   <!-- TOPBAR -->
+  <div style="background:#0f172a;border-bottom:1px solid #1f2937;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-size:1.1rem;font-weight:700;color:#38bdf8;">⚙️ Panel de Administración</div>
+      <div style="font-size:.75rem;color:#9ca3af;">SITE-RUTA LATAM · Superadministrador</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="showScreen('screenHome')" style="padding:6px 16px;border-radius:999px;border:none;background:#1f2937;color:#9ca3af;font-weight:600;font-size:.78rem;cursor:pointer;">🏠 Inicio</button>
+      <button onclick="document.getElementById('superAdminMenu').style.display='flex'" style="padding:6px 16px;border-radius:999px;border:none;background:#38bdf8;color:#020617;font-weight:600;font-size:.78rem;cursor:pointer;">← Menú</button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div style="padding:20px;max-width:800px;margin:0 auto;">
+
+    <!-- TABS -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+      <button onclick="mostrarTabAdmin('tabCuestionarios')" id="btnTabCuestionarios"
+        style="padding:8px 18px;border-radius:999px;border:none;background:#38bdf8;color:#020617;font-weight:700;font-size:.8rem;cursor:pointer;">
+        📚 Cuestionarios
+      </button>
+      <button onclick="mostrarTabAdmin('tabNuevoCuestionario')" id="btnTabNuevo"
+        style="padding:8px 18px;border-radius:999px;border:none;background:#1f2937;color:#9ca3af;font-weight:700;font-size:.8rem;cursor:pointer;">
+        ➕ Nuevo cuestionario
+      </button>
+      <button onclick="mostrarTabAdmin('tabItems')" id="btnTabItems"
+        style="padding:8px 18px;border-radius:999px;border:none;background:#1f2937;color:#9ca3af;font-weight:700;font-size:.8rem;cursor:pointer;">
+        🧠 Banco de ítems
+      </button>
+      <button onclick="mostrarTabAdmin('tabSolicitudes')" id="btnTabSolicitudes"
+        style="padding:8px 18px;border-radius:999px;border:none;background:#1f2937;color:#9ca3af;font-weight:700;font-size:.8rem;cursor:pointer;">
+       📋 Solicitudes portal
+
+      </button>
+
+      <button onclick="mostrarTabAdmin('tabDocentes')" id="btnTabDocentes"
+
+        style="padding:8px 18px;border-radius:999px;border:none;background:#1f2937;color:#9ca3af;font-weight:700;font-size:.8rem;cursor:pointer;">
+
+        👨‍🏫 Docentes
+
+      </button>
+
+    </div>
+
+    <!-- TAB: DOCENTES -->
+
+    <div id="tabDocentes" style="display:none;">
+
+      <h3 style="color:#f1f5f9;font-size:.95rem;margin-bottom:12px;">Docentes registrados</h3>
+
+      <div id="adminDocentesList"><p style="color:#9ca3af;font-size:.85rem;">Cargando...</p></div>
+
+    </div>
+
+    <!-- TAB: CUESTIONARIOS EXISTENTES -->
+    <div id="tabCuestionarios">
+      <h3 style="color:#f1f5f9;font-size:.95rem;margin-bottom:12px;">Cuestionarios en el banco</h3>
+      <div id="adminCuestionariosList"></div>
+    </div>
+
+    <!-- TAB: NUEVO CUESTIONARIO -->
+    <div id="tabNuevoCuestionario" style="display:none;">
+      <h3 style="color:#f1f5f9;font-size:.95rem;margin-bottom:16px;">Crear nuevo cuestionario</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="adminNombre" placeholder="Nombre del cuestionario" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+        <input id="adminId" placeholder="ID canónico (ej: DIAGNOSTICO-LC-2026)" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+        <select id="adminTipo" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+          <option value="tamizaje">Tamizaje</option>
+          <option value="diagnostico">Diagnóstico</option>
+          <option value="clase">Clase</option>
+          <option value="evaluacion">Evaluación</option>
+          <option value="simulacro">Simulacro</option>
+        </select>
+        <input id="adminGrado" placeholder="Grado (ej: 11)" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+        <input id="adminAreas" placeholder="Áreas separadas por coma (ej: LC, MAT, CN)" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+        <input id="adminDescripcion" placeholder="Descripción breve" style="padding:.75rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;font-size:.88rem;">
+                <div style="background:#0f172a;border:1px solid #1f2937;border-radius:14px;padding:16px;">
+
+          <div style="font-size:.78rem;color:#9ca3af;margin-bottom:8px;font-weight:600;">📄 PDF del cuestionario</div>
+
+          <input type="file" id="adminPdfFile" accept="application/pdf" style="color:#e5e7eb;font-size:.82rem;width:100%;"
+            onchange="
+              const f = this.files[0];
+              const status = document.getElementById('adminPdfStatus');
+              const urlBox = document.getElementById('adminPdfUrlBox');
+              if (f && f.size > 4 * 1024 * 1024) {
+                status.innerHTML = '⚠️ El PDF pesa ' + (f.size/1024/1024).toFixed(1) + ' MB — supera el límite de 4 MB. <strong>Usa la URL de Zoho WorkDrive</strong> o comprime el archivo.';
+                status.style.color = '#f97316';
+                urlBox.style.display = 'block';
+                this.value = '';
+              } else if (f) {
+                status.textContent = '✅ PDF listo: ' + (f.size/1024/1024).toFixed(1) + ' MB';
+                status.style.color = '#4ade80';
+                urlBox.style.display = 'none';
+              }
+            ">
+
+          <div id="adminPdfStatus" style="font-size:.75rem;color:#9ca3af;margin-top:6px;"></div>
+
+          <div id="adminPdfUrlBox" style="display:none;margin-top:10px;">
+            <div style="font-size:.75rem;color:#9ca3af;margin-bottom:6px;">🔗 URL embed de Zoho WorkDrive (alternativa al archivo):</div>
+            <input id="adminPdfUrl" type="text" placeholder="https://archivo.lostutores.co/embed/..." style="width:100%;padding:.6rem 1rem;border-radius:40px;border:1px solid #1f2937;background:#020617;color:#e5e7eb;font-size:.8rem;">
+          </div>
+
+        </div>
+        <div style="background:#0f172a;border:1px solid #1f2937;border-radius:14px;padding:16px;">
+          <div style="font-size:.78rem;color:#9ca3af;margin-bottom:8px;font-weight:600;">📊 Excel con respuestas (columnas: Pregunta, Respuesta Correcta)</div>
+          <input type="file" id="adminExcelFile" accept=".xlsx,.xls" style="color:#e5e7eb;font-size:.82rem;width:100%;">
+          <div id="adminExcelStatus" style="font-size:.75rem;color:#9ca3af;margin-top:6px;"></div>
+        </div>
+        <div id="adminCreateError" style="display:none;color:#ef4444;font-size:.8rem;"></div>
+        <button onclick="crearCuestionarioAdmin()" style="padding:.85rem;border-radius:40px;background:linear-gradient(95deg,#38bdf8,#0ea5e9);color:#020617;font-weight:700;font-size:.9rem;border:none;cursor:pointer;">
+          ✅ Crear cuestionario
+        </button>
+
+      </div>
+    </div>
+
+    <!-- TAB: BANCO DE ÍTEMS -->
+    <div id="tabItems" style="display:none;">
+      <h3 style="color:#f1f5f9;font-size:.95rem;margin-bottom:12px;">Banco de ítems FCRI</h3>
+      <div id="adminItemsList">
+        <p style="color:#9ca3af;font-size:.85rem;">Cargando ítems...</p>
+      </div>
+    </div>
+
+    <!-- TAB: SOLICITUDES PORTAL -->
+    <div id="tabSolicitudes" style="display:none;">
+      <h3 style="color:#f1f5f9;font-size:.95rem;margin-bottom:12px;">Solicitudes de acceso al portal</h3>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button onclick="cargarSolicitudesAdmin('pendiente')" style="padding:6px 14px;border-radius:999px;border:none;background:#fbbf24;color:#020617;font-weight:700;font-size:.78rem;cursor:pointer;">⏳ Pendientes</button>
+        <button onclick="cargarSolicitudesAdmin('aprobado')" style="padding:6px 14px;border-radius:999px;border:none;background:#10b981;color:#020617;font-weight:700;font-size:.78rem;cursor:pointer;">✅ Aprobados</button>
+        <button onclick="cargarSolicitudesAdmin('rechazado')" style="padding:6px 14px;border-radius:999px;border:none;background:#ef4444;color:white;font-weight:700;font-size:.78rem;cursor:pointer;">❌ Rechazados</button>
+        <button onclick="cargarSolicitudesAdmin('suspendido')" style="padding:6px 14px;border-radius:999px;border:none;background:#f97316;color:white;font-weight:700;font-size:.78rem;cursor:pointer;">⏸️ Suspendidos</button>
+        <button onclick="cargarSolicitudesAdmin('bloqueado')" style="padding:6px 14px;border-radius:999px;border:none;background:#6b7280;color:white;font-weight:700;font-size:.78rem;cursor:pointer;">🚫 Bloqueados</button>
+      </div>
+      <div id="adminSolicitudesList"></div>
+    </div>
+
+  </div>
+</div>
+
+
+<div id="superAdminMenu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
+  <div style="background:white;border-radius:24px;padding:28px 24px;width:90%;max-width:400px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.3);">
+    <div style="font-size:2rem;margin-bottom:.5rem;">⚙️</div>
+    <h3 style="color:#0f2b3d;margin-bottom:.3rem;">Panel de Control</h3>
+    <p style="font-size:.78rem;color:#5a7a8a;margin-bottom:1.5rem;">SITE-RUTA LATAM · Superadministrador</p>
+
+    <button onclick="abrirPanelAdmin()" style="width:100%;padding:.85rem;border-radius:40px;background:linear-gradient(95deg,#0f2b3d,#2c7da0);color:white;font-weight:700;font-size:.95rem;border:none;cursor:pointer;margin-bottom:.8rem;">
+      ⚙️ Panel de Administración
+    </button>
+
+    <button onclick="document.getElementById('superAdminMenu').style.display='none'; abrirModalSesion();" style="width:100%;padding:.85rem;border-radius:40px;background:linear-gradient(95deg,#27ae60,#2ecc71);color:white;font-weight:700;font-size:.95rem;border:none;cursor:pointer;margin-bottom:.8rem;">
+      📖 Abrir sesión de clase
+    </button>
+
+    <button onclick="document.getElementById('superAdminMenu').style.display='none';" style="width:100%;padding:.72rem;border-radius:40px;background:#eee;color:#555;font-weight:700;border:none;cursor:pointer;">
+      Cancelar
+    </button>
+  </div>
+</div>
+
 <div id="sessionModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
   
   
@@ -3839,9 +4050,24 @@ body.dark .resp-col-name { color: white !important; }
     <div id="sessionModalContent" style="flex:1;overflow-y:auto;padding-right:4px;min-height:0;">
       <div style="font-size:2rem;margin-bottom:.3rem;">📖</div>
       <h3 style="color:var(--dark);margin-bottom:.3rem;line-height:1.15;">Nueva sesión de clase</h3>
-      <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.4;">
-        Completa los datos para identificar esta clase en los reportes y trazabilidad.
-      </p>
+
+      <!-- SELECTOR DE MODO -->
+      <div style="display:flex;gap:8px;margin-bottom:1rem;">
+        <button id="btnModoLibre" onclick="seleccionarModoSesion('libre')"
+          style="flex:1;padding:.6rem;border-radius:40px;border:2px solid #d5dde6;background:#f0f6ff;color:#0369a1;font-weight:700;font-size:.78rem;cursor:pointer;">
+          ✏️ Modo libre
+        </button>
+        <button id="btnModoGuiado" onclick="seleccionarModoSesion('guiado')"
+          style="flex:1;padding:.6rem;border-radius:40px;border:2px solid #d5dde6;background:#fff;color:#555;font-weight:700;font-size:.78rem;cursor:pointer;">
+          📂 Modo guiado
+        </button>
+      </div>
+
+      <!-- PANEL MODO LIBRE (default) -->
+      <div id="panelModoLibre">
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.4;">
+          Completa los datos para identificar esta clase en los reportes y trazabilidad.
+        </p>
 
       
       <div style="text-align:left;margin-bottom:.65rem;">
@@ -3867,6 +4093,44 @@ body.dark .resp-col-name { color: white !important; }
         <input type="text" id="sessionDescripcion" maxlength="30" placeholder="Ej: Simulacro3 · Parcial · Repaso" style="width:100%;padding:.7rem .95rem;border:2px solid #d5dde6;border-radius:40px;font-size:.88rem;">
       </div>
 
+
+      </div><!-- cierre panelModoLibre -->
+
+      <!-- PANEL MODO GUIADO -->
+      <div id="panelModoGuiado" style="display:none;">
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.4;">
+          Selecciona un cuestionario precargado con preguntas, respuestas y metadatos PMAP.
+        </p>
+
+        <div style="text-align:left;margin-bottom:.65rem;">
+          <label style="font-size:.72rem;font-weight:700;color:#0369a1;display:block;margin-bottom:4px;">🏫 Institución Educativa</label>
+          <input type="text" id="guiadoInstitucion" maxlength="50" placeholder="Ej: IEM San José"
+            style="width:100%;padding:.7rem .95rem;border:2px solid #d5dde6;border-radius:40px;font-size:.88rem;">
+        </div>
+
+        <div style="text-align:left;margin-bottom:.65rem;">
+          <label style="font-size:.72rem;font-weight:700;color:#0369a1;display:block;margin-bottom:4px;">🎓 Grado / Grupo</label>
+          <input type="text" id="guiadoGrado" maxlength="20" placeholder="Ej: Grado 11A"
+            style="width:100%;padding:.7rem .95rem;border:2px solid #d5dde6;border-radius:40px;font-size:.88rem;">
+        </div>
+
+        <div style="text-align:left;margin-bottom:.65rem;">
+          <label style="font-size:.72rem;font-weight:700;color:#0369a1;display:block;margin-bottom:4px;">📚 Cuestionario</label>
+          <select id="guiadoCuestionario"
+            style="width:100%;padding:.7rem .95rem;border:2px solid #d5dde6;border-radius:40px;font-size:.88rem;background:#fff;color:#0f2b3d;">
+            <option value="">⏳ Cargando cuestionarios...</option>
+          </select>
+        </div>
+
+        <!-- Preview PDF -->
+        <div id="guiadoPdfPreview" style="display:none;margin-bottom:.65rem;">
+          <label style="font-size:.72rem;font-weight:700;color:#0369a1;display:block;margin-bottom:4px;">👁️ Vista previa</label>
+          <iframe id="guiadoPdfIframe" src="" width="100%" height="180"
+            frameborder="0" style="border-radius:12px;border:1px solid #d5dde6;" allowfullscreen></iframe>
+        </div>
+
+        <div id="guiadoError" style="display:none;color:#c0392b;font-size:.78rem;margin-bottom:.5rem;"></div>
+      </div>
       
       <div id="sessionIdPreview" style="background:#f0f6ff;border-radius:12px;padding:8px 12px;margin-bottom:.8rem;font-size:.72rem;color:#0369a1;text-align:left;display:none;">
         <strong>📁 Ruta en Firebase:</strong><br>
@@ -3903,7 +4167,6 @@ body.dark .resp-col-name { color: white !important; }
   <div id="sessionRetomarError" style="display:none; color:#c0392b; font-size:.75rem; margin-top:5px;"></div>
 </div>
 
-      
       
       <div style="display:flex;gap:.8rem;">
         <button id="sessionCancelBtn" style="flex:1;padding:.72rem;border-radius:40px;background:#eee;color:#555;font-weight:700;border:none;cursor:pointer;">Cancelar</button>
@@ -4826,6 +5089,12 @@ María López"></textarea>
       <input list="institucionesList" id="studentAccessInstitucion" placeholder="Escribe o selecciona tu institución" style="width:100%;padding:.85rem 1rem;border:2px solid #d5dde6;border-radius:40px;font-size:.95rem;background:white;">
       <datalist id="institucionesList"></datalist>
     </div>
+
+<div style="text-align:left;margin-bottom:.65rem;">
+  <label style="font-size:.72rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:4px;">🪪 Número de documento <span style="font-size:.68rem;color:#9ca3af;">(opcional — para acceder al portal)</span></label>
+  <input type="text" id="studentDocumento" maxlength="15" placeholder="Ej: 1234567890" style="width:100%;padding:.7rem .95rem;border:2px solid #d5dde6;border-radius:40px;font-size:.88rem;">
+</div>
+
     <div id="studentAccessError" style="display:none;color:#c0392b;font-size:.78rem;margin-bottom:.6rem;"></div>
     <button id="studentAccessBtn" style="width:100%;padding:.85rem;border-radius:40px;background:linear-gradient(95deg,#2c7da0,#3498db);color:white;font-weight:700;font-size:1rem;border:none;cursor:pointer;">
       ✅ Unirme a la clase
@@ -4919,7 +5188,7 @@ María López"></textarea>
 
   
   <div style="position:relative;display:block;width:100%;line-height:0;">
-    <img id="sharedPdfImage" alt="PDF compartido" title="🔍 Toca para ampliar" loading="lazy" style="display:block;width:100%;height:auto;">
+        <img id="sharedPdfImage" alt="PDF compartido" title="🔍 Toca para ampliar" loading="lazy" style="display:block;width:auto;max-width:100%;max-height:55vh;object-fit:contain;margin:0 auto;">
     <canvas id="studentAnnotationCanvas" style="
       position:absolute;
       top:0;left:0;
@@ -5720,7 +5989,7 @@ María López"></textarea>
 }
 </style>
 
-
+</body>
 
 
 <script>
@@ -5975,87 +6244,59 @@ function toggleCard(id){
 })();
 
 // ══════════════════════════════════════════════════════════════
-
 // CONFIGURACIÓN Y FIREBASE
-
 // ══════════════════════════════════════════════════════════════
 
 const FIREBASE_CONFIG = {
-
   apiKey: "AIzaSyDZsHt7nODk13MgM0fa6JTK1iWlcY-CqVw",
-
   authDomain: "alau-academy.firebaseapp.com",
-
   databaseURL: "https://alau-academy-default-rtdb.firebaseio.com",
-
   projectId: "alau-academy",
-
   storageBucket: "alau-academy.firebasestorage.app",
-
   messagingSenderId: "170213819709",
-
   appId: "1:170213819709:web:69ea8bfaa126ce4926f154"
-
 };
-
-// ── SESSION_ID dinámico — se define cuando el docente nombra la sesión ──
-
-// Ya no es un string fijo — cada clase tiene su propio nodo en Firebase.
 
 let SESSION_ID = null;
 
 firebase.initializeApp(FIREBASE_CONFIG);
 
-const db  = firebase.database();
-
-const auth = firebase.auth();
 
 
-
-
-
-// Referencias Firebase — se inicializan cuando el docente abre una sesión
-
-let sessionRef, questionRef, responsesRef, historialRef,
-
-    sorteoRef, bancoPublicoRef, bancoPrivadoRef, bancoRespRef, pdfSharedRef;
-
-// Inicializar todas las referencias con el SESSION_ID elegido
-
-function initFirebaseRefs(sessionId){
-
-  if (!sessionId) {
-
-    console.warn("initFirebaseRefs llamado sin sessionId");
-
-    return;
-
-  }
-
-  SESSION_ID    = sessionId;
-
-  sessionRef    = db.ref(`sessions/${SESSION_ID}`);
-
-  questionRef   = sessionRef.child('question');
-
-  responsesRef  = sessionRef.child('responses');
-
-  historialRef  = sessionRef.child('historial_respuestas');
-
-  sorteoRef     = sessionRef.child('sorteoGanador');
-
-  bancoPublicoRef = sessionRef.child('banco_autonomo_publico');
-
-  bancoPrivadoRef = sessionRef.child('banco_autonomo_privado');
-
-  bancoRespRef  = sessionRef.child('banco_respuestas');
-
-  pdfSharedRef  = sessionRef.child('pdfShared');
-
-  // No usar await aquí para evitar bloqueos
-
+// ── Firebase App Check — reCAPTCHA v3 ──
+if (typeof firebase.appCheck === 'function') {
+    const appCheck = firebase.appCheck();
+    appCheck.activate(
+        '6LdIcl4tAAAAAP3UBZmNPEYb_Sjp_TxNeB50JxtI', // ← clave del sitio (site key)
+        true // auto-refresh del token
+    );
+} else {
+    console.warn('⚠️ App Check no disponible');
 }
 
+const db   = firebase.database();
+const auth = firebase.auth();
+
+// Referencias Firebase — se inicializan cuando el docente abre una sesión
+let sessionRef, questionRef, responsesRef, historialRef,
+    sorteoRef, bancoPublicoRef, bancoPrivadoRef, bancoRespRef, pdfSharedRef;
+
+function initFirebaseRefs(sessionId) {
+  if (!sessionId) {
+    console.warn("initFirebaseRefs llamado sin sessionId");
+    return;
+  }
+  SESSION_ID      = sessionId;
+  sessionRef      = db.ref(`sessions/${SESSION_ID}`);
+  questionRef     = sessionRef.child('question');
+  responsesRef    = sessionRef.child('responses');
+  historialRef    = sessionRef.child('historial_respuestas');
+  sorteoRef       = sessionRef.child('sorteoGanador');
+  bancoPublicoRef = sessionRef.child('banco_autonomo_publico');
+  bancoPrivadoRef = sessionRef.child('banco_autonomo_privado');
+  bancoRespRef    = sessionRef.child('banco_respuestas');
+  pdfSharedRef    = sessionRef.child('pdfShared');
+}
 // ══════════════════════════════════════════════════════════════
 
 // ESTADO GLOBAL
@@ -6352,8 +6593,25 @@ async function closeSessionAndExpelStudents() {
 
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (currentLiveQuestion) await archivarPreguntaActual();
-
+    if (currentLiveQuestion) {
+      // Forzar archivo de última pregunta aunque no tenga respuestas
+      try {
+        const snap = await responsesRef.once('value');
+        const resps = snap.val() || {};
+        const qId = currentLiveQuestion.id;
+        await historialRef.child(String(qId)).set({
+          numero: currentLiveQuestion.numero,
+          texto: currentLiveQuestion.text,
+          correcta: currentLiveQuestion.correct || null,
+          openedAt: currentLiveQuestion.openedAt,
+          archivedAt: Date.now(),
+          respuestas: resps,
+          paginaPdf: currentPage
+        });
+      } catch(e) {
+        console.warn('⚠️ Error archivando última pregunta:', e.message);
+      }
+    }
     await sessionRef.child('presencia').remove();
 
     if (codigoActual) {
@@ -7006,8 +7264,12 @@ document.getElementById('btnRoleTeacher').addEventListener('click',()=>{
 
     // Ya autenticado — ir directo al selector de sesión
 
-    abrirModalSesion();
-
+   const SUPERADMIN_UID = 'WVYHnmd8drYYQUUbvy0B7ZHBiex1';
+if (auth.currentUser.uid === SUPERADMIN_UID) {
+  abrirMenuSuperAdmin();
+} else {
+  abrirModalSesion();
+}
     return;
 
   }
@@ -7661,36 +7923,18 @@ const TABLA_CUARTILES = {
 
 };
 
-function calcularNivelPMAP(velocidad, nivelItem){
-
-  // Si no hay nivel del ítem en el banco → retorna solo velocidad
-
-  if(!nivelItem || !TABLA_CUARTILES[nivelItem]){
-
-    return { nivelPMAP: nivelItem||'', cuartil: '' };
-
-  }
-
-  // Cuartil desde velocidad (sobre aciertos)
-
-  let cuartilKey = 'Q3'; // media → Q3 por defecto
-
-  if(velocidad === 'rapida') cuartilKey = 'Q4';
-
-  if(velocidad === 'lenta')  cuartilKey = 'Q2';
-
-  const descripcion = TABLA_CUARTILES[nivelItem][cuartilKey] || '';
-
-  return {
-
-    nivelPMAP: nivelItem,          // ej: "N2"
-
-    cuartil:   cuartilKey,         // ej: "Q3"
-
-    descripcionCuartil: descripcion // ej: "Comprensión estructural"
-
-  };
-
+async function calcularNivelPMAP(velocidad, nivelItem) {
+    try {
+        const resp = await fetch(
+            `https://alau2.lostutores.co/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
+        );
+        const data = await resp.json();
+        if (data.ok) return { nivelPMAP: data.nivelPMAP, cuartil: data.cuartil };
+    } catch(e) {
+        console.warn('⚠️ No se pudo calcular PMAP en servidor, usando fallback');
+    }
+    // Fallback mínimo — sin revelar la lógica real
+    return { nivelPMAP: nivelItem || '', cuartil: 'Q3' };
 }
 
 // ══════════════════════════════════════════════════════════════//
@@ -7894,24 +8138,11 @@ document.getElementById('studentAccessCancelBtn').addEventListener('click',()=>{
 });
 
 async function unirseAClase() {
-  // 🔥 AUTENTICACIÓN ANÓNIMA - PRIMERO
-  if (!auth.currentUser) {
-    try {
-      await auth.signInAnonymously();
-      console.log('✅ Estudiante/Tutor autenticado anónimamente');
-    } catch (authError) {
-      console.error('❌ Error en autenticación anónima:', authError);
-      const err = document.getElementById('studentAccessError');
-      err.textContent = '❌ Error de autenticación. Verifica tu conexión.';
-      err.style.display = 'block';
-      return;
-    }
-  }
-
   const codigo = document.getElementById('studentCodeInput').value.trim().toUpperCase();
   const nombre = document.getElementById('studentAccessName').value.trim();
   const municipio = document.getElementById('studentAccessMunicipio').value.trim();
   const institucion = document.getElementById('studentAccessInstitucion').value.trim();
+  const documento = document.getElementById('studentDocumento')?.value.trim() || '';
   const err = document.getElementById('studentAccessError');
   const btn = document.getElementById('studentAccessBtn');
 
@@ -7929,21 +8160,69 @@ async function unirseAClase() {
     return;
   }
 
+  // ============================================================
+  // 🔒 LÍMITE DE INTENTOS FALLIDOS (cliente)
+  // ============================================================
+  const INTENTOS_KEY = 'alau_intentos_codigo';
+  const BLOQUEO_KEY  = 'alau_bloqueo_hasta';
+
+  const bloqueadoHasta = parseInt(localStorage.getItem(BLOQUEO_KEY) || '0');
+  if (Date.now() < bloqueadoHasta) {
+    const mins = Math.ceil((bloqueadoHasta - Date.now()) / 60000);
+    err.textContent = `❌ Demasiados intentos fallidos. Espera ${mins} minuto(s).`;
+    err.style.display = 'block';
+    return;
+  }
+
+  // ✅ SPINNER INMEDIATO — feedback visual antes de cualquier await
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Buscando clase...';
+  btn.innerHTML = '<span class="spinner"></span> Conectando...';
   err.style.display = 'none';
 
   try {
-    // 1. Verificar que el código existe
-    const snap = await db.ref(`activeCodes/${codigo}`).once('value');
+    // 🔥 AUTH ANÓNIMA (con spinner ya visible — evita doble tap en móvil)
+    if (!auth.currentUser) {
+      try {
+        await auth.signInAnonymously();
+        console.log('✅ Estudiante/Tutor autenticado anónimamente');
+      } catch (authError) {
+        console.error('❌ Error en autenticación anónima:', authError);
+        err.textContent = '❌ Error de autenticación. Verifica tu conexión.';
+        err.style.display = 'block';
+        return;
+      }
+    }
+
+    btn.innerHTML = '<span class="spinner"></span> Buscando clase...';
+
+    // 1. Verificar que el código existe (timeout 10s para móviles lentos)
+    const snap = await Promise.race([
+      db.ref(`activeCodes/${codigo}`).once('value'),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))
+    ]);
     const data = snap.val();
 
+    // 🔴 Código NO encontrado → incrementar intentos
     if (!data || !data.sessionPath) {
-      err.textContent = '❌ Código no encontrado. Verifica con tu docente.';
+      let intentos = parseInt(localStorage.getItem(INTENTOS_KEY) || '0') + 1;
+      localStorage.setItem(INTENTOS_KEY, intentos);
+      
+      if (intentos >= 5) {
+        localStorage.setItem(BLOQUEO_KEY, Date.now() + 10 * 60 * 1000); // 10 min
+        localStorage.setItem(INTENTOS_KEY, '0');
+        err.textContent = '❌ Demasiados intentos. Bloqueado por 10 minutos.';
+      } else {
+        err.textContent = `❌ Código no encontrado. Intento ${intentos}/5.`;
+      }
       err.style.display = 'block';
       return;
     }
 
+    // ✅ Código válido → limpiar contador de intentos
+    localStorage.removeItem(INTENTOS_KEY);
+    localStorage.removeItem(BLOQUEO_KEY);
+
+    // Verificar expiración
     if (data.expiresAt && Date.now() > data.expiresAt) {
       err.textContent = '❌ El código expiró. Pide al docente que genere uno nuevo.';
       err.style.display = 'block';
@@ -7973,15 +8252,12 @@ async function unirseAClase() {
     // ============================================================
     if (data.esTutor === true) {
       console.log('👨‍🏫 Código de tutor detectado — entrando como tutor invitado');
-      // El tutor no necesita municipio ni institución
       document.getElementById('studentAccessModal').style.display = 'none';
       initFirebaseRefs(sessionPath);
       studentName = nombre;
-      studentMunicipio = '';        // No requerido para tutor
-      studentInstitucion = '';      // No requerido para tutor
+      studentMunicipio = '';
+      studentInstitucion = '';
       localStorage.setItem('alau_session_path', sessionPath);
-      // Opcional: guardar código en localStorage si quieres
-      // localStorage.setItem('alau_last_class_code', codigo);
       mostrarCodigoEnTopbarEstudiante(codigo);
       currentRole = 'tutor';
       enterTutor();
@@ -8013,6 +8289,87 @@ async function unirseAClase() {
     studentName = nombre;
     studentMunicipio = municipio;
     studentInstitucion = institucion;
+// ── PMAP v4.0: Crear/actualizar perfil del estudiante en Firebase ──
+    const uidEstudiante = auth.currentUser?.uid;
+    if (uidEstudiante) {
+      const perfilRef = db.ref(`estudiantes/${uidEstudiante}`);
+      const perfilSnap = await perfilRef.once('value');
+      if (!perfilSnap.exists()) {
+        // Perfil nuevo — crear estructura completa
+        await perfilRef.set({
+          datos: {
+            nombre:       nombre,
+            municipio:    municipio,
+            institucion:  institucion,
+            createdAt:    Date.now(),
+            documento:    documento || null,
+          },
+          progreso: {
+            general: 0,
+            por_area: { LC: 0, MA: 0, CN: 0, CS: 0, ING: 0 },
+            por_dimension: { saber: 0, hacer: 0, ser: 0 }
+          },
+          trayectoria: {
+            nivel_actual: 'N1',
+            nivel_previo: null,
+            fecha_ultimo_avance: null,
+            sesiones_en_nivel: 0
+          },
+          microhabilidades: {},
+          microrutinas: {},
+          micromigraciones: [],
+          sesiones: [],
+          seast: {
+            trayectoria: 'N1',
+            ide_acumulado: 0,
+            icg: null,
+            tipo: null,
+            evidencias: 0
+          }
+        });
+       if (documento) {
+  await db.ref(`documentos/${documento}`).set(uidEstudiante);
+
+
+  await db.ref(`perfiles_portal/${documento}`).set({
+    uid: uidEstudiante,
+    nombre: nombre,
+    municipio: municipio,
+    institucion: institucion,
+    nivel_actual: 'N1',
+    cuartil_actual: 'Q1',
+    progreso: 0,
+    createdAt: Date.now()
+  });
+}
+console.log('✅ Perfil PMAP creado para:', nombre);
+      } 
+      
+      else {
+        // Perfil existente — actualizar solo datos básicos
+        await perfilRef.child('datos').update({
+  nombre:         nombre,
+  municipio:      municipio,
+  institucion:    institucion,
+  ultimaConexion: Date.now(),
+  ...(documento ? { documento } : {})
+});
+
+// Si tiene documento — crear índice inverso
+if (documento) {
+  await db.ref(`documentos/${documento}`).set(uidEstudiante);
+  await db.ref(`perfiles_portal/${documento}`).update({
+    uid: uidEstudiante,
+    nombre: nombre,
+    municipio: municipio,
+    institucion: institucion,
+    ultimaConexion: Date.now()
+  });
+}
+        console.log('✅ Perfil PMAP actualizado para:', nombre);
+      }
+    }
+
     localStorage.setItem('alau_student_name', nombre);
     localStorage.setItem('alau_student_municipio', municipio);
     localStorage.setItem('alau_student_institucion', institucion);
@@ -8049,7 +8406,9 @@ async function unirseAClase() {
 
   } catch (e) {
     console.error('Error buscando código:', e);
-    err.textContent = '❌ Error de conexión. Verifica tu internet.';
+    err.textContent = e.message === 'timeout'
+      ? '❌ Conexión lenta. Verifica tu señal e intenta de nuevo.'
+      : '❌ Error de conexión. Verifica tu internet.';
     err.style.display = 'block';
   } finally {
     btn.disabled = false;
@@ -8416,7 +8775,13 @@ async function checkPass(){
 
     // Login exitoso → mostrar selector de sesión
 
-    abrirModalSesion();
+    // Login exitoso → verificar si es superadmin
+const SUPERADMIN_UID = 'WVYHnmd8drYYQUUbvy0B7ZHBiex1';
+if (auth.currentUser.uid === SUPERADMIN_UID) {
+  abrirMenuSuperAdmin();
+} else {
+  abrirModalSesion();
+}
 
   }catch(e){
 
@@ -8584,6 +8949,540 @@ function actualizarPreview(){
 
   }
 
+}
+
+// ── MODO GUIADO / MODO LIBRE ──
+let modoSesionActual = 'libre';
+
+function seleccionarModoSesion(modo) {
+  modoSesionActual = modo;
+  const panelLibre   = document.getElementById('panelModoLibre');
+  const panelGuiado  = document.getElementById('panelModoGuiado');
+  const btnLibre     = document.getElementById('btnModoLibre');
+  const btnGuiado    = document.getElementById('btnModoGuiado');
+  const btnOk        = document.getElementById('sessionOkBtn');
+
+  if (modo === 'libre') {
+    panelLibre.style.display  = 'block';
+    panelGuiado.style.display = 'none';
+    btnLibre.style.background  = '#f0f6ff';
+    btnLibre.style.color       = '#0369a1';
+    btnLibre.style.borderColor = '#0369a1';
+    btnGuiado.style.background = '#fff';
+    btnGuiado.style.color      = '#555';
+    btnGuiado.style.borderColor= '#d5dde6';
+    btnOk.textContent = '✅ Abrir sesión';
+  } else {
+    panelLibre.style.display  = 'none';
+    panelGuiado.style.display = 'block';
+    btnGuiado.style.background  = '#f0f6ff';
+    btnGuiado.style.color       = '#0369a1';
+    btnGuiado.style.borderColor = '#0369a1';
+    btnLibre.style.background = '#fff';
+    btnLibre.style.color      = '#555';
+    btnLibre.style.borderColor= '#d5dde6';
+    btnOk.textContent = '📂 Iniciar clase guiada';
+    cargarCuestionariosGuiados();
+  }
+}
+
+async function cargarCuestionariosGuiados() {
+  const sel = document.getElementById('guiadoCuestionario');
+  sel.innerHTML = '<option value="">⏳ Cargando...</option>';
+  try {
+    const snap = await db.ref('banco/cuestionarios').once('value');
+    const data = snap.val();
+    if (!data) {
+      sel.innerHTML = '<option value="">No hay cuestionarios disponibles</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— Selecciona un cuestionario —</option>';
+    Object.entries(data).forEach(([id, c]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = `${c.nombre || id}`;
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => previsualizarCuestionario(sel.value, data);
+  } catch(e) {
+    sel.innerHTML = '<option value="">❌ Error cargando cuestionarios</option>';
+  }
+}
+
+function previsualizarCuestionario(id, data) {
+  const preview = document.getElementById('guiadoPdfPreview');
+  const iframe  = document.getElementById('guiadoPdfIframe');
+  if (!id || !data[id]) { preview.style.display = 'none'; return; }
+  const c = data[id];
+  if (c.recursos && c.recursos.pdf_embed) {
+   iframe.src = c.recursos.pdf_embed.startsWith('/') 
+  ? c.recursos.pdf_embed 
+  : c.recursos.pdf_embed;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+async function abrirSesionGuiada() {
+  const err   = document.getElementById('guiadoError');
+  const inst  = document.getElementById('guiadoInstitucion').value.trim();
+  const grad  = document.getElementById('guiadoGrado').value.trim();
+  const cuestionarioId = document.getElementById('guiadoCuestionario').value;
+
+  err.style.display = 'none';
+
+  if (!inst) { err.textContent = '❌ Escribe la institución'; err.style.display = 'block'; return; }
+  if (!grad) { err.textContent = '❌ Escribe el grado'; err.style.display = 'block'; return; }
+  if (!cuestionarioId) { err.textContent = '❌ Selecciona un cuestionario'; err.style.display = 'block'; return; }
+
+  const snap = await db.ref(`banco/cuestionarios/${cuestionarioId}`).once('value');
+  const cuestionario = snap.val();
+  if (!cuestionario) { err.textContent = '❌ Cuestionario no encontrado'; err.style.display = 'block'; return; }
+
+  const sesionObj = construirSessionPath(inst, grad, cuestionarioId, '');
+
+  // Activar sesión en Firebase
+  await db.ref(`sessions/${sesionObj.path}/sessionActive`).set(true);
+  await db.ref(`sessions/${sesionObj.path}/sessionCreatedAt`).set(Date.now());
+  await db.ref(`sessions/${sesionObj.path}/teacherId`).set(auth.currentUser?.uid || '');
+
+  // Guardar metadatos del cuestionario
+  await db.ref(`sessions/${sesionObj.path}/_meta`).update({
+    cuestionarioId: cuestionarioId,
+    cuestionarioNombre: cuestionario.nombre || cuestionarioId,
+    modoSesion: 'guiado'
+  });
+
+  // Cargar PDF precargado con PDF.js
+  if (cuestionario.recursos && cuestionario.recursos.pdf_embed) {
+    try {
+      const pdfUrl = cuestionario.recursos.pdf_embed;
+      const response = await fetch(pdfUrl);
+      const ab = await response.arrayBuffer();
+      window._pdfArrayBuffer = ab;
+      pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+      totalPages = cuestionario.recursos.total_paginas || pdfDoc.numPages;
+      currentPage = 1;
+      await renderTeacherPage(1, false, false);
+      document.getElementById('pdfTeacherPreview').style.display = 'block';
+      if (pdfSharedRef) {
+        await pdfSharedRef.set({ shared: false, currentPage: 1, totalPages, pageImage: null, pdfData: null });
+      }
+      isSharingPdf = false;
+      console.log('✅ PDF modo guiado cargado:', pdfDoc.numPages, 'páginas');
+    } catch(e) {
+      console.error('❌ Error cargando PDF guiado:', e.message);
+    }
+  }
+
+  // Cargar respuestas automáticamente desde el banco
+  if (cuestionario.mapeo) {
+    const items = await db.ref('banco/items').once('value');
+    const itemsData = items.val() || {};
+   const bancoSesion = {};
+    let orden = 1;
+    Object.entries(cuestionario.mapeo).forEach(([pregunta, itemId]) => {
+      const item = itemsData[itemId];
+      if (item) {
+        bancoSesion[pregunta] = {
+          id: pregunta,
+          orden: orden++,
+          texto: pregunta,
+          opciones: { A: 'A', B: 'B', C: 'C', D: 'D' },
+          correcta: item.respuesta_correcta,
+          mh_id: item.mh_id,
+          nivel: item.nivel,
+          cuartil: item.cuartil,
+          itemId: itemId,
+          modoGuiado: true
+        };
+      }
+    });
+    if (Object.keys(bancoSesion).length) {
+      await db.ref(`sessions/${sesionObj.path}/banco_autonomo_publico`).set(bancoSesion);
+// También publicar banco privado con respuestas correctas
+    const bancoPrivado = {};
+    Object.entries(cuestionario.mapeo).forEach(([pregunta, itemId]) => {
+      const item = itemsData[itemId];
+      if (item) {
+        bancoPrivado[pregunta] = {
+          id: pregunta,
+          correcta: item.respuesta_correcta,
+          mh_id: item.mh_id,
+          nivel: item.nivel,
+          cuartil: item.cuartil,
+          itemId: itemId
+        };
+      }
+    });
+    await db.ref(`sessions/${sesionObj.path}/banco_autonomo_privado`).set(bancoPrivado);
+    await db.ref(`sessions/${sesionObj.path}/banco_version`).set(Date.now());
+
+
+    }
+  }
+
+  document.getElementById('sessionModal').style.display = 'none';
+  guardarSesionReciente(sesionObj);
+  localStorage.setItem(INSTITUCION_KEY, inst);
+  localStorage.setItem(GRADO_KEY, grad);
+  initFirebaseRefs(sesionObj.path);
+  enterTeacher();
+
+  try {
+    await publicarCodigoClase(sesionObj.path, sesionObj.label);
+  } catch(e) {
+    console.error('❌ Error al publicar código de clase:', e);
+    document.getElementById('guiadoError').textContent = '⚠️ Sesión abierta, pero no se pudo publicar el código. Reintenta manualmente.';
+    document.getElementById('guiadoError').style.display = 'block';
+  }
+}
+
+// ── FINAL MODO GUIADO / MODO LIBRE ──
+
+
+function abrirMenuSuperAdmin() {
+  document.getElementById('superAdminMenu').style.display = 'flex';
+}
+
+
+function abrirPanelAdmin() {
+  document.getElementById('superAdminMenu').style.display = 'none';
+  showScreen('screenAdmin');
+  cargarCuestionariosAdmin();
+}
+
+
+async function cargarCuestionariosAdmin() {
+  const lista = document.getElementById('adminCuestionariosList');
+  lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Cargando...</p>';
+  const snap = await db.ref('banco/cuestionarios').once('value');
+  const data = snap.val() || {};
+  if (!Object.keys(data).length) {
+    lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay cuestionarios aún.</p>';
+    return;
+  }
+  lista.innerHTML = Object.entries(data).map(([id, c]) => `
+    <div style="background:#f0f6ff;border:1px solid #c7d9f0;border-radius:14px;padding:14px;margin-bottom:10px;text-align:left;">
+      <div style="font-weight:700;color:#0f2b3d;font-size:.9rem;">${c.nombre || id}</div>
+      <div style="font-size:.75rem;color:#5a7a8a;margin-top:4px;">${id} · ${c.tipo || ''} · Grado ${c.grado || ''}</div>
+      <div style="font-size:.72rem;color:#27ae60;margin-top:4px;">📄 ${c.total_items || 0} ítems · ${c.recursos?.total_paginas || 0} páginas</div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button onclick="editarCuestionario('${id}')" style="flex:1;padding:6px;border-radius:8px;border:1px solid #c7d9f0;background:#fff;color:#0f2b3d;font-size:.75rem;cursor:pointer;">✏️ Editar</button>
+        <button onclick="eliminarCuestionario('${id}','${c.nombre || id}')" style="flex:1;padding:6px;border-radius:8px;border:1px solid #fca5a5;background:#fff5f5;color:#dc2626;font-size:.75rem;cursor:pointer;">🗑️ Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function eliminarCuestionario(id, nombre) {
+  if (!confirm(`⚠️ ¿Eliminar el cuestionario "${nombre}"?\n\nEsto borrará el cuestionario del banco. Los ítems asociados NO se borran.`)) return;
+  await db.ref(`banco/cuestionarios/${id}`).remove();
+  await cargarCuestionariosAdmin();
+}
+
+async function editarCuestionario(id) {
+  const snap = await db.ref(`banco/cuestionarios/${id}`).once('value');
+  const c = snap.val();
+  if (!c) return;
+  document.getElementById('adminNombre').value = c.nombre || '';
+  document.getElementById('adminId').value = id;
+  document.getElementById('adminTipo').value = c.tipo || 'diagnostico';
+  document.getElementById('adminGrado').value = c.grado || '';
+  document.getElementById('adminAreas').value = Array.isArray(c.areas) ? c.areas.join(', ') : Object.keys(c.areas || {}).join(', ');
+  document.getElementById('adminDescripcion').value = c.descripcion || '';
+  window._editandoCuestionarioId = id;
+  window._editandoTotalPaginas = c.recursos?.total_paginas || 0;
+  window._editandoTotalItems = c.total_items || 0;
+  mostrarTabAdmin('tabNuevoCuestionario');
+  document.getElementById('adminCreateBtn').textContent = '💾 Guardar cambios';
+}
+
+
+async function cargarSolicitudesAdmin(estado = 'pendiente') {
+  const lista = document.getElementById('adminSolicitudesList');
+  lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Cargando...</p>';
+  
+  try {
+    const snap = await db.ref('solicitudes_portal').once('value');
+    const data = snap.val() || {};
+    
+    const filtradas = Object.entries(data)
+      .filter(([uid, s]) => s.estado === estado)
+      .sort((a, b) => (b[1].fecha_solicitud || 0) - (a[1].fecha_solicitud || 0));
+    
+    if (!filtradas.length) {
+      lista.innerHTML = `<p style="color:#9ca3af;font-size:.85rem;">No hay solicitudes ${estado}s.</p>`;
+      return;
+    }
+    
+    lista.innerHTML = filtradas.map(([uid, s]) => `
+      <div style="background:#0f172a;border:1px solid #1f2937;border-radius:14px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div>
+            <div style="font-size:.9rem;font-weight:700;color:#f1f5f9;">${s.nombre || '—'}</div>
+            <div style="font-size:.75rem;color:#9ca3af;">${s.institucion || ''} · ${s.municipio || ''}</div>
+            <div style="font-size:.72rem;color:#6b7280;margin-top:2px;">
+              ${s.documento ? '🪪 Doc: ' + s.documento : '📝 Sin documento'}
+              · ${s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString('es-CO') : ''}
+              ${s.tipo === 'sin_documento' ? ' · Manual' : ''}
+            </div>
+          </div>
+          <span style="font-size:.7rem;padding:3px 10px;border-radius:999px;background:${
+            estado === 'pendiente' ? 'rgba(251,191,36,0.15)' :
+            estado === 'aprobado' ? 'rgba(16,185,129,0.15)' :
+            'rgba(239,68,68,0.15)'
+          };color:${
+            estado === 'pendiente' ? '#fbbf24' :
+            estado === 'aprobado' ? '#10b981' :
+            '#ef4444'
+          };">${estado}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${estado === 'pendiente' ? `
+            <button onclick="gestionarSolicitud('${uid}','aprobado')" style="padding:5px 12px;border-radius:999px;border:none;background:#10b981;color:#020617;font-weight:700;font-size:.75rem;cursor:pointer;">✅ Aprobar</button>
+            <button onclick="gestionarSolicitud('${uid}','rechazado')" style="padding:5px 12px;border-radius:999px;border:none;background:#ef4444;color:white;font-weight:700;font-size:.75rem;cursor:pointer;">❌ Rechazar</button>
+          ` : ''}
+          ${estado === 'aprobado' ? `
+            <button onclick="gestionarSolicitud('${uid}','suspendido')" style="padding:5px 12px;border-radius:999px;border:none;background:#f97316;color:white;font-weight:700;font-size:.75rem;cursor:pointer;">⏸️ Suspender</button>
+            <button onclick="gestionarSolicitud('${uid}','bloqueado')" style="padding:5px 12px;border-radius:999px;border:none;background:#6b7280;color:white;font-weight:700;font-size:.75rem;cursor:pointer;">🚫 Bloquear</button>
+          ` : ''}
+          ${estado === 'suspendido' ? `
+            <button onclick="gestionarSolicitud('${uid}','aprobado')" style="padding:5px 12px;border-radius:999px;border:none;background:#10b981;color:#020617;font-weight:700;font-size:.75rem;cursor:pointer;">↩️ Restaurar</button>
+            <button onclick="gestionarSolicitud('${uid}','bloqueado')" style="padding:5px 12px;border-radius:999px;border:none;background:#6b7280;color:white;font-weight:700;font-size:.75rem;cursor:pointer;">🚫 Bloquear</button>
+          ` : ''}
+          ${estado === 'bloqueado' ? `
+            <button onclick="gestionarSolicitud('${uid}','aprobado')" style="padding:5px 12px;border-radius:999px;border:none;background:#10b981;color:#020617;font-weight:700;font-size:.75rem;cursor:pointer;">↩️ Restaurar</button>
+          ` : ''}
+          ${estado === 'rechazado' ? `
+            <button onclick="gestionarSolicitud('${uid}','aprobado')" style="padding:5px 12px;border-radius:999px;border:none;background:#10b981;color:#020617;font-weight:700;font-size:.75rem;cursor:pointer;">✅ Aprobar igualmente</button>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    lista.innerHTML = `<p style="color:#ef4444;font-size:.85rem;">Error: ${e.message}</p>`;
+  }
+}
+
+
+async function cargarDocentesAdmin() {
+  const lista = document.getElementById('adminDocentesList');
+  lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Cargando...</p>';
+
+  const snap = await db.ref('config/docentes').once('value');
+  const data = snap.val() || {};
+
+  if (!Object.keys(data).length) {
+    lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay docentes registrados.</p>';
+    return;
+  }
+
+  lista.innerHTML = Object.entries(data).map(([uid, d]) => `
+    <div style="background:#0f2b3d;border:1px solid #1e4060;border-radius:14px;padding:14px;margin-bottom:10px;text-align:left;">
+      <div style="font-weight:700;color:#f1f5f9;font-size:.9rem;">👤 ${uid.substring(0,8)}...</div>
+      <div style="font-size:.75rem;color:#9ca3af;margin-top:4px;">VM: ${d.vm_url || 'No configurada'}</div>
+      <div style="font-size:.75rem;color:#9ca3af;margin-top:2px;">Firebase: ${d.firebase_url || 'No configurada'}</div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:.8rem;color:#9ca3af;">PMAP:</span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox"
+            ${d.pmap_activo ? 'checked' : ''}
+            onchange="togglePmap('${uid}', this.checked)"
+            style="width:18px;height:18px;cursor:pointer;">
+          <span style="font-size:.8rem;color:${d.pmap_activo ? '#4ade80' : '#f87171'};">
+            ${d.pmap_activo ? '✅ Activo' : '❌ Inactivo'}
+          </span>
+        </label>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function togglePmap(uid, activo) {
+  await db.ref(`config/docentes/${uid}/pmap_activo`).set(activo);
+  await cargarDocentesAdmin();
+}
+
+async function gestionarSolicitud(uid, nuevoEstado) {
+  const motivo = (nuevoEstado === 'rechazado' || nuevoEstado === 'suspendido' || nuevoEstado === 'bloqueado')
+    ? prompt(`Motivo (opcional):`) : null;
+  
+  try {
+    const update = {
+      estado: nuevoEstado,
+      [`fecha_${nuevoEstado}`]: Date.now(),
+      gestionado_por: auth.currentUser?.uid || 'superadmin'
+    };
+    if (motivo) update[`motivo_${nuevoEstado}`] = motivo;
+    
+    await db.ref(`solicitudes_portal/${uid}`).update(update);
+    
+    // Recargar la lista actual
+    const estadoActual = document.querySelector('#tabSolicitudes button[style*="38bdf8"]');
+    cargarSolicitudesAdmin(nuevoEstado === 'aprobado' ? 'aprobado' : nuevoEstado);
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+
+function mostrarTabAdmin(tabId) {
+
+ ['tabCuestionarios', 'tabNuevoCuestionario', 'tabItems', 'tabSolicitudes', 'tabDocentes'].forEach(id => {
+    document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
+  });
+  ['btnTabCuestionarios', 'btnTabNuevo', 'btnTabItems'].forEach(btn => {
+    const el = document.getElementById(btn);
+    el.style.background = '#1f2937';
+    el.style.color = '#9ca3af';
+  });
+  const map = {
+    tabCuestionarios: 'btnTabCuestionarios',
+    tabNuevoCuestionario: 'btnTabNuevo',
+    tabItems: 'btnTabItems',
+    tabSolicitudes: 'btnTabSolicitudes',
+    tabDocentes: 'btnTabDocentes'
+  };
+  const activeBtn = document.getElementById(map[tabId]);
+  if (activeBtn) { activeBtn.style.background = '#38bdf8'; activeBtn.style.color = '#020617'; }
+  if (tabId === 'tabItems') cargarItemsAdmin();
+  if (tabId === 'tabDocentes') cargarDocentesAdmin();
+}
+
+async function cargarItemsAdmin() {
+  const lista = document.getElementById('adminItemsList');
+  lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Cargando...</p>';
+  const snap = await db.ref('banco/items').once('value');
+  const data = snap.val() || {};
+  if (!Object.keys(data).length) {
+    lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay ítems en el banco.</p>';
+    return;
+  }
+  lista.innerHTML = Object.entries(data).map(([id, item]) => `
+    <div style="background:#0f172a;border:1px solid #1f2937;border-left:4px solid #38bdf8;border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <span style="font-size:.72rem;font-weight:700;color:#38bdf8;background:rgba(56,189,248,0.1);padding:2px 10px;border-radius:999px;">${id}</span>
+        <span style="font-size:.7rem;color:#9ca3af;">${item.area || ''} · ${item.nivel || ''} · Q${item.cuartil || ''}</span>
+      </div>
+      <div style="font-size:.8rem;color:#d1d5db;">MH: ${item.mh_id || '—'}</div>
+      <div style="font-size:.75rem;color:#6b7280;margin-top:4px;">Correcta: <strong style="color:#10b981;">${item.respuesta_correcta}</strong> · Distractores: ${Object.keys(item.distractores || {}).join(', ')}</div>
+    </div>
+  `).join('');
+}
+
+async function crearCuestionarioAdmin() {
+  const err = document.getElementById('adminCreateError');
+  const nombre = document.getElementById('adminNombre')?.value.trim() || '';
+  const id = window._editandoCuestionarioId || (document.getElementById('adminId')?.value.trim().toUpperCase().replace(/\s+/g, '-') || '');
+  const tipo = document.getElementById('adminTipo')?.value || '';
+  const grado = document.getElementById('adminGrado')?.value.trim() || '';
+  const areas = (document.getElementById('adminAreas')?.value.trim() || '').split(',').map(a => a.trim()).filter(Boolean);
+  const desc = document.getElementById('adminDescripcion')?.value.trim() || '';
+  const pdfFile = document.getElementById('adminPdfFile')?.files[0];
+  const xlsFile = document.getElementById('adminExcelFile')?.files[0];
+  const modoEdicion = !!window._editandoCuestionarioId;
+
+  if (err) err.style.display = 'none';
+
+  if (!nombre) { if (err) { err.textContent = '❌ Escribe el nombre'; err.style.display = 'block'; } return; }
+  if (!id)     { if (err) { err.textContent = '❌ Escribe el ID canónico'; err.style.display = 'block'; } return; }
+  if (!grado)  { if (err) { err.textContent = '❌ Escribe el grado'; err.style.display = 'block'; } return; }
+    const pdfUrl = document.getElementById('adminPdfUrl')?.value.trim() || '';
+  if (!modoEdicion && !pdfFile && !pdfUrl) { if (err) { err.textContent = '❌ Sube el PDF o ingresa una URL de Zoho WorkDrive'; err.style.display = 'block'; } return; }
+  if (!modoEdicion && !xlsFile) { if (err) { err.textContent = '❌ Sube el Excel con respuestas'; err.style.display = 'block'; } return; }
+
+  const pdfStatus = document.getElementById('adminPdfStatus') || { textContent: '' };
+  const xlsStatus = document.getElementById('adminExcelStatus') || { textContent: '' };
+
+  let totalPaginas = window._editandoTotalPaginas || 0;
+  let totalItems = window._editandoTotalItems || 0;
+  let mapeo = {};
+  let pdfNombre = id.toLowerCase() + '.pdf';
+  let pdfEmbedFinal = pdfUrl || null;
+
+  if (pdfFile) {
+    pdfStatus.textContent = '⏳ Procesando PDF...';
+    const pdfAb = await pdfFile.arrayBuffer();
+    const pdfDoc2 = await pdfjsLib.getDocument({ data: pdfAb }).promise;
+    totalPaginas = pdfDoc2.numPages;
+    pdfStatus.textContent = `✅ PDF listo: ${totalPaginas} páginas`;
+    pdfStatus.textContent = '⏳ Subiendo PDF al repositorio...';
+    const uint8 = new Uint8Array(pdfAb);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8.length; i += chunkSize) {
+      binary += String.fromCharCode(...uint8.subarray(i, i + chunkSize));
+    }
+    const pdfBase64 = btoa(binary);
+    const uploadRes = await fetch('/api/upload-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: pdfNombre, content: pdfBase64 })
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.ok) {
+      if (err) { err.textContent = '❌ Error subiendo PDF: ' + uploadData.error; err.style.display = 'block'; }
+      return;
+    }
+    pdfStatus.textContent = '✅ PDF subido correctamente';
+  }
+
+  if (xlsFile) {
+    xlsStatus.textContent = '⏳ Procesando Excel...';
+    const xlsAb = await xlsFile.arrayBuffer();
+    const wb = XLSX.read(xlsAb, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1 })
+      .filter(r => r[0] && r[1])
+      .filter((_, i) => i > 0);
+    rows.forEach(r => {
+      const pregunta = String(r[0]).trim();
+      const itemId = String(r[1]).trim();
+      if (pregunta && itemId) mapeo[pregunta] = itemId;
+    });
+    totalItems = Object.keys(mapeo).length;
+    xlsStatus.textContent = `✅ Excel listo: ${totalItems} preguntas mapeadas`;
+    if (!totalItems) { if (err) { err.textContent = '❌ El Excel no tiene datos válidos'; err.style.display = 'block'; } return; }
+  }
+
+  const datos = {
+    nombre, tipo, grado, areas, descripcion: desc,
+    total_items: totalItems,
+    createdAt: new Date().toISOString().split('T')[0],
+    recursos: {
+      pdf_embed: pdfEmbedFinal || `/pdfs/${pdfNombre}`,
+      total_paginas: totalPaginas
+    }
+  };
+  if (Object.keys(mapeo).length) datos.mapeo = mapeo;
+
+  try {
+    if (modoEdicion) {
+      await db.ref(`banco/cuestionarios/${id}`).update(datos);
+    } else {
+      datos.mapeo = mapeo;
+      await db.ref(`banco/cuestionarios/${id}`).set(datos);
+    }
+  } catch(e) {
+    if (err) { err.textContent = '❌ Error guardando: ' + e.message; err.style.display = 'block'; }
+    return;
+  }
+
+  window._editandoCuestionarioId = null;
+  window._editandoTotalPaginas = 0;
+  window._editandoTotalItems = 0;
+
+  ['adminCreateBtn','adminNombre','adminId','adminGrado','adminAreas','adminDescripcion','adminPdfFile','adminExcelFile'].forEach(elId => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (elId === 'adminCreateBtn') el.textContent = '✅ Crear cuestionario';
+    else el.value = '';
+  });
+
+  mostrarTabAdmin('tabCuestionarios');
+  await cargarCuestionariosAdmin();
 }
 
 function abrirModalSesion(){
@@ -8911,8 +9810,13 @@ function listenCodeRefresh() {
 
 // (Si no encuentras la función, simplemente asegúrate de agregar listenCodeRefresh(); dentro de ella)
 
-document.getElementById('sessionOkBtn').addEventListener('click', abrirSesion);
-
+document.getElementById('sessionOkBtn').onclick = () => {
+  if (modoSesionActual === 'guiado') {
+    abrirSesionGuiada();
+  } else {
+    abrirSesion();
+  }
+};
 document.getElementById('sessionCancelBtn').addEventListener('click',()=>{
 
   document.getElementById('sessionModal').style.display='none';
@@ -8953,15 +9857,40 @@ function enterTeacher() {
 
   questionRef.update({open:false, shareResults:false}).catch(()=>{});
 
-  bancoPublicoRef.remove().catch(()=>{});
-
-  bancoPrivadoRef.remove().catch(()=>{});
-
+ // En modo guiado NO borrar el banco — ya viene precargado
+  sessionRef.child('_meta/modoSesion').once('value').then(snap => {
+    if (snap.val() !== 'guiado') {
+      bancoPublicoRef.remove().catch(()=>{});
+      bancoPrivadoRef.remove().catch(()=>{});
+    }
+  });
   bancoRespRef.remove().catch(()=>{});
 
   refreshAutonomoStatus();
 
-  renderBancoLocal();
+  // En modo guiado cargar banco desde Firebase
+  sessionRef.child('_meta/modoSesion').once('value').then(async snap => {
+    if (snap.val() === 'guiado') {
+      const bancoSnap = await sessionRef.child('banco_autonomo_publico').once('value');
+      const bancoData = bancoSnap.val() || {};
+      const localGuardado = JSON.parse(localStorage.getItem('alau_banco_local') || '[]');
+bancoLocal = localGuardado.length > 0 ? localGuardado : Object.values(bancoData)
+        .sort((a, b) => (a.orden || 0) - (b.orden || 0))
+        .map(p => ({
+          id: p.id,
+          texto: p.texto || p.id,
+          correcta: p.correcta || '',
+          orden: p.orden,
+          mh_id: p.mh_id || '',
+          nivel: p.nivel || '',
+          modoGuiado: true
+        }));
+      bancoDatos = [...bancoLocal];
+      renderBancoLocal();
+    } else {
+      renderBancoLocal();
+    }
+  });
 
   listenPresenciaEstudiantesOptimizada();
 
@@ -9427,7 +10356,8 @@ function listenResults() {
 
     if (!r || !r.option) return;
 
-    if (currentQuestionIdForListener && r.questionId && r.questionId !== currentQuestionIdForListener) return;
+    if (!currentQuestionIdForListener) return;
+if (r.questionId && r.questionId !== currentQuestionIdForListener) return;
 
     const opt = r.option.toString().trim().toUpperCase().match(/[A-D]/)?.[0];
 
@@ -10796,8 +11726,7 @@ document.getElementById('exportarAutonomoBtn').addEventListener('click',async()=
 
     let countRespuestas=0;
 
-    let countCorrectas=0;
-
+    let countCorrectas=0; 
     allResps.forEach(r=>{
 
       const pInfo=preguntaMap[r.preguntaId]||{
@@ -11143,7 +12072,10 @@ document.getElementById('bancoImportarExcelBtn').addEventListener('click',()=>{
 
     const conMeta=preguntas.filter(p=>p.microhabilidad||p.area).length;
 
-    preguntas.forEach(p=>bancoLocal.push(p));
+   bancoLocal.length = 0;
+preguntas.forEach((p,i)=>{ p.orden = p.orden || (i+1); bancoLocal.push(p); });
+preguntaDiapositivaCache = {};
+saveBancoLocal();
 
     saveBancoLocal();
 
@@ -11684,12 +12616,11 @@ document.getElementById('uploadTeacherPdfBtn').addEventListener('click', async (
 
     window._pdfArrayBuffer = ab;  // ✅ Guardar para después
 
+  
     pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
-
     totalPages = pdfDoc.numPages;
-
     currentPage = 1;
-
+    lastRenderedPage = -1;
     await renderTeacherPage(1, false, false);
 
     document.getElementById('pdfTeacherPreview').style.display = 'block';
@@ -11742,21 +12673,34 @@ sharePdfCheckbox.addEventListener('change', async e => {
 
     // ✅ Obtener el PDF completo como Base64
 
-    let pdfDataBase64 = null;
+       let pdfDataBase64 = null;
 
     if (window._pdfArrayBuffer) {
 
-      const bytes = new Uint8Array(window._pdfArrayBuffer);
+      try {
 
-      let binary = '';
+        const bytes = new Uint8Array(window._pdfArrayBuffer);
 
-      for (let i = 0; i < bytes.byteLength; i++) {
+        // Método seguro para PDFs grandes — evita stack overflow de btoa+loop
+        const chunkSize = 8192;
 
-        binary += String.fromCharCode(bytes[i]);
+        let binary = '';
+
+        for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+
+        }
+
+        pdfDataBase64 = btoa(binary);
+
+      } catch(e) {
+
+        console.warn('PDF demasiado grande para Base64, compartiendo solo imagen de página:', e.message);
+
+        pdfDataBase64 = null;
 
       }
-
-      pdfDataBase64 = btoa(binary);
 
     }
 
@@ -12914,8 +13858,8 @@ function listenSessionEnded() {
       localStorage.removeItem('alau_student_institucion');
 
       // Mostrar balance antes de ir al home
-      if (typeof abrirPantallaCierreEstudiante === 'function' && studentName) {
-        abrirPantallaCierreEstudiante(true);
+            if (typeof abrirPantallaCierreEstudiante === 'function' && studentName) {
+        setTimeout(() => abrirPantallaCierreEstudiante(true), 2000);
       } else {
         alert('El docente ha finalizado la clase. ¡Hasta pronto!');
       }
@@ -14460,6 +15404,46 @@ async function generarInformeEjecutivo() {
     const preguntas = Object.entries(historial)
       .map(([qId, p]) => ({ ...p, _qId: qId }))
       .sort((a, b) => (a.numero || 0) - (b.numero || 0));
+
+
+       // Incluir pregunta activa si existe y no está ya archivada
+    try {
+      const [qSnap, rSnap] = await Promise.all([
+        sessionRef.child('question').once('value'),
+        sessionRef.child('responses').once('value')
+      ]);
+      const qActiva = qSnap.val();
+      if (qActiva && qActiva.text && qActiva.id) {
+        const numeroActiva = qActiva.numero || (Math.max(...preguntas.map(p => p.numero || 0), 0) + 1);
+        const yaArchivada = preguntas.some(p => 
+          p._qId === qActiva.id || 
+          p.openedAt === qActiva.id ||
+          p.numero === numeroActiva
+        );
+        if (!yaArchivada) {
+          const respActivas = rSnap.val() || {};
+          const respuestasFormateadas = {};
+          Object.entries(respActivas).forEach(([k, r]) => {
+            respuestasFormateadas[k] = {
+              student: r.student || r.normalizedName || '',
+              option: r.option || '',
+              timeSec: r.timeSec || null,
+              sentAt: r.sentAt || null,
+              questionId: r.questionId || qActiva.id
+            };
+          });
+          preguntas.push({
+            _qId: qActiva.id,
+            numero: numeroActiva,
+            texto: qActiva.text || `Pregunta ${numeroActiva}`,
+            correcta: qActiva.correcta || qActiva.correct || null,
+            openedAt: qActiva.id,
+            respuestas: respuestasFormateadas
+          });
+          preguntas.sort((a, b) => (a.numero || 0) - (b.numero || 0));
+        }
+      }
+    } catch(e) { console.warn('No se pudo incluir pregunta activa en informe:', e); }
 
     if (preguntas.length === 0) {
       alert('No hay preguntas archivadas. Lanza y cierra al menos una pregunta.');
@@ -16006,8 +16990,10 @@ function listenSharedPdf() {
 
       if (state.totalPages) totalPages = state.totalPages;
       
-      // ✅ SOLO cargar pdfDoc si no existe
-      if (state.pdfData && !pdfDoc) {
+      // ✅ Cargar pdfDoc si no existe O si cambió el PDF (nuevo timestamp)
+      if (state.pdfData && (!pdfDoc || state.timestamp !== window._lastPdfTimestamp)) {
+        window._lastPdfTimestamp = state.timestamp;
+        pdfDoc = null;
         try {
           const binaryString = atob(state.pdfData);
           const bytes = new Uint8Array(binaryString.length);
@@ -16107,12 +17093,9 @@ function listenSharedPdf() {
           sharedPdfClickHandler = null;
         }
       }
-      // En modo autónomo el contenedor queda visible —
-      // el estudiante navega el PDF según su pregunta actual
     }
   });
 }
-
 
 function activarLayoutSplit(screenStudent, pdfContainer){
 
@@ -16908,7 +17891,9 @@ if (!sessionRef || !studentName) return;
 
       conectado: true,
 
-      timestamp: Date.now()
+      timestamp: Date.now(),
+
+       uid: auth.currentUser?.uid || ''
 
     });
 
@@ -17465,6 +18450,16 @@ function reanudarTimerLive(motivo = '') {
 
 }
 
+
+// ── PMAP v4.0: pausar timer cuando estudiante cambia de pestaña ──
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    pausarTimerLive('pestaña oculta');
+  } else {
+    reanudarTimerLive('pestaña visible');
+  }
+});
+
 function resetTimerLive() {
   if (liveTimerInterval) {
     clearInterval(liveTimerInterval);
@@ -17545,168 +18540,154 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
 
     if (!studentName) {
-
       showStudentMsg('Primero guarda tu nombre', 'err');
-
       return;
-
     }
 
     if (alreadyAnswered) {
-
       showStudentMsg('Ya respondiste', 'err');
-
       return;
-
     }
 
     if (!activeQuestionId) {
-
       showStudentMsg('No hay pregunta activa en este momento', 'err');
-
       return;
-
     }
 
     const deviceId = getDeviceId();
-
     const normalizedName = normalizeName(studentName);
-
     const voteKey = `${normalizedName}_${deviceId}_${activeQuestionId}`;
 
-    // Verificar si ya existe un voto (por si acaso)
-
     const existingVote = await responsesRef.child(voteKey).once('value');
-
     if (existingVote.exists()) {
-
       showStudentMsg('Ya votaste en esta pregunta desde este dispositivo', 'err');
-
       return;
-
     }
 
+    const t0FirstMs = Date.now();
+    const t0First = parseFloat(((t0FirstMs - (questionOpenedAt || t0FirstMs)) / 1000).toFixed(3));
     const opt = btn.getAttribute('data-opt');
-
-    // 🔥 OBTENER TIEMPO REAL ACUMULADO (con persistencia entre recargas)
-
     const timeSec = getTiempoExposicionReal();
-
-    // 🔥 PAUSAR EL TIMER (esto también guarda en localStorage)
-
     pausarTimerLive('respuesta enviada');
 
     try {
-
       const correctaActual = document.getElementById('qCorrectSelect')?.value || null;
-
       const tiempoFinal = timeSec ? parseFloat(timeSec.toFixed(2)) : 0;
-
+      const tObs = tiempoFinal;
+      const tRect = parseFloat(Math.max(0, tObs - t0First).toFixed(3));
+      const Re = t0First > 0 ? parseFloat((tObs / t0First).toFixed(3)) : 0;
+      const condicionAzar = tObs <= t0First;
       const diagnostico = clasificarRespuesta(opt, correctaActual, tiempoFinal);
 
       await responsesRef.child(voteKey).set({
-
         questionId: activeQuestionId,
-
         student: studentName,
-
         normalizedName: normalizedName,
-
         deviceId: deviceId,
-
         municipio: studentMunicipio || '',
-
         institucion: studentInstitucion || '',
-
         option: opt,
-
         correct: correctaActual,
-
         timeSec: tiempoFinal,
-
         esCorrecta: diagnostico.esCorrecta,
-
         velocidad: diagnostico.velocidad,
-
         clasificacion: diagnostico.clasificacion,
-
         etiquetaDiagnostica: diagnostico.etiqueta,
-
-        sentAt: Date.now()
-
+        sentAt: Date.now(),
+        uid:           auth.currentUser?.uid || null,
+        sesionId:      SESSION_ID || null,
+        itemId:        activeQuestionId || null,
+        fuente:        'online',
+        modo:          'clase',
+        t0First, tObs, tRect, Re, condicionAzar,
+        nivelItem:     null,
+        mh_id:         null,
+        cuartilMD:     null,
+        tipoRespuesta: diagnostico.clasificacion === 'acierto_rapido' ? 'AR' :
+                       diagnostico.clasificacion === 'acierto_lento'  ? 'AL' :
+                       diagnostico.clasificacion === 'error_rapido'   ? 'ER' : 'EL',
+        cuartil:       diagnostico.nivelPMAP && diagnostico.cuartil
+                       ? `${diagnostico.nivelPMAP}${diagnostico.cuartil}` : null,
+        plausibilidad: tRect > 5 ? 'alta' : tRect > 2 ? 'media' : 'baja'
       });
 
-      // ✅ Actualizar presencia después de votar
+      const uidPMAP = auth.currentUser?.uid;
+      if (uidPMAP && SESSION_ID) {
+        let mh_id = null, codigo_error = null, mh_negativa = null;
+        try {
+          const cuestionarioId = 'TAMIZAJE-GAGEM5-2026';
+          const mapeoSnap = await db.ref(`banco/cuestionarios/${cuestionarioId}/mapeo/${activeQuestionId}`).once('value');
+          const itemIdReal = mapeoSnap.val() || activeQuestionId;
+          const itemSnap = await db.ref(`banco/items/${itemIdReal}`).once('value');
+          const itemData = itemSnap.val();
+          if (itemData) {
+            mh_id = itemData.mh_id || null;
+            const esCorr = itemData.respuesta_correcta === opt;
+            if (!esCorr && itemData.distractores && itemData.distractores[opt]) {
+              codigo_error = itemData.distractores[opt].codigo_error || null;
+              mh_negativa = itemData.distractores[opt].mh_negativa || null;
+            }
+          }
+        } catch(e) {
+          console.warn('No se pudo consultar banco/items:', e.message);
+        }
 
-      await establecerPresenciaEstudiante();
-
-      alreadyAnswered = true;
-
-      enableOptions(false);
-
-      setStudentState('answered', opt);
-
-      showStudentMsg(`✅ Opción ${opt} registrada`, 'ok');
-
-      // 🔥 LIMPIAR localStorage (ya no se necesita el tiempo acumulado)
-
-if (liveCurrentQuestionId) {
-  // Guardar tiempo final como referencia (no se borra al recargar)
-  localStorage.setItem(
-    `alau_final_time_${liveCurrentQuestionId}`,
-    String(tiempoFinal * 1000)  // en ms, igual que liveAccumulated
-  );
-  // Sí borrar el tiempo acumulado (ya no se necesita para calcular)
-  localStorage.removeItem(`alau_live_time_${liveCurrentQuestionId}`);
-}
-
-
-      // 🔥 Limpiar el intervalo del timer
-
-      if (liveTimerInterval) {
-
-        clearInterval(liveTimerInterval);
-
-        liveTimerInterval = null;
-
+        await db.ref(`respuestas/${uidPMAP}/${SESSION_ID}/${activeQuestionId}`).set({
+          uid: uidPMAP,
+          sesionId: SESSION_ID,
+          itemId: activeQuestionId,
+          timestamp: Date.now(),
+          fuente: 'online',
+          modo: 'clase',
+          area: null,
+          opcion: opt,
+          correcta: correctaActual,
+          esCorrecta: diagnostico.esCorrecta,
+          mh_id, codigo_error, mh_negativa,
+          cuartilMD: null,
+          tObs, t0First, tRect, Re, condicionAzar,
+          tipoRespuesta: diagnostico.clasificacion === 'acierto_rapido' ? 'AR' :
+                         diagnostico.clasificacion === 'acierto_lento'  ? 'AL' :
+                         diagnostico.clasificacion === 'error_rapido'   ? 'ER' : 'EL',
+          cuartil: diagnostico.nivelPMAP && diagnostico.cuartil
+                   ? `${diagnostico.nivelPMAP}${diagnostico.cuartil}` : null,
+          plausibilidad: tRect > 5 ? 'alta' : tRect > 2 ? 'media' : 'baja'
+        });
       }
 
+      await establecerPresenciaEstudiante();
+      alreadyAnswered = true;
+      enableOptions(false);
+      setStudentState('answered', opt);
+      showStudentMsg(`✅ Opción ${opt} registrada`, 'ok');
+
+      if (liveCurrentQuestionId) {
+        localStorage.setItem(`alau_final_time_${liveCurrentQuestionId}`, String(tiempoFinal * 1000));
+        localStorage.removeItem(`alau_live_time_${liveCurrentQuestionId}`);
+      }
+
+      if (liveTimerInterval) {
+        clearInterval(liveTimerInterval);
+        liveTimerInterval = null;
+      }
       liveTimerTicking = false;
 
-      // Mostrar el tiempo final fijo en el display
-
       const totalMs = timeSec * 1000;
-
       const m = Math.floor(totalMs / 60000);
-
       const s = Math.floor((totalMs % 60000) / 1000);
-
       const cs = Math.floor((totalMs % 1000) / 10);
-
       document.getElementById('qTimerDisplay').textContent =
-
         `⏱ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
 
     } catch (e) {
-
       console.error('❌ Error al enviar voto:', e);
-
       showStudentMsg('⚠️ Error al enviar: ' + (e.message || 'desconocido'), 'err');
-
-      // 🔥 Fallback: si falló el envío, reanudar el timer para que pueda reintentar
-
       if (!alreadyAnswered) {
-
         reanudarTimerLive('reintentar después de error');
-
       }
-
     }
-
   });
-
 });
-
 // ══════════════════════════════════════════════════════════════
 
 // INICIO MODO AUTÓNOMO ESTUDIANTE
@@ -17855,7 +18836,7 @@ async function renderAoPreguntaActual() {
   const aoQCard = document.getElementById('aoQCard');
 
   if (aoQNum) aoQNum.textContent = `PREGUNTA ${aoActual + 1} DE ${total}`;
-  if (aoQText) aoQText.textContent = p.texto;
+  if (aoQText) aoQText.textContent = `Pregunta ${aoActual + 1}`;
   if (aoQCard) aoQCard.className = 'autonomo-q-card' + (respondida ? ' answered' : '');
 
   // ========== BOTONES DE OPCIÓN ==========
@@ -18060,16 +19041,42 @@ document.querySelectorAll('.autonomo-opt').forEach(btn=>{
     try{
 
       const stuKey = getStudentKey();
-await bancoRespRef.child(stuKey).child(p.id).set({
-  student:      studentName,
-  municipio:    studentMunicipio   || '',
-  institucion:  studentInstitucion || '',
-  preguntaId:   p.id,
-  orden:        p.orden,
-  opcion:       opt,
-  tiempoMs:     Math.round(tiempoMs),
-  sentAt:       Date.now()
-});
+
+      // Resolver mh_id, codigo_error, mh_negativa desde el banco
+      let mh_id = null, codigo_error = null, mh_negativa = null;
+      try {
+        const metaSnap = await sessionRef.child('_meta/cuestionarioId').once('value');
+        const cuestionarioId = metaSnap.val() || '';
+        if (cuestionarioId) {
+          const mapeoSnap = await db.ref(`banco/cuestionarios/${cuestionarioId}/mapeo/${p.id}`).once('value');
+          const itemIdReal = mapeoSnap.val() || p.id;
+          const itemSnap = await db.ref(`banco/items/${itemIdReal}`).once('value');
+          const itemData = itemSnap.val();
+          if (itemData) {
+            mh_id = itemData.mh_id || null;
+            if (itemData.distractores && itemData.distractores[opt]) {
+              codigo_error = itemData.distractores[opt].codigo_error || null;
+              mh_negativa = itemData.distractores[opt].mh_negativa || null;
+            }
+          }
+        }
+      } catch(ebanco) {
+        console.warn('No se pudo resolver banco/items:', ebanco.message);
+      }
+
+      await bancoRespRef.child(stuKey).child(p.id).set({
+        student:      studentName,
+        municipio:    studentMunicipio   || '',
+        institucion:  studentInstitucion || '',
+        preguntaId:   p.id,
+        orden:        p.orden,
+        opcion:       opt,
+        tiempoMs:     Math.round(tiempoMs),
+        sentAt:       Date.now(),
+        mh_id:        mh_id,
+        codigo_error: codigo_error,
+        mh_negativa:  mh_negativa
+      });
 
       aoRespuestas[p.id]=opt;
 
@@ -18082,6 +19089,7 @@ await bancoRespRef.child(stuKey).child(p.id).set({
   });
 
 });
+
 
 document.getElementById('aoPrevBtn').addEventListener('click', async () => {
 
@@ -18623,29 +19631,9 @@ async function actualizarOnlineCountCompleto() {
 
       });
 
-    } else {
+       } else {
 
-      // Si no hay pregunta activa, usar historial cacheado
-
-      if (window._lastHistorialSnapshot) {
-
-        const historial = window._lastHistorialSnapshot;
-
-        Object.values(historial).forEach(pregunta => {
-
-          Object.values(pregunta.respuestas || {}).forEach(r => {
-
-            if (r.student && (ahora - (r.sentAt || 0)) < 300000) {
-
-              onlineEstudiantes.add(r.student);
-
-            }
-
-          });
-
-        });
-
-      }
+      // Sin pregunta activa: solo presencia/ real, sin inflar con historial
 
     }
 
@@ -19237,6 +20225,8 @@ if (teacherAutoLaunchCheckbox) {
 
 }
 
+ // 🧠 PMAP — procesar sesión al finalizar
+
 document.getElementById('closeSessionForAllBtn')?.addEventListener('click', async () => {
   if (!confirm('⚠️ ¿Finalizar la clase para TODOS los estudiantes?')) return;
   const btn = document.getElementById('closeSessionForAllBtn');
@@ -19246,6 +20236,55 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
   try {
     if (sessionRef) {
       await sessionRef.child('sessionEnded').set(true);
+      // 🧠 PMAP — procesar sesión al finalizar
+      try {
+        const uidDocente = auth.currentUser?.uid;
+        const sesionPath = sessionRef.toString().split('/sessions/')[1];
+        
+        // Obtener lista de estudiantes de la sesión
+        const presenciaSnap = await sessionRef.child('presencia').once('value');
+        const presencia = presenciaSnap.val() || {};
+        
+        // Procesar PMAP para cada estudiante
+        const metaSnap = await sessionRef.child('_meta').once('value');
+        const meta = metaSnap.val() || {};
+        
+        for (const [estudianteKey, datos] of Object.entries(presencia)) {
+          if (!datos.uid) continue;
+
+          // Verificar si ya existe sesión previa del mismo cuestionario
+          const sesionesSnap = await db.ref(`estudiantes/${datos.uid}/sesiones`).once('value');
+          const sesionesExistentes = sesionesSnap.val() || {};
+          const yaExiste = Object.values(sesionesExistentes).some(
+            s => s.cuestionarioId === (meta.cuestionarioId || '')
+          );
+          if (yaExiste) {
+            console.log(`⚠️ PMAP ya procesado para ${datos.uid} en ${meta.cuestionarioId}`);
+            continue;
+          }
+
+          try {
+            await fetch('/api/pmap-procesar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                uid: datos.uid,
+                sesionPath: sesionPath,
+                cuestionarioId: meta.cuestionarioId || '',
+                area: meta.cuestionarioNombre || ''
+              })
+            });
+            
+          } catch(pmapErr) {
+            console.warn('⚠️ PMAP error para', datos.uid, pmapErr.message);
+          }
+        }
+        console.log('✅ PMAP procesado para todos los estudiantes');
+      } catch(pmapErr) {
+        console.warn('⚠️ Error procesando PMAP:', pmapErr.message);
+        console.log('🧠 PMAP sesionPath:', sesionPath);
+        console.log('🧠 PMAP presencia:', JSON.stringify(presencia));
+      }
       // ← ELIMINAR las dos líneas de videoCallRef y cerrarJitsiDocente
     }
     if (codigoActual) {
@@ -19254,12 +20293,20 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
     if (currentLiveQuestion) {
       await archivarPreguntaActual();
     }
+
     localStorage.removeItem('alau_last_class_code');
     localStorage.removeItem('alau_session_path');
+    numeroPregunta = 0;
+    currentLiveQuestion = null;
+    voteCounts = { A:0, B:0, C:0, D:0 };
+    voteTotal = 0;
+    responsesCache = [];
     alert('✅ Clase finalizada.');
     await auth.signOut();
     currentRole = null;
     showScreen('screenHome');
+
+
   } catch(e) {
     alert('Error al cerrar sesión: ' + e.message);
   } finally {
@@ -19267,6 +20314,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
     btn.textContent = originalText;
   }
 });
+
 // Sobrescribir funciones que modifican el banco para resetear paginación
 
 const originalBancoLimpiar = document.getElementById('bancoLimpiarBtn')?.onclick;
@@ -28451,7 +29499,9 @@ if (btnGrupo)
         }
       }
 
-      if (typeof activeQuestionId !== 'undefined' && activeQuestionId && typeof responsesRef !== 'undefined' && responsesRef) {
+           const sesionYaCerrada = (await sessionRef.child('sessionEnded').once('value')).val() === true;
+      if (!sesionYaCerrada && typeof activeQuestionId !== 'undefined' && activeQuestionId && typeof responsesRef !== 'undefined' && responsesRef) {
+
         try {
           const [qSnap, rSnap] = await Promise.all([questionRef.once('value'), responsesRef.once('value')]);
           const qActiva = qSnap.val();
@@ -28460,7 +29510,7 @@ if (btnGrupo)
             for (const r of Object.values(respuestasActivas)) {
               if (r.student !== studentName) continue;
               if (r.questionId && r.questionId !== activeQuestionId) continue;
-              const correcta = qActiva.correct || null;
+              const correcta = qActiva.correcta || qActiva.correct || null;
               const opcion = (r.option || '').toString().trim().toUpperCase();
               respuestas.push({
                 numero: qActiva.numero || 'ACTIVA',
@@ -28627,14 +29677,11 @@ async function toggleVideoDocente() {
     }
 }
 
-
-
 async function iniciarVideoDocente() {
     try {
         const vRef = getVideoRef();
         if (!vRef) { alert('⚠️ Primero abre una sesión de clase'); return; }
 
-        // Publicar en Firebase
         await vRef.set({
             activa: true,
             room: JITSI_ROOM,
@@ -28642,21 +29689,23 @@ async function iniciarVideoDocente() {
             palabra: { activo: null }
         });
 
-        // Abrir iframe docente (con cámara y micro completos)
         const frame = document.getElementById('jitsiFrameDocente');
-        // En iniciarVideoDocente()
-fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=Docente&rol=MODERATOR&sala=alau-clase`)
-    .then(r => r.json())
-    .then(data => { if(data.ok) frame.src = data.joinURL; });
+
+        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=Docente&rol=MODERATOR&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
+            headers: { 'x-alau-token': ALAU_API_TOKEN }
+        })
+            .then(r => r.json())
+            .then(data => { if(data.ok) frame.src = data.joinURL; });
+
         document.getElementById('jitsiDocente').style.display = 'flex';
         const panelManos = document.getElementById('manosPanel');
-if (panelManos) {
-    panelManos.style.display = 'block';
-    console.log('✅ Panel de manos mostrado');
-} else {
-    console.warn('⚠️ manosPanel no encontrado en el DOM');
-}
-        // Botón topbar
+        if (panelManos) {
+            panelManos.style.display = 'block';
+            console.log('✅ Panel de manos mostrado');
+        } else {
+            console.warn('⚠️ manosPanel no encontrado en el DOM');
+        }
+
         const btn = document.getElementById('btnIniciarVideo');
         btn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
         btn.textContent = '🔴 Finalizar video';
@@ -28664,17 +29713,14 @@ if (panelManos) {
         videoActivo = true;
         videoSegundos = 0;
         iniciarTimerVideo();
-       escucharManos();
-iniciarMonitorOBS(); // ← AGREGAR
-console.log('🎥 Video iniciado — sala:', JITSI_ROOM);
+        escucharManos();
+        iniciarMonitorOBS();
+        console.log('🎥 Video iniciado — sala:', JITSI_ROOM);
 
     } catch (e) {
         console.error('Error iniciando video:', e);
     }
 }
-
-
-
 
 async function finalizarVideoDocente() {
     try {
@@ -28864,7 +29910,10 @@ function listenVideoEstudiante() {
             // Abrir iframe estudiante con BBB
             const frame = document.getElementById('jitsiFrameEstudiante');
             const nombre = studentName || 'Estudiante';
-            fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombre)}&rol=VIEWER&sala=alau-clase`)
+    
+            fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombre)}&rol=VIEWER&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
+                headers: { 'x-alau-token': ALAU_API_TOKEN }  // ← HEADER AÑADIDO
+            })
                 .then(r => r.json())
                 .then(data => { if(data.ok) frame.src = data.joinURL; });
 
@@ -28891,7 +29940,9 @@ function listenVideoEstudiante() {
                     if (!srcActual.includes('bigbluebutton')) {
                         console.log('🔄 Watchdog: BBB estudiante sin URL válida, reconectando...');
                         const nombreReconexion = studentName || 'Estudiante';
-                        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombreReconexion)}&rol=VIEWER&sala=alau-clase`)
+                        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombreReconexion)}&rol=VIEWER&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
+                            headers: { 'x-alau-token': ALAU_API_TOKEN }  // ← HEADER AÑADIDO
+                        })
                             .then(r => r.json())
                             .then(data => { if(data.ok) f.src = data.joinURL; });
                         mostrarNotificacion('🔄 Reconectando videollamada...', 'warning');
@@ -28942,7 +29993,6 @@ function listenVideoEstudiante() {
         }
     });
 }
-
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICACIÓN FLOTANTE
@@ -30470,10 +31520,23 @@ function toggleChatAlau() {
 }
 
 // ── Enviar mensaje ──
+// ── Sanitizar HTML para prevenir XSS ──
+function escaparHTML(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ── Enviar mensaje ──
 async function enviarMensajeChat() {
     const input = document.getElementById('chatInput');
-    const texto = input?.value.trim();
-    if (!texto) return;
+    const textoRaw = input?.value.trim().substring(0, 200); // máximo 200 chars
+    if (!textoRaw) return;
+
+    const texto = escaparHTML(textoRaw); // sanitizar antes de Firebase
 
     const ref = getChatRef();
     if (!ref) {
@@ -30481,35 +31544,28 @@ async function enviarMensajeChat() {
         return;
     }
 
-  const nombre = currentRole === 'tutor'
-    ? (studentName || 'Tutor')
-    : esDocente()
-        ? 'Administrador'
-        : (studentName || 'Estudiante');
-
-const rol = currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante';
+    const nombre = currentRole === 'tutor'
+        ? (studentName || 'Tutor')
+        : esDocente()
+            ? 'Administrador'
+            : (studentName || 'Estudiante');
 
     try {
-       
-await ref.push({
-    autor: nombre,
-    rol: currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante',
-    texto,
-    ts: Date.now()
-});
+        await ref.push({
+            autor: nombre,
+            rol: currentRole === 'tutor' ? 'tutor' : esDocente() ? 'docente' : 'estudiante',
+            texto,
+            ts: Date.now()
+        });
 
         input.value = '';
-        console.log('✅ Mensaje enviado:', texto);
-
-        // NO cerrar el chat automáticamente
-        // El usuario decide cuándo cerrarlo
+        console.log('✅ Mensaje enviado:', textoRaw);
 
     } catch (e) {
         console.error('❌ Error enviando mensaje:', e);
         alert('Error al enviar el mensaje. Verifica tu conexión.');
     }
 }
-
 // ── Escuchar mensajes en tiempo real ──
 function iniciarChatAlau() {
     // Limpiar listener anterior si existe
@@ -30819,6 +31875,7 @@ async function toggleActivarChat(activo) {
 const PEERJS_HOST = 'alau2.lostutores.co';
 const PEERJS_PATH = '/peerjs';
 const PEERJS_PORT = 443;
+const ALAU_API_TOKEN = 'alau-api-2026-xK9mP3nQ'; // ← AGREGAR AQUÍ
 
 let peerDocente       = null;  // instancia Peer del docente
 let peerEstudiante    = null;  // instancia Peer del estudiante
