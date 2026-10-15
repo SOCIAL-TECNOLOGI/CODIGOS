@@ -8767,6 +8767,10 @@ async function checkPass(){
 
     await auth.signInWithEmailAndPassword(email, password);
 
+    // Guardar credenciales para restauración automática ante expiración de token
+    localStorage.setItem('alau_teacher_email', email);
+    localStorage.setItem('alau_teacher_pass', password);
+
     document.getElementById('passModal').classList.remove('open');
 
     document.getElementById('passInput').value='';
@@ -10005,6 +10009,9 @@ document.getElementById('teacherLogoutBtn').addEventListener('click', async () =
   document.getElementById('sesionActivaBadge').style.display = 'none';
 
   try { await auth.signOut(); } catch(e) {}
+
+  localStorage.removeItem('alau_teacher_email');
+  localStorage.removeItem('alau_teacher_pass');
 
   currentRole = null;
 
@@ -15226,6 +15233,24 @@ document.getElementById('pvpCorrectSelect').addEventListener('focus', e=> e.targ
 
 document.getElementById('pvpCorrectSelect').addEventListener('blur',  e=> delete e.target.dataset.userEditing);
 
+// ── Guard de autenticación para acciones del docente ──
+async function ensureTeacherAuth() {
+  if (auth.currentUser) {
+    try { await auth.currentUser.getIdToken(true); return true; } catch(e) {}
+  }
+  const savedEmail = localStorage.getItem('alau_teacher_email');
+  const savedPass  = localStorage.getItem('alau_teacher_pass');
+  if (savedEmail && savedPass) {
+    try {
+      await auth.signInWithEmailAndPassword(savedEmail, savedPass);
+      console.log('✅ Sesión docente restaurada automáticamente');
+      return true;
+    } catch(e) { console.warn('No se pudo restaurar sesión docente:', e.message); }
+  }
+  alert('Tu sesión expiró. Por favor vuelve a iniciar sesión como docente.');
+  return false;
+}
+
 // Botón Abrir votación
 
 document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
@@ -15235,6 +15260,8 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   if(!text){ alert('Escribe una pregunta'); return; }
 
   if(!questionRef){ alert('Abre una sesión primero'); return; }
+
+  if(!(await ensureTeacherAuth())) return;
 
   const correct = document.getElementById('pvpCorrectSelect').value||null;
 
@@ -15340,6 +15367,8 @@ async function lanzarPreguntaDesdeInputs() {
 document.getElementById('pvpCloseBtn').addEventListener('click', async()=>{
 
   if(!questionRef) return;
+
+  if(!(await ensureTeacherAuth())) return;
 
   await questionRef.update({open:false,shareResults:true});
 
