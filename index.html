@@ -10568,6 +10568,49 @@ function renderRespGrid(){
 
 }
 
+// Versión generalizada: renderiza el grid de respuestas en cualquier contenedor
+// Usada por el modal flotante para tener listeners activos (cloneNode los pierde)
+function renderRespGridEn(cont) {
+  if (!cont) return;
+  const grupos = {A:[],B:[],C:[],D:[]};
+  responsesCache.forEach(r=>{
+    let opt = r.option?r.option.toString().trim().toUpperCase():'';
+    const m = opt.match(/[A-D]/); opt = m?m[0]:null;
+    if(opt) grupos[opt].push(r);
+  });
+  const optsConVotos = ['A','B','C','D'].filter(o=>grupos[o].length>0);
+  if(!optsConVotos.length){
+    cont.innerHTML='<p style="color:var(--text-muted);font-size:.8rem;text-align:center;padding:.5rem;grid-column:1/-1;">Sin respuestas aún</p>';
+    return;
+  }
+  cont.style.display = 'grid';
+  cont.style.gridTemplateColumns = `repeat(${optsConVotos.length},1fr)`;
+  cont.innerHTML = '';
+  const colLabels = {A:'🔴 Opción A',B:'🔵 Opción B',C:'🟡 Opción C',D:'🟢 Opción D'};
+  const colClass  = {A:'resp-col-a',B:'resp-col-b',C:'resp-col-c',D:'resp-col-d'};
+  optsConVotos.forEach(opt=>{
+    const col = document.createElement('div');
+    col.className = `resp-col ${colClass[opt]}`;
+    const header = document.createElement('div');
+    header.className = 'resp-col-header';
+    header.textContent = `${colLabels[opt]} (${grupos[opt].length})`;
+    col.appendChild(header);
+    const body = document.createElement('div');
+    body.className = 'resp-col-body';
+    grupos[opt].forEach(r=>{
+      const nombre = document.createElement('div');
+      nombre.className = 'resp-col-name';
+      nombre.textContent = r.student||'—';
+      nombre.title = `Ver historial de ${r.student}`;
+      nombre.style.cursor = 'pointer';
+      nombre.addEventListener('click', ()=> abrirHistorialEstudiante(r.student));
+      body.appendChild(nombre);
+    });
+    col.appendChild(body);
+    cont.appendChild(col);
+  });
+}
+
 function appendToRespTable(r){
 
   renderRespGrid();
@@ -24133,15 +24176,7 @@ setTimeout(() => actualizarVisibilidadBotonFlotante(), 500);
 
         if (!modalRespuestas || !cuerpoRespuestas) return;
 
-        const gridOriginal = document.getElementById('respGrid');
-
-        if (gridOriginal) {
-
-            cuerpoRespuestas.innerHTML = '';
-
-            cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
-
-        }
+        renderRespGridEn(cuerpoRespuestas);
 
         modalRespuestas.classList.add('open');
 
@@ -26475,15 +26510,7 @@ function configurarBotonesAcordeon() {
 
         respuestasBtn.addEventListener('click', () => {
 
-            const gridOriginal = document.getElementById('respGrid');
-
-            if (gridOriginal) {
-
-                cuerpoRespuestas.innerHTML = '';
-
-                cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
-
-            }
+            renderRespGridEn(cuerpoRespuestas);
 
             modalRespuestas.classList.add('open');
 
