@@ -21999,6 +21999,12 @@ function abrirModoPresentador() {
         padding:4px 10px;font-size:0.68rem;cursor:pointer;
         white-space:nowrap;">⟳ 100%</button>
 
+      <button id="presenterMagnifierBtn" title="Lupa (Z)" style="
+        background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);
+        border:1px solid rgba(255,255,255,0.2);border-radius:40px;
+        padding:5px 12px;font-size:0.78rem;cursor:pointer;
+        white-space:nowrap;transition:background .2s,border-color .2s;">🔍 Lupa</button>
+
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
       <button id="presenterLaunchVotacion" style="
@@ -22909,6 +22915,162 @@ function abrirModoPresentador() {
   }
 
   document.getElementById('presenterCloseOverlay').onclick = cerrarPresentador;
+
+  // ── LUPA (Magnifier) ─────────────────────────────────────────────────────
+  (function() {
+    let magnifierActive = false;
+    const LENS_R   = 120;  // radio de la lupa en px
+    const ZOOM_MAG = 2.5;  // factor de ampliación
+
+    // Crear el canvas de la lupa
+    const lensCanvas = document.createElement('canvas');
+    lensCanvas.id = 'presenterLensCanvas';
+    lensCanvas.width  = LENS_R * 2;
+    lensCanvas.height = LENS_R * 2;
+    lensCanvas.style.cssText = `
+      position:absolute;
+      width:${LENS_R*2}px;height:${LENS_R*2}px;
+      border-radius:50%;
+      border:3px solid rgba(255,255,255,0.85);
+      box-shadow:0 0 0 2px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.7);
+      pointer-events:none;
+      display:none;
+      z-index:99999;
+      transform:translate(-50%,-50%);
+    `;
+    // Línea de mira
+    const crosshair = document.createElement('div');
+    crosshair.style.cssText = `
+      position:absolute;width:${LENS_R*2}px;height:${LENS_R*2}px;
+      border-radius:50%;pointer-events:none;display:none;z-index:100000;
+      transform:translate(-50%,-50%);
+    `;
+    crosshair.innerHTML = `
+      <svg width="${LENS_R*2}" height="${LENS_R*2}" style="position:absolute;top:0;left:0;">
+        <line x1="${LENS_R}" y1="6" x2="${LENS_R}" y2="${LENS_R*2-6}" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+        <line x1="6" y1="${LENS_R}" x2="${LENS_R*2-6}" y2="${LENS_R}" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      </svg>`;
+
+    const overlay = document.getElementById('presenterOverlay');
+    overlay.appendChild(lensCanvas);
+    overlay.appendChild(crosshair);
+
+    const lensCtx = lensCanvas.getContext('2d');
+
+    function drawLens(mouseX, mouseY) {
+      const img = document.getElementById('presenterOverlayImg');
+      if (!img || !img.complete) return;
+
+      // Posición del mouse relativa al overlay
+      const oRect = overlay.getBoundingClientRect();
+      const iRect = img.getBoundingClientRect();
+
+      // Fracción del cursor dentro de la imagen
+      const fx = (mouseX - iRect.left)  / iRect.width;
+      const fy = (mouseY - iRect.top)   / iRect.height;
+
+      // Coordenadas en píxeles de imagen natural (source)
+      const natW = img.naturalWidth  || img.width;
+      const natH = img.naturalHeight || img.height;
+
+      // Cuántos px naturales caben en el radio de la lupa a escala 1/ZOOM_MAG
+      const srcR  = LENS_R / ZOOM_MAG * (natW / iRect.width);
+      const srcCX = fx * natW;
+      const srcCY = fy * natH;
+
+      // Recortar en círculo
+      lensCtx.clearRect(0, 0, LENS_R*2, LENS_R*2);
+      lensCtx.save();
+      lensCtx.beginPath();
+      lensCtx.arc(LENS_R, LENS_R, LENS_R, 0, Math.PI*2);
+      lensCtx.clip();
+
+      lensCtx.drawImage(
+        img,
+        srcCX - srcR, srcCY - srcR, srcR*2, srcR*2,
+        0, 0, LENS_R*2, LENS_R*2
+      );
+      lensCtx.restore();
+
+      // Borde interior sutil
+      lensCtx.beginPath();
+      lensCtx.arc(LENS_R, LENS_R, LENS_R-1, 0, Math.PI*2);
+      lensCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+      lensCtx.lineWidth = 2;
+      lensCtx.stroke();
+
+      // Posicionar lupa — offset para que no tape el cursor
+      const relX = mouseX - oRect.left;
+      const relY = mouseY - oRect.top;
+      let lx = relX;
+      let ly = relY - LENS_R - 20;
+      if (ly < LENS_R + 10) ly = relY + LENS_R + 20;
+      if (lx - LENS_R < 4)  lx = LENS_R + 4;
+      if (lx + LENS_R > oRect.width - 4) lx = oRect.width - LENS_R - 4;
+
+      lensCanvas.style.left = lx + 'px';
+      lensCanvas.style.top  = ly + 'px';
+      crosshair.style.left  = lx + 'px';
+      crosshair.style.top   = ly + 'px';
+    }
+
+    function onMouseMove(e) {
+      if (!magnifierActive) return;
+      drawLens(e.clientX, e.clientY);
+    }
+
+    function activateMagnifier() {
+      magnifierActive = true;
+      lensCanvas.style.display = 'block';
+      crosshair.style.display  = 'block';
+      overlay.style.cursor = 'crosshair';
+      const btn = document.getElementById('presenterMagnifierBtn');
+      if (btn) {
+        btn.style.background    = 'rgba(52,152,219,0.5)';
+        btn.style.borderColor   = '#3498db';
+        btn.style.color         = 'white';
+        btn.textContent = '🔍 Lupa ON';
+      }
+      overlay.addEventListener('mousemove', onMouseMove);
+    }
+
+    function deactivateMagnifier() {
+      magnifierActive = false;
+      lensCanvas.style.display = 'none';
+      crosshair.style.display  = 'none';
+      overlay.style.cursor = '';
+      const btn = document.getElementById('presenterMagnifierBtn');
+      if (btn) {
+        btn.style.background  = 'rgba(255,255,255,0.08)';
+        btn.style.borderColor = 'rgba(255,255,255,0.2)';
+        btn.style.color       = 'rgba(255,255,255,0.85)';
+        btn.textContent = '🔍 Lupa';
+      }
+      overlay.removeEventListener('mousemove', onMouseMove);
+    }
+
+    document.getElementById('presenterMagnifierBtn').onclick = () => {
+      if (magnifierActive) deactivateMagnifier();
+      else activateMagnifier();
+    };
+
+    // Atajo de teclado Z
+    document.addEventListener('keydown', function(e) {
+      if (!document.getElementById('presenterOverlay') ||
+          document.getElementById('presenterOverlay').style.display === 'none') return;
+      if (e.key === 'z' || e.key === 'Z') {
+        if (magnifierActive) deactivateMagnifier();
+        else activateMagnifier();
+      }
+    });
+
+    // Limpiar al cerrar el presentador
+    const origCerrar = cerrarPresentador;
+    // Desactivar lupa al cerrar
+    const presCloseBtn = document.getElementById('presenterCloseOverlay');
+    presCloseBtn.addEventListener('click', deactivateMagnifier, {once:false});
+  })();
+  // ── FIN LUPA ─────────────────────────────────────────────────────────────
 
   document.getElementById('presenterLaunchVotacion').onclick = () => {
     const btn = document.getElementById('pvpLaunchBtn');
