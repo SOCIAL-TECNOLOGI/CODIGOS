@@ -10308,7 +10308,7 @@ window._lastQ = null;
 
   // Resetear contadores locales al lanzar nueva pregunta
 
-  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[];
+  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[]; participantesMap.clear();
 
   setQStatusBadge(true,text);
 
@@ -10390,7 +10390,7 @@ function clearResultsUI() {
 
   voteTotal = 0;
 
-  responsesCache = [];
+  responsesCache = []; participantesMap.clear();
 
   updateBars('', voteCounts, 0);
 
@@ -10440,7 +10440,7 @@ async function cerrarPreguntaActual() {
 
     voteTotal = 0;
 
-    responsesCache = [];
+    responsesCache = []; participantesMap.clear();
 
     updateBars('', voteCounts, 0);
 
@@ -15439,7 +15439,7 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   await responsesRef.remove();
 
 
-  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[];
+  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[]; participantesMap.clear();
 
   const btn = document.getElementById('pvpLaunchBtn');
 
@@ -15512,7 +15512,7 @@ async function lanzarPreguntaDesdeInputs() {
   voteTotal = 0;
 
   responsesCache = [];
-
+participantesMap.clear();
   setQStatusBadge(true, text);
 
   // Actualizar la UI del modal PDF (barras, etc.)
