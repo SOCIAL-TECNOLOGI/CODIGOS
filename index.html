@@ -6013,11 +6013,10 @@ María López"></textarea>
 
 <script>
 (function(){
-  let _lastQ=null;
   window._notificarTodosVotaron=function(total){
     const qId=activeQuestionId;
-    if(!qId||_lastQ===qId)return;
-    _lastQ=qId;
+    if(!qId||window._lastQ===qId)return;
+    window._lastQ=qId;
     try{
       const ctx=new(window.AudioContext||window.webkitAudioContext)();
       [[880,0,0.12],[1100,0.13,0.1],[1320,0.24,0.14]].forEach(([freq,start,dur])=>{
@@ -6041,12 +6040,13 @@ María López"></textarea>
   };
   
   window._ocultarBadgeVotos=function(){
-    _lastQ=null;
+    window._lastQ=null;
     ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
   };
 })();
+
 (function(){
   if(document.getElementById('todosVotaronStyle'))return;
   const s=document.createElement('style');s.id='todosVotaronStyle';
@@ -6054,6 +6054,9 @@ María López"></textarea>
   document.head.appendChild(s);
 })();
 </script>
+
+
+
 </body>
 
 
@@ -10296,7 +10299,7 @@ document.getElementById('launchBtn').addEventListener('click',async()=>{
   currentLiveQuestion={ id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
-window._lastNotifiedQuestion = null;
+window._lastQ = null;
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
   await responsesRef.remove();
@@ -15429,7 +15432,7 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   currentLiveQuestion = { id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
-  window._lastNotifiedQuestion = null;
+  window._lastQ = null;
 
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
@@ -15482,7 +15485,7 @@ async function lanzarPreguntaDesdeInputs() {
 
   activeQuestionId = qId;
 
-   window._lastNotifiedQuestion = null;
+   window._lastQ = null;
 
   await questionRef.set({
 
@@ -24937,73 +24940,6 @@ function actualizarBadgeFaltantes() {
   refrescarModalNoVotantes();
 }
 
-
-// ── Notificación "todos votaron" ──────────────────────────────────────────────
-(function() {
-  let _lastNotifiedQuestion = null; // evitar sonar múltiples veces por la misma pregunta
-
-  window._notificarTodosVotaron = function(totalEstudiantes) {
-    const qId = activeQuestionId;
-    if (!qId || _lastNotifiedQuestion === qId) return;
-    _lastNotifiedQuestion = qId;
-
-    // ── Sonido: ding suave via Web Audio API ─────────────────────
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [[880, 0, 0.12], [1100, 0.13, 0.1], [1320, 0.24, 0.14]].forEach(([freq, start, dur]) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, ctx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + start);
-        osc.stop(ctx.currentTime + start + dur + 0.05);
-      });
-    } catch(e) { /* AudioContext no disponible — silencioso */ }
-
-    // ── Badges fijos en presenter y visor PDF ────────────────────
-    const label = `🗳️ Votos 100% (${totalEstudiantes})`;
-
-    ['presenterVotosBadge', 'spfVotosBadge', 'pvpVotosBadge'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = label;
-      el.style.display = 'inline-block';
-      el.style.animation = 'none';
-      el.offsetWidth; // reflow para reiniciar animación
-      el.style.animation = 'todosVotaronPulse 1s ease-out 3';
-    });
-  };
-
-  // Ocultar badges cuando se cierra la pregunta
-  window._ocultarBadgeVotos = function() {
-    _lastNotifiedQuestion = null;
-    ['presenterVotosBadge', 'spfVotosBadge', 'pvpVotosBadge'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
-    });
-  };
-})();
-
-// CSS para la animación del badge (inyectar una sola vez)
-(function() {
-  if (document.getElementById('todosVotaronStyle')) return;
-  const s = document.createElement('style');
-  s.id = 'todosVotaronStyle';
-  s.textContent = `
-    @keyframes todosVotaronPulse {
-      0%   { box-shadow:0 0 0 0 rgba(34,197,94,.7); transform:scale(1); }
-      50%  { box-shadow:0 0 0 10px rgba(34,197,94,0); transform:scale(1.06); }
-      100% { box-shadow:0 0 0 0 rgba(34,197,94,0); transform:scale(1); }
-    }
-  `;
-  document.head.appendChild(s);
-})();
-// ─────────────────────────────────────────────────────────────────────────────
 
 // Renderizar la lista sin llamadas a Firebase
 
