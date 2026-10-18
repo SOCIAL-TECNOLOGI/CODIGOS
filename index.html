@@ -24892,6 +24892,30 @@ function obtenerListaCompletaEstudiantesLocal() {
     if (r.student?.trim()) estudiantesSet.add(r.student.trim());
   });
 
+  // 2. participantesMap solo si coincide con un voto en responsesCache
+  //    (evita fantasmas de sesiones anteriores)
+  const votantesActivos = new Set(
+    responsesCache
+      .filter(r => r.questionId === activeQuestionId && r.student)
+      .map(r => r.student.trim())
+  );
+  for (const [nombre] of participantesMap.entries()) {
+    if (nombre?.trim() && votantesActivos.has(nombre.trim())) {
+      estudiantesSet.add(nombre.trim());
+    }
+  }
+
+  return Array.from(estudiantesSet).sort((a, b) => a.localeCompare(b));
+}
+
+
+  const estudiantesSet = new Set();
+
+  // 1. Estudiantes que han votado en la pregunta activa (responsesCache)
+  responsesCache.forEach(r => {
+    if (r.student?.trim()) estudiantesSet.add(r.student.trim());
+  });
+
   // 2. Estudiantes de participantesMap (conteo de respuestas)
   for (const [nombre] of participantesMap.entries()) {
     if (nombre?.trim()) estudiantesSet.add(nombre.trim());
