@@ -24881,53 +24881,17 @@ function obtenerListaCompletaEstudiantesLocal() {
   const estudiantesSet = new Set();
 
   // 1. Estudiantes que han votado en la pregunta activa (responsesCache)
-
   responsesCache.forEach(r => {
-
     if (r.student?.trim()) estudiantesSet.add(r.student.trim());
-
   });
 
   // 2. Estudiantes de participantesMap (conteo de respuestas)
-
   for (const [nombre] of participantesMap.entries()) {
-
     if (nombre?.trim()) estudiantesSet.add(nombre.trim());
-
-  }
-
-  // 3. Estudiantes del historial archivado (snapshot cacheado)
-
-  if (window._lastHistorialSnapshot) {
-
-    Object.values(window._lastHistorialSnapshot).forEach(pregunta => {
-
-      Object.values(pregunta.respuestas || {}).forEach(r => {
-
-        if (r.student?.trim()) estudiantesSet.add(r.student.trim());
-
-      });
-
-    });
-
-  }
-
-  // 4. Presencia (conectados ahora mismo)
-
-  if (window._lastPresenciaSnapshot) {
-
-    Object.values(window._lastPresenciaSnapshot).forEach(p => {
-
-      if (p.nombre?.trim()) estudiantesSet.add(p.nombre.trim());
-
-    });
-
   }
 
   return Array.from(estudiantesSet).sort((a, b) => a.localeCompare(b));
-
 }
-
 // Actualizar badge de faltantes (usa solo memoria)
 
 
