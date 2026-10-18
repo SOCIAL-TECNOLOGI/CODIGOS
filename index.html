@@ -20483,56 +20483,43 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
   try {
     if (sessionRef) {
       await sessionRef.child('sessionEnded').set(true);
-      // 🧠 PMAP — procesar sesión al finalizar
+      // PMAP - procesar sesion al finalizar (modo clase viva)
+      let sesionPath = null;
+      let presencia = {};
       try {
-        const uidDocente = auth.currentUser?.uid;
-        const sesionPath = sessionRef.toString().split('/sessions/')[1];
-        
-        // Obtener lista de estudiantes de la sesión
+        sesionPath = sessionRef.toString().split('/sessions/')[1];
         const presenciaSnap = await sessionRef.child('presencia').once('value');
-        const presencia = presenciaSnap.val() || {};
-        
-        // Procesar PMAP para cada estudiante
+        presencia = presenciaSnap.val() || {};
         const metaSnap = await sessionRef.child('_meta').once('value');
         const meta = metaSnap.val() || {};
-        
-        for (const [estudianteKey, datos] of Object.entries(presencia)) {
-          if (!datos.uid) continue;
+        const responsesSnap = await sessionRef.child('responses').once('value');
+        const todasLasRespuestas = responsesSnap.val() || {};
+        const votosArray = Object.values(todasLasRespuestas);
 
-          // Verificar si ya existe sesión previa del mismo cuestionario
-          const sesionesSnap = await db.ref(`estudiantes/${datos.uid}/sesiones`).once('value');
+        for (const [estudianteKey, datos] of Object.entries(presencia)) {
+          if (datos.uid == null) continue;
+
+          const sesionesSnap = await db.ref('estudiantes/' + datos.uid + '/sesiones').once('value');
           const sesionesExistentes = sesionesSnap.val() || {};
-          const yaExiste = Object.values(sesionesExistentes).some(
-            s => s.cuestionarioId === (meta.cuestionarioId || '')
-          );
-          if (yaExiste) {
-            console.log(`⚠️ PMAP ya procesado para ${datos.uid} en ${meta.cuestionarioId}`);
-            continue;
-          }
+          const yaExiste = Object.values(sesionesExistentes).some(function(sx){ return sx.cuestionarioId === (meta.cuestionarioId || ''); });
+          if (yaExiste) { console.log('PMAP ya procesado para ' + datos.uid); continue; }
+
+          const votosEstudiante = votosArray.filter(function(v){ return v.uid === datos.uid; });
+          if (votosEstudiante.length === 0) { console.log('Sin votos para ' + datos.uid); continue; }
+
+          const respuestas = votosEstudiante.map(function(v){ return { itemId: v.itemId||v.questionId||null, opcion: v.option||null, correcta: v.correct||null, esCorrecta: v.esCorrecta||false, tipoRespuesta: v.tipoRespuesta||null, tObs: v.tObs||0, mh_negativa: v.mh_negativa||null }; });
 
           try {
-            await fetch('/api/pmap-procesar', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                uid: datos.uid,
-                sesionPath: sesionPath,
-                cuestionarioId: meta.cuestionarioId || '',
-                area: meta.cuestionarioNombre || ''
-              })
-            });
-            
-          } catch(pmapErr) {
-            console.warn('⚠️ PMAP error para', datos.uid, pmapErr.message);
-          }
+            const pmapResp = await fetch('https://tutor1.fedusocial.org/bbb-api/pmap-sesion', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-alau-token': 'alau-api-2026-xK9mP3nQ' }, body: JSON.stringify({ uid: datos.uid, estudiante: datos.nombre||estudianteKey, sesionId: meta.cuestionarioId||sesionPath||'', area: meta.cuestionarioNombre||'', documento: '', respuestas: respuestas }) });
+            if (pmapResp.ok) { console.log('PMAP enviado para ' + (datos.nombre||datos.uid)); } else { console.warn('PMAP status ' + pmapResp.status + ' para ' + datos.uid); }
+          } catch(pmapErr) { console.warn('PMAP error para ' + datos.uid + ': ' + pmapErr.message); }
         }
-        console.log('✅ PMAP procesado para todos los estudiantes');
+        console.log('PMAP procesado para todos los estudiantes');
       } catch(pmapErr) {
-        console.warn('⚠️ Error procesando PMAP:', pmapErr.message);
-        console.log('🧠 PMAP sesionPath:', sesionPath);
-        console.log('🧠 PMAP presencia:', JSON.stringify(presencia));
+        console.warn('Error procesando PMAP: ' + pmapErr.message);
+        console.log('PMAP sesionPath: ' + sesionPath);
+        console.log('PMAP presencia: ' + JSON.stringify(presencia));
       }
-      // ← ELIMINAR las dos líneas de videoCallRef y cerrarJitsiDocente
     }
     if (codigoActual) {
       await db.ref(`activeCodes/${codigoActual}`).remove();
