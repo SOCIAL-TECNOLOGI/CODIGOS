@@ -6039,6 +6039,7 @@ María López"></textarea>
       el.style.animation='todosVotaronPulse 1s ease-out 3';
     });
   };
+  
   window._ocultarBadgeVotos=function(){
     _lastQ=null;
     ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge'].forEach(id=>{
@@ -24956,7 +24957,7 @@ function actualizarBadgeFaltantes() {
       if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
     } else if (todos.length > 0) {
       badge.style.display = 'none';
-      _notificarTodosVotaron(todos.length);
+      if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
     } else {
       badge.style.display = 'none';
     }
