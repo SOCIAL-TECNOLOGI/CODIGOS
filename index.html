@@ -7297,7 +7297,7 @@ async function syncWalVotos() {
   const pendientes = [];
   for (const entrada of wal) {
     try {
-      await db.ref(entrada.refPath).set(entrada.datos);
+      await db.refFromURL(entrada.refPath).set(entrada.datos);
     } catch {
       pendientes.push(entrada); // conservar los que aún fallan
     }
