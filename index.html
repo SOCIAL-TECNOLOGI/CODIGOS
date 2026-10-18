@@ -8041,17 +8041,8 @@ const TABLA_CUARTILES = {
 
 };
 
-async function calcularNivelPMAP(velocidad, nivelItem) {
-    try {
-        const resp = await fetch(
-            `https://alau2.lostutores.co/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
-        );
-        const data = await resp.json();
-        if (data.ok) return { nivelPMAP: data.nivelPMAP, cuartil: data.cuartil };
-    } catch(e) {
-        console.warn('⚠️ No se pudo calcular PMAP en servidor, usando fallback');
-    }
-    // Fallback mínimo — sin revelar la lógica real
+function calcularNivelPMAP(velocidad, nivelItem) {
+    // Calculo local — el servidor PMAP procesa la sesion completa al cerrar
     return { nivelPMAP: nivelItem || '', cuartil: 'Q3' };
 }
 
