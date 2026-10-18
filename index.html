@@ -7190,9 +7190,56 @@ function saveBancoLocal(){
 
 // Offline banner
 
-window.addEventListener('online', ()=>document.getElementById('offlineBanner').style.display='none');
+window.addEventListener('online', ()=>{
+  document.getElementById('offlineBanner').style.display='none';
+  // ── WAL sync: reintentar votos guardados offline ─────────────
+  syncWalVotos();
+});
 
 window.addEventListener('offline',()=>document.getElementById('offlineBanner').style.display='block');
+
+// ── Reintento con backoff para escritura de voto ─────────────────────────
+async function escribirVotoConReintento(ref, datos, intentos = 3) {
+  for (let i = 0; i < intentos; i++) {
+    try {
+      await ref.set(datos);
+      return true;
+    } catch (err) {
+      if (i === intentos - 1) {
+        // Último intento fallido → guardar en WAL local
+        try {
+          const wal = JSON.parse(localStorage.getItem('alau_wal_votos') || '[]');
+          wal.push({ refPath: ref.toString(), datos, ts: Date.now() });
+          localStorage.setItem('alau_wal_votos', JSON.stringify(wal));
+        } catch {}
+        console.warn('[AlaU] Voto guardado en WAL local tras', intentos, 'intentos');
+        return false;
+      }
+      // Backoff: 300ms → 900ms → 2700ms
+      await new Promise(r => setTimeout(r, 300 * Math.pow(3, i)));
+    }
+  }
+}
+
+// Función de sync del WAL de votos (llamar en evento 'online')
+async function syncWalVotos() {
+  const raw = localStorage.getItem('alau_wal_votos');
+  if (!raw) return;
+  let wal;
+  try { wal = JSON.parse(raw); } catch { return; }
+  const pendientes = [];
+  for (const entrada of wal) {
+    try {
+      await db.ref(entrada.refPath).set(entrada.datos);
+    } catch {
+      pendientes.push(entrada); // conservar los que aún fallan
+    }
+  }
+  localStorage.setItem('alau_wal_votos', JSON.stringify(pendientes));
+  if (pendientes.length === 0) console.log('[AlaU] WAL votos sincronizado ✅');
+  else console.warn('[AlaU] WAL votos: quedan', pendientes.length, 'pendientes');
+}
+// ─────────────────────────────────────────────────────────────────────────
 
 // ── MEJORA 1: Contraseña hasheada (ofuscación básica) — REEMPLAZADA POR FIREBASE AUTH ──
 
@@ -18655,7 +18702,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
       const condicionAzar = tObs <= t0First;
       const diagnostico = clasificarRespuesta(opt, correctaActual, tiempoFinal);
 
-      await responsesRef.child(voteKey).set({
+      await escribirVotoConReintento(responsesRef.child(voteKey), {
         questionId: activeQuestionId,
         student: studentName,
         normalizedName: normalizedName,
@@ -18730,6 +18777,52 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
           plausibilidad: tRect > 5 ? 'alta' : tRect > 2 ? 'media' : 'baja'
         });
       }
+
+      // ── HOOK PMAP Bridge ─────────────────────────────────────────
+      // Dispara SOLO después de que el voto esté confirmado en Firebase.
+      // mh_id / codigo_error / mh_negativa ya fueron leídos del banco arriba.
+      // NUNCA exponer: códigos MH, sintaxis MR, etiquetas N1-N4, estructura
+      // canónica del protocolo, mh_id, mr_id, codigo_error en claro al LLM.
+      try {
+        let _pmapMhId = null, _pmapCodErr = null, _pmapMhNeg = null;
+        const _uidPmap = auth.currentUser?.uid;
+        if (_uidPmap && SESSION_ID) {
+          try {
+            const _mapSnap = await db.ref(
+              `banco/cuestionarios/TAMIZAJE-GAGEM5-2026/mapeo/${activeQuestionId}`
+            ).once('value');
+            const _itemIdReal = _mapSnap.val() || activeQuestionId;
+            const _itemSnap = await db.ref(`banco/items/${_itemIdReal}`).once('value');
+            const _itemData = _itemSnap.val();
+            if (_itemData) {
+              _pmapMhId = _itemData.mh_id || null;
+              if (_itemData.respuesta_correcta !== opt && _itemData.distractores?.[opt]) {
+                _pmapCodErr = _itemData.distractores[opt].codigo_error || null;
+                _pmapMhNeg = _itemData.distractores[opt].mh_negativa || null;
+              }
+            }
+          } catch(e) { /* silent — Bridge funciona sin metadata canónica */ }
+        }
+
+        const _payload = {
+          alumno:         normalizeName(studentName),
+          opcionElegida:  opt,
+          opcionCorrecta: correctaActual,
+          tiempoMs:       tiempoFinal * 1000,
+          // Metadatos de ítem (solo lo seguro para enviar al Bridge)
+          mhId:           _pmapMhId,
+          codigoError:    _pmapCodErr,
+          mh_negativa:    _pmapMhNeg,
+          area:           null,
+          itemIndex:      null,
+          // Metadatos de sesión
+          sesionId:       SESSION_ID,
+          institucion:    studentInstitucion || localStorage.getItem('alau_student_institucion') || '',
+          grado:          localStorage.getItem('alau_student_grado') || '',
+        };
+        window.dispatchEvent(new CustomEvent('alau:respuesta', { detail: _payload }));
+      } catch(e) { console.warn('[AlaU] Hook PMAP Bridge falló silenciosamente:', e.message); }
+      // ─────────────────────────────────────────────────────────────
 
       await establecerPresenciaEstudiante();
       alreadyAnswered = true;
@@ -24796,6 +24889,12 @@ function actualizarBadgeFaltantes() {
     if (faltan > 0) {
       badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
       badge.style.display = 'inline-block';
+      // Limpiar badge "todos votaron" si había quedado
+      const badgeTodos = document.getElementById('todosVotaronBadge');
+      if (badgeTodos) badgeTodos.remove();
+    } else if (todos.length > 0) {
+      badge.style.display = 'none';
+      _notificarTodosVotaron(todos.length);
     } else {
       badge.style.display = 'none';
     }
@@ -24811,6 +24910,82 @@ function actualizarBadgeFaltantes() {
   refrescarModalNoVotantes();
 }
 
+// ── Notificación "todos votaron" ──────────────────────────────────────────────
+(function() {
+  let _lastNotifiedQuestion = null; // evitar sonar múltiples veces por la misma pregunta
+
+  window._notificarTodosVotaron = function(totalEstudiantes) {
+    const qId = activeQuestionId;
+    if (!qId || _lastNotifiedQuestion === qId) return;
+    _lastNotifiedQuestion = qId;
+
+    // ── Sonido: ding suave via Web Audio API ─────────────────────
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [[880, 0, 0.12], [1100, 0.13, 0.1], [1320, 0.24, 0.14]].forEach(([freq, start, dur]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, ctx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur + 0.05);
+      });
+    } catch(e) { /* AudioContext no disponible — silencioso */ }
+
+    // ── Badge flotante verde junto al botón de faltantes ─────────
+    const existing = document.getElementById('todosVotaronBadge');
+    if (existing) existing.remove();
+
+    const badge = document.createElement('span');
+    badge.id = 'todosVotaronBadge';
+    badge.textContent = `✅ Todos (${totalEstudiantes})`;
+    badge.style.cssText = `
+      display:inline-flex;align-items:center;gap:4px;
+      background:linear-gradient(135deg,#16a34a,#22c55e);
+      color:#fff;font-weight:700;font-size:0.75rem;
+      padding:4px 12px;border-radius:20px;
+      box-shadow:0 0 0 0 rgba(34,197,94,.7);
+      animation:todosVotaronPulse 1s ease-out 3;
+      white-space:nowrap;cursor:default;
+    `;
+
+    // Insertar junto al badge de faltantes existente
+    const faltaBadge = document.getElementById('faltanBadge');
+    if (faltaBadge?.parentElement) {
+      faltaBadge.parentElement.insertBefore(badge, faltaBadge.nextSibling);
+    } else {
+      // Fallback: top-bar del presentador o barra de control
+      const bar = document.getElementById('presenterTopBar') ||
+                  document.getElementById('liveControlsBar') ||
+                  document.body;
+      bar.appendChild(badge);
+    }
+
+    // Auto-desaparecer después de 12 s
+    setTimeout(() => { if (badge.parentElement) badge.remove(); }, 12000);
+  };
+})();
+
+// CSS para la animación del badge (inyectar una sola vez)
+(function() {
+  if (document.getElementById('todosVotaronStyle')) return;
+  const s = document.createElement('style');
+  s.id = 'todosVotaronStyle';
+  s.textContent = `
+    @keyframes todosVotaronPulse {
+      0%   { box-shadow:0 0 0 0 rgba(34,197,94,.7); transform:scale(1); }
+      50%  { box-shadow:0 0 0 10px rgba(34,197,94,0); transform:scale(1.06); }
+      100% { box-shadow:0 0 0 0 rgba(34,197,94,0); transform:scale(1); }
+    }
+  `;
+  document.head.appendChild(s);
+})();
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Renderizar la lista sin llamadas a Firebase
 
@@ -28819,7 +28994,19 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                     </td>
                 </tr>
             `).join('');
-            
+
+            // ── Trayectoria PMAP ─────────────────────────────────────────
+            try {
+              const _inst = studentInstitucion || localStorage.getItem('alau_student_institucion') || 'SIN_INST';
+              const _grad = localStorage.getItem('alau_student_grado') || 'SIN_GRADO';
+              const _tray = await leerTrayectoriaPMAP(db, normalizeName(studentName), _inst, _grad);
+              if (_tray) {
+                const _cont = document.getElementById('resumenHistorial');
+                renderTrayectoriaPMAP(_tray, _cont?.parentElement || inner);
+              }
+            } catch(e) { /* PMAP no disponible, historial funciona igual */ }
+            // ─────────────────────────────────────────────────────────────
+
         } catch(err) {
             console.error('Error cargando historial:', err);
             cuerpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px; color:#f87171;">❌ Error al cargar tu historial</td></tr>';
@@ -28849,6 +29036,69 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         const colores = { A: '#e74c3c', B: '#3498db', C: '#f39c12', D: '#27ae60' };
         return colores[opt] || '#6c5ce7';
     }
+
+    // ── Trayectoria PMAP: leer y renderizar ─────────────────────
+    async function leerTrayectoriaPMAP(db, alumno, inst, grado) {
+      const snap = await db
+        .ref(`pmap/${inst}/${grado}/estudiantes/${alumno}`)
+        .once('value');
+      if (!snap.exists()) return null;
+      const data = snap.val();
+      const mms = data.micromigraciones || {};
+      const linea = Object.entries(mms)
+        .map(([mhId, mm]) => ({
+          mhId,
+          estado:  mm.estado,
+          cuartil: mm.cuartil,
+          fecha:   mm.fechaCompletacion,
+          nivel:   mm.nivelPMAP ?? null,
+        }))
+        .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+      return {
+        alumno,
+        ultimaSesion:       data.ultima_sesion ?? null,
+        erroresAcumulados:  data.ultima_sesion?.erroresRecientes ?? 0,
+        micromigraciones:   linea,
+        porNivel: linea.reduce((acc, mm) => {
+          const n = mm.nivel ?? 'sin_nivel';
+          acc[n] = (acc[n] || 0) + 1;
+          return acc;
+        }, {}),
+      };
+    }
+
+    function renderTrayectoriaPMAP(tray, contenedor) {
+      if (!tray || !contenedor) return;
+      const nivelColor = {
+        N1: '#0e9ea7', N2: '#1f6feb', N3: '#d29922',
+        N4: '#8957e5', sin_nivel: '#484f58'
+      };
+      const html = `
+        <div style="margin-top:12px;padding:10px 14px;background:#161b22;
+                    border:1px solid #30363d;border-radius:10px;font-family:monospace;">
+          <div style="font-size:10px;font-weight:700;color:#8b949e;
+                      letter-spacing:.5px;margin-bottom:8px;">
+            TRAYECTORIA PMAP — ${tray.alumno.toUpperCase()}
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+            ${tray.micromigraciones.map(mm => `
+              <span title="${mm.mhId} · ${mm.estado} · ${mm.fecha||'sin fecha'}"
+                    style="width:10px;height:10px;border-radius:50%;
+                           background:${nivelColor[mm.nivel]||nivelColor.sin_nivel};
+                           opacity:${mm.estado==='completada'?'1':'0.3'};
+                           display:inline-block;cursor:default;"></span>
+            `).join('')}
+          </div>
+          <div style="display:flex;gap:8px;font-size:10px;color:#8b949e;flex-wrap:wrap;">
+            ${Object.entries(tray.porNivel).map(([n,c]) =>
+              `<span style="color:${nivelColor[n]||'#8b949e'};">${n}: ${c}</span>`
+            ).join('')}
+            <span>· errores acum.: ${tray.erroresAcumulados}</span>
+          </div>
+        </div>`;
+      contenedor.insertAdjacentHTML('beforeend', html);
+    }
+    // ─────────────────────────────────────────────────────────────
     
     // Agregar botón en la interfaz del estudiante (junto al botón de editar nombre)
     function agregarBotonHistorial() {
