@@ -20501,7 +20501,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
           const respuestas = votosEstudiante.map(function(v){ return { itemId: v.itemId||v.questionId||null, opcion: v.option||null, correcta: v.correct||null, esCorrecta: v.esCorrecta||false, tipoRespuesta: v.tipoRespuesta||null, tObs: v.tObs||0, mh_negativa: v.mh_negativa||null }; });
 
           try {
-            const pmapResp = await fetch('https://tutor1.fedusocial.org/bbb-api/pmap-sesion', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-alau-token': 'alau-api-2026-xK9mP3nQ' }, body: JSON.stringify({ uid: datos.uid, estudiante: datos.nombre||estudianteKey, sesionId: meta.cuestionarioId||sesionPath||'', area: meta.cuestionarioNombre||'', documento: '', respuestas: respuestas }) });
+            const pmapResp = await fetch('https://tutor1.fedusocial.org/bbb-api/pmap-sesion', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-alau-token': 'alau-api-2026-xK9mP3nQ', 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() }, body: JSON.stringify({ uid: datos.uid, estudiante: datos.nombre||estudianteKey, sesionId: meta.cuestionarioId||sesionPath||'', area: meta.cuestionarioNombre||'', documento: '', respuestas: respuestas }) });
             if (pmapResp.ok) { console.log('PMAP enviado para ' + (datos.nombre||datos.uid)); } else { console.warn('PMAP status ' + pmapResp.status + ' para ' + datos.uid); }
           } catch(pmapErr) { console.warn('PMAP error para ' + datos.uid + ': ' + pmapErr.message); }
         }
@@ -33191,4 +33191,4 @@ function reproducirAudioTutorEnAdmin(stream) {
 
 
 
-</script>
+</script>
