@@ -24905,7 +24905,7 @@ function actualizarBadgeFaltantes() {
   if (!activeQuestionId || !currentLiveQuestion?.open) {
     if (badge) badge.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
-    refrescarModalNoVotantes(); // ✅ NUEVO: también cubrir este caso para el modal
+    refrescarModalNoVotantes();
     return;
   }
 
@@ -24920,9 +24920,8 @@ function actualizarBadgeFaltantes() {
     if (faltan > 0) {
       badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
       badge.style.display = 'inline-block';
-      // Ocultar badges "Votos 100%" si la pregunta cambió o hay nuevos faltantes
       if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
-    } else if (todos.length > 0) {
+    } else if (todos.length > 0 && votantes.size > 0) {
       badge.style.display = 'none';
       if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
     } else {
@@ -24930,15 +24929,14 @@ function actualizarBadgeFaltantes() {
     }
   }
 
-  // Actualizar el panel si está abierto
   const panel = document.getElementById('noVotantesPanel');
   if (panel?.style.display === 'block') {
     renderListaNoVotantes(todos, Array.from(votantes));
   }
 
-  // ✅ NUEVO: también refrescar el modal flotante si está abierto
   refrescarModalNoVotantes();
 }
+
 
 // ── Notificación "todos votaron" ──────────────────────────────────────────────
 (function() {
