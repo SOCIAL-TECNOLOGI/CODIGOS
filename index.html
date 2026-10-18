@@ -24894,20 +24894,6 @@ function obtenerListaCompletaEstudiantesLocal() {
 
   return Array.from(estudiantesSet).sort((a, b) => a.localeCompare(b));
 }
-  const estudiantesSet = new Set();
-
-  // 1. Estudiantes que han votado en la pregunta activa (responsesCache)
-  responsesCache.forEach(r => {
-    if (r.student?.trim()) estudiantesSet.add(r.student.trim());
-  });
-
-  // 2. Estudiantes de participantesMap (conteo de respuestas)
-  for (const [nombre] of participantesMap.entries()) {
-    if (nombre?.trim()) estudiantesSet.add(nombre.trim());
-  }
-
-  return Array.from(estudiantesSet).sort((a, b) => a.localeCompare(b));
-}
 // Actualizar badge de faltantes (usa solo memoria)
 
 
