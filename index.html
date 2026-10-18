@@ -10296,7 +10296,7 @@ document.getElementById('launchBtn').addEventListener('click',async()=>{
   currentLiveQuestion={ id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
-
+window._lastNotifiedQuestion = null;
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
   await responsesRef.remove();
@@ -15429,6 +15429,7 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   currentLiveQuestion = { id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
+  window._lastNotifiedQuestion = null;
 
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
@@ -15480,6 +15481,8 @@ async function lanzarPreguntaDesdeInputs() {
   currentLiveQuestion = { id: qId, text, correct, openedAt: qId, numero: numeroPregunta };
 
   activeQuestionId = qId;
+
+   window._lastNotifiedQuestion = null;
 
   await questionRef.set({
 
