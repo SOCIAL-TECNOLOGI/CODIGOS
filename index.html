@@ -4951,8 +4951,16 @@ María López"></textarea>
 </div>
  
     
-    <span id="pvpStatusBadge" class="pvp-closed">🔒 Sin pregunta activa</span>
-    
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+      <span id="pvpStatusBadge" class="pvp-closed">🔒 Sin pregunta activa</span>
+      <span id="pvpVotosBadge" style="
+        display:none;font-size:0.65rem;font-weight:700;
+        padding:3px 9px;border-radius:40px;white-space:nowrap;
+        background:linear-gradient(135deg,#14532d,#16a34a);
+        color:#bbf7d0;border:1px solid #22c55e;
+        animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
+    </div>
+
 <button id="openPresenterBtnModal" style="width:100%; background:linear-gradient(135deg,#8e44ad,#9b59b6); color:white; border:none; border-radius:40px; padding:8px; margin-bottom:12px; font-weight:700; cursor:pointer;">
           📽️ Abrir modo presentador
         </button>
@@ -24953,33 +24961,24 @@ function actualizarBadgeFaltantes() {
     // ── Badges fijos en presenter y visor PDF ────────────────────
     const label = `🗳️ Votos 100% (${totalEstudiantes})`;
 
-    const pb = document.getElementById('presenterVotosBadge');
-    if (pb) {
-      pb.textContent = label;
-      pb.style.display = 'inline-block';
-      // Reiniciar animación
-      pb.style.animation = 'none';
-      pb.offsetWidth; // reflow
-      pb.style.animation = 'todosVotaronPulse 1s ease-out 3';
-    }
-
-    const sb = document.getElementById('spfVotosBadge');
-    if (sb) {
-      sb.textContent = label;
-      sb.style.display = 'inline-block';
-      sb.style.animation = 'none';
-      sb.offsetWidth;
-      sb.style.animation = 'todosVotaronPulse 1s ease-out 3';
-    }
+    ['presenterVotosBadge', 'spfVotosBadge', 'pvpVotosBadge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = label;
+      el.style.display = 'inline-block';
+      el.style.animation = 'none';
+      el.offsetWidth; // reflow para reiniciar animación
+      el.style.animation = 'todosVotaronPulse 1s ease-out 3';
+    });
   };
 
   // Ocultar badges cuando se cierra la pregunta
   window._ocultarBadgeVotos = function() {
     _lastNotifiedQuestion = null;
-    const pb = document.getElementById('presenterVotosBadge');
-    if (pb) pb.style.display = 'none';
-    const sb = document.getElementById('spfVotosBadge');
-    if (sb) sb.style.display = 'none';
+    ['presenterVotosBadge', 'spfVotosBadge', 'pvpVotosBadge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
   };
 })();
 
