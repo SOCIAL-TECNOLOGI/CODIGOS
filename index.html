@@ -4528,6 +4528,7 @@ body.dark .resp-col-name { color: white !important; }
     <div class="total-label">
   👥 Total: <strong id="totalVotesVivo">0</strong>
   <span id="faltanBadgeVivo" style="display: none; background: #c0392b; color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; margin-left: 8px;"></span>
+  <span id="votosBadgeVivo" style="display:none;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:40px;white-space:nowrap;margin-left:8px;background:linear-gradient(135deg,#14532d,#16a34a);color:#bbf7d0;border:1px solid #22c55e;animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
 </div>
 
     <div id="codigoClasePanel" style="display:none;margin-top:10px;background:linear-gradient(135deg,#0f2b3d,#1e4a6b);border-radius:16px;padding:10px 14px;">
@@ -6013,6 +6014,8 @@ María López"></textarea>
 
 <script>
 (function(){
+  const IDS_BADGE_VOTOS = ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge','votosBadgeVivo'];
+
   window._notificarTodosVotaron=function(total){
     const qId=activeQuestionId;
     if(!qId||window._lastQ===qId)return;
@@ -6030,7 +6033,7 @@ María López"></textarea>
       });
     }catch(e){}
     const label='🗳️ Votos 100% ('+total+')';
-    ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge'].forEach(id=>{
+    IDS_BADGE_VOTOS.forEach(id=>{
       const el=document.getElementById(id);
       if(!el)return;
       el.textContent=label;el.style.display='inline-block';
@@ -6038,10 +6041,10 @@ María López"></textarea>
       el.style.animation='todosVotaronPulse 1s ease-out 3';
     });
   };
-  
+
   window._ocultarBadgeVotos=function(){
     window._lastQ=null;
-    ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge'].forEach(id=>{
+    IDS_BADGE_VOTOS.forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
     });
   };
@@ -10544,7 +10547,12 @@ if (totalVivo) totalVivo.textContent = voteTotal;
 
     const q = snap.val();
 
-    if (!q) return;
+    if (!q) {
+      window._preguntaAbierta = false;
+      return;
+    }
+
+    window._preguntaAbierta = (q.open === true);
 
     setQStatusBadge(q.open, q.text || '');
 
@@ -10563,6 +10571,8 @@ if (totalVivo) totalVivo.textContent = voteTotal;
       activeQuestionId = null;
 
     }
+
+    actualizarBadgeFaltantes();
 
   });
 
@@ -19758,7 +19768,7 @@ function actualizarOnlineCountOptimizado() {
 
   // 3. Añadir estudiantes del historial (si no hay pregunta activa)
 
-  if ((!activeQuestionId || !currentLiveQuestion?.open) && historialRef) {
+  if ((!activeQuestionId || window._preguntaAbierta !== true) && historialRef) {
 
     // Usar el último snapshot cacheado del historial
 
@@ -19860,7 +19870,7 @@ async function actualizarOnlineCountCompleto() {
 
     // 2. Si hay pregunta activa, añadir estudiantes que han votado (desde responsesCache que ya tenemos)
 
-    if (activeQuestionId && currentLiveQuestion?.open) {
+    if (activeQuestionId && window._preguntaAbierta === true) {
 
       responsesCache.forEach(r => {
 
@@ -20800,7 +20810,7 @@ async function cargarRespuestasEstudiante(nombreEstudiante) {
 
     // 2. Pregunta activa actual (si existe y el estudiante ha respondido)
 
-    if (activeQuestionId && currentLiveQuestion?.open) {
+    if (activeQuestionId && window._preguntaAbierta === true) {
 
       const respuestaActiva = responsesCache.find(r => 
 
@@ -24887,7 +24897,14 @@ function obtenerListaCompletaEstudiantesLocal() {
 
   const estudiantesSet = new Set();
 
-  // Solo votos de la pregunta activa actual
+  // Total real: todos los estudiantes conectados (presencia)
+  if (window._lastPresenciaSnapshot) {
+    Object.values(window._lastPresenciaSnapshot).forEach(p => {
+      if (p && p.nombre && p.nombre.trim()) estudiantesSet.add(p.nombre.trim());
+    });
+  }
+
+  // Por si alguien votó y su presencia aún no llegó
   responsesCache
     .filter(r => r.questionId === activeQuestionId && r.student?.trim())
     .forEach(r => estudiantesSet.add(r.student.trim()));
@@ -24899,11 +24916,14 @@ function obtenerListaCompletaEstudiantesLocal() {
 
 function actualizarBadgeFaltantes() {
   const badge = document.getElementById('faltanBadge');
+  const badgeVivo = document.getElementById('faltanBadgeVivo');
   const copiarBtn = document.getElementById('copiarNoVotantesBtn');
 
-  if (!activeQuestionId || !currentLiveQuestion?.open) {
+  if (!activeQuestionId || window._preguntaAbierta !== true) {
     if (badge) badge.style.display = 'none';
+    if (badgeVivo) badgeVivo.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
     refrescarModalNoVotantes();
     return;
   }
@@ -24915,17 +24935,21 @@ function actualizarBadgeFaltantes() {
   const noVotantes = todos.filter(n => !votantes.has(n));
   const faltan = noVotantes.length;
 
-  if (badge) {
+  const textoFaltan = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
+  [badge, badgeVivo].forEach(b => {
+    if (!b) return;
     if (faltan > 0) {
-      badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
-      badge.style.display = 'inline-block';
-      if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
-    } else if (todos.length > 0 && votantes.size > 0) {
-      badge.style.display = 'none';
-      if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
+      b.textContent = textoFaltan;
+      b.style.display = 'inline-block';
     } else {
-      badge.style.display = 'none';
+      b.style.display = 'none';
     }
+  });
+
+  if (faltan > 0) {
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
+  } else if (todos.length > 0 && votantes.size > 0) {
+    if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
   }
 
   const panel = document.getElementById('noVotantesPanel');
@@ -25175,7 +25199,7 @@ function iniciarActualizacionBadgeFaltantes() {
 
   setInterval(() => {
 
-    if (currentRole === 'teacher' && activeQuestionId && currentLiveQuestion?.open) {
+    if (currentRole === 'teacher' && activeQuestionId && window._preguntaAbierta === true) {
 
       actualizarBadgeFaltantes();
 
