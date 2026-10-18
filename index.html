@@ -5511,7 +5511,14 @@ María López"></textarea>
     
     <div id="spfQuestionBadge" onclick="cerrarPdfFullscreen()">🔓 ¡Pregunta abierta! — Toca para votar</div>
 
-    
+    <div id="spfVotosBadge" style="
+      display:none;font-size:0.72rem;font-weight:700;
+      padding:4px 12px;border-radius:40px;white-space:nowrap;
+      background:linear-gradient(135deg,#14532d,#16a34a);
+      color:#bbf7d0;border:1px solid #22c55e;
+      animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</div>
+
+
     <button id="spfCloseBtn" style="background:#c0392b;color:white;border:none;border-radius:40px;padding:6px 18px;font-size:0.78rem;font-weight:700;cursor:pointer;">✕ Salir</button>
   </div>
 
@@ -22114,6 +22121,12 @@ function abrirModoPresentador() {
         font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:40px;
         white-space:nowrap;background:#2d1117;color:#e74c3c;">🔒 Sin pregunta activa</span>
 
+      <span id="presenterVotosBadge" style="
+        display:none;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:40px;
+        white-space:nowrap;background:linear-gradient(135deg,#14532d,#16a34a);
+        color:#bbf7d0;border:1px solid #22c55e;
+        animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
+
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
       <button id="presenterFullscreenBtn" style="
@@ -23173,6 +23186,7 @@ function abrirModoPresentador() {
   document.getElementById('presenterCerrarVotacion').onclick = () => {
     const btn = document.getElementById('pvpCloseBtn');
     if (btn) btn.click();
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
   };
 
   // Sincronizar badge de estado con el del panel docente
@@ -24889,9 +24903,8 @@ function actualizarBadgeFaltantes() {
     if (faltan > 0) {
       badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
       badge.style.display = 'inline-block';
-      // Limpiar badge "todos votaron" si había quedado
-      const badgeTodos = document.getElementById('todosVotaronBadge');
-      if (badgeTodos) badgeTodos.remove();
+      // Ocultar badges "Votos 100%" si la pregunta cambió o hay nuevos faltantes
+      if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
     } else if (todos.length > 0) {
       badge.style.display = 'none';
       _notificarTodosVotaron(todos.length);
@@ -24937,37 +24950,36 @@ function actualizarBadgeFaltantes() {
       });
     } catch(e) { /* AudioContext no disponible — silencioso */ }
 
-    // ── Badge flotante verde junto al botón de faltantes ─────────
-    const existing = document.getElementById('todosVotaronBadge');
-    if (existing) existing.remove();
+    // ── Badges fijos en presenter y visor PDF ────────────────────
+    const label = `🗳️ Votos 100% (${totalEstudiantes})`;
 
-    const badge = document.createElement('span');
-    badge.id = 'todosVotaronBadge';
-    badge.textContent = `✅ Todos (${totalEstudiantes})`;
-    badge.style.cssText = `
-      display:inline-flex;align-items:center;gap:4px;
-      background:linear-gradient(135deg,#16a34a,#22c55e);
-      color:#fff;font-weight:700;font-size:0.75rem;
-      padding:4px 12px;border-radius:20px;
-      box-shadow:0 0 0 0 rgba(34,197,94,.7);
-      animation:todosVotaronPulse 1s ease-out 3;
-      white-space:nowrap;cursor:default;
-    `;
-
-    // Insertar junto al badge de faltantes existente
-    const faltaBadge = document.getElementById('faltanBadge');
-    if (faltaBadge?.parentElement) {
-      faltaBadge.parentElement.insertBefore(badge, faltaBadge.nextSibling);
-    } else {
-      // Fallback: top-bar del presentador o barra de control
-      const bar = document.getElementById('presenterTopBar') ||
-                  document.getElementById('liveControlsBar') ||
-                  document.body;
-      bar.appendChild(badge);
+    const pb = document.getElementById('presenterVotosBadge');
+    if (pb) {
+      pb.textContent = label;
+      pb.style.display = 'inline-block';
+      // Reiniciar animación
+      pb.style.animation = 'none';
+      pb.offsetWidth; // reflow
+      pb.style.animation = 'todosVotaronPulse 1s ease-out 3';
     }
 
-    // Auto-desaparecer después de 12 s
-    setTimeout(() => { if (badge.parentElement) badge.remove(); }, 12000);
+    const sb = document.getElementById('spfVotosBadge');
+    if (sb) {
+      sb.textContent = label;
+      sb.style.display = 'inline-block';
+      sb.style.animation = 'none';
+      sb.offsetWidth;
+      sb.style.animation = 'todosVotaronPulse 1s ease-out 3';
+    }
+  };
+
+  // Ocultar badges cuando se cierra la pregunta
+  window._ocultarBadgeVotos = function() {
+    _lastNotifiedQuestion = null;
+    const pb = document.getElementById('presenterVotosBadge');
+    if (pb) pb.style.display = 'none';
+    const sb = document.getElementById('spfVotosBadge');
+    if (sb) sb.style.display = 'none';
   };
 })();
 
