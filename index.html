@@ -3586,6 +3586,7 @@ body.dark .resp-col-name { color: white !important; }
 
 
 /* Modales dinámicos y acordeón por encima del presentador (z-index: 50000) */
+#studentHistorialModal,
 #abrQModal,
 #aoCompletionModal,
 #multiSessionQueryModal,
@@ -3594,14 +3595,9 @@ body.dark .resp-col-name { color: white !important; }
 #codigoModal,
 #rankingAcumuladoModal,
 #recordsHistoricosModal,
-#pdfZoomModal,
+#pdfZoomModal
 #modalNoVotantes {
   z-index: 100000 !important;
-}
-
-/* Historial de estudiante debe quedar siempre encima de todo, incluyendo el modal flotante */
-#studentHistorialModal {
-  z-index: 10000000 !important;
 }
 
 /* Acordeón flotante y sus hijos por encima del presentador */
@@ -4528,7 +4524,6 @@ body.dark .resp-col-name { color: white !important; }
     <div class="total-label">
   👥 Total: <strong id="totalVotesVivo">0</strong>
   <span id="faltanBadgeVivo" style="display: none; background: #c0392b; color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; margin-left: 8px;"></span>
-  <span id="votosBadgeVivo" style="display:none;font-size:0.65rem;font-weight:700;padding:3px 9px;border-radius:40px;white-space:nowrap;margin-left:8px;background:linear-gradient(135deg,#14532d,#16a34a);color:#bbf7d0;border:1px solid #22c55e;animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
 </div>
 
     <div id="codigoClasePanel" style="display:none;margin-top:10px;background:linear-gradient(135deg,#0f2b3d,#1e4a6b);border-radius:16px;padding:10px 14px;">
@@ -4952,16 +4947,8 @@ María López"></textarea>
 </div>
  
     
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;"><span id="pvpStatusBadge" class="pvp-closed">🔒 Sin pregunta activa</span></div>
-      <span id="pvpVotosBadge" style="
-        display:none;font-size:0.65rem;font-weight:700;
-        padding:3px 9px;border-radius:40px;white-space:nowrap;
-        background:linear-gradient(135deg,#14532d,#16a34a);
-        color:#bbf7d0;border:1px solid #22c55e;
-        animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
-    </div>
-
+    <span id="pvpStatusBadge" class="pvp-closed">🔒 Sin pregunta activa</span>
+    
 <button id="openPresenterBtnModal" style="width:100%; background:linear-gradient(135deg,#8e44ad,#9b59b6); color:white; border:none; border-radius:40px; padding:8px; margin-bottom:12px; font-weight:700; cursor:pointer;">
           📽️ Abrir modo presentador
         </button>
@@ -5040,7 +5027,7 @@ María López"></textarea>
 </div>
 
 
-<div id="studentHistorialModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:10000000 !important;align-items:center;justify-content:center;">
+<div id="studentHistorialModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:40000;align-items:center;justify-content:center;">
   <div style="background:var(--card);border-radius:24px;padding:1.5rem;max-width:90vw;max-height:85vh;overflow-y:auto;min-width:300px;width:420px;position:relative;box-shadow:0 20px 40px rgba(0,0,0,.3);">
     <button id="studentHistorialClose" style="position:absolute;top:10px;right:10px;background:#e74c3c;border:none;border-radius:50%;width:32px;height:32px;color:white;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
     <div style="text-align:center;margin-bottom:1rem;padding-right:30px;">
@@ -5073,6 +5060,20 @@ María López"></textarea>
     </div>
     <div id="abrQModalTotal"></div>
     <div id="abrQModalPct"></div>
+    <div id="abrFelicitarWrap" style="display:none;margin-top:10px;text-align:center;">
+      <button id="abrBtnFelicitar" style="background:linear-gradient(90deg,#f39c12,#f1c40f);border:none;border-radius:40px;padding:8px 20px;font-size:.8rem;font-weight:700;color:#333;cursor:pointer;">🎉 Felicitar Ganadores</button>
+    </div>
+  </div>
+</div>
+
+<div id="felicitarModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:60000;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:var(--card);border-radius:28px;padding:28px 24px;width:92%;max-width:440px;text-align:center;box-shadow:0 24px 48px rgba(0,0,0,.4);position:relative;">
+    <button onclick="document.getElementById('felicitarModal').style.display='none'" style="position:absolute;top:12px;right:14px;background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);">✕</button>
+    <div style="font-size:2.2rem;margin-bottom:8px;">🎉😊</div>
+    <div style="font-size:1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;">¡Felicitaciones!</div>
+    <div id="felicitarSubtitulo" style="font-size:.8rem;color:var(--text-secondary);margin-bottom:14px;"></div>
+    <div id="felicitarNombres" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px;"></div>
+    <div style="font-size:1.6rem;letter-spacing:4px;" id="felicitarCaritas"></div>
   </div>
 </div>
 
@@ -5520,14 +5521,7 @@ María López"></textarea>
     
     <div id="spfQuestionBadge" onclick="cerrarPdfFullscreen()">🔓 ¡Pregunta abierta! — Toca para votar</div>
 
-    <div id="spfVotosBadge" style="
-      display:none;font-size:0.72rem;font-weight:700;
-      padding:4px 12px;border-radius:40px;white-space:nowrap;
-      background:linear-gradient(135deg,#14532d,#16a34a);
-      color:#bbf7d0;border:1px solid #22c55e;
-      animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</div>
-
-
+    
     <button id="spfCloseBtn" style="background:#c0392b;color:white;border:none;border-radius:40px;padding:6px 18px;font-size:0.78rem;font-weight:700;cursor:pointer;">✕ Salir</button>
   </div>
 
@@ -6008,57 +6002,6 @@ María López"></textarea>
     50%      { opacity:0.5; transform:scale(1.3); }
 }
 </style>
-
-
-
-
-<script>
-(function(){
-  const IDS_BADGE_VOTOS = ['presenterVotosBadge','spfVotosBadge','pvpVotosBadge','votosBadgeVivo'];
-
-  window._notificarTodosVotaron=function(total){
-    const qId=activeQuestionId;
-    if(!qId||window._lastQ===qId)return;
-    window._lastQ=qId;
-    try{
-      const ctx=new(window.AudioContext||window.webkitAudioContext)();
-      [[880,0,0.12],[1100,0.13,0.1],[1320,0.24,0.14]].forEach(([freq,start,dur])=>{
-        const osc=ctx.createOscillator();const gain=ctx.createGain();
-        osc.type='sine';osc.frequency.value=freq;
-        gain.gain.setValueAtTime(0,ctx.currentTime+start);
-        gain.gain.linearRampToValueAtTime(0.18,ctx.currentTime+start+0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
-        osc.connect(gain);gain.connect(ctx.destination);
-        osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+dur+0.05);
-      });
-    }catch(e){}
-    const label='🗳️ Votos 100% ('+total+')';
-    IDS_BADGE_VOTOS.forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el)return;
-      el.textContent=label;el.style.display='inline-block';
-      el.style.animation='none';el.offsetWidth;
-      el.style.animation='todosVotaronPulse 1s ease-out 3';
-    });
-  };
-
-  window._ocultarBadgeVotos=function(){
-    window._lastQ=null;
-    IDS_BADGE_VOTOS.forEach(id=>{
-      const el=document.getElementById(id);if(el)el.style.display='none';
-    });
-  };
-})();
-
-(function(){
-  if(document.getElementById('todosVotaronStyle'))return;
-  const s=document.createElement('style');s.id='todosVotaronStyle';
-  s.textContent='@keyframes todosVotaronPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7);transform:scale(1);}50%{box-shadow:0 0 0 10px rgba(34,197,94,0);transform:scale(1.06);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);transform:scale(1);}}';
-  document.head.appendChild(s);
-})();
-</script>
-
-
 
 </body>
 
@@ -7257,75 +7200,9 @@ function saveBancoLocal(){
 
 // Offline banner
 
-window.addEventListener('online', ()=>{
-  document.getElementById('offlineBanner').style.display='none';
-  // ── WAL sync: reintentar votos guardados offline ─────────────
-  syncWalVotos();
-});
+window.addEventListener('online', ()=>document.getElementById('offlineBanner').style.display='none');
 
 window.addEventListener('offline',()=>document.getElementById('offlineBanner').style.display='block');
-
-// ── Reintento con backoff para escritura de voto ─────────────────────────
-function avisoVotoPendiente(mostrar) {
-  let el = document.getElementById('avisoVotoPendiente');
-  if (!mostrar) { if (el) el.remove(); return; }
-  if (el) return;
-  el = document.createElement('div');
-  el.id = 'avisoVotoPendiente';
-  el.textContent = '⚠️ Sin conexión: tu voto se enviará al reconectar. No cierres ni recargues esta pestaña.';
-  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2147483647;padding:10px 14px;background:#b45309;color:#fff;font:600 14px/1.3 system-ui,sans-serif;text-align:center;';
-  document.body.appendChild(el);
-}
-async function escribirVotoConReintento(ref, datos, intentos = 3) {
-  const _t = setTimeout(() => avisoVotoPendiente(true), 6000);
-  try {
-    return await escribirVotoConReintentoBase(ref, datos, intentos);
-  } finally {
-    clearTimeout(_t);
-    avisoVotoPendiente(false);
-  }
-}
-async function escribirVotoConReintentoBase(ref, datos, intentos = 3) {
-  for (let i = 0; i < intentos; i++) {
-    try {
-      await ref.set(datos);
-      return true;
-    } catch (err) {
-      if (i === intentos - 1) {
-        // Último intento fallido → guardar en WAL local
-        try {
-          const wal = JSON.parse(localStorage.getItem('alau_wal_votos') || '[]');
-          wal.push({ refPath: ref.toString(), datos, ts: Date.now() });
-          localStorage.setItem('alau_wal_votos', JSON.stringify(wal));
-        } catch {}
-        console.warn('[AlaU] Voto guardado en WAL local tras', intentos, 'intentos');
-        return false;
-      }
-      // Backoff: 300ms → 900ms → 2700ms
-      await new Promise(r => setTimeout(r, 300 * Math.pow(3, i)));
-    }
-  }
-}
-
-// Función de sync del WAL de votos (llamar en evento 'online')
-async function syncWalVotos() {
-  const raw = localStorage.getItem('alau_wal_votos');
-  if (!raw) return;
-  let wal;
-  try { wal = JSON.parse(raw); } catch { return; }
-  const pendientes = [];
-  for (const entrada of wal) {
-    try {
-      await db.refFromURL(entrada.refPath).set(entrada.datos);
-    } catch {
-      pendientes.push(entrada); // conservar los que aún fallan
-    }
-  }
-  localStorage.setItem('alau_wal_votos', JSON.stringify(pendientes));
-  if (pendientes.length === 0) console.log('[AlaU] WAL votos sincronizado ✅');
-  else console.warn('[AlaU] WAL votos: quedan', pendientes.length, 'pendientes');
-}
-// ─────────────────────────────────────────────────────────────────────────
 
 // ── MEJORA 1: Contraseña hasheada (ofuscación básica) — REEMPLAZADA POR FIREBASE AUTH ──
 
@@ -8060,8 +7937,17 @@ const TABLA_CUARTILES = {
 
 };
 
-function calcularNivelPMAP(velocidad, nivelItem) {
-    // Calculo local — el servidor PMAP procesa la sesion completa al cerrar
+async function calcularNivelPMAP(velocidad, nivelItem) {
+    try {
+        const resp = await fetch(
+            `https://alau2.lostutores.co/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
+        );
+        const data = await resp.json();
+        if (data.ok) return { nivelPMAP: data.nivelPMAP, cuartil: data.cuartil };
+    } catch(e) {
+        console.warn('⚠️ No se pudo calcular PMAP en servidor, usando fallback');
+    }
+    // Fallback mínimo — sin revelar la lógica real
     return { nivelPMAP: nivelItem || '', cuartil: 'Q3' };
 }
 
@@ -8894,10 +8780,6 @@ async function checkPass(){
   try{
 
     await auth.signInWithEmailAndPassword(email, password);
-
-    // Guardar credenciales para restauración automática ante expiración de token
-    localStorage.setItem('alau_teacher_email', email);
-    localStorage.setItem('alau_teacher_pass', password);
 
     document.getElementById('passModal').classList.remove('open');
 
@@ -9977,7 +9859,6 @@ function enterTeacher() {
 
   showScreen('screenTeacher');
 
-  participantesMap.clear();
   listenResults();
 
   listenHistorialConCache();
@@ -10138,9 +10019,6 @@ document.getElementById('teacherLogoutBtn').addEventListener('click', async () =
   document.getElementById('sesionActivaBadge').style.display = 'none';
 
   try { await auth.signOut(); } catch(e) {}
-
-  localStorage.removeItem('alau_teacher_email');
-  localStorage.removeItem('alau_teacher_pass');
 
   currentRole = null;
 
@@ -10313,7 +10191,7 @@ document.getElementById('launchBtn').addEventListener('click',async()=>{
   currentLiveQuestion={ id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
-window._lastQ = null;
+
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
   await responsesRef.remove();
@@ -10322,7 +10200,7 @@ window._lastQ = null;
 
   // Resetear contadores locales al lanzar nueva pregunta
 
-  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[]; participantesMap.clear();
+  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[];
 
   setQStatusBadge(true,text);
 
@@ -10404,7 +10282,7 @@ function clearResultsUI() {
 
   voteTotal = 0;
 
-  responsesCache = []; participantesMap.clear();
+  responsesCache = [];
 
   updateBars('', voteCounts, 0);
 
@@ -10454,7 +10332,7 @@ async function cerrarPreguntaActual() {
 
     voteTotal = 0;
 
-    responsesCache = []; participantesMap.clear();
+    responsesCache = [];
 
     updateBars('', voteCounts, 0);
 
@@ -10557,12 +10435,7 @@ if (totalVivo) totalVivo.textContent = voteTotal;
 
     const q = snap.val();
 
-    if (!q) {
-      window._preguntaAbierta = false;
-      return;
-    }
-
-    window._preguntaAbierta = (q.open === true);
+    if (!q) return;
 
     setQStatusBadge(q.open, q.text || '');
 
@@ -10581,8 +10454,6 @@ if (totalVivo) totalVivo.textContent = voteTotal;
       activeQuestionId = null;
 
     }
-
-    actualizarBadgeFaltantes();
 
   });
 
@@ -10702,49 +10573,6 @@ function renderRespGrid(){
 
   });
 
-}
-
-// Versión generalizada: renderiza el grid de respuestas en cualquier contenedor
-// Usada por el modal flotante para tener listeners activos (cloneNode los pierde)
-function renderRespGridEn(cont) {
-  if (!cont) return;
-  const grupos = {A:[],B:[],C:[],D:[]};
-  responsesCache.forEach(r=>{
-    let opt = r.option?r.option.toString().trim().toUpperCase():'';
-    const m = opt.match(/[A-D]/); opt = m?m[0]:null;
-    if(opt) grupos[opt].push(r);
-  });
-  const optsConVotos = ['A','B','C','D'].filter(o=>grupos[o].length>0);
-  if(!optsConVotos.length){
-    cont.innerHTML='<p style="color:var(--text-muted);font-size:.8rem;text-align:center;padding:.5rem;grid-column:1/-1;">Sin respuestas aún</p>';
-    return;
-  }
-  cont.style.display = 'grid';
-  cont.style.gridTemplateColumns = `repeat(${optsConVotos.length},1fr)`;
-  cont.innerHTML = '';
-  const colLabels = {A:'🔴 Opción A',B:'🔵 Opción B',C:'🟡 Opción C',D:'🟢 Opción D'};
-  const colClass  = {A:'resp-col-a',B:'resp-col-b',C:'resp-col-c',D:'resp-col-d'};
-  optsConVotos.forEach(opt=>{
-    const col = document.createElement('div');
-    col.className = `resp-col ${colClass[opt]}`;
-    const header = document.createElement('div');
-    header.className = 'resp-col-header';
-    header.textContent = `${colLabels[opt]} (${grupos[opt].length})`;
-    col.appendChild(header);
-    const body = document.createElement('div');
-    body.className = 'resp-col-body';
-    grupos[opt].forEach(r=>{
-      const nombre = document.createElement('div');
-      nombre.className = 'resp-col-name';
-      nombre.textContent = r.student||'—';
-      nombre.title = `Ver historial de ${r.student}`;
-      nombre.style.cursor = 'pointer';
-      nombre.addEventListener('click', ()=> abrirHistorialEstudiante(r.student));
-      body.appendChild(nombre);
-    });
-    col.appendChild(body);
-    cont.appendChild(col);
-  });
 }
 
 function appendToRespTable(r){
@@ -14997,6 +14825,30 @@ function abrAbrirModal(num, qId, counts, banco){
 
   } else { pctEl.style.display='none'; }
 
+  // Botón felicitar — solo si hay correcta y hay acertantes
+  const felWrap = document.getElementById('abrFelicitarWrap');
+  const _acertantes = correcta ? (counts[correcta] || []) : [];
+  if(correcta && _acertantes.length > 0){
+    felWrap.style.display = 'block';
+    document.getElementById('abrBtnFelicitar').onclick = () => {
+      const nombres = _acertantes;
+      document.getElementById('felicitarSubtitulo').textContent =
+        `${nombres.length} estudiante${nombres.length!==1?'s':''} acertaron esta pregunta:`;
+      const cont = document.getElementById('felicitarNombres');
+      cont.innerHTML = '';
+      nombres.forEach(n => {
+        const chip = document.createElement('span');
+        chip.textContent = n;
+        chip.style.cssText = 'background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:700;';
+        cont.appendChild(chip);
+      });
+      document.getElementById('felicitarCaritas').textContent = '😊'.repeat(Math.min(nombres.length, 10));
+      document.getElementById('felicitarModal').style.display = 'flex';
+    };
+  } else {
+    felWrap.style.display = 'none';
+  }
+
   modal.classList.add('open');
 
 }
@@ -15412,24 +15264,6 @@ document.getElementById('pvpCorrectSelect').addEventListener('focus', e=> e.targ
 
 document.getElementById('pvpCorrectSelect').addEventListener('blur',  e=> delete e.target.dataset.userEditing);
 
-// ── Guard de autenticación para acciones del docente ──
-async function ensureTeacherAuth() {
-  if (auth.currentUser) {
-    try { await auth.currentUser.getIdToken(true); return true; } catch(e) {}
-  }
-  const savedEmail = localStorage.getItem('alau_teacher_email');
-  const savedPass  = localStorage.getItem('alau_teacher_pass');
-  if (savedEmail && savedPass) {
-    try {
-      await auth.signInWithEmailAndPassword(savedEmail, savedPass);
-      console.log('✅ Sesión docente restaurada automáticamente');
-      return true;
-    } catch(e) { console.warn('No se pudo restaurar sesión docente:', e.message); }
-  }
-  alert('Tu sesión expiró. Por favor vuelve a iniciar sesión como docente.');
-  return false;
-}
-
 // Botón Abrir votación
 
 document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
@@ -15439,8 +15273,6 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   if(!text){ alert('Escribe una pregunta'); return; }
 
   if(!questionRef){ alert('Abre una sesión primero'); return; }
-
-  if(!(await ensureTeacherAuth())) return;
 
   const correct = document.getElementById('pvpCorrectSelect').value||null;
 
@@ -15453,14 +15285,13 @@ document.getElementById('pvpLaunchBtn').addEventListener('click', async()=>{
   currentLiveQuestion = { id:qId, text, correct, openedAt:qId, numero:numeroPregunta };
 
   activeQuestionId = qId;   // 🔥 NUEVO
-  window._lastQ = null;
 
   await questionRef.set({id:qId,text,correct,open:true,openedAt:qId,shareResults:false});
 
   await responsesRef.remove();
 
 
-  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[]; participantesMap.clear();
+  voteCounts={A:0,B:0,C:0,D:0}; voteTotal=0; responsesCache=[];
 
   const btn = document.getElementById('pvpLaunchBtn');
 
@@ -15506,8 +15337,6 @@ async function lanzarPreguntaDesdeInputs() {
 
   activeQuestionId = qId;
 
-   window._lastQ = null;
-
   await questionRef.set({
 
     id: qId,
@@ -15533,7 +15362,7 @@ async function lanzarPreguntaDesdeInputs() {
   voteTotal = 0;
 
   responsesCache = [];
-participantesMap.clear();
+
   setQStatusBadge(true, text);
 
   // Actualizar la UI del modal PDF (barras, etc.)
@@ -15549,8 +15378,6 @@ participantesMap.clear();
 document.getElementById('pvpCloseBtn').addEventListener('click', async()=>{
 
   if(!questionRef) return;
-
-  if(!(await ensureTeacherAuth())) return;
 
   await questionRef.update({open:false,shareResults:true});
 
@@ -18790,7 +18617,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
       const condicionAzar = tObs <= t0First;
       const diagnostico = clasificarRespuesta(opt, correctaActual, tiempoFinal);
 
-      await escribirVotoConReintento(responsesRef.child(voteKey), {
+      await responsesRef.child(voteKey).set({
         questionId: activeQuestionId,
         student: studentName,
         normalizedName: normalizedName,
@@ -18865,52 +18692,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
           plausibilidad: tRect > 5 ? 'alta' : tRect > 2 ? 'media' : 'baja'
         });
       }
-
-      // ── HOOK PMAP Bridge ─────────────────────────────────────────
-      // Dispara SOLO después de que el voto esté confirmado en Firebase.
-      // mh_id / codigo_error / mh_negativa ya fueron leídos del banco arriba.
-      // NUNCA exponer: códigos MH, sintaxis MR, etiquetas N1-N4, estructura
-      // canónica del protocolo, mh_id, mr_id, codigo_error en claro al LLM.
-      try {
-        let _pmapMhId = null, _pmapCodErr = null, _pmapMhNeg = null;
-        const _uidPmap = auth.currentUser?.uid;
-        if (_uidPmap && SESSION_ID) {
-          try {
-            const _mapSnap = await db.ref(
-              `banco/cuestionarios/TAMIZAJE-GAGEM5-2026/mapeo/${activeQuestionId}`
-            ).once('value');
-            const _itemIdReal = _mapSnap.val() || activeQuestionId;
-            const _itemSnap = await db.ref(`banco/items/${_itemIdReal}`).once('value');
-            const _itemData = _itemSnap.val();
-            if (_itemData) {
-              _pmapMhId = _itemData.mh_id || null;
-              if (_itemData.respuesta_correcta !== opt && _itemData.distractores?.[opt]) {
-                _pmapCodErr = _itemData.distractores[opt].codigo_error || null;
-                _pmapMhNeg = _itemData.distractores[opt].mh_negativa || null;
-              }
-            }
-          } catch(e) { /* silent — Bridge funciona sin metadata canónica */ }
-        }
-
-        const _payload = {
-          alumno:         normalizeName(studentName),
-          opcionElegida:  opt,
-          opcionCorrecta: correctaActual,
-          tiempoMs:       tiempoFinal * 1000,
-          // Metadatos de ítem (solo lo seguro para enviar al Bridge)
-          mhId:           _pmapMhId,
-          codigoError:    _pmapCodErr,
-          mh_negativa:    _pmapMhNeg,
-          area:           null,
-          itemIndex:      null,
-          // Metadatos de sesión
-          sesionId:       SESSION_ID,
-          institucion:    studentInstitucion || localStorage.getItem('alau_student_institucion') || '',
-          grado:          localStorage.getItem('alau_student_grado') || '',
-        };
-        window.dispatchEvent(new CustomEvent('alau:respuesta', { detail: _payload }));
-      } catch(e) { console.warn('[AlaU] Hook PMAP Bridge falló silenciosamente:', e.message); }
-      // ─────────────────────────────────────────────────────────────
 
       await establecerPresenciaEstudiante();
       alreadyAnswered = true;
@@ -19778,7 +19559,7 @@ function actualizarOnlineCountOptimizado() {
 
   // 3. Añadir estudiantes del historial (si no hay pregunta activa)
 
-  if ((!activeQuestionId || window._preguntaAbierta !== true) && historialRef) {
+  if ((!activeQuestionId || !currentLiveQuestion?.open) && historialRef) {
 
     // Usar el último snapshot cacheado del historial
 
@@ -19880,7 +19661,7 @@ async function actualizarOnlineCountCompleto() {
 
     // 2. Si hay pregunta activa, añadir estudiantes que han votado (desde responsesCache que ya tenemos)
 
-    if (activeQuestionId && window._preguntaAbierta === true) {
+    if (activeQuestionId && currentLiveQuestion?.open) {
 
       responsesCache.forEach(r => {
 
@@ -20493,43 +20274,56 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
   try {
     if (sessionRef) {
       await sessionRef.child('sessionEnded').set(true);
-      // PMAP - procesar sesion al finalizar (modo clase viva)
-      let sesionPath = null;
-      let presencia = {};
+      // 🧠 PMAP — procesar sesión al finalizar
       try {
-        sesionPath = sessionRef.toString().split('/sessions/')[1];
+        const uidDocente = auth.currentUser?.uid;
+        const sesionPath = sessionRef.toString().split('/sessions/')[1];
+        
+        // Obtener lista de estudiantes de la sesión
         const presenciaSnap = await sessionRef.child('presencia').once('value');
-        presencia = presenciaSnap.val() || {};
+        const presencia = presenciaSnap.val() || {};
+        
+        // Procesar PMAP para cada estudiante
         const metaSnap = await sessionRef.child('_meta').once('value');
         const meta = metaSnap.val() || {};
-        const responsesSnap = await sessionRef.child('responses').once('value');
-        const todasLasRespuestas = responsesSnap.val() || {};
-        const votosArray = Object.values(todasLasRespuestas);
-
+        
         for (const [estudianteKey, datos] of Object.entries(presencia)) {
-          if (datos.uid == null) continue;
+          if (!datos.uid) continue;
 
-          const sesionesSnap = await db.ref('estudiantes/' + datos.uid + '/sesiones').once('value');
+          // Verificar si ya existe sesión previa del mismo cuestionario
+          const sesionesSnap = await db.ref(`estudiantes/${datos.uid}/sesiones`).once('value');
           const sesionesExistentes = sesionesSnap.val() || {};
-          const yaExiste = Object.values(sesionesExistentes).some(function(sx){ return sx.cuestionarioId === (meta.cuestionarioId || ''); });
-          if (yaExiste) { console.log('PMAP ya procesado para ' + datos.uid); continue; }
-
-          const votosEstudiante = votosArray.filter(function(v){ return v.uid === datos.uid; });
-          if (votosEstudiante.length === 0) { console.log('Sin votos para ' + datos.uid); continue; }
-
-          const respuestas = votosEstudiante.map(function(v){ return { itemId: v.itemId||v.questionId||null, opcion: v.option||null, correcta: v.correct||null, esCorrecta: v.esCorrecta||false, tipoRespuesta: v.tipoRespuesta||null, tObs: v.tObs||0, mh_negativa: v.mh_negativa||null }; });
+          const yaExiste = Object.values(sesionesExistentes).some(
+            s => s.cuestionarioId === (meta.cuestionarioId || '')
+          );
+          if (yaExiste) {
+            console.log(`⚠️ PMAP ya procesado para ${datos.uid} en ${meta.cuestionarioId}`);
+            continue;
+          }
 
           try {
-            const pmapResp = await fetch('https://tutor1.fedusocial.org/bbb-api/pmap-sesion', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-alau-token': 'alau-api-2026-xK9mP3nQ', 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() }, body: JSON.stringify({ uid: datos.uid, estudiante: datos.nombre||estudianteKey, sesionId: meta.cuestionarioId||sesionPath||'', area: meta.cuestionarioNombre||'', documento: '', respuestas: respuestas }) });
-            if (pmapResp.ok) { console.log('PMAP enviado para ' + (datos.nombre||datos.uid)); } else { console.warn('PMAP status ' + pmapResp.status + ' para ' + datos.uid); }
-          } catch(pmapErr) { console.warn('PMAP error para ' + datos.uid + ': ' + pmapErr.message); }
+            await fetch('/api/pmap-procesar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                uid: datos.uid,
+                sesionPath: sesionPath,
+                cuestionarioId: meta.cuestionarioId || '',
+                area: meta.cuestionarioNombre || ''
+              })
+            });
+            
+          } catch(pmapErr) {
+            console.warn('⚠️ PMAP error para', datos.uid, pmapErr.message);
+          }
         }
-        console.log('PMAP procesado para todos los estudiantes');
+        console.log('✅ PMAP procesado para todos los estudiantes');
       } catch(pmapErr) {
-        console.warn('Error procesando PMAP: ' + pmapErr.message);
-        console.log('PMAP sesionPath: ' + sesionPath);
-        console.log('PMAP presencia: ' + JSON.stringify(presencia));
+        console.warn('⚠️ Error procesando PMAP:', pmapErr.message);
+        console.log('🧠 PMAP sesionPath:', sesionPath);
+        console.log('🧠 PMAP presencia:', JSON.stringify(presencia));
       }
+      // ← ELIMINAR las dos líneas de videoCallRef y cerrarJitsiDocente
     }
     if (codigoActual) {
       await db.ref(`activeCodes/${codigoActual}`).remove();
@@ -20807,7 +20601,7 @@ async function cargarRespuestasEstudiante(nombreEstudiante) {
 
     // 2. Pregunta activa actual (si existe y el estudiante ha respondido)
 
-    if (activeQuestionId && window._preguntaAbierta === true) {
+    if (activeQuestionId && currentLiveQuestion?.open) {
 
       const respuestaActiva = responsesCache.find(r => 
 
@@ -22167,30 +21961,6 @@ function abrirModoPresentador() {
         padding:4px 10px;font-size:0.68rem;cursor:pointer;
         white-space:nowrap;">⟳ 100%</button>
 
-      <button id="presenterMagnifierBtn" title="Lupa (Z)" style="
-        background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);
-        border:1px solid rgba(255,255,255,0.2);border-radius:40px;
-        padding:5px 12px;font-size:0.78rem;cursor:pointer;
-        white-space:nowrap;transition:background .2s,border-color .2s;">🔍 Lupa</button>
-
-      <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
-
-      <button id="presenterLaunchVotacion" style="
-        background:linear-gradient(90deg,#27ae60,#2ecc71);color:white;border:none;
-        border-radius:40px;padding:6px 14px;font-weight:700;font-size:0.78rem;
-        cursor:pointer;white-space:nowrap;">▶️ Votación</button>
-
-      <button id="presenterCerrarVotacion" style="
-        background:linear-gradient(90deg,#c0392b,#e74c3c);color:white;border:none;
-        border-radius:40px;padding:6px 14px;font-weight:700;font-size:0.78rem;
-        cursor:pointer;white-space:nowrap;">🔒 Cerrar</button>
-
-      <span id="presenterStatusBadge" style="
-        font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:40px;
-        white-space:nowrap;background:#2d1117;color:#e74c3c;">🔒 Sin pregunta activa</span>
-<span id="presenterVotosBadge" style="display:none;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:40px;white-space:nowrap;background:linear-gradient(135deg,#14532d,#16a34a);color:#bbf7d0;border:1px solid #22c55e;animation:todosVotaronPulse 1s ease-out 3;">🗳️ Votos 100%</span>
- 
-
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
       <button id="presenterFullscreenBtn" style="
@@ -23085,186 +22855,6 @@ function abrirModoPresentador() {
   }
 
   document.getElementById('presenterCloseOverlay').onclick = cerrarPresentador;
-
-  // ── LUPA (Magnifier) ─────────────────────────────────────────────────────
-  (function() {
-    let magnifierActive = false;
-    const LENS_R   = 120;  // radio de la lupa en px
-    const ZOOM_MAG = 2.5;  // factor de ampliación
-
-    // Crear el canvas de la lupa
-    const lensCanvas = document.createElement('canvas');
-    lensCanvas.id = 'presenterLensCanvas';
-    lensCanvas.width  = LENS_R * 2;
-    lensCanvas.height = LENS_R * 2;
-    lensCanvas.style.cssText = `
-      position:absolute;
-      width:${LENS_R*2}px;height:${LENS_R*2}px;
-      border-radius:50%;
-      border:3px solid rgba(255,255,255,0.85);
-      box-shadow:0 0 0 2px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.7);
-      pointer-events:none;
-      display:none;
-      z-index:99999;
-      transform:translate(-50%,-50%);
-    `;
-    // Línea de mira
-    const crosshair = document.createElement('div');
-    crosshair.style.cssText = `
-      position:absolute;width:${LENS_R*2}px;height:${LENS_R*2}px;
-      border-radius:50%;pointer-events:none;display:none;z-index:100000;
-      transform:translate(-50%,-50%);
-    `;
-    crosshair.innerHTML = `
-      <svg width="${LENS_R*2}" height="${LENS_R*2}" style="position:absolute;top:0;left:0;">
-        <line x1="${LENS_R}" y1="6" x2="${LENS_R}" y2="${LENS_R*2-6}" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
-        <line x1="6" y1="${LENS_R}" x2="${LENS_R*2-6}" y2="${LENS_R}" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
-      </svg>`;
-
-    const overlay = document.getElementById('presenterOverlay');
-    overlay.appendChild(lensCanvas);
-    overlay.appendChild(crosshair);
-
-    const lensCtx = lensCanvas.getContext('2d');
-
-    function drawLens(mouseX, mouseY) {
-      const img = document.getElementById('presenterOverlayImg');
-      if (!img || !img.complete) return;
-
-      // Posición del mouse relativa al overlay
-      const oRect = overlay.getBoundingClientRect();
-      const iRect = img.getBoundingClientRect();
-
-      // Fracción del cursor dentro de la imagen
-      const fx = (mouseX - iRect.left)  / iRect.width;
-      const fy = (mouseY - iRect.top)   / iRect.height;
-
-      // Coordenadas en píxeles de imagen natural (source)
-      const natW = img.naturalWidth  || img.width;
-      const natH = img.naturalHeight || img.height;
-
-      // Cuántos px naturales caben en el radio de la lupa a escala 1/ZOOM_MAG
-      const srcR  = LENS_R / ZOOM_MAG * (natW / iRect.width);
-      const srcCX = fx * natW;
-      const srcCY = fy * natH;
-
-      // Recortar en círculo
-      lensCtx.clearRect(0, 0, LENS_R*2, LENS_R*2);
-      lensCtx.save();
-      lensCtx.beginPath();
-      lensCtx.arc(LENS_R, LENS_R, LENS_R, 0, Math.PI*2);
-      lensCtx.clip();
-
-      lensCtx.drawImage(
-        img,
-        srcCX - srcR, srcCY - srcR, srcR*2, srcR*2,
-        0, 0, LENS_R*2, LENS_R*2
-      );
-      lensCtx.restore();
-
-      // Borde interior sutil
-      lensCtx.beginPath();
-      lensCtx.arc(LENS_R, LENS_R, LENS_R-1, 0, Math.PI*2);
-      lensCtx.strokeStyle = 'rgba(255,255,255,0.15)';
-      lensCtx.lineWidth = 2;
-      lensCtx.stroke();
-
-      // Posicionar lupa — offset para que no tape el cursor
-      const relX = mouseX - oRect.left;
-      const relY = mouseY - oRect.top;
-      let lx = relX;
-      let ly = relY - LENS_R - 20;
-      if (ly < LENS_R + 10) ly = relY + LENS_R + 20;
-      if (lx - LENS_R < 4)  lx = LENS_R + 4;
-      if (lx + LENS_R > oRect.width - 4) lx = oRect.width - LENS_R - 4;
-
-      lensCanvas.style.left = lx + 'px';
-      lensCanvas.style.top  = ly + 'px';
-      crosshair.style.left  = lx + 'px';
-      crosshair.style.top   = ly + 'px';
-    }
-
-    function onMouseMove(e) {
-      if (!magnifierActive) return;
-      drawLens(e.clientX, e.clientY);
-    }
-
-    function activateMagnifier() {
-      magnifierActive = true;
-      lensCanvas.style.display = 'block';
-      crosshair.style.display  = 'block';
-      overlay.style.cursor = 'crosshair';
-      const btn = document.getElementById('presenterMagnifierBtn');
-      if (btn) {
-        btn.style.background    = 'rgba(52,152,219,0.5)';
-        btn.style.borderColor   = '#3498db';
-        btn.style.color         = 'white';
-        btn.textContent = '🔍 Lupa ON';
-      }
-      overlay.addEventListener('mousemove', onMouseMove);
-    }
-
-    function deactivateMagnifier() {
-      magnifierActive = false;
-      lensCanvas.style.display = 'none';
-      crosshair.style.display  = 'none';
-      overlay.style.cursor = '';
-      const btn = document.getElementById('presenterMagnifierBtn');
-      if (btn) {
-        btn.style.background  = 'rgba(255,255,255,0.08)';
-        btn.style.borderColor = 'rgba(255,255,255,0.2)';
-        btn.style.color       = 'rgba(255,255,255,0.85)';
-        btn.textContent = '🔍 Lupa';
-      }
-      overlay.removeEventListener('mousemove', onMouseMove);
-    }
-
-    document.getElementById('presenterMagnifierBtn').onclick = () => {
-      if (magnifierActive) deactivateMagnifier();
-      else activateMagnifier();
-    };
-
-    // Atajo de teclado Z
-    document.addEventListener('keydown', function(e) {
-      if (!document.getElementById('presenterOverlay') ||
-          document.getElementById('presenterOverlay').style.display === 'none') return;
-      if (e.key === 'z' || e.key === 'Z') {
-        if (magnifierActive) deactivateMagnifier();
-        else activateMagnifier();
-      }
-    });
-
-    // Limpiar al cerrar el presentador
-    const origCerrar = cerrarPresentador;
-    // Desactivar lupa al cerrar
-    const presCloseBtn = document.getElementById('presenterCloseOverlay');
-    presCloseBtn.addEventListener('click', deactivateMagnifier, {once:false});
-  })();
-  // ── FIN LUPA ─────────────────────────────────────────────────────────────
-
-  document.getElementById('presenterLaunchVotacion').onclick = () => {
-    const btn = document.getElementById('pvpLaunchBtn');
-    if (btn) btn.click();
-  };
-
-  document.getElementById('presenterCerrarVotacion').onclick = () => {
-    const btn = document.getElementById('pvpCloseBtn');
-    if (btn) btn.click();
-    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
-  };
-
-  // Sincronizar badge de estado con el del panel docente
-  const srcBadge = document.getElementById('pvpStatusBadge');
-  const dstBadge = document.getElementById('presenterStatusBadge');
-  if (srcBadge && dstBadge) {
-    const syncBadge = () => {
-      dstBadge.textContent  = srcBadge.textContent;
-      dstBadge.style.background = srcBadge.classList.contains('pvp-open') ? '#0d2818' : '#2d1117';
-      dstBadge.style.color      = srcBadge.classList.contains('pvp-open') ? '#2ecc71' : '#e74c3c';
-    };
-    syncBadge();
-    new MutationObserver(syncBadge).observe(srcBadge, { childList: true, characterData: true, subtree: true, attributes: true });
-  }
 
   // ════════════════════════════════════════════
   // TECLADO
@@ -24513,7 +24103,15 @@ setTimeout(() => actualizarVisibilidadBotonFlotante(), 500);
 
         if (!modalRespuestas || !cuerpoRespuestas) return;
 
-        renderRespGridEn(cuerpoRespuestas);
+        const gridOriginal = document.getElementById('respGrid');
+
+        if (gridOriginal) {
+
+            cuerpoRespuestas.innerHTML = '';
+
+            cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
+
+        }
 
         modalRespuestas.classList.add('open');
 
@@ -24894,34 +24492,65 @@ function obtenerListaCompletaEstudiantesLocal() {
 
   const estudiantesSet = new Set();
 
-  // Total real: todos los estudiantes conectados (presencia)
-  if (window._lastPresenciaSnapshot) {
-    Object.values(window._lastPresenciaSnapshot).forEach(p => {
-      if (p && p.nombre && p.nombre.trim()) estudiantesSet.add(p.nombre.trim());
-    });
+  // 1. Estudiantes que han votado en la pregunta activa (responsesCache)
+
+  responsesCache.forEach(r => {
+
+    if (r.student?.trim()) estudiantesSet.add(r.student.trim());
+
+  });
+
+  // 2. Estudiantes de participantesMap (conteo de respuestas)
+
+  for (const [nombre] of participantesMap.entries()) {
+
+    if (nombre?.trim()) estudiantesSet.add(nombre.trim());
+
   }
 
-  // Por si alguien votó y su presencia aún no llegó
-  responsesCache
-    .filter(r => r.questionId === activeQuestionId && r.student?.trim())
-    .forEach(r => estudiantesSet.add(r.student.trim()));
+  // 3. Estudiantes del historial archivado (snapshot cacheado)
+
+  if (window._lastHistorialSnapshot) {
+
+    Object.values(window._lastHistorialSnapshot).forEach(pregunta => {
+
+      Object.values(pregunta.respuestas || {}).forEach(r => {
+
+        if (r.student?.trim()) estudiantesSet.add(r.student.trim());
+
+      });
+
+    });
+
+  }
+
+  // 4. Presencia (conectados ahora mismo)
+
+  if (window._lastPresenciaSnapshot) {
+
+    Object.values(window._lastPresenciaSnapshot).forEach(p => {
+
+      if (p.nombre?.trim()) estudiantesSet.add(p.nombre.trim());
+
+    });
+
+  }
 
   return Array.from(estudiantesSet).sort((a, b) => a.localeCompare(b));
+
 }
+
 // Actualizar badge de faltantes (usa solo memoria)
 
 
 function actualizarBadgeFaltantes() {
   const badge = document.getElementById('faltanBadge');
-  const badgeVivo = document.getElementById('faltanBadgeVivo');
   const copiarBtn = document.getElementById('copiarNoVotantesBtn');
 
-  if (!activeQuestionId || window._preguntaAbierta !== true) {
+  if (!activeQuestionId || !currentLiveQuestion?.open) {
     if (badge) badge.style.display = 'none';
-    if (badgeVivo) badgeVivo.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
-    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
-    refrescarModalNoVotantes();
+    refrescarModalNoVotantes(); // ✅ NUEVO: también cubrir este caso para el modal
     return;
   }
 
@@ -24932,28 +24561,22 @@ function actualizarBadgeFaltantes() {
   const noVotantes = todos.filter(n => !votantes.has(n));
   const faltan = noVotantes.length;
 
-  const textoFaltan = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
-  [badge, badgeVivo].forEach(b => {
-    if (!b) return;
+  if (badge) {
     if (faltan > 0) {
-      b.textContent = textoFaltan;
-      b.style.display = 'inline-block';
+      badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
+      badge.style.display = 'inline-block';
     } else {
-      b.style.display = 'none';
+      badge.style.display = 'none';
     }
-  });
-
-  if (faltan > 0) {
-    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
-  } else if (todos.length > 0 && votantes.size > 0) {
-    if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
   }
 
+  // Actualizar el panel si está abierto
   const panel = document.getElementById('noVotantesPanel');
   if (panel?.style.display === 'block') {
     renderListaNoVotantes(todos, Array.from(votantes));
   }
 
+  // ✅ NUEVO: también refrescar el modal flotante si está abierto
   refrescarModalNoVotantes();
 }
 
@@ -25196,7 +24819,7 @@ function iniciarActualizacionBadgeFaltantes() {
 
   setInterval(() => {
 
-    if (currentRole === 'teacher' && activeQuestionId && window._preguntaAbierta === true) {
+    if (currentRole === 'teacher' && activeQuestionId && currentLiveQuestion?.open) {
 
       actualizarBadgeFaltantes();
 
@@ -26822,7 +26445,15 @@ function configurarBotonesAcordeon() {
 
         respuestasBtn.addEventListener('click', () => {
 
-            renderRespGridEn(cuerpoRespuestas);
+            const gridOriginal = document.getElementById('respGrid');
+
+            if (gridOriginal) {
+
+                cuerpoRespuestas.innerHTML = '';
+
+                cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
+
+            }
 
             modalRespuestas.classList.add('open');
 
@@ -28965,19 +28596,7 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
                     </td>
                 </tr>
             `).join('');
-
-            // ── Trayectoria PMAP ─────────────────────────────────────────
-            try {
-              const _inst = studentInstitucion || localStorage.getItem('alau_student_institucion') || 'SIN_INST';
-              const _grad = localStorage.getItem('alau_student_grado') || 'SIN_GRADO';
-              const _tray = await leerTrayectoriaPMAP(db, normalizeName(studentName), _inst, _grad);
-              if (_tray) {
-                const _cont = document.getElementById('resumenHistorial');
-                renderTrayectoriaPMAP(_tray, _cont?.parentElement || inner);
-              }
-            } catch(e) { /* PMAP no disponible, historial funciona igual */ }
-            // ─────────────────────────────────────────────────────────────
-
+            
         } catch(err) {
             console.error('Error cargando historial:', err);
             cuerpo.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:40px; color:#f87171;">❌ Error al cargar tu historial</td></tr>';
@@ -29007,69 +28626,6 @@ document.querySelectorAll('.opt-btn').forEach(btn => {
         const colores = { A: '#e74c3c', B: '#3498db', C: '#f39c12', D: '#27ae60' };
         return colores[opt] || '#6c5ce7';
     }
-
-    // ── Trayectoria PMAP: leer y renderizar ─────────────────────
-    async function leerTrayectoriaPMAP(db, alumno, inst, grado) {
-      const snap = await db
-        .ref(`pmap/${inst}/${grado}/estudiantes/${alumno}`)
-        .once('value');
-      if (!snap.exists()) return null;
-      const data = snap.val();
-      const mms = data.micromigraciones || {};
-      const linea = Object.entries(mms)
-        .map(([mhId, mm]) => ({
-          mhId,
-          estado:  mm.estado,
-          cuartil: mm.cuartil,
-          fecha:   mm.fechaCompletacion,
-          nivel:   mm.nivelPMAP ?? null,
-        }))
-        .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-      return {
-        alumno,
-        ultimaSesion:       data.ultima_sesion ?? null,
-        erroresAcumulados:  data.ultima_sesion?.erroresRecientes ?? 0,
-        micromigraciones:   linea,
-        porNivel: linea.reduce((acc, mm) => {
-          const n = mm.nivel ?? 'sin_nivel';
-          acc[n] = (acc[n] || 0) + 1;
-          return acc;
-        }, {}),
-      };
-    }
-
-    function renderTrayectoriaPMAP(tray, contenedor) {
-      if (!tray || !contenedor) return;
-      const nivelColor = {
-        N1: '#0e9ea7', N2: '#1f6feb', N3: '#d29922',
-        N4: '#8957e5', sin_nivel: '#484f58'
-      };
-      const html = `
-        <div style="margin-top:12px;padding:10px 14px;background:#161b22;
-                    border:1px solid #30363d;border-radius:10px;font-family:monospace;">
-          <div style="font-size:10px;font-weight:700;color:#8b949e;
-                      letter-spacing:.5px;margin-bottom:8px;">
-            TRAYECTORIA PMAP — ${tray.alumno.toUpperCase()}
-          </div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
-            ${tray.micromigraciones.map(mm => `
-              <span title="${mm.mhId} · ${mm.estado} · ${mm.fecha||'sin fecha'}"
-                    style="width:10px;height:10px;border-radius:50%;
-                           background:${nivelColor[mm.nivel]||nivelColor.sin_nivel};
-                           opacity:${mm.estado==='completada'?'1':'0.3'};
-                           display:inline-block;cursor:default;"></span>
-            `).join('')}
-          </div>
-          <div style="display:flex;gap:8px;font-size:10px;color:#8b949e;flex-wrap:wrap;">
-            ${Object.entries(tray.porNivel).map(([n,c]) =>
-              `<span style="color:${nivelColor[n]||'#8b949e'};">${n}: ${c}</span>`
-            ).join('')}
-            <span>· errores acum.: ${tray.erroresAcumulados}</span>
-          </div>
-        </div>`;
-      contenedor.insertAdjacentHTML('beforeend', html);
-    }
-    // ─────────────────────────────────────────────────────────────
     
     // Agregar botón en la interfaz del estudiante (junto al botón de editar nombre)
     function agregarBotonHistorial() {
@@ -33205,9 +32761,4 @@ function reproducirAudioTutorEnAdmin(stream) {
     audioEl.srcObject = stream;
 }
 
-
-
-
-
-
-</script>
+</script>
