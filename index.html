@@ -5060,9 +5060,6 @@ María López"></textarea>
     </div>
     <div id="abrQModalTotal"></div>
     <div id="abrQModalPct"></div>
-    <div id="abrFelicitarWrap" style="display:none;margin-top:10px;text-align:center;">
-      <button id="abrBtnFelicitar" style="background:linear-gradient(90deg,#f39c12,#f1c40f);border:none;border-radius:40px;padding:8px 20px;font-size:.8rem;font-weight:700;color:#333;cursor:pointer;">🎉 Felicitar acertantes</button>
-    </div>
   </div>
 </div>
 
@@ -10210,7 +10207,29 @@ document.getElementById('launchBtn').addEventListener('click',async()=>{
 
 });
 
+// ── Popup felicitar acertantes (votación en vivo) ──
+function mostrarFelicitarModal(nombres) {
+  document.getElementById('felicitarSubtitulo').textContent =
+    `${nombres.length} estudiante${nombres.length !== 1 ? 's' : ''} acertaron esta pregunta:`;
+  const cont = document.getElementById('felicitarNombres');
+  cont.innerHTML = '';
+  nombres.forEach(n => {
+    const chip = document.createElement('span');
+    chip.textContent = n;
+    chip.style.cssText = 'background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:700;';
+    cont.appendChild(chip);
+  });
+  document.getElementById('felicitarCaritas').textContent = '😊'.repeat(Math.min(nombres.length, 10));
+  document.getElementById('felicitarModal').style.display = 'flex';
+}
+
 document.getElementById('closeQBtn').addEventListener('click', async () => {
+
+  // ── Capturar acertantes ANTES de limpiar ──
+  const _correctaActiva = document.getElementById('qCorrectSelect')?.value?.trim().toUpperCase() || null;
+  const _acertantes = _correctaActiva
+    ? responsesCache.filter(r => r.option?.trim().toUpperCase() === _correctaActiva).map(r => r.student)
+    : [];
 
   await archivarPreguntaActual(); // <-- ESTA LÍNEA YA DEBERÍA ESTAR, PERO VERIFICA
 
@@ -10219,6 +10238,11 @@ document.getElementById('closeQBtn').addEventListener('click', async () => {
   await questionRef.update({ open: false, shareResults: true });
 
   setQStatusBadge(false, document.getElementById('qTextInput').value);
+
+  // ── Mostrar popup felicitar si hay acertantes ──
+  if (_correctaActiva && _acertantes.length > 0) {
+    mostrarFelicitarModal(_acertantes);
+  }
 
   // 3. Actualizar las barras de resultados (tarjeta principal)
 
@@ -14825,30 +14849,6 @@ function abrAbrirModal(num, qId, counts, banco){
 
   } else { pctEl.style.display='none'; }
 
-  // Botón felicitar — solo si hay correcta y hay acertantes
-  const felWrap = document.getElementById('abrFelicitarWrap');
-  const _acertantes = correcta ? (counts[correcta] || []) : [];
-  if(correcta && _acertantes.length > 0){
-    felWrap.style.display = 'block';
-    document.getElementById('abrBtnFelicitar').onclick = () => {
-      const nombres = _acertantes;
-      document.getElementById('felicitarSubtitulo').textContent =
-        `${nombres.length} estudiante${nombres.length!==1?'s':''} acertaron esta pregunta:`;
-      const cont = document.getElementById('felicitarNombres');
-      cont.innerHTML = '';
-      nombres.forEach(n => {
-        const chip = document.createElement('span');
-        chip.textContent = n;
-        chip.style.cssText = 'background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:700;';
-        cont.appendChild(chip);
-      });
-      document.getElementById('felicitarCaritas').textContent = '😊'.repeat(Math.min(nombres.length, 10));
-      document.getElementById('felicitarModal').style.display = 'flex';
-    };
-  } else {
-    felWrap.style.display = 'none';
-  }
-
   modal.classList.add('open');
 
 }
@@ -15379,6 +15379,12 @@ document.getElementById('pvpCloseBtn').addEventListener('click', async()=>{
 
   if(!questionRef) return;
 
+  // Capturar acertantes antes de cerrar
+  const _pvpCorrecta = document.getElementById('pvpCorrectSelect')?.value?.trim().toUpperCase() || null;
+  const _pvpAcertantes = _pvpCorrecta
+    ? responsesCache.filter(r => r.option?.trim().toUpperCase() === _pvpCorrecta).map(r => r.student)
+    : [];
+
   await questionRef.update({open:false,shareResults:true});
 
   const btn = document.getElementById('pvpCloseBtn');
@@ -15386,6 +15392,11 @@ document.getElementById('pvpCloseBtn').addEventListener('click', async()=>{
   btn.textContent='✅ Cerrada';
 
   setTimeout(()=>btn.textContent='🔒 Cerrar votación', 1800);
+
+  // Mostrar felicitar si hay acertantes
+  if (_pvpCorrecta && _pvpAcertantes.length > 0) {
+    mostrarFelicitarModal(_pvpAcertantes);
+  }
 
 });
 
