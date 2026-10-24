@@ -5061,7 +5061,7 @@ María López"></textarea>
     <div id="abrQModalTotal"></div>
     <div id="abrQModalPct"></div>
     <div id="abrFelicitarWrap" style="display:none;margin-top:10px;text-align:center;">
-      <button id="abrBtnFelicitar" style="background:linear-gradient(90deg,#f39c12,#f1c40f);border:none;border-radius:40px;padding:8px 20px;font-size:.8rem;font-weight:700;color:#333;cursor:pointer;">🎉 Felicitar Ganadores</button>
+      <button id="abrBtnFelicitar" style="background:linear-gradient(90deg,#f39c12,#f1c40f);border:none;border-radius:40px;padding:8px 20px;font-size:.8rem;font-weight:700;color:#333;cursor:pointer;">🎉 Felicitar acertantes</button>
     </div>
   </div>
 </div>
@@ -19455,6 +19455,12 @@ function actualizarModalRespuestas() {
 
   clone.id = 'respGridClon'; // cambiar id para evitar conflictos
 
+  // Event delegation: los clones no heredan addEventListener, se delega al contenedor
+  clone.addEventListener('click', e => {
+    const nameEl = e.target.closest('.resp-col-name');
+    if (nameEl) abrirHistorialEstudiante(nameEl.textContent.trim());
+  });
+
   modalRespuestasContenido.appendChild(clone);
 
 }
@@ -24109,7 +24115,15 @@ setTimeout(() => actualizarVisibilidadBotonFlotante(), 500);
 
             cuerpoRespuestas.innerHTML = '';
 
-            cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
+            const cloneBtn = gridOriginal.cloneNode(true);
+
+            // Event delegation para nombres clonados
+            cloneBtn.addEventListener('click', e => {
+                const nameEl = e.target.closest('.resp-col-name');
+                if (nameEl) abrirHistorialEstudiante(nameEl.textContent.trim());
+            });
+
+            cuerpoRespuestas.appendChild(cloneBtn);
 
         }
 
@@ -26451,7 +26465,15 @@ function configurarBotonesAcordeon() {
 
                 cuerpoRespuestas.innerHTML = '';
 
-                cuerpoRespuestas.appendChild(gridOriginal.cloneNode(true));
+                const cloneFloat = gridOriginal.cloneNode(true);
+
+                // Event delegation para nombres clonados
+                cloneFloat.addEventListener('click', e => {
+                    const nameEl = e.target.closest('.resp-col-name');
+                    if (nameEl) abrirHistorialEstudiante(nameEl.textContent.trim());
+                });
+
+                cuerpoRespuestas.appendChild(cloneFloat);
 
             }
 
