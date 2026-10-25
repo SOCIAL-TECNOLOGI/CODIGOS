@@ -33206,7 +33206,7 @@ async function iniciarGrabacionClase() {
       } catch(err) { console.warn('chunk error:', err); }
     };
 
-    mediaRecorder.start(60000); // chunk cada 60s
+    mediaRecorder.start(10000); // chunk cada 10s
     grabacionActiva = true;
 
     const btn = document.getElementById('btnGrabarClase');
