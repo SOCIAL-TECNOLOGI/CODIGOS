@@ -33191,7 +33191,7 @@ async function toggleGrabacionClase() {
 async function iniciarGrabacionClase() {
   try {
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-    grabacionSesKey = (sesionActivaId || 'clase').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + Date.now();
+    grabacionSesKey = (SESSION_ID || 'clase').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + Date.now();
     grabacionChunkIdx = 0;
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
 
