@@ -33178,6 +33178,7 @@ function actualizarVisibilidadBtnPmap() {
 // GRABACIÓN DE CLASE → WorkDrive
 // ══════════════════════════════════════════════════════════════
 let grabacionActiva = false;
+  mediaRecorder = null;
 let mediaRecorder = null;
 let grabacionSesKey = null;
 let grabacionChunkIdx = 0;
@@ -33223,6 +33224,7 @@ async function detenerGrabacionClase() {
   mediaRecorder.stop();
   mediaRecorder.stream.getTracks().forEach(t => t.stop());
   grabacionActiva = false;
+  mediaRecorder = null;
 
   const btn = document.getElementById('btnGrabarClase');
   if (btn) { btn.textContent = '⏺'; btn.title = 'Grabar clase'; btn.style.background = 'rgba(255,255,255,0.1)'; }

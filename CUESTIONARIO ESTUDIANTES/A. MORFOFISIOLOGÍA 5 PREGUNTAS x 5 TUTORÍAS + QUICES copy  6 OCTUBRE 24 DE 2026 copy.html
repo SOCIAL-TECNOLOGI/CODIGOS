@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SISTEMAS DEL CUERPO HUMANO</title>
+
+  <!-- Librerías -->
+  <!-- Una sola copia de cada librería, con versión fija -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+
+/* ================================
+   BASE / LAYOUT
+================================ */
+:root{
+  --azul: #25447e;
+  --azul-2: #3366cc;
+  --gris-bg: #f5f5f5;
+  --ok: #189359;
+  --ok-borde:#28A745;
+  --err-bg:#F8D7DA;
+  --err-borde:#e60118;
+  --err-txt:#8e0311;
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--gris-bg);
+}
+
+/* Registro / Cuestionario */
+#registro-container{
+  display: block;
+  margin: 40px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 88%;
+  background: #fff;
+}
+
+#cuestionario-container{
+  display: none;
+  margin: 20px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 53%;
+  background: #fff;
+}
+
+#cuestionario-container h1{
+  text-align: center;
+  color: #102461;
+}
+
+/* ================================
+   PREGUNTAS / RETRO
+================================ */
+.pregunta{
+  margin: 20px 0;
+  padding: 15px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.pregunta p{ font-size: 16px; }
+
+.retroalimentacion-container{
+  display: block;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.retroalimentacion-container.respuesta-correcta{
+  background-color: var(--ok);
+  border-left: 6px solid var(--ok-borde);
+  color: #fff;
+}
+
+.retroalimentacion-container.respuesta-incorrecta{
+  background-color: var(--err-bg);
+  border-left: 6px solid var(--err-borde);
+  color: var(--err-txt);
+}
+
+.explicacion{
+  background: #f4f9ff;
+  border-left: 5px solid var(--azul);
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.explicacion pre{
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.explicacion a{
+  color: var(--azul);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.explicacion a:hover{ color: var(--azul-2); }
+
+/* ================================
+   BOTONES
+================================ */
+button{
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  color: #fff;
+}
+
+button#iniciar-cuestionario{ background: var(--azul); }
+button.boton{ background: var(--azul); }
+button.boton:hover{ background: var(--azul-2); }
+
+/* ================================
+   MENÚ SUPERIOR DERECHO (animado)
+================================ */
+#menuIcon{
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: var(--azul);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color .3s ease, transform .3s ease;
+}
+
+#menuIcon:hover{
+  background: var(--azul-2);
+  transform: scale(1.07);
+}
+
+#menuIcon .linea{
+  position: absolute;
+  width: 26px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition:
+    transform .35s cubic-bezier(.25,.8,.25,1),
+    opacity .25s ease,
+    top .35s ease;
+}
+#menuIcon .linea1{ top: 14px; }
+#menuIcon .linea2{ top: 21px; }
+#menuIcon .linea3{ top: 28px; }
+
+#menuIcon.abierto .linea1{ top: 21px; transform: rotate(45deg); }
+#menuIcon.abierto .linea2{ opacity: 0; }
+#menuIcon.abierto .linea3{ top: 21px; transform: rotate(-45deg); }
+
+/* Contenedor del menú (derecha→izquierda) */
+.menu-contenedor{
+  position: fixed;
+  top: 20px;
+  right: 75px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  box-shadow: 0 6px 18px rgba(0,0,0,.1);
+  transform: translateX(30px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .45s cubic-bezier(.25,.8,.25,1), opacity .45s ease;
+}
+
+.menu-contenedor.show{
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-contenedor button{
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color .25s ease, transform .25s ease;
+}
+.menu-contenedor button:hover{
+  background: var(--azul-2);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px){
+  .menu-contenedor{
+    right: 60px;
+    flex-direction: column;
+    transform: translateY(-20px) scale(.95);
+  }
+  .menu-contenedor.show{
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   MODALES (unificados y fluidos)
+   Reutiliza .popup-modal para:
+   #puntaje-popup, #modalAlerta, #modalDescarga
+================================ */
+.popup-modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;           /* se puede dejar visible con opacity 0 */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+
+  /* Estado oculto por defecto */
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(.96);
+  transition: opacity .35s ease, transform .35s ease, visibility .35s ease;
+}
+
+/* Cuando JS agrega .show */
+.popup-modal.show{
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.popup-content{
+  background: #fff;
+  padding: 30px 25px;
+  border-radius: 15px;
+  width: 70%;
+  max-width: 750px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.25);
+  text-align: center;
+  overflow-y: auto;
+  max-height: 90vh;
+  animation: slideFadeIn .45s ease;
+}
+@keyframes slideFadeIn{
+  from{ opacity: 0; transform: translateY(30px) scale(.97); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.popup-content h2{
+  color: #102461;
+  margin-bottom: 10px;
+}
+.popup-content p{
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.popup-buttons{
+  margin-top: 15px;
+}
+.popup-buttons button{
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.popup-buttons button:hover{ background: var(--azul-2); }
+
+/* Variación visual para el modal de alerta */
+#modalAlerta .popup-content{
+  border-top: 5px solid #b10000;
+}
+
+/* ================================
+   GRÁFICOS
+================================ */
+.graficos-container{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.graficos-container canvas{
+  width: 300px !important;
+  height: 300px !important;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 0 6px rgba(0,0,0,.1);
+}
+
+/* ================================
+   INDICADORES DE NIVEL (PMAP)
+================================ */
+.nivel-container{
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 12px;
+  color: #fff;
+}
+.p1{ background:#b91c1c; }                 /* Bajo  */
+.p2{ background:#d97706; }                 /* Básico */
+.p3{ background:#ffee52; color:#0b1022!important; } /* Alto */
+.p4{ background:#65a30d; }                 /* Superior */
+
+/* ================================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px){
+  #cuestionario-container{ width: 90%; }
+  .popup-content{
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+/* ================================
+   CARRUSEL / NAVEGACIÓN ENTRE TUTORÍAS
+================================ */
+.pagina-tutoria {
+  display: none;               /* Solo se muestra la actual */
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nav-tutorias {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  padding-top: 10px;
+  border-top: 2px solid #ccc;
+}
+
+.nav-tutorias button {
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.nav-tutorias button:hover {
+  background: var(--azul-2);
+  transform: translateY(-2px);
+}
+
+.nav-tutorias button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Etiquetas y encabezados de Tutorías */
+.pagina-tutoria h2 {
+  text-align: center;
+  color: var(--azul);
+  background: #eef3ff;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 0;
+  border-left: 5px solid var(--azul-2);
+  font-size: 20px;
+}
+
+/* Ocultar explicaciones al cargar */
+.explicacion {
+  display: none;
+}
+
+
+canvas {
+  min-height: 200px;
+  min-width: 200px;
+}
+
+
+/* Aviso de intento con pistas */
+.aviso-pistas{
+  display:inline-block;
+  margin-top:8px;
+  padding:6px 12px;
+  border-radius:8px;
+  background:#fff3cd;
+  color:#7a5b00;
+  font-size:14px;
+  font-weight:600;
+}
+
+
+/* === ACCESIBILIDAD: BOTONES DE VOZ === */
+.acciones-voz {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.acciones-voz button {
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.acciones-voz button:hover {
+  background: #1565c0;
+  transform: scale(1.05);
+}
+
+
+#indicadorVoz {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: #102461;
+  color: #fff;
+  padding: 8px 14px 8px 10px;
+  border-left: 5px solid #1e88e5;
+  border-radius: 8px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  z-index: 3000;
+  transition: opacity .5s ease;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+
+
+/* === Botón de lectura activo === */
+button.leyendo-activo {
+  background: linear-gradient(90deg,#1e88e5,#102461);
+  animation: pulsoLecturaLento 2.8s infinite ease-in-out;
+  color: #fff;
+  transition: all 0.5s ease;
+}
+
+@keyframes pulsoLecturaLento {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 rgba(30,136,229,0);
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+    box-shadow: 0 0 12px rgba(30,136,229,0.35);
+  }
+}
+
+
+
+
+
+/* ================================
+   CICLO DE CONSOLIDACIÓN
+================================ */
+.pmap-ciclo{ max-width:760px; margin:0 auto; padding:20px; font-family:'Segoe UI',sans-serif; }
+.ciclo-instrucciones{ background:#eef3ff; border-left:5px solid var(--azul-2); padding:12px 16px; border-radius:8px; margin-bottom:14px; line-height:1.5; }
+.pregunta-refuerzo{ background:#f9fafc; border:1px solid #ccc; border-radius:8px; padding:12px; margin-bottom:10px; }
+.ciclo-progreso{ background:#eef3ff; border-radius:10px; padding:12px 16px; margin:16px 0; box-shadow:0 2px 6px rgba(0,0,0,.1); text-align:center; }
+#textoProgreso{ font-weight:600; color:#102461; margin-bottom:8px; }
+.ciclo-racha{ font-weight:500; margin-top:6px; color:#334155; }
+.ciclo-racha span{ letter-spacing:3px; color:var(--azul-2); }
+.ciclo-barra{ background:#ddd; border-radius:8px; overflow:hidden; height:14px; }
+#barraProgresoInterna{ height:100%; width:0%; background:#1e88e5; transition:width .4s ease, background .4s ease; }
+.ciclo-tarjeta{ background:#fff; border:1px solid #dbe3f0; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.ciclo-etiqueta{ font-size:13px; font-weight:700; color:var(--azul); background:#eef3ff; display:inline-block; padding:4px 10px; border-radius:20px; margin-bottom:8px; }
+.ciclo-contexto{ display:block; color:#334155; margin-bottom:8px; }
+.ciclo-opciones{ display:flex; flex-direction:column; gap:6px; margin:10px 0; }
+.ciclo-opcion{ display:block; padding:8px 10px; border:1px solid #e2e8f0; border-radius:8px; cursor:pointer; transition:background .2s ease; }
+.ciclo-opcion:hover{ background:#f1f5f9; }
+.ciclo-opcion.ciclo-ok{ background:#d9fdd3; border-color:#189359; }
+.ciclo-opcion.ciclo-mal{ background:var(--err-bg); border-color:var(--err-borde); }
+.ciclo-opcion.ciclo-off{ opacity:.55; }
+.ciclo-tarjeta .explicacion{ display:none; }
+
+</style>
+  
+
+</head>
+
+<body>
+
+<!-- Indicador visual de lectura en voz alta -->
+<div id="indicadorVoz" aria-live="polite"></div>
+
+<!-- Registro -->
+<div id="registro-container">
+  <h2>Registro</h2>
+  <form id="registro-form">
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" required><br><br>
+
+    <label for="email">Correo Electrónico:</label>
+    <input type="email" id="email" required><br><br>
+
+    <label for="asignatura">Área / Prueba:</label>
+    <select id="asignatura" required>
+      <option value="" disabled selected>Selecciona el área</option>
+      <option value="Ciencias Naturales">Ciencias Naturales</option>
+      <option value="Ciencias Sociales y Ciudadanas">Ciencias Sociales y Ciudadanas</option>
+      <option value="Matemáticas">Matemáticas</option>
+      <option value="Lectura Crítica">Lectura Crítica</option>
+      <option value="Inglés">Inglés (MCER)</option>
+    </select><br><br>
+
+    <button id="iniciar-cuestionario" type="button" onclick="iniciarCuestionario()">Iniciar Cuestionario</button>
+  </form>
+</div>
+
+<!-- === CUESTIONARIO SITE-RUTA LATAM === -->
+<div id="cuestionario-container">
+
+  <!-- === MENÚ SUPERIOR DERECHO === -->
+<button id="menuIcon" onclick="toggleMenu()">
+  <span class="linea linea1"></span>
+  <span class="linea linea2"></span>
+  <span class="linea linea3"></span>
+</button>
+
+<div id="menuContenedor" class="menu-contenedor">
+  <button class="boton" onclick="calcularPuntaje()">Ver Puntaje</button>
+  <button id="btnExplicaciones" class="boton" onclick="toggleExplicaciones()">Ver Explicaciones</button>
+  <button class="boton" onclick="descargarExcel()">Descargar Excel</button>
+  <button class="boton" onclick="reiniciarEvaluacion()">Reiniciar</button>
+  <button id="btnPistas" class="boton" onclick="verPistas()">💡 Ver Pistas</button>
+  <button id="btnMigrar" class="boton" onclick="generarPaginaErrores()" style="display:none;">
+  🧩 Migrar preguntas erradas
+  </button>
+
+</div>
+
+
+  <!-- === TÍTULO === -->
+  <h1 id="tituloEvaluacion">Sistemas del Cuerpo Humano</h1>
+
+  <div class="pagina-tutoria" id="tutoria1">
+  <h2>🦴 Tutoría 1 – Sistema Óseo y Muscular</h2>
+
+  <!-- Pregunta 1 -->
+  <div class="pregunta" data-correcta="b" data-refuerzo="https://www.discapnet.es/salud/sistemas-del-cuerpo-humano/esqueletico">
+    <p><strong>1.</strong> ¿Cómo se denomina la disposición ósea característica de los huesos planos del cráneo?</p>
+    <label><input type="radio" name="r1" value="a"> Osteona</label><br>
+    <label><input type="radio" name="r1" value="b"> Diploe</label><br>
+    <label><input type="radio" name="r1" value="c"> Endostio</label><br>
+    <label><input type="radio" name="r1" value="d"> Periostio</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>diploe</b> es la capa esponjosa entre dos láminas compactas de los huesos planos.</div>
+  </div>
+
+  <!-- Pregunta 2 -->
+  <div class="pregunta" data-correcta="b" data-refuerzo="https://medlineplus.gov/spanish/ency/article/003009.htm">
+    <p><strong>2.</strong> ¿Cuál es la función principal del periostio?</p>
+    <label><input type="radio" name="r2" value="a"> Permitir el crecimiento en longitud</label><br>
+    <label><input type="radio" name="r2" value="b"> Permitir el crecimiento en espesor</label><br>
+    <label><input type="radio" name="r2" value="c"> Formar médula roja</label><br>
+    <label><input type="radio" name="r2" value="d"> Convertirse en cartílago</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El <b>periostio</b> posibilita el crecimiento en espesor del hueso por osteoblastos.</div>
+  </div>
+
+  <!-- Pregunta 3 -->
+  <div class="pregunta" data-correcta="b" data-refuerzo="https://es.wikipedia.org/wiki/Sistema_muscular">
+    <p><strong>3.</strong> ¿Qué tejido predomina en la diáfisis de los huesos largos?</p>
+    <label><input type="radio" name="r3" value="a"> Esponjoso con médula roja</label><br>
+    <label><input type="radio" name="r3" value="b"> Compacto con cavidad medular</label><br>
+    <label><input type="radio" name="r3" value="c"> Esponjoso con cavidades de aire</label><br>
+    <label><input type="radio" name="r3" value="d"> Cartílago elástico</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">La <b>diáfisis</b> está formada por hueso compacto que rodea una cavidad medular.</div>
+  </div>
+
+  <!-- Pregunta 4 -->
+  <div class="pregunta" data-correcta="c" data-refuerzo="https://www.biologyonline.com/dictionary/smooth-muscle">
+    <p><strong>4.</strong> ¿Dónde se encuentra la médula ósea roja en el adulto con mayor frecuencia?</p>
+    <label><input type="radio" name="r4" value="a"> Diáfisis del fémur</label><br>
+    <label><input type="radio" name="r4" value="b"> Falanges</label><br>
+    <label><input type="radio" name="r4" value="c"> Huesos planos, vértebras y epífisis</label><br>
+    <label><input type="radio" name="r4" value="d"> Clavícula</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Predomina en <b>huesos planos y epífisis</b> de huesos largos en el adulto.</div>
+  </div>
+
+  <!-- Pregunta 5 -->
+  <div class="pregunta" data-correcta="b" data-refuerzo="https://www.cincinnatichildrens.org/espanol/temas-de-salud/alpha/h/jobl">
+    <p><strong>5.</strong> ¿Cuál es la tríada celular ósea clásica en la remodelación del tejido óseo?</p>
+    <label><input type="radio" name="r5" value="a"> Condrocitos, condroblastos y condroclastos</label><br>
+    <label><input type="radio" name="r5" value="b"> Osteoblastos, osteocitos y osteoclastos</label><br>
+    <label><input type="radio" name="r5" value="c"> Fibroblastos, macrófagos y mastocitos</label><br>
+    <label><input type="radio" name="r5" value="d"> Mioblastos, miocitos y mioclastos</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Intervienen <b>osteoblastos</b> (forman), <b>osteoclastos</b> (resorben) y <b>osteocitos</b> (mantienen).</div>
+  </div>
+
+  
+  <!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button id="anteriorBtn" onclick="cambiarPagina(-1)">Anterior</button>
+    <button id="siguienteBtn" onclick="cambiarPagina(1)">Siguiente</button>
+  </div>
+</div>
+
+
+
+
+
+<!-- ==========================================================
+     📘 TUTORÍA 6 – QUICES (Cardiovascular + Nervioso)
+     SITE-RUTA LATAM – Preguntas 151 a 155
+     ========================================================== -->
+
+
+<div class="pagina-tutoria" id="tutoria-6" style="display:none;">
+  <h2>🧩 TUTORÍA 6 – QUICES (Sistema Cardiovascular + Nervioso)</h2>
+
+ <!-- 151 -->
+  <div class="pregunta" data-correcta="d" data-refuerzo="https://es.wikipedia.org/wiki/Arteria">
+    <p><strong>151.</strong> ¿Cuál de las siguientes afirmaciones sobre los vasos sanguíneos y el transporte de oxígeno es <u>incorrecta</u>?</p>
+    <label><input type="radio" name="r151" value="a"> Las arterias generalmente transportan sangre oxigenada desde el corazón.</label><br>
+    <label><input type="radio" name="r151" value="b"> Las venas pulmonares son una excepción, llevando sangre oxigenada de los pulmones al corazón.</label><br>
+    <label><input type="radio" name="r151" value="c"> La arteria pulmonar transporta sangre desoxigenada del corazón a los pulmones.</label><br>
+    <label><input type="radio" name="r151" value="d"> Las venas generalmente transportan sangre oxigenada de regreso al corazón.</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Las venas transportan sangre desoxigenada, excepto las pulmonares; por ello la opción D es incorrecta.</div>
+  </div>
+
+  <!-- 152 -->
+  <div class="pregunta" data-correcta="c" data-refuerzo="https://www.visiblebody.com/es/learn/urinary/urine-creation">
+    <p><strong>152.</strong> El sistema eléctrico cardíaco es fundamental para el bombeo eficiente del corazón. ¿Cuál describe más precisamente su mecanismo de coordinación?</p>
+    <label><input type="radio" name="r152" value="a"> El estímulo se genera en los ventrículos, impulsando la sangre hacia las aurículas.</label><br>
+    <label><input type="radio" name="r152" value="b"> La contracción de aurículas y ventrículos ocurre simultáneamente.</label><br>
+    <label><input type="radio" name="r152" value="c"> El estímulo inicial se genera en las aurículas y luego pasa a los ventrículos, permitiendo una contracción coordinada.</label><br>
+    <label><input type="radio" name="r152" value="d"> Las fibras nerviosas regulan el flujo sanguíneo coronario prioritariamente.</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El nódulo sinusal inicia el impulso que pasa a las aurículas y luego a los ventrículos mediante el haz de His.</div>
+  </div>
+
+  <!-- 153 -->
+  <div class="pregunta" data-correcta="c" data-refuerzo="https://es.wikipedia.org/wiki/Vejiga_urinaria">
+    <p><strong>153.</strong> Según la información sobre factores de riesgo cardíaco, ¿por qué los hombres suelen sufrir infartos 10 a 15 años antes que las mujeres?</p>
+    <label><input type="radio" name="r153" value="a"> Las mujeres premenopáusicas carecen de estrógenos protectores.</label><br>
+    <label><input type="radio" name="r153" value="b"> Los hombres tienen niveles más altos de HDL.</label><br>
+    <label><input type="radio" name="r153" value="c"> Las mujeres premenopáusicas poseen estrógenos que aumentan el HDL y mantienen la elasticidad arterial.</label><br>
+    <label><input type="radio" name="r153" value="d"> Las mujeres tienen mayor grasa visceral.</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">Los estrógenos elevan el HDL y protegen las arterias en mujeres premenopáusicas, retrasando los eventos cardíacos.</div>
+  </div>
+
+  <!-- 154 -->
+  <div class="pregunta" data-correcta="c" data-refuerzo="https://es.wikipedia.org/wiki/Gl%C3%A1ndula_tiroidea">
+    <p><strong>154.</strong> ¿Cuál descripción corresponde con mayor precisión a la “Insuficiencia Cardíaca”?</p>
+    <label><input type="radio" name="r154" value="a"> Acumulación de placa arterial.</label><br>
+    <label><input type="radio" name="r154" value="b"> Hipertensión persistente.</label><br>
+    <label><input type="radio" name="r154" value="c"> El corazón no bombea suficiente sangre, causando fatiga y disnea.</label><br>
+    <label><input type="radio" name="r154" value="d"> Inflamación crónica de las vías respiratorias.</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">En la insuficiencia cardíaca, el miocardio pierde fuerza para bombear adecuadamente, generando fatiga y falta de aire.</div>
+  </div>
+
+  <!-- 155 -->
+  <div class="pregunta" data-correcta="d" data-refuerzo="https://medlineplus.gov/spanish/ency/article/003701.htm">
+    <p><strong>155.</strong> ¿Cómo contribuye el colesterol LDL a la aterosclerosis y qué papel juega el HDL en su prevención?</p>
+    <label><input type="radio" name="r155" value="a"> El HDL transporta colesterol desde el hígado a los tejidos para su acumulación.</label><br>
+    <label><input type="radio" name="r155" value="b"> Ambos, HDL y LDL, forman placas si sus niveles son altos.</label><br>
+    <label><input type="radio" name="r155" value="c"> El LDL protege al sistema cardiovascular recogiendo colesterol.</label><br>
+    <label><input type="radio" name="r155" value="d"> El exceso de LDL forma placas y el HDL elimina el exceso de colesterol.</label>
+    <div class="retroalimentacion-container"></div>
+    <div class="explicacion">El LDL deposita colesterol en arterias; el HDL lo retira al hígado para su eliminación, evitando la obstrucción.</div>
+  </div>
+
+
+<!-- Botones de navegación -->
+  <div class="nav-tutorias">
+    <button onclick="cambiarPagina(-1)">Anterior</button>
+    <button onclick="finalizarEvaluacion()">Finalizar Evaluación</button>
+  </div>
+
+
+</div>
+
+  
+
+
+
+
+
+<!-- Modal de resultados con gráficos -->
+<div id="puntaje-popup" class="popup-modal">
+  <div class="popup-content"></div>
+</div>
+
+
+
+<!-- 🔔 Modal de advertencia -->
+<div id="modalAlerta" class="popup-modal">
+  <div class="popup-content" style="max-width: 400px; text-align:center;">
+    <h3 style="color:#b10000;">⚠️ Atención</h3>
+    <p>Debes responder <strong>todas las preguntas</strong> antes de ver los resultados.</p>
+    <div class="popup-buttons">
+      <button onclick="cerrarModalAlerta()">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- === 🔔  MODAL: Explicaciones bloqueadas === -->
+<div id="modalExplicacionesBloqueadas" class="popup-modal">
+  <div class="popup-content" style="max-width: 500px; text-align:center;">
+    <h2>Explicaciones no disponibles</h2>
+    <p>⚠️ Debes completar todas las preguntas y ver tu puntaje antes de consultar las explicaciones formativas del PMAP.</p>
+    <div class="popup-buttons">
+      <button class="boton" onclick="cerrarModalExplicacionesBloqueadas()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- === 🔔 MODAL: Descarga bloqueada (SITE-RUTA LATAM) === -->
+<div id="modalDescargaBloqueada" class="popup-modal">
+  <div class="popup-content" style="max-width: 500px; text-align:center;">
+    <h2>Descarga no disponible</h2>
+    <p>⚠️ Debes completar todas las preguntas y ver tu puntaje antes de generar el informe PMAP.</p>
+    <div class="popup-buttons">
+      <button class="boton" onclick="cerrarModalDescarga()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<div id="estadoPmap" style="text-align:center;background:#e3f2fd;padding:10px;margin-bottom:15px;border-radius:8px;">
+  <strong>PMAP en curso:</strong> Corrige tus preguntas pendientes.
+</div>
+
+
+
+<!-- Preguntas hermanas aprobadas por el docente (las incrusta el constructor) -->
+<script type="application/json" id="pmap-hermanas">{}</script>
+
+<script>
+/* ==========================================================
+   ⚙️ CONFIGURACIÓN – SITE-RUTA LATAM / PMAP
+   La clave y el enlace de refuerzo viven en cada pregunta:
+   <div class="pregunta" data-correcta="b" data-refuerzo="https://...">
+   Así no hay arreglos aparte que se desfasen al agregar preguntas.
+   ========================================================== */
+
+// Escala única de niveles PMAP (se usa en pantalla, Excel y práctica)
+const NIVELES_PMAP = [
+  { min: 80, texto: "Nivel 4 (Superior)", clase: "p4", color: "#27ae60",
+    descripcion: "Integra teorías y plantea soluciones científicas a problemas reales." },
+  { min: 60, texto: "Nivel 3 (Alto)",     clase: "p3", color: "#f1c40f",
+    descripcion: "Aplica conceptos y resuelve problemas con autonomía." },
+  { min: 40, texto: "Nivel 2 (Básico)",   clase: "p2", color: "#e67e22",
+    descripcion: "Comprende conceptos y resuelve situaciones simples con apoyo." },
+  { min: 0,  texto: "Nivel 1 (Bajo)",     clase: "p1", color: "#c0392b",
+    descripcion: "Requiere acompañamiento para resolver problemas y afianzar conceptos." }
+];
+
+function nivelPMAP(porcentaje) {
+  return NIVELES_PMAP.find(n => porcentaje >= n.min) || NIVELES_PMAP[NIVELES_PMAP.length - 1];
+}
+
+const correctaDe = p => (p.dataset.correcta || "").trim().toLowerCase();
+const refuerzoDe = p => (p.dataset.refuerzo || "").trim();
+const numeroDe = (p, i) => parseInt(p.dataset.numero || p.querySelector("p")?.textContent.match(/\d+/)?.[0] || (i + 1));
+const respuestaDe = p => (p.querySelector('input[type="radio"]:checked')?.value || "").trim().toLowerCase();
+
+function esc(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+let chart1, chart2;
+let cuestionarioCompletado = false;
+let usoPistas = false;        // queda registrado en resultados y Excel
+let resultadoActual = {};     // datos del estudiante y del intento
+
+/* ==========================================================
+   🪟 MODALES – abrir / cerrar sin afectar a los demás
+   ========================================================== */
+function abrirModal(modal) {
+  if (!modal) return;
+  modal.style.display = "flex";
+  requestAnimationFrame(() => modal.classList.add("show"));
+}
+
+function cerrarModalElemento(modal, eliminar = false) {
+  if (!modal) return;
+  modal.classList.remove("show");
+  setTimeout(() => { eliminar ? modal.remove() : (modal.style.display = "none"); }, 300);
+}
+
+// Para los modales que se crean al vuelo: cierra solo el modal que contiene el botón
+function cerrarModalDinamico(boton) {
+  cerrarModalElemento(boton.closest(".popup-modal"), true);
+}
+
+function crearModalDinamico(html, zIndex) {
+  const modal = document.createElement("div");
+  modal.className = "popup-modal";
+  if (zIndex) modal.style.zIndex = zIndex;
+  modal.innerHTML = html;
+  document.body.appendChild(modal);
+  abrirModal(modal);
+  return modal;
+}
+
+/* ==========================================================
+   🔀 NAVEGACIÓN ENTRE TUTORÍAS
+   ========================================================== */
+let paginaActual = 0;
+const paginas = document.getElementsByClassName("pagina-tutoria");
+
+/* 🎙️ Lectura contextual al abrir una tutoría */
+function mostrarPagina(n) {
+  for (let i = 0; i < paginas.length; i++) {
+    paginas[i].style.display = i === n ? "block" : "none";
+  }
+  paginaActual = n;
+
+  const pagina = paginas[n];
+  if (!pagina) return;
+
+  const titulo = pagina.querySelector("h2")?.innerText || "";
+  const instrucciones =
+    "Puedes responder las preguntas seleccionando la opción correcta. Usa el botón de audio para escuchar cada una.";
+
+  if (vozDisponible() && vozSeleccionada) {
+    detenerLectura();
+    const lectura = new SpeechSynthesisUtterance(`${titulo}. ${instrucciones}`);
+    lectura.voice = vozSeleccionada;
+    lectura.lang = vozSeleccionada.lang || "es-CO";
+    lectura.pitch = 1;
+    lectura.rate = 0.96;
+    lectura.volume = 1;
+    window.speechSynthesis.speak(lectura);
+
+    mostrarIndicadorVoz(true);
+    lectura.onend = () => mostrarIndicadorVoz(false);
+  }
+}
+
+function cambiarPagina(delta) {
+  let n = paginaActual + delta;
+  if (n < 0) n = 0;
+  if (n >= paginas.length) n = paginas.length - 1;
+  mostrarPagina(n);
+  document.getElementById("cuestionario-container")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ==========================================================
+   ✳️ MENÚ Y REGISTRO
+   ========================================================== */
+function toggleMenu() {
+  document.getElementById("menuContenedor").classList.toggle("show");
+  document.getElementById("menuIcon").classList.toggle("abierto");
+}
+
+function iniciarCuestionario() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const asignatura = document.getElementById("asignatura").value;
+  if (!nombre || !email || !asignatura) { alert("Por favor completa todos los campos antes de iniciar."); return; }
+  document.getElementById("registro-container").style.display = "none";
+  document.getElementById("cuestionario-container").style.display = "block";
+  document.getElementById("tituloEvaluacion").textContent = `Sistemas del Cuerpo Humano · ${asignatura}`;
+  mostrarPagina(0);
+}
+
+/* ==========================================================
+   📊 CALCULAR PUNTAJE – SITE-RUTA LATAM / PMAP
+   Devuelve true si el intento quedó completo y calificado.
+   ========================================================== */
+function calcularPuntaje() {
+  const preguntas = document.getElementsByClassName("pregunta");
+  const total = preguntas.length;
+  let correctas = 0;
+  const faltantes = [];
+  let primeraFaltante = null;
+
+  for (let i = 0; i < total; i++) {
+    const p = preguntas[i];
+    const numReal = numeroDe(p, i);
+    const respuesta = respuestaDe(p);
+    const correcta = correctaDe(p);
+    const retro = p.querySelector(".retroalimentacion-container");
+    retro.innerHTML = "";
+    retro.className = "retroalimentacion-container";
+
+    // === Si no respondió ===
+    if (!respuesta) {
+      faltantes.push(numReal);
+      if (!primeraFaltante) primeraFaltante = p;
+      p.style.transition = "background-color 0.4s ease, box-shadow 0.4s ease";
+      p.style.backgroundColor = "#fff6e0";
+      p.style.boxShadow = "0 0 10px rgba(255,165,0,0.5)";
+      continue;
+    }
+    p.style.backgroundColor = "#fafafa";
+    p.style.boxShadow = "none";
+
+    // === Evaluación ===
+    if (respuesta === correcta) {
+      correctas++;
+      retro.className = "retroalimentacion-container respuesta-correcta";
+      retro.innerHTML = "✅ <strong>Correcta</strong>";
+    } else {
+      const enlace = refuerzoDe(p);
+      retro.className = "retroalimentacion-container respuesta-incorrecta";
+      retro.innerHTML = `❌ <strong>Incorrecta</strong> ${
+        enlace ? `<a href="${esc(enlace)}" target="_blank" rel="noopener">🔗 Refuerzo</a>` : ""
+      }`;
+    }
+  }
+
+  // ⚠️ Faltan preguntas: llevar al estudiante a la primera sin responder
+  if (faltantes.length > 0) {
+    cuestionarioCompletado = false;
+    const pagina = primeraFaltante.closest(".pagina-tutoria");
+    const idx = [...paginas].indexOf(pagina);
+    if (idx >= 0 && idx !== paginaActual) mostrarPagina(idx);
+    setTimeout(() => primeraFaltante.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+
+    const modal = document.getElementById("modalAlerta");
+    modal.querySelector("p").innerHTML = `
+      ⚠️ <strong>No has respondido todas las preguntas.</strong><br>
+      Revisa las siguientes preguntas: <b>${faltantes.join(", ")}</b>
+    `;
+    abrirModal(modal);
+    return false;
+  }
+
+  // 📈 Porcentaje y nivel PMAP (escala única)
+  const porcentajeNum = (correctas / total) * 100;
+  const porcentaje = porcentajeNum.toFixed(2);
+  const nombre = document.getElementById("nombre").value.trim();
+  const fecha = new Date().toLocaleString("es-CO");
+  const nivel = nivelPMAP(porcentajeNum);
+
+  resultadoActual = { nombre, porcentaje, nivelTexto: nivel.texto, fecha, correctas, total, usoPistas };
+  cuestionarioCompletado = true;
+
+  // 🧾 Mostrar resultados
+  const modal = document.getElementById("puntaje-popup");
+  const popup = modal.querySelector(".popup-content");
+  popup.innerHTML = `
+    <h2>Resultados de ${esc(nombre)}</h2>
+    <p><strong>Aciertos:</strong> ${correctas}/${total}</p>
+    <p><strong>Porcentaje:</strong> ${porcentaje}%</p>
+    <div class="nivel-container ${nivel.clase}">${nivel.texto}</div>
+    ${usoPistas ? `<div><span class="aviso-pistas">💡 Intento con pistas: es práctica, no cuenta como nivel alcanzado</span></div>` : ""}
+    <p style="font-size:13px;color:#555;">${fecha}</p>
+    <div class="graficos-container">
+      <canvas id="graficoCircular" width="260" height="260"></canvas>
+      <canvas id="graficoBarras" width="260" height="260"></canvas>
+    </div>
+    <div class="popup-buttons">
+      <button class="boton" onclick="descargarExcel()">📥 Descargar Excel</button>
+      <button class="boton" onclick="cerrarPuntajePopup(); generarPaginaErrores();">🧩 Migrar preguntas erradas</button>
+      <button class="boton" onclick="cerrarPuntajePopup()">Cerrar</button>
+    </div>
+  `;
+  abrirModal(modal);
+  const btnMigrar = document.getElementById("btnMigrar");
+  if (btnMigrar) btnMigrar.style.display = correctas < total ? "inline-block" : "none";
+
+  // 🎨 Gráficos
+  setTimeout(() => {
+    if (typeof Chart === "undefined") return;
+    const ctx1 = document.getElementById("graficoCircular")?.getContext("2d");
+    const ctx2 = document.getElementById("graficoBarras")?.getContext("2d");
+    if (!ctx1 || !ctx2) return;
+    if (chart1) chart1.destroy();
+    if (chart2) chart2.destroy();
+
+    const textoCentral = {
+      id: "textoCentral",
+      afterDraw(chart) {
+        const { ctx, width, height } = chart;
+        ctx.save();
+        ctx.font = "bold 28px Segoe UI";
+        ctx.fillStyle = "#102461";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${porcentaje}%`, width / 2, height / 2);
+        ctx.restore();
+      },
+    };
+
+    chart1 = new Chart(ctx1, {
+      type: "doughnut",
+      data: {
+        labels: ["Correctas", "Incorrectas"],
+        datasets: [{ data: [correctas, total - correctas], backgroundColor: ["#4CAF50", "#F44336"] }],
+      },
+      options: { plugins: { legend: { position: "bottom" } } },
+      plugins: [textoCentral],
+    });
+
+    chart2 = new Chart(ctx2, {
+      type: "bar",
+      data: {
+        labels: ["Correctas", "Incorrectas"],
+        datasets: [{ data: [correctas, total - correctas], backgroundColor: ["#4CAF50", "#F44336"] }],
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+    });
+  }, 400);
+
+  return true;
+}
+
+function cerrarPuntajePopup() { cerrarModalElemento(document.getElementById("puntaje-popup")); }
+
+/* ==========================================================
+   🔄 REINICIAR EVALUACIÓN
+   ========================================================== */
+function reiniciarEvaluacion() {
+  if (!confirm("¿Reiniciar la evaluación? Se borrarán todas tus respuestas de este intento.")) return;
+
+  document.querySelectorAll(".pregunta").forEach(p => {
+    p.querySelectorAll('input[type="radio"]').forEach(op => {
+      op.checked = false;
+      const label = op.parentElement;
+      label.style.backgroundColor = "";
+      label.style.border = "";
+      label.style.opacity = "1";
+      label.style.padding = "";
+    });
+    const retro = p.querySelector(".retroalimentacion-container");
+    retro.innerHTML = "";
+    retro.className = "retroalimentacion-container";
+    p.style.backgroundColor = "#fafafa";
+    p.style.boxShadow = "none";
+    const exp = p.querySelector(".explicacion");
+    if (exp) exp.style.display = "none";
+  });
+
+  cuestionarioCompletado = false;
+  usoPistas = false;
+  pistasVisibles = false;
+  resultadoActual = {};
+  document.getElementById("btnPistas").textContent = "💡 Ver Pistas";
+  document.getElementById("btnExplicaciones").textContent = "Ver Explicaciones";
+  const btnMigrar = document.getElementById("btnMigrar");
+  if (btnMigrar) btnMigrar.style.display = "none";
+  localStorage.removeItem("preguntasErradas");
+  localStorage.removeItem("pmapResultado");
+
+  document.getElementById("menuContenedor").classList.remove("show");
+  document.getElementById("menuIcon").classList.remove("abierto");
+  mostrarPagina(0);
+  mostrarToast("🔄 Evaluación reiniciada");
+}
+
+
+
+/* ==========================================================
+   📘 MOSTRAR / OCULTAR EXPLICACIONES FORMATIVAS
+   Solo después de calificar el intento
+   ========================================================== */
+function toggleExplicaciones() {
+  if (!cuestionarioCompletado) {
+    abrirModal(document.getElementById("modalExplicacionesBloqueadas"));
+    return;
+  }
+
+  const explicaciones = document.querySelectorAll(".explicacion");
+  const btn = document.getElementById("btnExplicaciones");
+  const mostrar = [...explicaciones].some(exp => exp.style.display === "none" || exp.style.display === "");
+
+  explicaciones.forEach(exp => {
+    if (mostrar) {
+      exp.style.display = "block";
+      exp.style.opacity = "0";
+      exp.style.transition = "opacity 0.4s ease";
+      setTimeout(() => (exp.style.opacity = "1"), 50);
+    } else {
+      exp.style.transition = "opacity 0.3s ease";
+      exp.style.opacity = "0";
+      setTimeout(() => (exp.style.display = "none"), 300);
+    }
+  });
+
+  btn.textContent = mostrar ? "Ocultar Explicaciones" : "Ver Explicaciones";
+}
+
+/* ==========================================================
+   🔔 TOAST INSTITUCIONAL – SITE-RUTA LATAM
+   ========================================================== */
+function mostrarToast(mensaje) {
+  document.getElementById("toastPmap")?.remove();
+
+  const toast = document.createElement("div");
+  toast.id = "toastPmap";
+  toast.textContent = mensaje;
+  toast.style.cssText = `
+    position:fixed; top:20px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(90deg,#102461,#1e88e5); color:#fff;
+    padding:12px 20px; border-radius:25px; font-family:'Segoe UI',sans-serif;
+    font-size:15px; box-shadow:0 4px 10px rgba(0,0,0,0.2); opacity:0;
+    transition:opacity 0.5s ease, transform 0.4s ease; z-index:7000; max-width:90vw; text-align:center;
+  `;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = "1";
+    toast.style.transform = "translateX(-50%) translateY(5px)";
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(-10px)";
+    setTimeout(() => toast.remove(), 600);
+  }, 2800);
+}
+
+function cerrarModalExplicacionesBloqueadas() { cerrarModalElemento(document.getElementById("modalExplicacionesBloqueadas")); }
+function cerrarModalAlerta() { cerrarModalElemento(document.getElementById("modalAlerta")); }
+function cerrarModalDescarga() { cerrarModalElemento(document.getElementById("modalDescargaBloqueada")); }
+
+/* ==========================================================
+   📊 DESCARGAR EXCEL – SITE-RUTA LATAM / PMAP
+   ========================================================== */
+function descargarExcel() {
+  if (!cuestionarioCompletado) {
+    abrirModal(document.getElementById("modalDescargaBloqueada"));
+    return;
+  }
+  if (typeof XLSX === "undefined") { alert("No se pudo cargar el generador de Excel. Revisa tu conexión."); return; }
+
+  const preguntas = document.getElementsByClassName("pregunta");
+  const total = preguntas.length;
+  const nombre = document.getElementById("nombre").value.trim();
+  const asignatura = document.getElementById("asignatura").value.trim();
+  const evaluacion = document.getElementById("tituloEvaluacion").textContent.trim();
+
+  const ahora = new Date();
+  const año = ahora.getFullYear();
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  const hora = String(ahora.getHours()).padStart(2, "0");
+  const min = String(ahora.getMinutes()).padStart(2, "0");
+  const fecha = `${dia}/${mes}/${año}`;
+  const horaArchivo = `${año}_${mes}_${dia}_${hora}_${min}`;
+
+  let correctas = 0;
+  const filas = [];
+
+  for (let i = 0; i < total; i++) {
+    const p = preguntas[i];
+    const respuesta = respuestaDe(p);
+    const correcta = correctaDe(p);
+    const esCorrecta = respuesta === correcta;
+    if (esCorrecta) correctas++;
+    const enlace = !esCorrecta ? refuerzoDe(p) : "";
+
+    filas.push([
+      `Pregunta ${numeroDe(p, i)}`,
+      respuesta.toUpperCase() || "—",
+      correcta.toUpperCase() || "—",
+      esCorrecta ? "✅ Correcta" : "❌ Incorrecta",
+      esCorrecta ? "1/1" : "0/1",
+      esCorrecta ? `${(100 / total).toFixed(2)}%` : "0.00%",
+      enlace
+    ]);
+  }
+
+  const porcentajeTotalNum = (correctas / total) * 100;
+  const nivel = nivelPMAP(porcentajeTotalNum);
+
+  const datos = [
+    ["SISTEMA INTEGRADO DE TRAZABILIDAD EDUCATIVA – SITE-RUTA LATAM"],
+    ["INSTRUMENTO: PMAP (Plan de Migración Académica Progresiva)"],
+    ["", "", "Fecha:", fecha],
+    ["", "", "Hora:", `${hora}:${min}`],
+    [],
+    ["NOMBRE DE LA EVALUACIÓN", "ESTUDIANTE", "ÁREA / PRUEBA"],
+    [evaluacion, nombre, asignatura],
+    [],
+    ["Pregunta", "Tu Respuesta", "Opción Correcta", "Calificación", "Puntuación", "Porcentaje", "Retroalimentación"],
+    ...filas,
+    [],
+    ["Calificación Final", "", "", "", `${correctas}/${total}`, `${porcentajeTotalNum.toFixed(2)}%`],
+    [],
+    ["", "", "", "Nivel de desempeño:", nivel.texto],
+    ["", "", "", "Observaciones / Descripción:", nivel.descripcion],
+    ["", "", "", "Uso de pistas:", usoPistas ? "Sí – intento de práctica, no válido como nivel alcanzado" : "No"],
+    [],
+    ["", "", "", "Generado por:", "SITE-RUTA LATAM – Sistema Integrado de Trazabilidad Educativa"]
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  ws["!cols"] = [
+    { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 },
+    { wch: 12 }, { wch: 12 }, { wch: 45 }
+  ];
+
+  // Hipervínculos de refuerzo (las filas de preguntas empiezan en la fila 10 → índice 9)
+  filas.forEach((fila, i) => {
+    const link = fila[6];
+    if (link && link.startsWith("http")) {
+      const celda = XLSX.utils.encode_cell({ r: i + 9, c: 6 });
+      ws[celda] = { t: "s", v: "🔗 Refuerzo del Tema", l: { Target: link, Tooltip: "Abrir recurso de refuerzo" } };
+    }
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+  const limpiar = t => t.replace(/[\\/:*?"<>|]+/g, "").replace(/[\s·]+/g, "_");
+  const nombreArchivo = `Resultados_${limpiar(evaluacion)}_${limpiar(nombre)}__${horaArchivo}.xlsx`;
+  XLSX.writeFile(wb, nombreArchivo);
+
+  crearModalDinamico(`
+    <div class="popup-content" style="max-width:460px;text-align:center;">
+      <h2>✅ Archivo generado correctamente</h2>
+      <p>Tu informe PMAP fue exportado exitosamente.<br>
+      Se ha descargado el archivo <strong>${esc(nombreArchivo)}</strong>.</p>
+      <div class="popup-buttons">
+        <button class="boton" onclick="cerrarModalDinamico(this)">Entendido</button>
+      </div>
+    </div>
+  `, 2500);
+}
+
+/* ==========================================================
+   💡 VER / OCULTAR PISTAS – PMAP Nivel 1 (Recordar)
+   Si se activan antes de calificar, el intento queda marcado como práctica.
+   ========================================================== */
+let pistasVisibles = false;
+
+function verPistas() {
+  const preguntas = document.getElementsByClassName("pregunta");
+  const btn = document.getElementById("btnPistas");
+
+  // === Ocultar ===
+  if (pistasVisibles) {
+    for (const p of preguntas) {
+      p.querySelectorAll('input[type="radio"]').forEach(op => {
+        const label = op.parentElement;
+        label.style.backgroundColor = "";
+        label.style.border = "";
+        label.style.opacity = "1";
+        label.style.padding = "";
+      });
+      const retro = p.querySelector(".retroalimentacion-container");
+      retro.innerHTML = "";
+      retro.className = "retroalimentacion-container";
+      const explicacion = p.querySelector(".explicacion");
+      if (explicacion) {
+        explicacion.style.transition = "opacity 0.3s ease";
+        explicacion.style.opacity = "0";
+        setTimeout(() => (explicacion.style.display = "none"), 250);
+      }
+    }
+    pistasVisibles = false;
+    if (btn) btn.textContent = "💡 Ver Pistas";
+    mostrarToast("🔕 Pistas ocultadas – Regresas a modo de práctica libre");
+    return;
+  }
+
+  // === Antes de calificar: advertir que el intento pasa a ser práctica ===
+  if (!cuestionarioCompletado && !usoPistas) {
+    const ok = confirm(
+      "💡 Si activas las pistas antes de terminar, este intento quedará marcado como PRÁCTICA CON PISTAS " +
+      "en tus resultados y en el Excel, y no contará como nivel alcanzado.\n\n¿Deseas activarlas?"
+    );
+    if (!ok) return;
+    usoPistas = true;
+  }
+
+  // === Mostrar ===
+  for (const p of preguntas) {
+    const correcta = correctaDe(p);
+    p.querySelectorAll('input[type="radio"]').forEach(op => {
+      const label = op.parentElement;
+      if (op.value === correcta) {
+        label.style.backgroundColor = "#d9fdd3";
+        label.style.border = "1px solid #189359";
+        label.style.borderRadius = "6px";
+        label.style.padding = "2px 6px";
+        label.style.transition = "all 0.3s ease";
+      } else {
+        label.style.opacity = "0.6";
+      }
+    });
+
+    const retro = p.querySelector(".retroalimentacion-container");
+    retro.innerHTML = `✅ <strong>Respuesta correcta:</strong> ${correcta.toUpperCase()}`;
+    retro.className = "retroalimentacion-container respuesta-correcta";
+
+    const explicacion = p.querySelector(".explicacion");
+    if (explicacion) {
+      explicacion.style.display = "block";
+      explicacion.style.opacity = "0";
+      explicacion.style.transition = "opacity 0.4s ease";
+      setTimeout(() => (explicacion.style.opacity = "1"), 50);
+    }
+  }
+
+  pistasVisibles = true;
+  if (btn) btn.textContent = "🔕 Ocultar Pistas";
+
+  if (!window.modalPistasMostrado) {
+    crearModalDinamico(`
+      <div class="popup-content" style="max-width:480px; text-align:center;">
+        <h2>💡 Pistas activadas</h2>
+        <p>Se han mostrado las respuestas correctas y sus explicaciones formativas.<br>
+        Este modo corresponde al <strong>Nivel 1 (Recordar)</strong> del PMAP – SITE-RUTA LATAM.</p>
+        ${usoPistas && !cuestionarioCompletado ? `<p><span class="aviso-pistas">Este intento quedará registrado como práctica con pistas.</span></p>` : ""}
+        <div class="popup-buttons">
+          <button class="boton" onclick="cerrarModalDinamico(this)">Entendido</button>
+        </div>
+      </div>
+    `);
+    window.modalPistasMostrado = true;
+  } else {
+    mostrarToast("✅ Pistas activadas – PMAP Nivel 1 (Recordar)");
+  }
+}
+
+const letra = j => String.fromCharCode(65 + j);
+
+/* ==========================================================
+   🔁 MOTOR DE CONSOLIDACIÓN – PMAP-RUTA180
+   Ciclo: error → preguntas hermanas → dominio → pregunta original
+   · Cada hermana se responde UNA sola vez, con opciones barajadas.
+   · Se exigen RACHA_REQUERIDA aciertos seguidos al primer intento.
+     (Por azar, 3 seguidas con 4 opciones: 1 entre 64.)
+   · Con dominio demostrado vuelve la pregunta original, también barajada.
+   · Si recae: nuevo ciclo con hermanas no vistas + alerta docente.
+   · Sin hermanas: un intento, lectura del refuerzo y la pregunta
+     vuelve al final de la fila (nunca dos intentos seguidos).
+   ========================================================== */
+const RACHA_REQUERIDA = 3;
+
+// Hermanas aprobadas por el docente, incrustadas por el constructor: { "q1": [ {...}, ... ] }
+let HERMANAS = {};
+try { HERMANAS = JSON.parse(document.getElementById("pmap-hermanas")?.textContent || "{}") || {}; } catch { HERMANAS = {}; }
+
+let ciclo = null;
+
+function barajar(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Extrae lo necesario de una pregunta del cuestionario para practicarla después
+function registroDesdePregunta(p, i) {
+  const pTag = p.querySelector("p");
+  return {
+    id: p.dataset.id,
+    numero: numeroDe(p, i),
+    enunciadoHTML: pTag ? pTag.innerHTML : "",
+    imagen: p.querySelector("img")?.getAttribute("src") || "",
+    opciones: [...p.querySelectorAll("label")].map(l => ({
+      valor: (l.querySelector("input")?.value || "").toLowerCase(),
+      texto: l.textContent.replace(/^\s*[A-Z]\)\s*/, "").trim()
+    })),
+    correcta: correctaDe(p),
+    explicacionHTML: p.querySelector(".explicacion")?.innerHTML || "",
+    refuerzo: refuerzoDe(p)
+  };
+}
+
+/* ==========================================================
+   🧩 PÁGINA DE MIGRACIÓN: lista de errores y entrada al ciclo
+   ========================================================== */
+function generarPaginaErrores() {
+  const preguntas = [...document.getElementsByClassName("pregunta")];
+  const errores = preguntas
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => respuestaDe(p) !== correctaDe(p))
+    .map(({ p, i }) => registroDesdePregunta(p, i));
+
+  localStorage.setItem("preguntasErradas", JSON.stringify(errores));
+  localStorage.setItem("pmapResultado", JSON.stringify(resultadoActual));
+  detenerLectura();
+
+  const cont = document.createElement("div");
+  cont.className = "pmap-ciclo";
+  cont.innerHTML = `
+    <h2>🔁 Migración PMAP-RUTA180: Ciclo de Consolidación</h2>
+    <p><strong>Estudiante:</strong> ${esc(resultadoActual.nombre)}</p>
+    <p><strong>Porcentaje obtenido:</strong> ${esc(resultadoActual.porcentaje)}% – ${esc(resultadoActual.nivelTexto)}</p>
+    <p><strong>Fecha del intento:</strong> ${esc(resultadoActual.fecha)}</p>
+    ${resultadoActual.usoPistas ? `<p><span class="aviso-pistas">💡 Intento con pistas</span></p>` : ""}
+    <hr>
+    <div id="lista-errores"></div>
+  `;
+
+  const lista = cont.querySelector("#lista-errores");
+  if (errores.length === 0) {
+    lista.innerHTML = `<p>✅ ¡Felicidades! No hay errores que migrar. Has alcanzado equilibrio PMAP Nivel 4.</p>`;
+  } else {
+    lista.innerHTML = `
+      <div class="ciclo-instrucciones">
+        <strong>¿Cómo funciona?</strong> Por cada pregunta que fallaste vas a resolver preguntas parecidas
+        (<em>hermanas</em>) que evalúan lo mismo con otros datos. Cada una se responde <strong>una sola vez</strong>.
+        Cuando aciertes <strong>${RACHA_REQUERIDA} seguidas</strong>, vuelve tu pregunta original.
+        Marcar al azar no funciona: lee con calma y usa el refuerzo cuando te equivoques.
+      </div>
+      ${errores.map(e => {
+        const n = (HERMANAS[e.id] || []).length;
+        return `
+          <div class="pregunta-refuerzo" data-refuerzo="${esc(e.refuerzo)}">
+            <h4>❌ Pregunta ${e.numero}</h4>
+            <p>${e.enunciadoHTML}</p>
+            <small>${n ? `🔁 ${n} preguntas hermanas disponibles` : "📖 Sin hermanas: repaso con refuerzo y nuevo intento más adelante"}</small>
+            ${e.refuerzo ? `<br><a href="${esc(e.refuerzo)}" target="_blank" rel="noopener">🔗 Refuerzo del tema</a>` : ""}
+          </div>`;
+      }).join("")}
+      <div style="margin-top:20px;text-align:center;">
+        <button class="boton" onclick="iniciarCicloRefuerzo()">🧠 Iniciar ciclo de consolidación</button>
+      </div>`;
+  }
+
+  document.body.innerHTML = "";
+  document.body.appendChild(cont);
+  window.scrollTo(0, 0);
+}
+
+/* ==========================================================
+   🧠 INICIO DEL CICLO
+   ========================================================== */
+function iniciarCicloRefuerzo() {
+  const errores = JSON.parse(localStorage.getItem("preguntasErradas") || "[]");
+  if (!errores.length) {
+    alert("✅ No quedan preguntas por consolidar. Equilibrio PMAP Nivel 4 alcanzado.");
+    location.reload();
+    return;
+  }
+  try { resultadoActual = { ...JSON.parse(localStorage.getItem("pmapResultado") || "{}"), ...resultadoActual }; } catch {}
+
+  ciclo = {
+    items: errores.map(e => {
+      const hermanas = (HERMANAS[e.id] || []).filter(h => Array.isArray(h.opts) && h.opts.length >= 2);
+      return {
+        ...e,
+        hermanas,
+        requisito: Math.min(RACHA_REQUERIDA, hermanas.length),
+        orden: barajar(hermanas.map((_, k) => k)),
+        vistas: [],
+        racha: 0,
+        hermanasRespondidas: 0,
+        aciertosHermanas: 0,
+        intentosOriginal: 0,
+        recaidas: 0,
+        dominada: false
+      };
+    }),
+    cola: errores.map((_, i) => i),
+    inicio: new Date()
+  };
+
+  document.body.innerHTML = `
+    <div class="pmap-ciclo">
+      <div id="indicadorVoz" aria-live="polite"></div>
+      <h2 style="text-align:center;">🧠 Ciclo de Consolidación PMAP</h2>
+      <div id="barraProgreso" class="ciclo-progreso">
+        <div id="textoProgreso"></div>
+        <div class="ciclo-barra"><div id="barraProgresoInterna"></div></div>
+      </div>
+      <div id="zona-practica"></div>
+      <div style="text-align:center;margin-top:18px;">
+        <button class="boton" style="background:#64748b;" onclick="pausarCiclo()">⏸️ Pausar y descargar mi avance</button>
+      </div>
+    </div>`;
+  siguientePaso();
+}
+
+function itemActual() {
+  while (ciclo.cola.length && ciclo.items[ciclo.cola[0]].dominada) ciclo.cola.shift();
+  return ciclo.cola.length ? ciclo.items[ciclo.cola[0]] : null;
+}
+
+function actualizarProgresoCiclo(item) {
+  const total = ciclo.items.length;
+  const dominadas = ciclo.items.filter(i => i.dominada).length;
+  const porcentaje = Math.round((dominadas / total) * 100);
+  const nivel = nivelPMAP(porcentaje);
+  const barra = document.getElementById("barraProgresoInterna");
+  barra.style.width = `${porcentaje}%`;
+  barra.style.background = nivel.color;
+
+  let detalle = "";
+  if (item) {
+    if (item.requisito > 0 && item.racha < item.requisito) {
+      const puntos = Array.from({ length: item.requisito }, (_, k) => k < item.racha ? "●" : "○").join(" ");
+      detalle = `<div class="ciclo-racha">Pregunta ${item.numero} · aciertos seguidos: <span>${puntos}</span> (${item.racha}/${item.requisito})</div>`;
+    } else {
+      detalle = `<div class="ciclo-racha">Pregunta ${item.numero} · 🎯 ¡Demostraste dominio! Ahora tu pregunta original</div>`;
+    }
+  }
+  document.getElementById("textoProgreso").innerHTML =
+    `🧠 Consolidadas: <b>${dominadas}</b> / ${total} · ${porcentaje}% · <span style="color:${nivel.color}">${nivel.texto}</span>${detalle}`;
+}
+
+/* ==========================================================
+   ▶️ SIGUIENTE PASO DEL CICLO
+   ========================================================== */
+function siguientePaso() {
+  const item = itemActual();
+  actualizarProgresoCiclo(item);
+  window.scrollTo(0, 0);
+  if (!item) return cerrarCiclo();
+
+  if (item.requisito > 0 && item.racha < item.requisito) mostrarHermana(item);
+  else mostrarOriginal(item);
+}
+
+function mostrarHermana(item) {
+  // Primero hermanas no vistas; si ya vio todas, se repasan en otro orden
+  let pendientes = item.orden.filter(k => !item.vistas.includes(k));
+  let repaso = false;
+  if (!pendientes.length) {
+    item.vistas = [];
+    item.orden = barajar(item.orden);
+    pendientes = item.orden;
+    repaso = true;
+  }
+  const k = pendientes[0];
+  item.vistas.push(k);
+  const h = item.hermanas[k];
+
+  const opciones = barajar(h.opts.map((texto, j) => ({ texto, correcta: j === h.correctIdx })));
+  pintarTarjeta({
+    etiqueta: `🔁 Pregunta hermana · relacionada con la pregunta ${item.numero}${repaso ? " · repaso" : ""}`,
+    enunciadoHTML: `${h.contexto ? `<span class="ciclo-contexto">${esc(h.contexto).replace(/\n/g, "<br>")}</span>` : ""}${esc(h.enun).replace(/\n/g, "<br>")}`,
+    imagen: h.imgSrc || "",
+    opciones,
+    explicacionHTML: esc(h.exp || "").replace(/\n/g, "<br>"),
+    refuerzo: item.refuerzo
+  }, acerto => {
+    item.hermanasRespondidas++;
+    if (acerto) { item.aciertosHermanas++; item.racha++; }
+    else item.racha = 0;
+  });
+}
+
+function mostrarOriginal(item) {
+  item.intentosOriginal++;
+  const opciones = barajar(item.opciones.map(o => ({ texto: o.texto, correcta: o.valor === item.correcta })));
+  pintarTarjeta({
+    etiqueta: item.requisito > 0
+      ? `🎯 Tu pregunta original ${item.numero} · demuestra lo que consolidaste`
+      : `📖 Pregunta ${item.numero} · nuevo intento (lee el refuerzo si fallas)`,
+    enunciadoHTML: item.enunciadoHTML,
+    imagen: item.imagen,
+    opciones,
+    explicacionHTML: item.explicacionHTML,
+    refuerzo: item.refuerzo,
+    esOriginal: true
+  }, acerto => {
+    if (acerto) {
+      item.dominada = true;
+      mostrarToast(item.recaidas ? `✅ Pregunta ${item.numero} consolidada tras ${item.recaidas + 1} ciclos` : `✅ ¡Pregunta ${item.numero} consolidada!`);
+    } else {
+      item.recaidas++;
+      item.racha = 0;
+      if (item.requisito === 0) {
+        // Sin hermanas: vuelve al final de la fila para no reintentar de inmediato
+        ciclo.cola.push(ciclo.cola.shift());
+      }
+      mostrarToast(item.requisito > 0
+        ? `🔁 Nuevo ciclo para la pregunta ${item.numero}: vuelve a consolidar con otras hermanas`
+        : `📖 Repasa el refuerzo; la pregunta ${item.numero} volverá más adelante`);
+    }
+  });
+}
+
+/* ==========================================================
+   🃏 TARJETA DE PREGUNTA – un solo intento
+   ========================================================== */
+function pintarTarjeta(datos, alResponder) {
+  const zona = document.getElementById("zona-practica");
+  const nombre = "ciclo_" + Date.now();
+  zona.innerHTML = `
+    <div class="pregunta ciclo-tarjeta">
+      <div class="ciclo-etiqueta">${datos.etiqueta}</div>
+      <p>${datos.enunciadoHTML}</p>
+      ${datos.imagen ? `<img src="${esc(datos.imagen)}" alt="" style="display:block;max-width:100%;max-height:260px;margin:8px auto;object-fit:contain;">` : ""}
+      <div class="ciclo-opciones">
+        ${datos.opciones.map((o, j) => `
+          <label class="ciclo-opcion"><input type="radio" name="${nombre}" value="${j}"> <strong>${letra(j)})</strong> ${esc(o.texto)}</label>`).join("")}
+      </div>
+      <div class="retroalimentacion-container"></div>
+      <div class="explicacion"></div>
+      <div class="ciclo-continuar" style="display:none;text-align:center;margin-top:14px;">
+        <button class="boton" type="button">Continuar ➡️</button>
+      </div>
+    </div>`;
+  activarAccesibilidadVoz();
+
+  const tarjeta = zona.querySelector(".ciclo-tarjeta");
+  const radios = [...tarjeta.querySelectorAll('input[type="radio"]')];
+  radios.forEach(r => r.addEventListener("change", () => {
+    const elegida = Number(r.value);
+    const acerto = datos.opciones[elegida].correcta;
+    radios.forEach(x => { x.disabled = true; });
+
+    tarjeta.querySelectorAll(".ciclo-opcion").forEach((lab, j) => {
+      if (datos.opciones[j].correcta) lab.classList.add("ciclo-ok");
+      else if (j === elegida) lab.classList.add("ciclo-mal");
+      else lab.classList.add("ciclo-off");
+    });
+
+    const retro = tarjeta.querySelector(".retroalimentacion-container");
+    const exp = tarjeta.querySelector(".explicacion");
+    if (acerto) {
+      retro.className = "retroalimentacion-container respuesta-correcta";
+      retro.innerHTML = datos.esOriginal ? "✅ <strong>¡Correcta!</strong> Cerraste el ciclo de esta pregunta." : "✅ <strong>¡Correcta!</strong>";
+    } else {
+      retro.className = "retroalimentacion-container respuesta-incorrecta";
+      retro.innerHTML = `❌ <strong>Incorrecta.</strong> ${datos.esOriginal ? "Volverás a consolidar antes de intentarla otra vez." : "El contador de aciertos seguidos vuelve a cero."}
+        ${datos.refuerzo ? `<br><a href="${esc(datos.refuerzo)}" target="_blank" rel="noopener">🔗 Lee el refuerzo del tema antes de continuar</a>` : ""}`;
+    }
+    if (datos.explicacionHTML) {
+      exp.innerHTML = `<strong>Explicación:</strong> ${datos.explicacionHTML}`;
+      exp.style.display = "block";
+      exp.style.opacity = "1";
+    }
+
+    alResponder(acerto);
+    actualizarProgresoCiclo(itemActual());
+
+    const cont = tarjeta.querySelector(".ciclo-continuar");
+    const btn = cont.querySelector("button");
+    cont.style.display = "block";
+    // Tras un error se pide una pausa breve de lectura antes de continuar
+    if (!acerto) {
+      btn.disabled = true;
+      let s = 8;
+      btn.textContent = `Lee la explicación (${s})`;
+      const t = setInterval(() => {
+        s--;
+        if (s <= 0) { clearInterval(t); btn.disabled = false; btn.textContent = "Continuar ➡️"; }
+        else btn.textContent = `Lee la explicación (${s})`;
+      }, 1000);
+    }
+    btn.onclick = () => { detenerLectura(); siguientePaso(); };
+  }));
+}
+
+/* ==========================================================
+   📊 INFORME DE CONSOLIDACIÓN (Excel)
+   ========================================================== */
+function descargarInformeCiclo(parcial) {
+  if (!ciclo) return;
+  if (typeof XLSX === "undefined") { alert("No se pudo cargar el generador de Excel. Revisa tu conexión."); return; }
+  const r = resultadoActual || {};
+  const ahora = new Date();
+  const minutos = Math.max(1, Math.round((ahora - ciclo.inicio) / 60000));
+
+  const filas = ciclo.items.map(i => [
+    `Pregunta ${i.numero}`,
+    i.hermanas.length,
+    i.hermanasRespondidas,
+    i.aciertosHermanas,
+    i.intentosOriginal,
+    i.recaidas,
+    i.dominada ? (i.recaidas ? "Consolidada con recaídas" : "Consolidada") : "En proceso",
+    i.recaidas ? "⚠️ Requiere acompañamiento docente" : (i.hermanas.length ? "" : "Sin hermanas: revisar comprensión"),
+    i.refuerzo || ""
+  ]);
+
+  const datos = [
+    ["SISTEMA INTEGRADO DE TRAZABILIDAD EDUCATIVA – SITE-RUTA LATAM"],
+    ["INSTRUMENTO: PMAP – Ciclo de Consolidación (error → hermanas → original)"],
+    [],
+    ["ESTUDIANTE", r.nombre || ""],
+    ["EVALUACIÓN INICIAL", `${r.porcentaje ?? ""}% – ${r.nivelTexto || ""}`],
+    ["PISTAS EN EL INTENTO", r.usoPistas ? "Sí" : "No"],
+    ["FECHA", ahora.toLocaleString("es-CO")],
+    ["TIEMPO EN EL CICLO", `${minutos} min`],
+    ["ESTADO", parcial ? "Ciclo pausado (avance parcial)" : "Ciclo completado"],
+    ["CRITERIO DE DOMINIO", `${RACHA_REQUERIDA} hermanas seguidas acertadas al primer intento`],
+    [],
+    ["Pregunta", "Hermanas disponibles", "Hermanas respondidas", "Aciertos en hermanas", "Intentos de la original", "Recaídas", "Estado", "Alerta docente", "Refuerzo"],
+    ...filas
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(datos);
+  ws["!cols"] = [{ wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 24 }, { wch: 34 }, { wch: 45 }];
+  XLSX.utils.book_append_sheet(wb, ws, "Consolidacion");
+  const limpiar = t => String(t || "estudiante").replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, "_");
+  const dos = n => String(n).padStart(2, "0");
+  const sello = `${ahora.getFullYear()}_${dos(ahora.getMonth() + 1)}_${dos(ahora.getDate())}_${dos(ahora.getHours())}_${dos(ahora.getMinutes())}`;
+  XLSX.writeFile(wb, `PMAP_Consolidacion_${limpiar(r.nombre)}_${sello}.xlsx`);
+}
+
+function pausarCiclo() {
+  descargarInformeCiclo(true);
+  mostrarToast("⏸️ Avance descargado. Puedes retomar el ciclo cuando quieras.");
+}
+
+/* ==========================================================
+   🏁 CIERRE DEL CICLO
+   ========================================================== */
+function cerrarCiclo() {
+  const conRecaidas = ciclo.items.filter(i => i.recaidas > 0);
+  localStorage.removeItem("preguntasErradas");
+  lanzarConfeti();
+  document.getElementById("zona-practica").innerHTML = `
+    <div class="pregunta ciclo-tarjeta" style="text-align:center;">
+      <h3>🎓 Ciclo de consolidación completado</h3>
+      <p>Consolidaste <strong>${ciclo.items.length}</strong> pregunta(s): fallaste, reforzaste con preguntas hermanas y acertaste la original.</p>
+      ${conRecaidas.length
+        ? `<p class="aviso-pistas">⚠️ ${conRecaidas.length} pregunta(s) necesitaron más de un ciclo (${conRecaidas.map(i => i.numero).join(", ")}). Tu docente las revisará contigo.</p>`
+        : `<p>Sin recaídas: <strong>Equilibrio PMAP Nivel 4</strong>.</p>`}
+      <div class="popup-buttons">
+        <button class="boton" onclick="descargarInformeCiclo(false)">📥 Descargar informe de consolidación</button>
+        <button class="boton" onclick="cerrarModalFinalPmap()">🏠 Volver al panel principal</button>
+      </div>
+    </div>`;
+}
+
+/* ==========================================================
+   🏁 FINALIZAR EVALUACIÓN
+   Califica y muestra el modal de resultados (que ya incluye
+   "Descargar Excel" y "Migrar preguntas erradas").
+   ========================================================== */
+function finalizarEvaluacion() {
+  calcularPuntaje();
+}
+
+
+
+/* ==========================================================
+   🏁 Cierre del modal final institucional
+   ========================================================== */
+function cerrarModalFinalPmap() {
+  if (window.modalFinalActivo) return;
+  window.modalFinalActivo = true;
+
+  document.querySelectorAll(".popup-modal.show").forEach(mod => {
+    mod.classList.remove("show");
+    setTimeout(() => mod.remove(), 200);
+  });
+
+  crearModalDinamico(`
+    <div class="popup-content" style="max-width:480px;text-align:center;">
+      <h2>🎓 Sesión completada</h2>
+      <p>Tu progreso ha sido registrado en el sistema <strong>SITE-RUTA LATAM</strong>.</p>
+      <p>El entorno se restablecerá automáticamente.</p>
+    </div>
+  `, 9999);
+
+  // El aviso de bienvenida se muestra después de recargar
+  try { sessionStorage.setItem("toastReinicio", "1"); } catch {}
+  setTimeout(() => window.location.reload(), 2500);
+}
+
+/* ==========================================================
+   🎊 CONFETI ACADÉMICO
+   ========================================================== */
+function lanzarConfeti() {
+  if (window.confetiActivo) return;
+  window.confetiActivo = true;
+  const emojis = ["🎓", "📘", "💡", "🧪", "🌿", "⭐"];
+  for (let i = 0; i < 90; i++) {
+    const conf = document.createElement("div");
+    conf.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    conf.style.cssText = `position:fixed;top:-10px;left:${Math.random() * 100}vw;font-size:${14 + Math.random() * 10}px;z-index:5000;opacity:0.95;transition:transform 3.5s ease-out, opacity 3.5s ease-out;pointer-events:none;`;
+    document.body.appendChild(conf);
+    const dx = (Math.random() - 0.5) * 300;
+    const rot = Math.random() * 720;
+    setTimeout(() => {
+      conf.style.transform = `translate(${dx}px, ${window.innerHeight}px) rotate(${rot}deg)`;
+      conf.style.opacity = 0;
+    }, 10);
+    setTimeout(() => conf.remove(), 3600);
+  }
+  mostrarToast("🎉 ¡Nivel 4 alcanzado! Equilibrio PMAP logrado.");
+  setTimeout(() => (window.confetiActivo = false), 4000);
+}
+
+
+/* ==========================================================
+   ♿ ACCESIBILIDAD – LECTOR DE VOZ
+   ========================================================== */
+let vozSeleccionada = null;
+const vozDisponible = () => "speechSynthesis" in window;
+
+function elegirVoz() {
+  if (!vozDisponible()) return;
+  const voces = window.speechSynthesis.getVoices();
+  vozSeleccionada =
+    voces.find(v => v.lang === "es-CO") ||
+    voces.find(v => v.lang.startsWith("es")) ||
+    voces[0] || null;
+}
+if (vozDisponible()) {
+  elegirVoz();
+  window.speechSynthesis.onvoiceschanged = elegirVoz;
+}
+
+/* Botones de escuchar / detener en cada pregunta */
+function activarAccesibilidadVoz() {
+  if (!vozDisponible()) return;
+  document.querySelectorAll(".pregunta").forEach(p => {
+    if (p.querySelector(".acciones-voz")) return;
+    const contenedor = document.createElement("div");
+    contenedor.className = "acciones-voz";
+    contenedor.innerHTML = `
+      <button type="button" onclick="leerPregunta(this)">🔊 Escuchar</button>
+      <button type="button" onclick="detenerLectura()">⏹️ Detener</button>
+    `;
+    p.appendChild(contenedor);
+  });
+}
+
+let lectorActivo = null;
+let botonLecturaActivo = null;
+
+function restaurarBotonLectura() {
+  mostrarIndicadorVoz(false);
+  if (botonLecturaActivo) {
+    botonLecturaActivo.textContent = "🔊 Escuchar";
+    botonLecturaActivo.classList.remove("leyendo-activo");
+    botonLecturaActivo = null;
+  }
+}
+
+function leerPregunta(boton) {
+  if (!vozDisponible()) return;
+  detenerLectura();
+
+  const preguntaDiv = boton.closest(".pregunta");
+  if (!preguntaDiv) return;
+
+  const textoRaw = preguntaDiv.querySelector("p")?.innerText || "";
+  const numero = textoRaw.match(/\d+/)?.[0] || "";
+  const textoPregunta = textoRaw.replace(/^\d+\.\s*/, "").trim();
+
+  let textoLectura = numero ? `Pregunta ${numero}. ` : "";
+  textoLectura += `${textoPregunta}. `;
+
+  const opciones = [...preguntaDiv.querySelectorAll("label")].map(l => l.innerText.trim());
+  if (opciones.length > 0) textoLectura += "Opciones: " + opciones.join(". ") + ". ";
+
+  const explicacion = preguntaDiv.querySelector(".explicacion");
+  if (explicacion && getComputedStyle(explicacion).display !== "none") {
+    textoLectura += `Explicación: ${explicacion.innerText}`;
+  }
+
+  lectorActivo = new SpeechSynthesisUtterance(textoLectura);
+  if (vozSeleccionada) lectorActivo.voice = vozSeleccionada;
+  lectorActivo.lang = vozSeleccionada?.lang || "es-CO";
+  lectorActivo.rate = 0.97;
+  lectorActivo.pitch = 1;
+  lectorActivo.volume = 1;
+
+  botonLecturaActivo = boton;
+  boton.textContent = "📖 Leyendo...";
+  boton.classList.add("leyendo-activo");
+  mostrarIndicadorVoz(true, numero);
+
+  lectorActivo.onend = restaurarBotonLectura;
+  lectorActivo.onerror = restaurarBotonLectura;
+  window.speechSynthesis.speak(lectorActivo);
+}
+
+function detenerLectura() {
+  if (vozDisponible() && window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  restaurarBotonLectura();
+}
+
+/* Indicador visual de lectura: visible mientras haya voz activa */
+function mostrarIndicadorVoz(mostrar, numero = "") {
+  const ind = document.getElementById("indicadorVoz");
+  if (!ind) return;
+
+  if (mostrar) {
+    ind.textContent = numero ? `🔊 Leyendo Pregunta ${numero}...` : "🔊 Leyendo...";
+    ind.style.display = "flex";
+    ind.style.opacity = "1";
+    ind.dataset.activo = "true";
+    return;
+  }
+
+  ind.dataset.activo = "false";
+  const verificar = () => {
+    if (!vozDisponible() || !window.speechSynthesis.speaking) {
+      ind.style.opacity = "0";
+      setTimeout(() => { if (ind.dataset.activo === "false") ind.style.display = "none"; }, 400);
+    } else {
+      setTimeout(verificar, 300);
+    }
+  };
+  verificar();
+}
+
+/* ==========================================================
+   🔠 ROTULADOR AUTOMÁTICO DE OPCIONES: A), B), C), D)
+   ========================================================== */
+function etiquetarOpciones() {
+  document.querySelectorAll(".pregunta").forEach(p => {
+    p.querySelectorAll("label").forEach((label, idx) => {
+      if (!label.dataset.etiquetado) {
+        label.insertAdjacentHTML("afterbegin", `<strong>${String.fromCharCode(65 + idx)})</strong> `);
+        label.dataset.etiquetado = "true";
+      }
+    });
+  });
+}
+
+/* ==========================================================
+   🚀 INICIO
+   ========================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  // Identificador estable por pregunta (enlaza cada pregunta con sus hermanas)
+  document.querySelectorAll(".pregunta").forEach((p, i) => { if (!p.dataset.id) p.dataset.id = "q" + (i + 1); });
+  etiquetarOpciones();
+  activarAccesibilidadVoz();
+
+  // Verificación: toda pregunta debe tener su clave
+  const sinClave = [...document.querySelectorAll(".pregunta")]
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => !correctaDe(p))
+    .map(({ p, i }) => numeroDe(p, i));
+  if (sinClave.length) console.warn(`⚠️ Preguntas sin data-correcta: ${sinClave.join(", ")}`);
+
+  try {
+    if (sessionStorage.getItem("toastReinicio")) {
+      sessionStorage.removeItem("toastReinicio");
+      setTimeout(() => mostrarToast("✅ Sesión restaurada – Bienvenido nuevamente al panel PMAP"), 300);
+    }
+  } catch {}
+});
+</script>
+
+
+</body>
+
+
+</html>

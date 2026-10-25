@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Constructor Dinámico de Cuestionarios - Versión Optimizada</title>
+  
+  <!-- CSS solamente - sin scripts bloqueantes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  
+  <style>
+    /* === ESTILOS MEJORADOS === */
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0;
+      background: #f0f2f5;
+    }
+    
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto 40px; 
+      padding: 20px;
+    }
+    
+    button { 
+      padding: 10px 20px; 
+      margin: 6px; 
+      border: none; 
+      border-radius: 6px; 
+      background: #25447e; 
+      color: #fff; 
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    button:hover { 
+      background: #1e3565; 
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    button:active { transform: translateY(0); }
+    
+    button.danger { background: #e74c3c; }
+    button.danger:hover { background: #c0392b; }
+    button.success { background: #27ae60; }
+    button.success:hover { background: #229954; }
+    button.warning { background: #f39c12; }
+    
+    input, textarea, select { 
+      padding: 8px 12px; 
+      border: 2px solid #ddd; 
+      border-radius: 6px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    
+    input:focus, textarea:focus, select:focus { 
+      outline: none;
+      border-color: #25447e;
+      box-shadow: 0 0 0 3px rgba(37,68,126,0.1);
+    }
+    
+    .builder-form, .pregunta { 
+      border: 1px solid #ddd;
+      border-radius: 12px; 
+      padding: 20px; 
+      margin: 16px 0; 
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .metadata { 
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    
+    .metadata label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: 500;
+    }
+    
+    .editing-indicator {
+      background: #f39c12;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2c3e50;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 50px;
+      display: none;
+      z-index: 10000;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    #lista-preguntas .draggable { 
+      cursor: move; 
+      user-select: none;
+      transition: all 0.2s;
+    }
+    
+    #lista-preguntas .draggable:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    #lista-preguntas .drag-over { 
+      border: 2px dashed #25447e;
+      background: #e8f0fe;
+    }
+    
+    .opcion-builder {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .opcion-builder input[type="radio"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    
+    .opcion-builder input[type="text"] { flex: 1; }
+    
+    #modal-ponderacion {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    }
+    
+    #modal-ponderacion .modal-contenido {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    #modal-ponderacion table {
+      width: 100%;
+      margin: 16px 0;
+      border-collapse: collapse;
+    }
+    
+    #modal-ponderacion th, #modal-ponderacion td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    #modal-ponderacion th:last-child, #modal-ponderacion td:last-child {
+      text-align: right;
+    }
+
+    /* =============================================
+       FIX #1: btn-save-pregunta now exists in HTML.
+       Keep its CSS so it stays fixed bottom-right.
+       ============================================= */
+    #btn-save-pregunta {
+      position: fixed;
+      right: 30px;
+      bottom: 30px;
+      z-index: 1000;
+      padding: 14px 28px;
+      border-radius: 50px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-weight: bold;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    
+    .badge-primary { background: #25447e; color: #fff; }
+    .badge-success { background: #27ae60; color: #fff; }
+    .badge-warning { background: #f39c12; color: #fff; }
+    
+    .filters-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #fff;
+      border-radius: 8px;
+    }
+    
+    .error-msg {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    .error { border-color: #e74c3c !important; }
+    .hidden { display: none !important; }
+    
+    /* Loader para exportación */
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📋 Constructor Dinámico de Cuestionarios v23</h1>
+  
+  <button id="btn-abrir-builder" class="success">
+    <i class="fas fa-plus"></i> Crear / Editar Preguntas
+  </button>
+
+  <div id="builder-container" class="builder-form hidden">
+    <h2>✏️ Agregar Nueva Pregunta</h2>
+    
+    <div class="metadata">
+      <label>Grado:
+        <select id="sel-grado">
+          <option value="">Seleccionar</option>
+          <option value="Transición">Transición</option>
+          <option value="1">1.º</option>
+          <option value="2">2.º</option>
+          <option value="3">3.º</option>
+          <option value="4">4.º</option>
+          <option value="5">5.º</option>
+          <option value="6">6.º</option>
+          <option value="7">7.º</option>
+          <option value="8">8.º</option>
+          <option value="9">9.º</option>
+          <option value="10">10.º</option>
+          <option value="11">11.º</option>
+        </select>
+      </label>
+
+      <label>Área:
+        <select id="sel-area">
+          <option value="">Seleccionar</option>
+          <option>Matemáticas</option>
+          <option>Lectura Crítica</option>
+          <option>Ciencias Sociales</option>
+          <option>Ciencias Naturales</option>
+          <option>Inglés</option>
+        </select>
+      </label>
+      
+      <label>Competencia:
+        <select id="sel-competencia"><option value="">Seleccionar</option></select>
+      </label>
+      
+      <label>Nivel:
+        <select id="sel-nivel"><option value="">Seleccionar</option></select>
+      </label>
+      
+      <label>Descriptor:
+        <select id="sel-descriptor"><option value="">Seleccionar</option></select>
+      </label>
+      
+      <label>Propósito:
+        <select id="sel-profundidad">
+          <option value="rapido">Modo General (1× descriptor)</option>
+          <option value="profundo">Modo Profundización (múltiples× descriptor)</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Enunciado:<br>
+      <textarea id="txt-enunciado" rows="3" style="width:100%;" placeholder="Escribe aquí el enunciado de la pregunta..."></textarea>
+    </label><br>
+    
+    <label>Imagen:<br>
+      <input type="file" id="file-imagen" accept="image/*">
+    </label>
+    <div id="preview-imagen"><i class="fas fa-camera"></i> Sin imagen</div>
+
+    <label>Explicación:<br>
+      <textarea id="txt-explicacion" rows="2" style="width:100%;" placeholder="Explicación de la respuesta correcta..."></textarea>
+    </label><br>
+    
+    <label>Link Refuerzo:<br>
+      <input type="url" id="txt-refuerzo" style="width:100%;" placeholder="https://...">
+    </label>
+
+    <div id="opciones-container"><h3>Opciones de Respuesta</h3></div>
+    <button id="btn-add-opcion" type="button">+ Agregar Opción</button>
+
+    <div class="filters-bar">
+      <label>Filtrar Área:
+        <select id="filter-area">
+          <option value="">Todas</option>
+        </select>
+      </label>
+      <label>Filtrar Nivel:
+        <select id="filter-nivel">
+          <option value="">Todos</option>
+        </select>
+      </label>
+      <button id="btn-clear-filters" type="button">Limpiar filtros</button>
+      <span id="preguntas-count" style="margin-left: auto; color: #666;"></span>
+    </div>
+
+    <div id="lista-preguntas"></div>
+    
+    <div id="export-container">
+      <h2>📥 Descargar Cuestionario</h2>
+      <label>
+        Nº de versiones:
+        <input id="num-versions" type="number" min="1" value="1" style="width:4em;">
+      </label>
+      <button id="btn-generate-variants" class="warning">Generar Versiones</button>
+      <hr>
+      <button id="btn-export-word" class="success">
+        <i class="fas fa-file-word"></i> Descargar Word
+      </button>
+      <label style="margin-left:1em;">
+        <input id="chk-clave" type="checkbox"> Incluir clave de respuestas
+      </label>
+    </div>
+  </div><!-- /builder-container -->
+
+  <!-- =============================================
+       FIX #1: btn-save-pregunta added to the DOM.
+       Previously it only existed in JS/CSS but was
+       never inserted into the HTML, causing the
+       "Elemento no encontrado: btn-save-pregunta"
+       console error and breaking save functionality.
+       ============================================= -->
+  <button id="btn-save-pregunta" class="success" style="display:none;">
+    💾 Guardar Pregunta
+  </button>
+
+  <div id="toast"></div>
+  
+  <!-- Modal -->
+  <div id="modal-ponderacion" class="hidden">
+    <div class="modal-contenido">
+      <h3 id="modal-titulo">📊 Recordatorio de Ponderaciones</h3>
+      <table id="modal-tabla">
+        <thead><tr><th>Competencia</th><th>%</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="modal-no-mostrar" style="background: #95a5a6;">No mostrar más</button>
+        <button id="modal-cerrar" class="success">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CARGA ASÍNCRONA DE SCRIPTS ====================
+// FIX #2: Switched html-to-docx from unpkg (unreliable) to jsDelivr.
+// jsDelivr has better uptime, CORS headers, and caching for npm packages.
+(function loadScriptsAsync() {
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  // Primary: jsDelivr (reliable, global CDN for npm packages)
+  // Fallback: unpkg (kept as secondary option)
+  const htmlToDocxPrimary  = 'https://cdn.jsdelivr.net/npm/html-to-docx@1.8.0/dist/index.umd.js';
+  const htmlToDocxFallback = 'https://unpkg.com/html-to-docx@1.8.0/dist/index.umd.js';
+  const fileSaver          = 'https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js';
+
+  Promise.all([
+    loadScript(htmlToDocxPrimary).catch(() => loadScript(htmlToDocxFallback)),
+    loadScript(fileSaver)
+  ]).catch(err => {
+    console.warn('Error loading scripts:', err);
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = '⚠️ La exportación a Word podría no funcionar. Verifica tu conexión.';
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 6000);
+    }
+  });
+})();
+
+// ==================== METADATOS ====================
+const metadata = {
+  "Matemáticas": {
+    competencias: ["Interpretación y representación","Formulación y ejecución","Argumentación"],
+    niveles: ["1","2","3","4"],
+    descriptores: {
+      "1": ["Lee información puntual en tablas con escala explícita relacionadas con situaciones cotidianas."],
+      "2": ["Compara datos de dos variables en una misma gráfica sin operaciones aritméticas."],
+      "3": ["Selecciona y manipula información gráfica compleja, transformando escalas no convencionales."],
+      "4": ["Resuelve problemas dependientes que requieren cálculos de porcentajes."]
+    }
+  },
+  "Lectura Crítica": {
+    competencias: ["Identificar y ubicar información local","Relacionar e interpretar información","Evaluar y reflexionar sobre forma y contenido"],
+    niveles: ["1","2","3","4"],
+    descriptores: {
+      "1": ["Identifica elementos literales en textos continuos y discontinuos."],
+      "2": ["Identifica información local del texto y relaciones básicas."],
+      "3": ["Jerarquiza la información presente en un texto e infiere información implícita."],
+      "4": ["Reflexiona sobre la visión de mundo del autor."]
+    }
+  },
+  "Ciencias Sociales": {
+    competencias: ["Pensamiento social","Interpretación y análisis de perspectivas","Pensamiento reflexivo y sistémico"],
+    niveles: ["1","2","3","4"],
+    descriptores: {
+      "1": ["Reconoce derechos ciudadanos básicos en situaciones sencillas."],
+      "2": ["Identifica relaciones entre conductas y cosmovisiones."],
+      "3": ["Valora y contextualiza la información presentada."],
+      "4": ["Conoce procedimientos de reforma constitucional y mecanismos de participación."]
+    }
+  },
+  "Ciencias Naturales": {
+    competencias: ["Explicación de fenómenos","Uso comprensivo del conocimiento científico","Indagación"],
+    niveles: ["1","2","3","4"],
+    descriptores: {
+      "1": ["Reconoce información explícita en tablas o gráficas de una variable."],
+      "2": ["Relaciona datos con conceptos científicos básicos."],
+      "3": ["Interrelaciona conceptos, leyes y teorías con datos experimentales."],
+      "4": ["Plantea preguntas de investigación desde un contexto determinado."]
+    }
+  },
+  "Inglés": {
+    competencias: ["Lingüística","Pragmática","Sociolingüística"],
+    niveles: ["A-","A1","A2","B1","B2"],
+    descriptores: {
+      "A-": ["Comprensión de lectura: reconoce palabras señaladas por imágenes."],
+      "A1": ["Comprensión de lectura: textos muy breves y sencillos."],
+      "A2": ["Comprensión de lectura: textos breves y sencillos sobre asuntos cotidianos."],
+      "B1": ["Comprensión de lectura: textos sencillos de carácter fáctico."],
+      "B2": ["Comprensión de lectura: lee con independencia y adapta estilo."]
+    }
+  }
+};
+
+const ponderaciones = {
+  "Matemáticas": {
+    "Interpretación y representación": 34,
+    "Formulación y ejecución": 43,
+    "Argumentación": 23
+  },
+  "Lectura Crítica": {
+    "Identificar y ubicar información local": 30,
+    "Relacionar e interpretar información": 40,
+    "Evaluar y reflexionar sobre forma y contenido": 30
+  },
+  "Ciencias Sociales": {
+    "Pensamiento social": 30,
+    "Interpretación y análisis de perspectivas": 40,
+    "Pensamiento reflexivo y sistémico": 30
+  },
+  "Ciencias Naturales": {
+    "Uso comprensivo del conocimiento científico": 30,
+    "Explicación de fenómenos": 30,
+    "Indagación": 40
+  },
+  "Inglés": {
+    "Parte 1": 11, "Parte 2": 11, "Parte 3": 11,
+    "Parte 4": 18, "Parte 5": 16, "Parte 6": 11, "Parte 7": 22
+  }
+};
+
+// ==================== DOM ELEMENTS ====================
+function safeGetElement(id) {
+  const el = document.getElementById(id);
+  if (!el) console.warn(`Elemento no encontrado: ${id}`);
+  return el;
+}
+
+const btnAbrir         = safeGetElement('btn-abrir-builder');
+const editor           = safeGetElement('builder-container');
+const selGrado         = safeGetElement('sel-grado');
+const selArea          = safeGetElement('sel-area');
+const selComp          = safeGetElement('sel-competencia');
+const selNivel         = safeGetElement('sel-nivel');
+const selDescriptor    = safeGetElement('sel-descriptor');
+const txtEnunciado     = safeGetElement('txt-enunciado');
+const fileImagen       = safeGetElement('file-imagen');
+const previewImagen    = safeGetElement('preview-imagen');
+const txtExplicacion   = safeGetElement('txt-explicacion');
+const txtRefuerzo      = safeGetElement('txt-refuerzo');
+const opcionesCont     = safeGetElement('opciones-container');
+const btnAddOpt        = safeGetElement('btn-add-opcion');
+const btnSave          = safeGetElement('btn-save-pregunta'); // now found ✓
+const filterArea       = safeGetElement('filter-area');
+const filterNivel      = safeGetElement('filter-nivel');
+const btnClearFilt     = safeGetElement('btn-clear-filters');
+const listaPreg        = safeGetElement('lista-preguntas');
+const btnExportWord    = safeGetElement('btn-export-word');
+const chkClave         = safeGetElement('chk-clave');
+const numVersionsInput = safeGetElement('num-versions');
+const btnGenerateVariants = safeGetElement('btn-generate-variants');
+const selProfundidad   = safeGetElement('sel-profundidad');
+const modal            = safeGetElement('modal-ponderacion');
+const modalTit         = safeGetElement('modal-titulo');
+const modalBody        = document.querySelector('#modal-tabla tbody');
+const btnCerrar        = safeGetElement('modal-cerrar');
+const btnNoMostrar     = safeGetElement('modal-no-mostrar');
+const preguntasCount   = safeGetElement('preguntas-count');
+
+// ==================== VARIABLES GLOBALES ====================
+const STORAGE_KEY     = 'miBancoPreguntas';
+const FILTER_AREA     = 'filtroArea';
+const FILTER_LEVEL    = 'filtroNivel';
+const MODAL_DONT_SHOW = 'modalPonderacionNoMostrar';
+
+let preguntas      = [];
+let editingIndex   = null;
+let currentImgSrc  = '';
+let currentImgDim  = { widthPx: 0, heightPx: 0 };
+let modalNoMostrar = false;
+
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  preguntas = saved ? JSON.parse(saved) : [];
+  modalNoMostrar = localStorage.getItem(MODAL_DONT_SHOW) === 'true';
+} catch (e) {
+  console.warn('Error loading from localStorage:', e);
+  preguntas = [];
+}
+
+// ==================== FUNCIONES AUXILIARES ====================
+function esc(valor) {
+  return String(valor ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function mostrarToast(mensaje, duracion = 3000) {
+  const t = safeGetElement('toast');
+  if (!t) return;
+  t.textContent = mensaje;
+  t.style.display = 'block';
+  setTimeout(() => { if (t) t.style.display = 'none'; }, duracion);
+}
+
+function persistirPreguntas() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preguntas));
+    actualizarContador();
+  } catch (e) {
+    console.warn('Error saving to localStorage:', e);
+    mostrarToast('⚠️ Error al guardar las preguntas', 3000);
+  }
+}
+
+function actualizarContador() {
+  if (preguntasCount) {
+    preguntasCount.textContent = `${preguntas.length} pregunta(s) en total`;
+  }
+}
+
+function resetPreview() {
+  currentImgSrc = '';
+  currentImgDim = { widthPx: 0, heightPx: 0 };
+  if (fileImagen) fileImagen.value = '';
+  if (previewImagen) previewImagen.innerHTML = '<i class="fas fa-camera"></i> Sin imagen seleccionada';
+}
+
+function showError(el, msg) {
+  if (!el) return;
+  let span = el.parentNode?.querySelector('.error-msg');
+  if (!span && el.parentNode) {
+    span = document.createElement('span');
+    span.className = 'error-msg';
+    el.parentNode.appendChild(span);
+  }
+  if (span) span.textContent = msg;
+  el.classList.add('error');
+}
+
+function clearErrors() {
+  document.querySelectorAll('.error-msg').forEach(e => e.remove());
+  document.querySelectorAll('.error').forEach(e => e.classList.remove('error'));
+}
+
+function cancelEdit() {
+  editingIndex = null;
+  if (btnSave) {
+    btnSave.textContent = '💾 Guardar Pregunta';
+    btnSave.classList.remove('warning');
+    btnSave.classList.add('success');
+  }
+  if (txtEnunciado) txtEnunciado.value = '';
+  if (txtExplicacion) txtExplicacion.value = '';
+  if (txtRefuerzo) txtRefuerzo.value = '';
+  resetPreview();
+  if (selGrado) selGrado.value = '';
+  if (selArea) selArea.value = '';
+  if (selComp) selComp.innerHTML = '<option value="">Seleccionar</option>';
+  if (selNivel) selNivel.innerHTML = '<option value="">Seleccionar</option>';
+  if (selDescriptor) selDescriptor.innerHTML = '<option value="">Seleccionar</option>';
+  if (opcionesCont) {
+    opcionesCont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+    // Add 4 default empty options
+    for (let i = 0; i < 4; i++) addOpcionToForm();
+  }
+  
+  const indicator = document.querySelector('.editing-indicator');
+  if (indicator) indicator.remove();
+}
+
+// ==================== MANEJO DE IMÁGENES ====================
+if (fileImagen) {
+  fileImagen.addEventListener('change', () => {
+    const file = fileImagen.files[0];
+    if (!file) return resetPreview();
+
+    if (file.size > 2 * 1024 * 1024) {
+      mostrarToast('⚠️ La imagen es mayor a 2MB, puede causar problemas en la exportación', 4000);
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentImgSrc = e.target.result;
+      const probe = new Image();
+      probe.onload = () => {
+        currentImgDim = { widthPx: probe.naturalWidth, heightPx: probe.naturalHeight };
+        if (previewImagen) {
+          previewImagen.innerHTML = `
+            <div style="position:relative; display:inline-block;">
+              <img src="${currentImgSrc}" style="max-width:200px; border:1px solid #ccc; border-radius:4px;">
+              <button id="btn-remove-img" class="danger" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:28px; height:28px; padding:0;">×</button>
+            </div>`;
+          const removeBtn = document.getElementById('btn-remove-img');
+          if (removeBtn) removeBtn.onclick = resetPreview;
+        }
+      };
+      probe.src = currentImgSrc;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ==================== MANEJO DE OPCIONES ====================
+function addOpcionToForm() {
+  if (!opcionesCont) return;
+  const idx = opcionesCont.querySelectorAll('.opcion-builder').length;
+  const div = document.createElement('div');
+  div.className = 'opcion-builder';
+  div.innerHTML = `
+    <input type="radio" name="correcta" value="${idx}">
+    <input type="text" placeholder="Texto de la opción" style="flex:1;">
+    <button class="btn-remove-opcion danger" style="padding: 6px 12px;">❌ Eliminar</button>`;
+  div.querySelector('.btn-remove-opcion').onclick = () => div.remove();
+  opcionesCont.appendChild(div);
+}
+
+if (btnAddOpt) btnAddOpt.addEventListener('click', addOpcionToForm);
+
+// ==================== FILTROS ====================
+function populateFilterOptions() {
+  if (!filterArea || !filterNivel) return;
+  // Conservar la selección actual (o la guardada) antes de reconstruir las opciones
+  const areaSel  = filterArea.value  || localStorage.getItem(FILTER_AREA)  || '';
+  const nivelSel = filterNivel.value || localStorage.getItem(FILTER_LEVEL) || '';
+
+  const areas = [...new Set(preguntas.map(q => q.area))].sort();
+  filterArea.innerHTML = '<option value="">📁 Todas las áreas</option>';
+  areas.forEach(a => filterArea.add(new Option(a, a)));
+  
+  const niveles = [...new Set(preguntas.map(q => q.nivel))].sort();
+  filterNivel.innerHTML = '<option value="">📊 Todos los niveles</option>';
+  niveles.forEach(n => filterNivel.add(new Option(n, n)));
+
+  filterArea.value  = areas.includes(areaSel)    ? areaSel  : '';
+  filterNivel.value = niveles.includes(nivelSel) ? nivelSel : '';
+}
+
+function refreshListaPreguntas() {
+  if (!listaPreg) return;
+  populateFilterOptions();
+  listaPreg.innerHTML = '';
+  const areaF  = filterArea?.value || '';
+  const nivelF = filterNivel?.value || '';
+  
+  const filtered = preguntas.filter(q => {
+    if (areaF  && q.area  !== areaF)  return false;
+    if (nivelF && q.nivel !== nivelF) return false;
+    return true;
+  });
+  
+  if (filtered.length === 0) {
+    listaPreg.innerHTML = '<div class="builder-form" style="text-align:center; color:#999;">📭 No hay preguntas que coincidan con los filtros</div>';
+    return;
+  }
+  
+  filtered.forEach((q, filteredIdx) => {
+    const originalIdx = preguntas.findIndex(p => p === q);
+    const div = document.createElement('div');
+    div.className = 'draggable pregunta builder-form';
+    div.draggable = true;
+    div.dataset.index = originalIdx;
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div style="flex:1;">
+          <strong>📝 Pregunta ${filteredIdx+1}:</strong> ${esc(q.enun.substring(0, 80))}${q.enun.length > 80 ? '...' : ''}<br>
+          <div style="margin-top:8px;">
+            <span class="badge badge-primary">${esc(q.area)}</span>
+            <span class="badge badge-success">Nivel ${esc(q.nivel)}</span>
+            <span class="badge badge-warning">${esc(q.competencia.substring(0, 30))}</span>
+          </div>
+          <small style="color:#666;">Descriptor: ${esc(q.descriptor.substring(0, 60))}...</small>
+        </div>
+        <div>
+          <button data-i="${originalIdx}" class="btn-editar" style="background:#f39c12;">✏️ Editar</button>
+          <button data-i="${originalIdx}" class="btn-eliminar danger">🗑️ Eliminar</button>
+          <button data-i="${originalIdx}" class="btn-duplicar" style="background:#7c6aa0;">📋 Duplicar</button>
+        </div>
+      </div>
+    `;
+    listaPreg.appendChild(div);
+  });
+  
+  attachQuestionHandlers();
+  enableDragAndDrop();
+}
+
+function attachQuestionHandlers() {
+  if (!listaPreg) return;
+  listaPreg.querySelectorAll('.btn-editar').forEach(b => {
+    b.onclick = () => startEdit(parseInt(b.dataset.i));
+  });
+  listaPreg.querySelectorAll('.btn-eliminar').forEach(b => {
+    b.onclick = () => {
+      const i = parseInt(b.dataset.i);
+      if (confirm(`¿Eliminar la pregunta "${preguntas[i]?.enun.substring(0, 50)}"?`)) {
+        preguntas.splice(i, 1);
+        persistirPreguntas();
+        refreshListaPreguntas();
+        mostrarToast(`✅ Pregunta eliminada`);
+        if (editingIndex !== null) cancelEdit();
+      }
+    };
+  });
+  listaPreg.querySelectorAll('.btn-duplicar').forEach(b => {
+    b.onclick = () => {
+      const i = parseInt(b.dataset.i);
+      if (selProfundidad?.value === 'rapido' && !confirm('⚠️ Modo General: duplicar puede generar redundancia. ¿Continuar?')) return;
+      const copia = JSON.parse(JSON.stringify(preguntas[i]));
+      copia.enun = `[Copia] ${copia.enun}`;
+      preguntas.splice(i + 1, 0, copia);
+      persistirPreguntas();
+      refreshListaPreguntas();
+      mostrarToast(`📋 Pregunta duplicada`);
+    };
+  });
+}
+
+function enableDragAndDrop() {
+  if (!listaPreg) return;
+  let dragSrcEl = null;
+  listaPreg.querySelectorAll('.draggable').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      dragSrcEl = el;
+      e.dataTransfer.effectAllowed = 'move';
+      el.style.opacity = '0.5';
+    });
+    el.addEventListener('dragend', () => {
+      if (dragSrcEl) dragSrcEl.style.opacity = '';
+      dragSrcEl = null;
+    });
+    el.addEventListener('dragover',  e => e.preventDefault());
+    el.addEventListener('dragenter', e => e.preventDefault());
+    el.addEventListener('drop', e => {
+      e.stopPropagation();
+      if (!dragSrcEl) return;
+      const from = parseInt(dragSrcEl.dataset.index);
+      const to   = parseInt(el.dataset.index);
+      if (from !== to && !isNaN(from) && !isNaN(to)) {
+        const moved = preguntas.splice(from, 1)[0];
+        preguntas.splice(to, 0, moved);
+        persistirPreguntas();
+        refreshListaPreguntas();
+        mostrarToast('🔄 Pregunta reordenada');
+      }
+    });
+  });
+}
+
+// ==================== EDICIÓN ====================
+function startEdit(i) {
+  const q = preguntas[i];
+  if (!q) return;
+  
+  editingIndex = i;
+  if (btnSave) {
+    btnSave.textContent = '✏️ Actualizar Pregunta';
+    btnSave.classList.add('warning');
+    btnSave.classList.remove('success');
+  }
+  
+  const existingIndicator = document.querySelector('.editing-indicator');
+  if (!existingIndicator && editor) {
+    const indicator = document.createElement('div');
+    indicator.className = 'editing-indicator';
+    indicator.innerHTML = `✏️ Editando pregunta ${i+1}`;
+    editor.insertBefore(indicator, editor.firstChild);
+  }
+  
+  if (selGrado) selGrado.value = q.grado;
+  if (selArea) {
+    selArea.value = q.area;
+    selArea.dispatchEvent(new Event('change'));
+  }
+  setTimeout(() => {
+    if (selComp) selComp.value = q.competencia;
+    if (selNivel) {
+      selNivel.value = q.nivel;
+      selNivel.dispatchEvent(new Event('change'));
+    }
+    setTimeout(() => {
+      if (selDescriptor) selDescriptor.value = q.descriptor;
+    }, 50);
+  }, 50);
+  
+  if (txtEnunciado)   txtEnunciado.value   = q.enun;
+  if (txtExplicacion) txtExplicacion.value = q.exp || '';
+  if (txtRefuerzo)    txtRefuerzo.value    = q.ref || '';
+  
+  currentImgSrc = q.imgSrc || '';
+  currentImgDim = q.imgDim || { widthPx: 0, heightPx: 0 };
+  if (previewImagen) {
+    if (q.imgSrc) {
+      previewImagen.innerHTML = `
+        <div style="position:relative; display:inline-block;">
+          <img src="${q.imgSrc}" style="max-width:200px; border:1px solid #ccc; border-radius:4px;">
+          <button id="btn-remove-img" class="danger" style="position:absolute; top:-8px; right:-8px; border-radius:50%; width:28px; height:28px; padding:0;">×</button>
+        </div>`;
+      const removeBtn = document.getElementById('btn-remove-img');
+      if (removeBtn) removeBtn.onclick = resetPreview;
+    } else {
+      resetPreview();
+    }
+  }
+  
+  if (opcionesCont) {
+    opcionesCont.innerHTML = '<h3>Opciones de Respuesta</h3>';
+    q.opts.forEach((opt, j) => {
+      const d = document.createElement('div');
+      d.className = 'opcion-builder';
+      d.innerHTML = `
+        <input type="radio" name="correcta" value="${j}" ${j === q.correctIdx ? 'checked' : ''}>
+        <input type="text" style="flex:1;" value="${esc(opt)}">
+        <button class="btn-remove-opcion danger" style="padding:6px 12px;">❌ Eliminar</button>`;
+      d.querySelector('.btn-remove-opcion').onclick = () => d.remove();
+      opcionesCont.appendChild(d);
+    });
+  }
+  
+  if (editor) editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  mostrarToast(`✏️ Editando pregunta ${i+1}`);
+}
+
+// ==================== GUARDAR PREGUNTA ====================
+if (btnSave) {
+  btnSave.addEventListener('click', () => {
+    clearErrors();
+    
+    const grado       = selGrado?.value     || '';
+    const area        = selArea?.value      || '';
+    const competencia = selComp?.value      || '';
+    const nivel       = selNivel?.value     || '';
+    const descriptor  = selDescriptor?.value || '';
+    const enun        = txtEnunciado?.value.trim() || '';
+    let valid = true;
+    
+    if (!grado)      { if (selGrado)     showError(selGrado,     'Selecciona un grado');       valid = false; }
+    if (!area)       { if (selArea)      showError(selArea,      'Selecciona un área');        valid = false; }
+    if (!competencia){ if (selComp)      showError(selComp,      'Selecciona una competencia'); valid = false; }
+    if (!nivel)      { if (selNivel)     showError(selNivel,     'Selecciona un nivel');       valid = false; }
+    if (!descriptor) { if (selDescriptor)showError(selDescriptor,'Selecciona un descriptor');  valid = false; }
+    if (!enun)       { if (txtEnunciado) showError(txtEnunciado, 'Escribe el enunciado');      valid = false; }
+    
+    // La clave se calcula por la posición real en pantalla, ignorando opciones vacías
+    const opciones = [];
+    let correctIdx = -1;
+    if (opcionesCont) {
+      opcionesCont.querySelectorAll('.opcion-builder').forEach(d => {
+        const texto = d.querySelector('input[type="text"]')?.value.trim() || '';
+        if (!texto) return;
+        if (d.querySelector('input[name="correcta"]')?.checked) correctIdx = opciones.length;
+        opciones.push(texto);
+      });
+    }
+    
+    if (opciones.length < 2) { if (btnAddOpt)    showError(btnAddOpt,    'Mínimo 2 opciones');        valid = false; }
+    if (correctIdx === -1)   { if (opcionesCont) showError(opcionesCont, 'Marca la opción correcta (debe tener texto)'); valid = false; }
+    
+    if (!valid) return;
+    
+    if (selProfundidad?.value === 'rapido') {
+      const yaExiste = preguntas.some((q, idx) =>
+        q.area === area &&
+        q.competencia === competencia &&
+        q.nivel === nivel &&
+        q.descriptor === descriptor &&
+        (editingIndex === null || idx !== editingIndex)
+      );
+      if (yaExiste) {
+        if (!confirm('⚠️ Modo General: ya existe una pregunta con este descriptor.\n¿Deseas agregar otra de todas formas?')) {
+          if (selDescriptor) showError(selDescriptor, 'Descriptor duplicado');
+          return;
+        }
+      }
+    }
+    
+    const preguntaObj = {
+      grado, area, competencia, nivel, descriptor, enun,
+      exp: txtExplicacion?.value.trim() || '',
+      ref: txtRefuerzo?.value.trim()    || '',
+      opts: opciones,
+      correctIdx,
+      imgSrc: currentImgSrc,
+      imgDim: currentImgDim
+    };
+    
+    if (editingIndex === null) {
+      preguntas.push(preguntaObj);
+      mostrarToast('✅ Nueva pregunta guardada');
+    } else {
+      preguntas[editingIndex] = preguntaObj;
+      mostrarToast(`✅ Pregunta ${editingIndex+1} actualizada`);
+    }
+    
+    persistirPreguntas();
+    cancelEdit();
+    refreshListaPreguntas();
+  });
+}
+
+// ==================== EXPORTACIÓN ====================
+async function ensureHtmlToDocx() {
+  let attempts = 0;
+  while (!window.htmlToDocx && attempts < 60) {
+    await new Promise(r => setTimeout(r, 100));
+    attempts++;
+  }
+  if (window.htmlToDocx) return window.htmlToDocx.default || window.htmlToDocx;
+  throw new Error('html-to-docx no se pudo cargar');
+}
+
+async function exportToWord() {
+  if (preguntas.length === 0) {
+    mostrarToast('❌ No hay preguntas para exportar', 3000);
+    return;
+  }
+  
+  let toDocx;
+  try {
+    toDocx = await ensureHtmlToDocx();
+  } catch {
+    mostrarToast('❌ Error al cargar el motor de exportación. Recarga la página.', 5000);
+    return;
+  }
+  
+  const cmToPx    = 96 / 2.54;
+  const maxWidthPx  = 8 * cmToPx;
+  const maxHeightPx = 4 * cmToPx;
+  
+  let html = '<h1 style="text-align:center;">📋 Cuestionario</h1>';
+  html += '<p style="text-align:center; color:#666;">Fecha: ' + new Date().toLocaleDateString() + '</p><hr>';
+  
+  preguntas.forEach((q, i) => {
+    html += `
+      <p style="text-align:right; font-size:0.8em; color:#666;">Grado: ${esc(q.grado)} | ${esc(q.area)} | ${esc(q.competencia)} | Nivel ${esc(q.nivel)}</p>
+      <h3>${i+1}. ${esc(q.enun)}</h3>`;
+    
+    if (q.imgSrc) {
+      let w = q.imgDim?.widthPx || maxWidthPx;
+      let h = q.imgDim?.heightPx || maxHeightPx;
+      if (w > maxWidthPx)  { const s = maxWidthPx  / w; w *= s; h *= s; }
+      if (h > maxHeightPx) { const s = maxHeightPx / h; w *= s; h *= s; }
+      html += `<div style="text-align:center;"><img src="${q.imgSrc}" width="${Math.round(w)}" height="${Math.round(h)}"></div>`;
+    }
+    
+    html += '<ul>';
+    q.opts.forEach((opt, j) => { html += `<li>${String.fromCharCode(65 + j)}) ${esc(opt)}</li>`; });
+    html += '</ul><hr>';
+  });
+  
+  if (chkClave?.checked) {
+    html += '<h2>🔑 Clave de Respuestas</h2><ol>';
+    preguntas.forEach((q, i) => {
+      html += `<li>${String.fromCharCode(65 + q.correctIdx)}</li>`;
+    });
+    html += '</ol>';
+  }
+  
+  const buffer = await toDocx(html);
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  const filename = `Cuestionario_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.docx`;
+  if (window.saveAs) {
+    window.saveAs(blob, filename);
+  } else {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+  mostrarToast('📄 Documento exportado correctamente');
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+if (btnGenerateVariants) {
+  btnGenerateVariants.addEventListener('click', async () => {
+    if (preguntas.length === 0) { mostrarToast('❌ No hay preguntas para generar versiones', 3000); return; }
+    
+    const n = parseInt(numVersionsInput?.value || '1', 10);
+    if (isNaN(n) || n < 1) return mostrarToast('❌ Indica un número válido de versiones', 3000);
+    if (n > 10 && !confirm(`Generar ${n} versiones puede tomar unos segundos. ¿Continuar?`)) return;
+    
+    let toDocx;
+    try { toDocx = await ensureHtmlToDocx(); }
+    catch { mostrarToast('❌ Error técnico. Recarga la página.', 5000); return; }
+    
+    mostrarToast(`🔄 Generando ${n} versiones...`, 2000);
+    
+    const cmToPx    = 96 / 2.54;
+    const maxWidthPx  = 8 * cmToPx;
+    const maxHeightPx = 4 * cmToPx;
+    
+    for (let v = 1; v <= n; v++) {
+      const bank = preguntas.map(q => ({ ...q, opts: [...q.opts], correctIdx: q.correctIdx }));
+      shuffleArray(bank);
+      bank.forEach(q => {
+        const paired = q.opts.map((o, i) => ({ o, i }));
+        shuffleArray(paired);
+        q.opts = paired.map(p => p.o);
+        q.correctIdx = paired.findIndex(p => p.i === q.correctIdx);
+      });
+      
+      let html = `<h1 style="text-align:center;">📋 Cuestionario - Versión ${v}</h1>`;
+      html += `<p style="text-align:center; color:#666;">Fecha: ${new Date().toLocaleDateString()}</p><hr>`;
+      
+      bank.forEach((q, i) => {
+        html += `
+          <p style="text-align:right; font-size:0.8em; color:#666;">${esc(q.area)} | Nivel ${esc(q.nivel)}</p>
+          <h3>${i+1}. ${esc(q.enun)}</h3>`;
+        if (q.imgSrc) {
+          let w = q.imgDim?.widthPx || maxWidthPx;
+          let h = q.imgDim?.heightPx || maxHeightPx;
+          if (w > maxWidthPx)  { const s = maxWidthPx  / w; w *= s; h *= s; }
+          if (h > maxHeightPx) { const s = maxHeightPx / h; w *= s; h *= s; }
+          html += `<div style="text-align:center;"><img src="${q.imgSrc}" width="${Math.round(w)}" height="${Math.round(h)}"></div>`;
+        }
+        html += '<ul>';
+        q.opts.forEach((opt, j) => { html += `<li>${String.fromCharCode(65 + j)}) ${esc(opt)}</li>`; });
+        html += '</ul><hr>';
+      });
+      
+      if (chkClave?.checked) {
+        html += '<h2>🔑 Clave de Respuestas</h2><ol>';
+        bank.forEach((q, i) => { html += `<li>${String.fromCharCode(65 + q.correctIdx)}</li>`; });
+        html += '</ol>';
+      }
+      
+      const buffer = await toDocx(html);
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      const filename = `Cuestionario_V${v}_${new Date().toISOString().slice(0,10)}.docx`;
+      if (window.saveAs) {
+        window.saveAs(blob, filename);
+      } else {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    mostrarToast(`✅ ${n} versión(es) generada(s) correctamente`);
+  });
+}
+
+// ==================== EVENTOS UI ====================
+if (btnAbrir && editor && btnSave) {
+  btnAbrir.addEventListener('click', () => {
+    editor.classList.toggle('hidden');
+    const isOpen = !editor.classList.contains('hidden');
+    if (isOpen) {
+      cancelEdit();
+      refreshListaPreguntas();
+    }
+    // Show/hide the floating save button alongside the editor
+    btnSave.style.display = isOpen ? 'block' : 'none';
+  });
+}
+
+if (selArea) {
+  selArea.addEventListener('change', e => {
+    const area = selArea.value;
+    if (selComp) selComp.innerHTML = '<option value="">Seleccionar</option>';
+    if (selNivel) selNivel.innerHTML = '<option value="">Seleccionar</option>';
+    if (selDescriptor) selDescriptor.innerHTML = '<option value="">Seleccionar</option>';
+    if (metadata[area]) {
+      metadata[area].competencias.forEach(c => selComp?.add(new Option(c, c)));
+      metadata[area].niveles.forEach(n => selNivel?.add(new Option(n, n)));
+    }
+    
+    if (e.isTrusted && selGrado?.value === '11' && !modalNoMostrar && modal && modalBody) {
+      const reglas = ponderaciones[area];
+      if (reglas && modalTit) {
+        modalTit.textContent = `📊 Ponderaciones para ${area} (Grado 11)`;
+        modalBody.innerHTML = '';
+        Object.entries(reglas).forEach(([comp, pct]) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${esc(comp)}</td><td style="text-align:right; font-weight:bold;">${pct}%</td>`;
+          modalBody.appendChild(tr);
+        });
+        modal.classList.remove('hidden');
+      }
+    }
+  });
+}
+
+if (selNivel) {
+  selNivel.addEventListener('change', () => {
+    if (selDescriptor) selDescriptor.innerHTML = '<option value="">Seleccionar</option>';
+    const area  = selArea?.value  || '';
+    const nivel = selNivel.value;
+    if (metadata[area]?.descriptores[nivel]) {
+      metadata[area].descriptores[nivel].forEach(d => selDescriptor?.add(new Option(d, d)));
+    }
+  });
+}
+
+if (btnCerrar)    btnCerrar.addEventListener('click', () => modal?.classList.add('hidden'));
+if (btnNoMostrar) {
+  btnNoMostrar.addEventListener('click', () => {
+    modalNoMostrar = true;
+    localStorage.setItem(MODAL_DONT_SHOW, 'true');
+    modal?.classList.add('hidden');
+    mostrarToast('✅ No volveremos a mostrar este recordatorio');
+  });
+}
+
+if (filterArea)   filterArea.onchange  = () => { localStorage.setItem(FILTER_AREA,  filterArea.value);  refreshListaPreguntas(); };
+if (filterNivel)  filterNivel.onchange = () => { localStorage.setItem(FILTER_LEVEL, filterNivel.value); refreshListaPreguntas(); };
+if (btnClearFilt) {
+  btnClearFilt.onclick = () => {
+    if (filterArea)  filterArea.value  = '';
+    if (filterNivel) filterNivel.value = '';
+    localStorage.removeItem(FILTER_AREA);
+    localStorage.removeItem(FILTER_LEVEL);
+    refreshListaPreguntas();
+    mostrarToast('🧹 Filtros limpiados');
+  };
+}
+
+if (btnExportWord) btnExportWord.onclick = exportToWord;
+
+// Restaurar filtros guardados
+if (filterArea)  filterArea.value  = localStorage.getItem(FILTER_AREA)  || '';
+if (filterNivel) filterNivel.value = localStorage.getItem(FILTER_LEVEL) || '';
+
+// Inicializar
+cancelEdit();
+refreshListaPreguntas();
+actualizarContador();
+</script>
+</body>
+</html>
