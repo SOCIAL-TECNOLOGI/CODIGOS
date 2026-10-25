@@ -5628,6 +5628,10 @@ María López"></textarea>
                 background: rgba(255,255,255,0.1); border: none; color: #fff;
                 border-radius: 6px; width: 26px; height: 26px; font-size: 13px; cursor: pointer;
             ">─</button>
+                        <button id="btnGrabarClase" title="Grabar clase" onclick="toggleGrabacionClase()" style="
+                background: rgba(255,255,255,0.1); border: none; color: #fff;
+                border-radius: 6px; width: 26px; height: 26px; font-size: 13px; cursor: pointer;
+            ">⏺</button>
             <button title="Finalizar video" onclick="finalizarVideoDocente()" style="
                 background: #e74c3c; border: none; color: #fff;
                 border-radius: 6px; width: 26px; height: 26px; font-size: 12px;
@@ -29900,6 +29904,7 @@ async function finalizarVideoDocente() {
 
         if (manosListener) { manosListener.off(); manosListener = null; }
 
+                if (grabacionActiva) await detenerGrabacionClase();
         console.log('🔴 Video finalizado');
 
     } catch (e) {
@@ -33167,4 +33172,73 @@ function actualizarVisibilidadBtnPmap() {
     btn.style.display = haySession ? 'inline-flex' : 'none';
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+// GRABACIÓN DE CLASE → WorkDrive
+// ══════════════════════════════════════════════════════════════
+let grabacionActiva = false;
+let mediaRecorder = null;
+let grabacionSesKey = null;
+let grabacionChunkIdx = 0;
+const PMAP_URL = 'https://motor1.alau.fedusocial.org';
+
+async function toggleGrabacionClase() {
+  if (!grabacionActiva) await iniciarGrabacionClase();
+  else await detenerGrabacionClase();
+}
+
+async function iniciarGrabacionClase() {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    grabacionSesKey = (sesionActivaId || 'clase').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + Date.now();
+    grabacionChunkIdx = 0;
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
+
+    mediaRecorder.ondataavailable = async (e) => {
+      if (!e.data || e.data.size < 1000) return;
+      const form = new FormData();
+      form.append('chunk', e.data, 'chunk.webm');
+      form.append('sesKey', grabacionSesKey);
+      form.append('chunkIndex', grabacionChunkIdx++);
+      try {
+        await fetch(`${PMAP_URL}/api/grabar-chunk`, { method: 'POST', body: form });
+      } catch(err) { console.warn('chunk error:', err); }
+    };
+
+    mediaRecorder.start(60000); // chunk cada 60s
+    grabacionActiva = true;
+
+    const btn = document.getElementById('btnGrabarClase');
+    if (btn) { btn.textContent = '⏹'; btn.title = 'Detener grabación'; btn.style.background = 'rgba(231,76,60,0.4)'; }
+    console.log('⏺ Grabación iniciada:', grabacionSesKey);
+  } catch(e) {
+    console.error('Error iniciando grabación:', e);
+    alert('No se pudo iniciar la grabación: ' + e.message);
+  }
+}
+
+async function detenerGrabacionClase() {
+  if (!mediaRecorder) return;
+  mediaRecorder.stop();
+  mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  grabacionActiva = false;
+
+  const btn = document.getElementById('btnGrabarClase');
+  if (btn) { btn.textContent = '⏺'; btn.title = 'Grabar clase'; btn.style.background = 'rgba(255,255,255,0.1)'; }
+
+  // Esperar último chunk y finalizar
+  setTimeout(async () => {
+    try {
+      const docenteNombre = window.currentUser?.displayName || 'Docente';
+      const r = await fetch(`${PMAP_URL}/api/finalizar-grabacion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sesKey: grabacionSesKey, totalChunks: grabacionChunkIdx, docenteNombre })
+      });
+      const d = await r.json();
+      console.log('✅ Grabación enviada a WorkDrive:', d);
+    } catch(e) { console.error('Error finalizando grabación:', e); }
+  }, 2000);
+}
 </script>
