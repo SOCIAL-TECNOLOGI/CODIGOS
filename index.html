@@ -7942,7 +7942,7 @@ const TABLA_CUARTILES = {
 async function calcularNivelPMAP(velocidad, nivelItem) {
     try {
         const resp = await fetch(
-            `https://alau2.lostutores.co/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
+            `http://34.148.249.153:3001/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
         );
         const data = await resp.json();
         if (data.ok) return { nivelPMAP: data.nivelPMAP, cuartil: data.cuartil };
@@ -20325,17 +20325,33 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
           }
 
           try {
-            await fetch('/api/pmap-procesar', {
+            // Leer respuestas reales del estudiante desde Firebase
+            const respSnap = await db.ref(`respuestas/${datos.uid}/${SESSION_ID}`).once('value');
+            const respObj = respSnap.val() || {};
+            const respuestas = Object.values(respObj).map(r => ({
+              itemId:        r.itemId        || '',
+              opcion:        r.opcion        || '',
+              correcta:      r.correcta      || null,
+              esCorrecta:    !!r.esCorrecta,
+              tipoRespuesta: r.tipoRespuesta || '',
+              tObs:          r.tObs          || 0,
+              mh_negativa:   r.mh_negativa   || null
+            }));
+            if (!respuestas.length) {
+              console.log(`⚠️ Sin respuestas en Firebase para ${datos.uid} — omitiendo PMAP`);
+              continue;
+            }
+            await fetch('http://34.148.249.153:3001/bbb-api/pmap-sesion', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'x-alau-token': ALAU_API_TOKEN },
               body: JSON.stringify({
-                uid: datos.uid,
-                sesionPath: sesionPath,
-                cuestionarioId: meta.cuestionarioId || '',
-                area: meta.cuestionarioNombre || ''
+                uid:        datos.uid,
+                estudiante: datos.nombre || datos.uid,
+                sesionId:   sesionPath || SESSION_ID || '',
+                area:       meta.cuestionarioNombre || meta.cuestionarioId || '',
+                respuestas
               })
             });
-            
           } catch(pmapErr) {
             console.warn('⚠️ PMAP error para', datos.uid, pmapErr.message);
           }
