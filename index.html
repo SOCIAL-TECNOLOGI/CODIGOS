@@ -3585,6 +3585,11 @@ body.dark .resp-col-name { color: white !important; }
 }
 
 
+/* Historial estudiante: debe quedar encima de modalRespuestasFlotante (z-index:100000) */
+#studentHistorialModal {
+  z-index: 200000 !important;
+}
+
 /* Modales dinámicos y acordeón por encima del presentador (z-index: 50000) */
 #studentHistorialModal,
 #abrQModal,
@@ -5027,7 +5032,7 @@ María López"></textarea>
 </div>
 
 
-<div id="studentHistorialModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:40000;align-items:center;justify-content:center;">
+<div id="studentHistorialModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200000;align-items:center;justify-content:center;">
   <div style="background:var(--card);border-radius:24px;padding:1.5rem;max-width:90vw;max-height:85vh;overflow-y:auto;min-width:300px;width:420px;position:relative;box-shadow:0 20px 40px rgba(0,0,0,.3);">
     <button id="studentHistorialClose" style="position:absolute;top:10px;right:10px;background:#e74c3c;border:none;border-radius:50%;width:32px;height:32px;color:white;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
     <div style="text-align:center;margin-bottom:1rem;padding-right:30px;">
@@ -20294,7 +20299,8 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
       // 🧠 PMAP — procesar sesión al finalizar
       try {
         const uidDocente = auth.currentUser?.uid;
-        const sesionPath = sessionRef.toString().split('/sessions/')[1];
+        let sesionPath = '';
+        try { sesionPath = sessionRef.toString().split('/sessions/')[1]; } catch(_){}
         
         // Obtener lista de estudiantes de la sesión
         const presenciaSnap = await sessionRef.child('presencia').once('value');
@@ -20337,8 +20343,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
         console.log('✅ PMAP procesado para todos los estudiantes');
       } catch(pmapErr) {
         console.warn('⚠️ Error procesando PMAP:', pmapErr.message);
-        console.log('🧠 PMAP sesionPath:', sesionPath);
-        console.log('🧠 PMAP presencia:', JSON.stringify(presencia));
+        console.log('🧠 PMAP sesionPath:', sesionPath || '(no disponible)');
       }
       // ← ELIMINAR las dos líneas de videoCallRef y cerrarJitsiDocente
     }
