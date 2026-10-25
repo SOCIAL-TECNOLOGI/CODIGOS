@@ -20365,6 +20365,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
   btn.disabled = true;
   btn.textContent = '⏳ Cerrando sesión...';
   try {
+    if (grabacionActiva) await detenerGrabacionClase();
     if (sessionRef) {
       await sessionRef.child('sessionEnded').set(true);
       // 🧠 PMAP — procesar sesión al finalizar
@@ -29853,13 +29854,16 @@ async function iniciarVideoDocente() {
         });
 
         const frame = document.getElementById('jitsiFrameDocente');
-
-        // Video conferencia temporalmente no disponible
-        frame.src = '';
-        frame.style.display = 'none';
+        if (frame) { frame.src = ''; frame.style.display = 'none'; }
         const avisoVideo = document.getElementById('jitsiDocente');
-        avisoVideo.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:1.1rem;text-align:center;padding:2rem;">📹 Video conferencia temporalmente no disponible.<br>Usa el audio de AlaU o comparte un enlace externo.</div>';
-        document.getElementById('jitsiDocente').style.display = 'flex';
+        if (avisoVideo && !avisoVideo.querySelector('.aviso-video-no-disponible')) {
+          const aviso = document.createElement('div');
+          aviso.className = 'aviso-video-no-disponible';
+          aviso.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:1.1rem;text-align:center;padding:2rem;';
+          aviso.textContent = '📹 Video conferencia temporalmente no disponible. Usa el audio de AlaU o comparte un enlace externo.';
+          avisoVideo.appendChild(aviso);
+        }
+        if (avisoVideo) avisoVideo.style.display = 'flex';
         const panelManos = document.getElementById('manosPanel');
         if (panelManos) {
             panelManos.style.display = 'block';
@@ -29886,6 +29890,7 @@ async function iniciarVideoDocente() {
 
 async function finalizarVideoDocente() {
     try {
+        if (grabacionActiva) await detenerGrabacionClase();
         const vRef = getVideoRef();
         if (vRef) {
             await vRef.update({ activa: false, fin: Date.now() });
@@ -29904,7 +29909,6 @@ async function finalizarVideoDocente() {
 
         if (manosListener) { manosListener.off(); manosListener = null; }
 
-                if (grabacionActiva) await detenerGrabacionClase();
         console.log('🔴 Video finalizado');
 
     } catch (e) {
@@ -33178,68 +33182,123 @@ function actualizarVisibilidadBtnPmap() {
 // GRABACIÓN DE CLASE → WorkDrive
 // ══════════════════════════════════════════════════════════════
 let grabacionActiva = false;
+let grabacionFinalizando = false;
 let mediaRecorder = null;
+let grabacionStream = null;
 let grabacionSesKey = null;
 let grabacionChunkIdx = 0;
+let grabacionPendientes = [];
+let _resolverFinGrabacion = null;
 const PMAP_URL = 'https://motor1.alau.fedusocial.org';
+
+function actualizarBtnGrabacion(grabando) {
+  const btn = document.getElementById('btnGrabarClase');
+  if (!btn) return;
+  btn.textContent = grabando ? '⏹' : '⏺';
+  btn.title = grabando ? 'Detener grabación' : 'Grabar clase';
+  btn.style.background = grabando ? 'rgba(231,76,60,0.4)' : 'rgba(255,255,255,0.1)';
+}
 
 async function toggleGrabacionClase() {
   if (!grabacionActiva) await iniciarGrabacionClase();
   else await detenerGrabacionClase();
 }
 
+async function subirChunkGrabacion(blob, sesKey, idx) {
+  for (let intento = 1; intento <= 3; intento++) {
+    try {
+      const form = new FormData();
+      form.append('chunk', blob, 'chunk_' + idx + '.webm');
+      form.append('sesKey', sesKey);
+      form.append('chunkIndex', idx);
+      const r = await fetch(PMAP_URL + '/api/grabar-chunk', { method: 'POST', body: form });
+      if (r.ok) return true;
+      const txt = await r.text().catch(() => '');
+      console.warn('chunk ' + idx + ' HTTP ' + r.status + ' (intento ' + intento + ')', txt.substring(0, 200));
+    } catch (err) {
+      console.warn('chunk ' + idx + ' error red (intento ' + intento + '):', err.message);
+    }
+    await new Promise(res => setTimeout(res, 1000 * intento));
+  }
+  return false;
+}
+
 async function iniciarGrabacionClase() {
+  if (grabacionActiva || grabacionFinalizando) return;
   try {
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t => MediaRecorder.isTypeSupported(t));
+    if (!mimeType) { stream.getTracks().forEach(t => t.stop()); alert('Este navegador no soporta grabación WebM. Usa Chrome o Edge.'); return; }
+    grabacionStream = stream;
     grabacionSesKey = (SESSION_ID || 'clase').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + Date.now();
     grabacionChunkIdx = 0;
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
-
-    mediaRecorder.ondataavailable = async (e) => {
-      if (!e.data || e.data.size < 1000) return;
-      const form = new FormData();
-      form.append('chunk', e.data, 'chunk.webm');
-      form.append('sesKey', grabacionSesKey);
-      form.append('chunkIndex', grabacionChunkIdx++);
-      try {
-        await fetch(`${PMAP_URL}/api/grabar-chunk`, { method: 'POST', body: form });
-      } catch(err) { console.warn('chunk error:', err); }
+    grabacionPendientes = [];
+    const sesKey = grabacionSesKey;
+    mediaRecorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1500000 });
+    mediaRecorder.ondataavailable = (e) => {
+      if (!e.data || e.data.size === 0) return;
+      const idx = grabacionChunkIdx++;
+      grabacionPendientes.push(subirChunkGrabacion(e.data, sesKey, idx));
     };
-
-    mediaRecorder.start(10000); // chunk cada 10s
+    mediaRecorder.onstop = () => finalizarGrabacion(sesKey);
+    stream.getVideoTracks()[0].addEventListener('ended', () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    });
+    mediaRecorder.start(10000);
     grabacionActiva = true;
-
-    const btn = document.getElementById('btnGrabarClase');
-    if (btn) { btn.textContent = '⏹'; btn.title = 'Detener grabación'; btn.style.background = 'rgba(231,76,60,0.4)'; }
-    console.log('⏺ Grabación iniciada:', grabacionSesKey);
-  } catch(e) {
+    actualizarBtnGrabacion(true);
+    console.log('⏺ Grabación iniciada:', sesKey, mimeType);
+  } catch (e) {
     console.error('Error iniciando grabación:', e);
+    grabacionActiva = false;
     alert('No se pudo iniciar la grabación: ' + e.message);
   }
 }
 
-async function detenerGrabacionClase() {
-  if (!mediaRecorder) return;
-  mediaRecorder.stop();
-  mediaRecorder.stream.getTracks().forEach(t => t.stop());
-  grabacionActiva = false;
-  mediaRecorder = null;
-
-  const btn = document.getElementById('btnGrabarClase');
-  if (btn) { btn.textContent = '⏺'; btn.title = 'Grabar clase'; btn.style.background = 'rgba(255,255,255,0.1)'; }
-
-  // Esperar último chunk y finalizar
-  setTimeout(async () => {
-    try {
-      const docenteNombre = window.currentUser?.displayName || 'Docente';
-      const r = await fetch(`${PMAP_URL}/api/finalizar-grabacion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sesKey: grabacionSesKey, totalChunks: grabacionChunkIdx, docenteNombre })
-      });
-      const d = await r.json();
-      console.log('✅ Grabación enviada a WorkDrive:', d);
-    } catch(e) { console.error('Error finalizando grabación:', e); }
-  }, 2000);
+function detenerGrabacionClase() {
+  return new Promise(resolve => {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') { resolve(); return; }
+    _resolverFinGrabacion = resolve;
+    mediaRecorder.stop();
+  });
 }
+
+async function finalizarGrabacion(sesKey) {
+  if (grabacionFinalizando) return;
+  grabacionFinalizando = true;
+  grabacionActiva = false;
+  if (grabacionStream) grabacionStream.getTracks().forEach(t => t.stop());
+  grabacionStream = null;
+  mediaRecorder = null;
+  actualizarBtnGrabacion(false);
+  try {
+    const resultados = await Promise.all(grabacionPendientes);
+    const totalChunks = grabacionChunkIdx;
+    const fallidos = resultados.filter(ok => !ok).length;
+    if (fallidos > 0) {
+      console.error('Grabacion incompleta: fallaron ' + fallidos + ' de ' + totalChunks + ' chunks. No se finaliza.');
+      return;
+    }
+    const docenteNombre = (typeof auth !== 'undefined' && auth.currentUser) ? (auth.currentUser.displayName || auth.currentUser.email || 'Docente') : 'Docente';
+    const r = await fetch(PMAP_URL + '/api/finalizar-grabacion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sesKey, totalChunks, docenteNombre })
+    });
+    const texto = await r.text();
+    let d; try { d = JSON.parse(texto); } catch(ex) { d = { raw: texto }; }
+    if (!r.ok) { console.error('finalizar-grabacion HTTP', r.status, d); return; }
+    console.log('Grabacion enviada al servidor:', d);
+  } catch (e) {
+    console.error('Error finalizando grabacion:', e);
+  } finally {
+    grabacionPendientes = [];
+    grabacionFinalizando = false;
+    if (_resolverFinGrabacion) { _resolverFinGrabacion(); _resolverFinGrabacion = null; }
+  }
+}
+
+window.addEventListener('beforeunload', (e) => {
+  if (grabacionActiva) { e.preventDefault(); e.returnValue = ''; }
+});
 </script>
