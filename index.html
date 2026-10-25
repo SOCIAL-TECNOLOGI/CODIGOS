@@ -4316,6 +4316,14 @@ body.dark .resp-col-name { color: white !important; }
     cursor:pointer; align-items:center; gap:6px;
 ">🎙 Silenciar</button>
 
+<!-- ── BOTÓN HISTORIAL PMAP DOCENTE ── -->
+<button id="btnHistorialPmap" onclick="abrirHistorialPmap()" style="
+    display:none; background:linear-gradient(135deg,#1a73e8,#0d47a1);
+    color:#fff; border:none; border-radius:40px;
+    padding:6px 16px; font-size:0.78rem; font-weight:700;
+    cursor:pointer; align-items:center; gap:6px;
+">📊 PMAP</button>
+
 </div>
 
   
@@ -6005,6 +6013,60 @@ María López"></textarea>
 }
 </style>
 
+<!-- ══════════════════════════════════════════════════════
+     MODAL HISTORIAL PMAP DOCENTE
+     Lee: estudiantes/{uid}/trayectoria
+          estudiantes/{uid}/sesiones/
+     Fuente: presencia de la sesión activa
+══════════════════════════════════════════════════════ -->
+<div id="modalHistorialPmap" style="
+    display:none; position:fixed; inset:0; z-index:210000;
+    background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+    overflow-y:auto; padding:20px;
+">
+  <div style="
+      max-width:860px; margin:0 auto;
+      background:var(--card,#1e293b); border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.6);
+      overflow:hidden;
+  ">
+    <!-- Cabecera -->
+    <div style="
+        display:flex; align-items:center; justify-content:space-between;
+        padding:20px 24px; background:linear-gradient(135deg,#1a73e8,#0d47a1);
+    ">
+      <div>
+        <div style="color:#fff;font-size:1.2rem;font-weight:800;">📊 Historial PMAP · Docente</div>
+        <div id="pmapModalSubtitle" style="color:#93c5fd;font-size:0.78rem;margin-top:2px;">Cargando estudiantes…</div>
+      </div>
+      <button onclick="cerrarHistorialPmap()" style="
+          background:rgba(255,255,255,0.15); border:none; color:#fff;
+          border-radius:50%; width:36px; height:36px; font-size:1.2rem;
+          cursor:pointer; display:flex; align-items:center; justify-content:center;
+      ">×</button>
+    </div>
+
+    <!-- Tabs: lista / detalle -->
+    <div id="pmapTabLista" style="padding:20px 24px;">
+      <!-- Tabla de estudiantes -->
+      <div id="pmapListaContainer" style="display:flex;flex-direction:column;gap:10px;">
+        <div style="color:#9ca3af;text-align:center;padding:40px;">Cargando…</div>
+      </div>
+    </div>
+
+    <!-- Panel de detalle de un estudiante -->
+    <div id="pmapTabDetalle" style="display:none;padding:20px 24px;">
+      <button onclick="volverListaPmap()" style="
+          background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+          color:#93c5fd; border-radius:40px; padding:6px 16px;
+          font-size:0.78rem; cursor:pointer; margin-bottom:16px;
+      ">← Volver a la lista</button>
+      <div id="pmapDetalleContent"></div>
+    </div>
+
+  </div>
+</div>
+
 </body>
 
 
@@ -6312,6 +6374,8 @@ function initFirebaseRefs(sessionId) {
   bancoPrivadoRef = sessionRef.child('banco_autonomo_privado');
   bancoRespRef    = sessionRef.child('banco_respuestas');
   pdfSharedRef    = sessionRef.child('pdfShared');
+  // Mostrar botón PMAP cuando hay sesión activa
+  if (typeof actualizarVisibilidadBtnPmap === 'function') actualizarVisibilidadBtnPmap();
 }
 // ══════════════════════════════════════════════════════════════
 
@@ -6526,6 +6590,9 @@ async function expulsarEstudiante(mensaje) {
   sessionRef = questionRef = responsesRef = historialRef = null;
 
   currentRole = null;
+
+  // Ocultar botón PMAP al cerrar sesión
+  if (typeof actualizarVisibilidadBtnPmap === 'function') actualizarVisibilidadBtnPmap();
 
   showScreen('screenHome');
 
@@ -32804,6 +32871,300 @@ function reproducirAudioTutorEnAdmin(stream) {
         document.body.appendChild(audioEl);
     }
     audioEl.srcObject = stream;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HISTORIAL PMAP · DOCENTE
+//  Muestra trayectoria + sesiones de cada estudiante en presencia
+// ══════════════════════════════════════════════════════════════════
+
+function abrirHistorialPmap() {
+    const modal = document.getElementById('modalHistorialPmap');
+    if (!modal) return;
+    modal.style.display = 'block';
+    document.getElementById('pmapTabLista').style.display = 'block';
+    document.getElementById('pmapTabDetalle').style.display = 'none';
+    cargarListaPmapDocente();
+}
+
+function cerrarHistorialPmap() {
+    const modal = document.getElementById('modalHistorialPmap');
+    if (modal) modal.style.display = 'none';
+}
+
+function volverListaPmap() {
+    document.getElementById('pmapTabLista').style.display = 'block';
+    document.getElementById('pmapTabDetalle').style.display = 'none';
+}
+
+async function cargarListaPmapDocente() {
+    const container = document.getElementById('pmapListaContainer');
+    const subtitle  = document.getElementById('pmapModalSubtitle');
+    if (!container) return;
+
+    container.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;">Cargando…</div>';
+
+    // ── 1. Obtener presencia de la sesión activa ──
+    let estudiantesMap = {}; // uid → { nombre, uid }
+
+    try {
+        if (typeof sessionRef !== 'undefined' && sessionRef) {
+            const presSnap = await sessionRef.child('presencia').once('value');
+            const presObj  = presSnap.val() || {};
+            Object.values(presObj).forEach(p => {
+                if (p && p.uid) {
+                    estudiantesMap[p.uid] = { nombre: p.nombre || p.uid, uid: p.uid };
+                }
+            });
+        }
+    } catch(e) {
+        console.warn('⚠️ PMAP historial: no se pudo leer presencia', e.message);
+    }
+
+    // Si no hay sesión activa, mostrar aviso
+    if (Object.keys(estudiantesMap).length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:40px;color:#9ca3af;">
+            <div style="font-size:2rem;margin-bottom:8px;">📭</div>
+            <div>No hay estudiantes en la sesión activa.</div>
+            <div style="font-size:0.78rem;margin-top:6px;color:#6b7280;">
+              Inicia una sesión y espera que los estudiantes se conecten.
+            </div>
+          </div>`;
+        if (subtitle) subtitle.textContent = 'Sin sesión activa';
+        return;
+    }
+
+    const uids = Object.keys(estudiantesMap);
+    if (subtitle) subtitle.textContent = `${uids.length} estudiante${uids.length !== 1 ? 's' : ''} en sesión`;
+
+    // ── 2. Leer trayectoria de cada uid en paralelo ──
+    const promesas = uids.map(async uid => {
+        try {
+            const snap = await db.ref(`estudiantes/${uid}/trayectoria`).once('value');
+            return { uid, nombre: estudiantesMap[uid].nombre, trayectoria: snap.val() || {} };
+        } catch(e) {
+            return { uid, nombre: estudiantesMap[uid].nombre, trayectoria: {} };
+        }
+    });
+
+    const resultados = await Promise.all(promesas);
+
+    // ── 3. Renderizar cards ──
+    const nivelColor = { N1:'#ef4444', N2:'#f59e0b', N3:'#3b82f6', N4:'#10b981' };
+    const tendenciaIcon = { mejorando:'📈', estable:'➡️', inconsistente:'🔀', en_descenso:'📉' };
+
+    container.innerHTML = resultados.map(r => {
+        const t = r.trayectoria;
+        const nivel    = t.nivel_actual || 'N/A';
+        const tendencia = t.tendencia || '';
+        const colorNivel = nivelColor[nivel] || '#6b7280';
+        const iconTend  = tendenciaIcon[tendencia] || '—';
+        const resumen   = t.resumen_publico || '<span style="color:#6b7280;font-style:italic;">Sin diagnóstico aún</span>';
+        const ultimaSes = t.ultima_sesion
+            ? t.ultima_sesion.split('/').pop()   // tomar última parte del path
+            : null;
+
+        return `
+          <div onclick="verDetallePmap('${r.uid}','${encodeURIComponent(r.nombre)}')"
+               style="
+                   background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+                   border-radius:14px; padding:16px 20px; cursor:pointer;
+                   display:flex; align-items:center; gap:16px;
+                   transition:background 0.2s;
+               "
+               onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+               onmouseout="this.style.background='rgba(255,255,255,0.05)'"
+          >
+            <!-- Avatar nivel -->
+            <div style="
+                min-width:52px; height:52px; border-radius:50%;
+                background:${colorNivel}22; border:2px solid ${colorNivel};
+                display:flex; align-items:center; justify-content:center;
+                flex-direction:column;
+            ">
+              <span style="font-size:0.9rem;font-weight:900;color:${colorNivel};">${nivel}</span>
+            </div>
+
+            <!-- Datos principales -->
+            <div style="flex:1; min-width:0;">
+              <div style="color:#fff;font-weight:700;font-size:0.95rem;
+                          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${r.nombre}
+              </div>
+              <div style="font-size:0.78rem;color:#9ca3af;margin-top:3px;
+                          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${typeof resumen === 'string' ? resumen.substring(0, 120) + (resumen.length > 120 ? '…' : '') : resumen}
+              </div>
+              ${ultimaSes ? `<div style="font-size:0.72rem;color:#6b7280;margin-top:4px;">Última sesión: ${ultimaSes}</div>` : ''}
+            </div>
+
+            <!-- Tendencia + flecha -->
+            <div style="text-align:right;min-width:50px;">
+              <div style="font-size:1.3rem;">${iconTend}</div>
+              <div style="font-size:0.65rem;color:#6b7280;margin-top:2px;">
+                ${tendencia || 'sin datos'}
+              </div>
+            </div>
+            <div style="color:#6b7280;font-size:1rem;">›</div>
+          </div>
+        `;
+    }).join('');
+}
+
+async function verDetallePmap(uid, nombreEnc) {
+    const nombre = decodeURIComponent(nombreEnc);
+    document.getElementById('pmapTabLista').style.display = 'none';
+    document.getElementById('pmapTabDetalle').style.display = 'block';
+
+    const detalle = document.getElementById('pmapDetalleContent');
+    detalle.innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px;">Cargando detalle…</div>';
+
+    try {
+        const [trajSnap, sesSnap] = await Promise.all([
+            db.ref(`estudiantes/${uid}/trayectoria`).once('value'),
+            db.ref(`estudiantes/${uid}/sesiones`).once('value')
+        ]);
+
+        const t  = trajSnap.val() || {};
+        const sesObj = sesSnap.val() || {};
+
+        // Colores
+        const nivelColor = { N1:'#ef4444', N2:'#f59e0b', N3:'#3b82f6', N4:'#10b981' };
+        const nivel = t.nivel_actual || 'N/A';
+        const colorNivel = nivelColor[nivel] || '#6b7280';
+        const tendenciaIcon = { mejorando:'📈', estable:'➡️', inconsistente:'🔀', en_descenso:'📉' };
+
+        // Sesiones ordenadas por fecha desc
+        const sesiones = Object.entries(sesObj)
+            .map(([k, v]) => ({ key: k, ...v }))
+            .sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+
+        const fmtFecha = ts => ts
+            ? new Date(ts).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+            : '—';
+
+        const barPct = pct => {
+            const p = Math.min(100, Math.max(0, pct || 0));
+            const color = p >= 70 ? '#10b981' : p >= 40 ? '#f59e0b' : '#ef4444';
+            return `
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="flex:1;height:8px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;">
+                  <div style="width:${p}%;height:100%;background:${color};border-radius:4px;"></div>
+                </div>
+                <span style="font-size:0.8rem;color:${color};font-weight:700;min-width:32px;">${p}%</span>
+              </div>`;
+        };
+
+        detalle.innerHTML = `
+          <!-- Encabezado estudiante -->
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+            <div style="
+                width:60px;height:60px;border-radius:50%;
+                background:${colorNivel}22;border:2px solid ${colorNivel};
+                display:flex;align-items:center;justify-content:center;
+                font-size:1.1rem;font-weight:900;color:${colorNivel};
+            ">${nivel}</div>
+            <div>
+              <div style="color:#fff;font-weight:800;font-size:1.05rem;">${nombre}</div>
+              <div style="color:#9ca3af;font-size:0.78rem;margin-top:2px;">
+                ${tendenciaIcon[t.tendencia || ''] || ''} ${t.tendencia || 'Sin tendencia'} · ${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen PMAP -->
+          ${t.resumen_publico ? `
+          <div style="
+              background:rgba(26,115,232,0.1);border:1px solid rgba(26,115,232,0.3);
+              border-radius:12px;padding:14px 16px;margin-bottom:16px;
+          ">
+            <div style="font-size:0.72rem;color:#93c5fd;font-weight:700;margin-bottom:6px;">📋 RESUMEN</div>
+            <div style="color:#cbd5e1;font-size:0.85rem;line-height:1.5;">${t.resumen_publico}</div>
+          </div>` : ''}
+
+          <!-- Fortaleza y área de trabajo -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            ${t.fortaleza ? `
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px 14px;">
+              <div style="font-size:0.7rem;color:#6ee7b7;font-weight:700;margin-bottom:6px;">💪 FORTALEZA</div>
+              <div style="color:#cbd5e1;font-size:0.82rem;line-height:1.4;">${t.fortaleza}</div>
+            </div>` : ''}
+            ${t.area_trabajo ? `
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px 14px;">
+              <div style="font-size:0.7rem;color:#fcd34d;font-weight:700;margin-bottom:6px;">🎯 ÁREA DE TRABAJO</div>
+              <div style="color:#cbd5e1;font-size:0.82rem;line-height:1.4;">${t.area_trabajo}</div>
+            </div>` : ''}
+          </div>
+
+          <!-- Mensaje al estudiante -->
+          ${t.mensaje_estudiante ? `
+          <div style="
+              background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);
+              border-radius:12px;padding:14px 16px;margin-bottom:20px;
+          ">
+            <div style="font-size:0.72rem;color:#c4b5fd;font-weight:700;margin-bottom:6px;">💬 MENSAJE AL ESTUDIANTE</div>
+            <div style="color:#e2e8f0;font-size:0.85rem;font-style:italic;line-height:1.5;">"${t.mensaje_estudiante}"</div>
+          </div>` : ''}
+
+          <!-- Historial de sesiones -->
+          <div style="font-size:0.78rem;color:#9ca3af;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">
+            📅 Historial de sesiones (${sesiones.length})
+          </div>
+
+          ${sesiones.length === 0 ? `
+            <div style="text-align:center;padding:24px;color:#6b7280;font-size:0.85rem;">
+              Sin sesiones registradas aún.
+            </div>
+          ` : sesiones.map(s => `
+            <div style="
+                background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+                border-radius:12px;padding:14px 16px;margin-bottom:8px;
+            ">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <div>
+                  <div style="color:#fff;font-weight:700;font-size:0.88rem;">
+                    ${s.area || s.cuestionarioId || s.key}
+                  </div>
+                  <div style="color:#6b7280;font-size:0.72rem;margin-top:2px;">
+                    ${fmtFecha(s.fecha)} · ${s.modo || 'en_vivo'}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="color:#fff;font-weight:800;font-size:1rem;">
+                    ${s.aciertos ?? '—'}/${s.total_items ?? '—'}
+                  </div>
+                  <div style="font-size:0.7rem;color:#9ca3af;">aciertos</div>
+                </div>
+              </div>
+              ${barPct(s.pct)}
+              ${s.diagnostico && s.diagnostico.patrones_presentes && s.diagnostico.patrones_presentes.length ? `
+              <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
+                ${s.diagnostico.patrones_presentes.map(p =>
+                  `<span style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+                                color:#fca5a5;border-radius:40px;padding:2px 8px;font-size:0.68rem;">
+                    ${p.replace(/_/g,' ')}
+                   </span>`
+                ).join('')}
+              </div>` : ''}
+            </div>
+          `).join('')}
+        `;
+
+    } catch(e) {
+        console.error('⚠️ PMAP detalle error:', e);
+        detalle.innerHTML = `<div style="color:#ef4444;text-align:center;padding:40px;">
+            Error al cargar el historial: ${e.message}
+        </div>`;
+    }
+}
+
+// Mostrar/ocultar botón PMAP cuando hay sesión activa
+function actualizarVisibilidadBtnPmap() {
+    const btn = document.getElementById('btnHistorialPmap');
+    if (!btn) return;
+    const haySession = typeof sessionRef !== 'undefined' && sessionRef !== null;
+    btn.style.display = haySession ? 'inline-flex' : 'none';
 }
 
 </script>
