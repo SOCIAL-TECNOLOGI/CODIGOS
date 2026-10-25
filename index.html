@@ -29783,12 +29783,11 @@ async function iniciarVideoDocente() {
 
         const frame = document.getElementById('jitsiFrameDocente');
 
-        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=Docente&rol=MODERATOR&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
-            headers: { 'x-alau-token': ALAU_API_TOKEN }
-        })
-            .then(r => r.json())
-            .then(data => { if(data.ok) frame.src = data.joinURL; });
-
+        // Video conferencia temporalmente no disponible
+        frame.src = '';
+        frame.style.display = 'none';
+        const avisoVideo = document.getElementById('jitsiDocente');
+        avisoVideo.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:1.1rem;text-align:center;padding:2rem;">📹 Video conferencia temporalmente no disponible.<br>Usa el audio de AlaU o comparte un enlace externo.</div>';
         document.getElementById('jitsiDocente').style.display = 'flex';
         const panelManos = document.getElementById('manosPanel');
         if (panelManos) {
@@ -29999,45 +29998,37 @@ function listenVideoEstudiante() {
         const pastilla = document.getElementById('jitsiEstudianteMin');
 
         if (activa === true) {
-            // Abrir iframe estudiante con BBB
+            // Video conferencia temporalmente no disponible
             const frame = document.getElementById('jitsiFrameEstudiante');
-            const nombre = studentName || 'Estudiante';
-    
-            fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombre)}&rol=VIEWER&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
-                headers: { 'x-alau-token': ALAU_API_TOKEN }  // ← HEADER AÑADIDO
-            })
-                .then(r => r.json())
-                .then(data => { if(data.ok) frame.src = data.joinURL; });
+            if (frame) { frame.src = ''; frame.style.display = 'none'; }
+            const avisoEst = ventana.querySelector('.aviso-video-no-disponible');
+            if (!avisoEst) {
+                const div = document.createElement('div');
+                div.className = 'aviso-video-no-disponible';
+                div.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:1rem;text-align:center;padding:1.5rem;';
+                div.innerHTML = '📹 Video conferencia temporalmente no disponible.';
+                ventana.appendChild(div);
+            }
 
             // Mostrar ventana solo si no estaba minimizada
             if (pastilla.style.display !== 'flex') {
                 ventana.style.display = 'flex';
             }
 
-            // 🔥 WATCHDOG CORREGIDO
+            // Watchdog desactivado — no hay servidor BBB
             if (!watchdogJitsi) {
-                console.log('🔄 Watchdog BBB iniciado');
                 watchdogJitsi = setInterval(() => {
                     if (!videoActivo) {
                         clearInterval(watchdogJitsi);
                         watchdogJitsi = null;
                         return;
                     }
-
+                    // sin reconexión BBB
                     const f = document.getElementById('jitsiFrameEstudiante');
                     if (!f) return;
-
                     const srcActual = f.src || '';
-
                     if (!srcActual.includes('bigbluebutton')) {
-                        console.log('🔄 Watchdog: BBB estudiante sin URL válida, reconectando...');
-                        const nombreReconexion = studentName || 'Estudiante';
-                        fetch(`https://alau2.lostutores.co/bbb-api/join?nombre=${encodeURIComponent(nombreReconexion)}&rol=VIEWER&sala=${encodeURIComponent(sessionRef?.key || 'alau-clase')}`, {
-                            headers: { 'x-alau-token': ALAU_API_TOKEN }  // ← HEADER AÑADIDO
-                        })
-                            .then(r => r.json())
-                            .then(data => { if(data.ok) f.src = data.joinURL; });
-                        mostrarNotificacion('🔄 Reconectando videollamada...', 'warning');
+                        // noop — video no disponible
                     }
                 }, 30000);
             }
@@ -31964,7 +31955,7 @@ async function toggleActivarChat(activo) {
 // Múltiples sesiones simultáneas por sessionId
 // ══════════════════════════════════════════════════════════════
 
-const PEERJS_HOST = 'alau2.lostutores.co';
+const PEERJS_HOST = 'nivelo.fedusocial.org';
 const PEERJS_PATH = '/peerjs';
 const PEERJS_PORT = 443;
 const ALAU_API_TOKEN = 'alau-api-2026-xK9mP3nQ'; // ← AGREGAR AQUÍ
@@ -32012,7 +32003,7 @@ function getPeerIdDocente() {
 // ── Credenciales TURN temporales (seguras) ──
 async function getIceServers() {
     try {
-        const resp = await fetch('https://alau2.lostutores.co/bbb-api/turn-credentials');
+        const resp = await fetch('https://nivelo.fedusocial.org/bbb-api/turn-credentials');
         const data = await resp.json();
         if (data.ok) return data.iceServers;
     } catch(e) {
