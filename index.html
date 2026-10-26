@@ -6163,7 +6163,7 @@ function _renderGrabaciones(grabaciones) {
 
 function reproducirGrabacion(sesKey, nombre) {
   const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
   modal.innerHTML = `
     <div style="color:#fff;font-size:.9rem;font-weight:700;max-width:90vw;text-align:center;">🎬 ${nombre.replace('.webm','')}</div>
     <video controls autoplay style="max-width:90vw;max-height:75vh;border-radius:10px;background:#000;"
