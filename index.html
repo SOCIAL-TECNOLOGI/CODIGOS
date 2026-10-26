@@ -6087,6 +6087,11 @@ María López"></textarea>
       <span style="color:#ffd84d;font-weight:700;font-size:17px;">📹 Repositorio de grabaciones</span>
       <button onclick="cerrarModalGrabaciones()" style="background:none;border:none;color:#aaa;font-size:24px;cursor:pointer;">✕</button>
     </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <select id="filtroGrupoGrabaciones" onchange="_renderGrabaciones(_grabacionesCache)" style="background:#1a2e1f;color:#fff;border:1px solid #27ae60;border-radius:8px;padding:6px 12px;font-size:.82rem;flex:1;">
+        <option value="">Todos los grupos</option>
+      </select>
+    </div>
     <div id="grabacionesLista" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;">
       <p style="color:#9ca3af;font-size:.85rem;">Cargando...</p>
     </div>
@@ -6094,6 +6099,15 @@ María López"></textarea>
 </div>
 
 <script>
+let _grabacionesCache = [];
+
+function _extraerGrupo(sesKey) {
+  // GRABACION_18_NOMBRE_GRUPO_FECHA_TIMESTAMP → NOMBRE_GRUPO
+  const m = sesKey.match(/^GRABACION_\d+_(.+)_\d{6}_\d{4}_\d+$/);
+  if (!m) return sesKey;
+  return m[1].replace(/_/g, ' ');
+}
+
 async function abrirModalGrabaciones() {
   const modal = document.getElementById('modalGrabaciones');
   modal.style.display = 'flex';
@@ -6106,32 +6120,67 @@ async function abrirModalGrabaciones() {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay grabaciones todavía.</p>';
       return;
     }
-    lista.innerHTML = d.grabaciones.map(g => {
-      const fecha = g.fecha ? new Date(g.fecha).toLocaleString('es-CO', {dateStyle:'medium',timeStyle:'short'}) : '';
-      const nombre = g.nombre || 'grabacion.webm';
-      const enlace = g.enlace || '';
-      return `<div style="background:#1a2e1f;border:1px solid #2d4a35;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <div>
-            <div style="color:#fff;font-weight:700;font-size:.88rem;">🎬 ${nombre.replace('.webm','')}</div>
-            <div style="color:#6b7280;font-size:.75rem;margin-top:2px;">📅 ${fecha}</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-shrink:0;">
-            ${enlace ? `<a href="${enlace}" target="_blank" style="background:#27ae60;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">▶ Ver</a>` : ''}
-            ${enlace ? `<a href="${enlace}" download="${nombre}" style="background:#2c7da0;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">⬇ Descargar</a>` : ''}
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    _grabacionesCache = d.grabaciones;
+
+        const grupos = [...new Set(d.grabaciones.map(g => _extraerGrupo(g.sesKey)))];
+    const sel = document.getElementById('filtroGrupoGrabaciones');
+    sel.innerHTML = '<option value="">Todos los grupos</option>' + grupos.map(gr => `<option value="${gr}">${gr}</option>`).join('');
+    _renderGrabaciones(_grabacionesCache);
   } catch(e) {
     lista.innerHTML = '<p style="color:#e74c3c;font-size:.85rem;">Error cargando grabaciones.</p>';
   }
 }
+
+function _renderGrabaciones(grabaciones) {
+  const lista = document.getElementById('grabacionesLista');
+  const filtro = document.getElementById('filtroGrupoGrabaciones')?.value || '';
+  const filtradas = filtro ? grabaciones.filter(g => _extraerGrupo(g.sesKey) === filtro) : grabaciones;
+  if (!filtradas.length) {
+    lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Sin grabaciones para este grupo.</p>';
+    return;
+  }
+  lista.innerHTML = filtradas.map(g => {
+    const fecha = g.fecha ? new Date(g.fecha).toLocaleString('es-CO', {dateStyle:'medium', timeStyle:'short'}) : '';
+    const nombre = g.nombre || 'grabacion.webm';
+    const enlace = g.enlace || '';
+    const grupo = _extraerGrupo(g.sesKey || '');
+    return `<div style="background:#1a2e1f;border:1px solid #2d4a35;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:.88rem;">🎬 ${nombre.replace('.webm','')}</div>
+          <div style="color:#a8d4ad;font-size:.75rem;margin-top:2px;">👥 ${grupo}</div>
+          <div style="color:#6b7280;font-size:.72rem;margin-top:1px;">📅 ${fecha}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
+          ${enlace ? `<a href="${enlace}" target="_blank" style="background:#27ae60;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">▶ Ver</a>` : ''}
+          ${enlace ? `<a href="${enlace}" download="${nombre}" style="background:#2c7da0;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">⬇ Descargar</a>` : ''}
+          <button onclick="eliminarGrabacion('${g.sesKey}')" style="background:#c0392b;color:#fff;padding:6px 14px;border-radius:6px;border:none;font-size:.78rem;font-weight:700;cursor:pointer;">🗑 Eliminar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function eliminarGrabacion(sesKey) {
+  if (!confirm('¿Eliminar esta grabación del repositorio? El archivo en WorkDrive no se borrará.')) return;
+  try {
+    const r = await fetch(PMAP_URL + '/api/grabacion/' + encodeURIComponent(sesKey), { method: 'DELETE' });
+    const d = await r.json();
+    if (d.ok) {
+      _grabacionesCache = _grabacionesCache.filter(g => g.sesKey !== sesKey);
+      _renderGrabaciones(_grabacionesCache);
+    } else {
+      alert('Error al eliminar: ' + (d.error || 'desconocido'));
+    }
+  } catch(e) {
+    alert('Error de red al eliminar.');
+  }
+}
+
 function cerrarModalGrabaciones() {
   document.getElementById('modalGrabaciones').style.display = 'none';
 }
 </script>
-
 
 
 </body>
