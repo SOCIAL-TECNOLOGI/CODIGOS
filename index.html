@@ -6152,7 +6152,7 @@ function _renderGrabaciones(grabaciones) {
           <div style="color:#6b7280;font-size:.72rem;margin-top:1px;">📅 ${fecha}</div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;">
-          ${enlace ? `<a href="${enlace}" target="_blank" style="background:#27ae60;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">▶ Ver</a>` : ''}
+                   <button onclick="reproducirGrabacion('${g.sesKey}','${nombre}')" style="background:#27ae60;color:#fff;padding:6px 14px;border-radius:6px;border:none;font-size:.78rem;font-weight:700;cursor:pointer;">▶ Reproducir</button>
           ${enlace ? `<a href="${enlace}" download="${nombre}" style="background:#2c7da0;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:700;">⬇ Descargar</a>` : ''}
           <button onclick="eliminarGrabacion('${g.sesKey}')" style="background:#c0392b;color:#fff;padding:6px 14px;border-radius:6px;border:none;font-size:.78rem;font-weight:700;cursor:pointer;">🗑 Eliminar</button>
         </div>
@@ -6160,6 +6160,21 @@ function _renderGrabaciones(grabaciones) {
     </div>`;
   }).join('');
 }
+
+function reproducirGrabacion(sesKey, nombre) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+  modal.innerHTML = `
+    <div style="color:#fff;font-size:.9rem;font-weight:700;max-width:90vw;text-align:center;">🎬 ${nombre.replace('.webm','')}</div>
+    <video controls autoplay style="max-width:90vw;max-height:75vh;border-radius:10px;background:#000;"
+      src="${PMAP_URL}/api/stream/${encodeURIComponent(sesKey)}">
+      Tu navegador no soporta reproducción inline.
+    </video>
+    <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#c0392b;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;">✕ Cerrar</button>
+  `;
+  document.body.appendChild(modal);
+}
+
 
 async function eliminarGrabacion(sesKey) {
   if (!confirm('¿Eliminar esta grabación del repositorio? El archivo en WorkDrive no se borrará.')) return;
