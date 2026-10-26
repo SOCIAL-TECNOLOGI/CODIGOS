@@ -33232,7 +33232,8 @@ async function iniciarGrabacionClase() {
     let stream = streamPantalla;
     try {
       const streamMic = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      const ctx = new AudioContext();
+            const ctx = new AudioContext();
+      await ctx.resume();
       const dest = ctx.createMediaStreamDestination();
       ctx.createMediaStreamSource(streamPantalla).connect(dest);
       ctx.createMediaStreamSource(streamMic).connect(dest);
