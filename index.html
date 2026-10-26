@@ -6103,14 +6103,14 @@ María López"></textarea>
 
 
 async function verGrabacionesEstudiante() {
-  const sesPath = localStorage.getItem('alau_session_path') || '';
-  const grupo = _extraerGrupo(sesPath);
+    const sesPath = (localStorage.getItem('alau_session_path') || '').replace(/\//g, '_');
+  const grupo = _extraerGrupo(sesPath + '_0') || sesPath;
   const modal = document.createElement('div');
   modal.id = 'modalGrabsEst';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999999;display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px;overflow-y:auto;';
   modal.innerHTML = `
     <div style="width:100%;max-width:560px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#fff;font-weight:700;font-size:1rem;">🎬 Grabaciones · ${grupo || 'Mi grupo'}</span>
+            <span style="color:#fff;font-weight:700;font-size:1rem;">🎬 Mis grabaciones</span>
       <button onclick="document.getElementById('modalGrabsEst').remove()" style="background:#c0392b;color:#fff;border:none;padding:6px 16px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;">✕ Cerrar</button>
     </div>
     <div id="grabsEstLista" style="width:100%;max-width:560px;display:flex;flex-direction:column;gap:10px;">
@@ -6125,7 +6125,7 @@ async function verGrabacionesEstudiante() {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Sin grabaciones disponibles.</p>';
       return;
     }
-    const filtradas = grupo ? d.grabaciones.filter(g => _extraerGrupo(g.sesKey) === grupo) : d.grabaciones;
+        const filtradas = sesPath ? d.grabaciones.filter(g => g.sesKey && g.sesKey.replace(/\//g,'_').startsWith(sesPath.replace(/\//g,'_'))) : d.grabaciones;
     if (!filtradas.length) {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay grabaciones para tu grupo aún.</p>';
       return;
