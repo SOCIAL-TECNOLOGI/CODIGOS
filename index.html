@@ -6125,7 +6125,12 @@ async function verGrabacionesEstudiante() {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">Sin grabaciones disponibles.</p>';
       return;
     }
-        const filtradas = sesPath ? d.grabaciones.filter(g => g.sesKey && g.sesKey.replace(/\//g,'_').startsWith(sesPath.replace(/\//g,'_'))) : d.grabaciones;
+            const partes = sesPath.split('/');
+    const instEst = partes[0] || '';
+    const gradEst = partes[1] || '';
+    const filtradas = (instEst && gradEst)
+      ? d.grabaciones.filter(g => g.institucion === instEst && g.grado === gradEst)
+      : d.grabaciones;
     if (!filtradas.length) {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay grabaciones para tu grupo aún.</p>';
       return;
@@ -33479,7 +33484,7 @@ async function finalizarGrabacion(sesKey) {
         const r = await fetch(PMAP_URL + '/api/finalizar-grabacion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sesKey, totalChunks, docenteNombre })
+            body: JSON.stringify({ sesKey, totalChunks, docenteNombre, sessionPath: localStorage.getItem('alau_session_path') || '' })
     });
     const texto = await r.text();
     let d; try { d = JSON.parse(texto); } catch(ex) { d = { raw: texto }; }
