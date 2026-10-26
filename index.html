@@ -9394,6 +9394,7 @@ async function abrirSesionGuiada() {
   guardarSesionReciente(sesionObj);
   localStorage.setItem(INSTITUCION_KEY, inst);
   localStorage.setItem(GRADO_KEY, grad);
+   localStorage.setItem('alau_teacher_session_path', sesionObj.path);
   initFirebaseRefs(sesionObj.path);
   enterTeacher();
 
@@ -9933,7 +9934,8 @@ recordsHistoricos = {
 
     }
 
-    initFirebaseRefs(sesionObj.path);
+   localStorage.setItem('alau_teacher_session_path', sesionObj.path);
+  initFirebaseRefs(sesionObj.path);
 
     guardarSesionReciente(sesionObj);
 
@@ -33484,7 +33486,7 @@ async function finalizarGrabacion(sesKey) {
         const r = await fetch(PMAP_URL + '/api/finalizar-grabacion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sesKey, totalChunks, docenteNombre, sessionPath: localStorage.getItem('alau_session_path') || '' })
+                  body: JSON.stringify({ sesKey, totalChunks, docenteNombre, sessionPath: localStorage.getItem('alau_teacher_session_path') || '' })
     });
     const texto = await r.text();
     let d; try { d = JSON.parse(texto); } catch(ex) { d = { raw: texto }; }
