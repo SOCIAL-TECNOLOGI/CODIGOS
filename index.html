@@ -6162,21 +6162,18 @@ function _renderGrabaciones(grabaciones) {
 }
 
 function reproducirGrabacion(sesKey, nombre) {
+  const g = _grabacionesCache.find(x => x.sesKey === sesKey);
+  const enlace = g?.enlace || '';
+  if (!enlace) { alert('Sin enlace disponible.'); return; }
   const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
   modal.innerHTML = `
     <div style="color:#fff;font-size:.9rem;font-weight:700;max-width:90vw;text-align:center;">🎬 ${nombre.replace('.webm','')}</div>
-    <video controls autoplay style="max-width:90vw;max-height:75vh;border-radius:10px;background:#000;"
-      src="${PMAP_URL}/api/stream/${encodeURIComponent(sesKey)}">
-      onerror="console.error('VIDEO ERROR',this.error,this.src)"
-      onloadstart="console.log('VIDEO LOADSTART',this.src)">
-      Tu navegador no soporta reproducción inline.
-    </video>
+    <iframe src="${enlace}" style="width:90vw;height:70vh;border:none;border-radius:10px;background:#000;" allowfullscreen></iframe>
     <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#c0392b;color:#fff;border:none;padding:8px 24px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;">✕ Cerrar</button>
   `;
   document.body.appendChild(modal);
 }
-
 
 async function eliminarGrabacion(sesKey) {
   if (!confirm('¿Eliminar esta grabación del repositorio? El archivo en WorkDrive no se borrará.')) return;
