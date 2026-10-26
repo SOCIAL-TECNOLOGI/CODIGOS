@@ -33226,10 +33226,25 @@ async function subirChunkGrabacion(blob, sesKey, idx) {
 async function iniciarGrabacionClase() {
   if (grabacionActiva || grabacionFinalizando) return;
   try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      const streamPantalla = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t => MediaRecorder.isTypeSupported(t));
-    if (!mimeType) { stream.getTracks().forEach(t => t.stop()); alert('Este navegador no soporta grabación WebM. Usa Chrome o Edge.'); return; }
+    if (!mimeType) { streamPantalla.getTracks().forEach(t => t.stop()); alert('Este navegador no soporta grabación WebM. Usa Chrome o Edge.'); return; }
+    let stream = streamPantalla;
+    try {
+      const streamMic = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const ctx = new AudioContext();
+      const dest = ctx.createMediaStreamDestination();
+      ctx.createMediaStreamSource(streamPantalla).connect(dest);
+      ctx.createMediaStreamSource(streamMic).connect(dest);
+      const tracks = [...streamPantalla.getVideoTracks(), ...dest.stream.getAudioTracks()];
+      stream = new MediaStream(tracks);
+      stream._ctx = ctx;
+      stream._mic = streamMic;
+    } catch(eMic) {
+      console.warn('Micrófono no disponible, grabando solo pantalla:', eMic.message);
+    }
     grabacionStream = stream;
+
     grabacionSesKey = (SESSION_ID || 'clase').replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + Date.now();
     grabacionChunkIdx = 0;
     grabacionPendientes = [];
@@ -33267,7 +33282,11 @@ async function finalizarGrabacion(sesKey) {
   if (grabacionFinalizando) return;
   grabacionFinalizando = true;
   grabacionActiva = false;
-  if (grabacionStream) grabacionStream.getTracks().forEach(t => t.stop());
+    if (grabacionStream) {
+    grabacionStream.getTracks().forEach(t => t.stop());
+    if (grabacionStream._mic) grabacionStream._mic.getTracks().forEach(t => t.stop());
+    if (grabacionStream._ctx) grabacionStream._ctx.close().catch(() => {});
+  }
   grabacionStream = null;
   mediaRecorder = null;
   actualizarBtnGrabacion(false);
