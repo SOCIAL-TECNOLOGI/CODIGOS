@@ -25094,12 +25094,15 @@ function obtenerListaCompletaEstudiantesLocal() {
 
 function actualizarBadgeFaltantes() {
   const badge = document.getElementById('faltanBadge');
+  const badgeVivo = document.getElementById('faltanBadgeVivo');
   const copiarBtn = document.getElementById('copiarNoVotantesBtn');
 
   if (!activeQuestionId || !currentLiveQuestion?.open) {
     if (badge) badge.style.display = 'none';
+    if (badgeVivo) badgeVivo.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
-    refrescarModalNoVotantes(); // ✅ NUEVO: también cubrir este caso para el modal
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
+    refrescarModalNoVotantes();
     return;
   }
 
@@ -25110,27 +25113,28 @@ function actualizarBadgeFaltantes() {
   const noVotantes = todos.filter(n => !votantes.has(n));
   const faltan = noVotantes.length;
 
-  if (badge) {
+  const textoFaltan = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
+  [badge, badgeVivo].forEach(b => {
+    if (!b) return;
     if (faltan > 0) {
-      badge.textContent = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
-      badge.style.display = 'inline-block';
+      b.textContent = textoFaltan;
+      b.style.display = 'inline-block';
     } else {
-      badge.style.display = 'none';
+      b.style.display = 'none';
     }
+  });
+
+  if (faltan > 0) {
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
+  } else if (todos.length > 0 && votantes.size > 0) {
+    if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
   }
 
-  // Actualizar el panel si está abierto
   const panel = document.getElementById('noVotantesPanel');
   if (panel?.style.display === 'block') {
     renderListaNoVotantes(todos, Array.from(votantes));
   }
 
-  // ✅ Badges "Votos 100%" — solo mostrar al completar, ocultar solo al cambiar pregunta
-  if (faltan === 0 && todos.length > 0 && votantes.size > 0) {
-    if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
-  }
-
-    // ✅ NUEVO: también refrescar el modal flotante si está abierto
   refrescarModalNoVotantes();
 }
 
