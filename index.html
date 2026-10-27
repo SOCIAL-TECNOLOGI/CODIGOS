@@ -6260,6 +6260,8 @@ function cerrarModalGrabaciones() {
   window._notificarTodosVotaron=function(total){
     const qId=window.activeQuestionId||window._activeQuestionId;
     if(!qId)return;
+    // Cancelar cualquier timer de ocultar pendiente
+    if(_ocultarTimer){clearTimeout(_ocultarTimer);_ocultarTimer=null;}
     // Mostrar siempre que todos hayan votado; el sonido solo una vez por pregunta
     const sonarYa = window._lastQVotos===qId;
     window._lastQVotos=qId;
@@ -6286,8 +6288,7 @@ function cerrarModalGrabaciones() {
   };
   let _ocultarTimer=null;
   window._ocultarBadgeVotos=function(){
-    window._lastQVotos=null;
-    // Esperar 8 segundos antes de ocultar — el docente necesita verlo
+    // NO resetear _lastQVotos aqui — solo programar el ocultado visual
     if(_ocultarTimer)clearTimeout(_ocultarTimer);
     _ocultarTimer=setTimeout(function(){
       IDS_BADGE_VOTOS.forEach(id=>{
