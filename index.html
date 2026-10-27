@@ -6284,7 +6284,20 @@ function cerrarModalGrabaciones() {
       el.style.animation='todosVotaronPulse 1s ease-out 3';
     });
   };
+  let _ocultarTimer=null;
   window._ocultarBadgeVotos=function(){
+    window._lastQVotos=null;
+    // Esperar 8 segundos antes de ocultar — el docente necesita verlo
+    if(_ocultarTimer)clearTimeout(_ocultarTimer);
+    _ocultarTimer=setTimeout(function(){
+      IDS_BADGE_VOTOS.forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
+      _ocultarTimer=null;
+    },8000);
+  };
+  window._ocultarBadgeVotosInmediato=function(){
+    if(_ocultarTimer){clearTimeout(_ocultarTimer);_ocultarTimer=null;}
     window._lastQVotos=null;
     IDS_BADGE_VOTOS.forEach(id=>{
       const el=document.getElementById(id);if(el)el.style.display='none';
