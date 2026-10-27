@@ -6117,7 +6117,7 @@ async function verGrabacionesEstudiante() {
     </div>`;
   document.body.appendChild(modal);
   try {
-    const r = await fetch(PMAP_URL + '/api/grabaciones');
+    const r = await fetch(PMAP_URL + '/api/grabaciones', { headers: { 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() } });
     const d = await r.json();
     const lista = document.getElementById('grabsEstLista');
     if (!d.ok || !d.grabaciones?.length) {
@@ -6167,7 +6167,7 @@ async function abrirModalGrabaciones() {
   const lista = document.getElementById('grabacionesLista');
   lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">⏳ Cargando grabaciones...</p>';
   try {
-    const r = await fetch(PMAP_URL + '/api/grabaciones');
+    const r = await fetch(PMAP_URL + '/api/grabaciones', { headers: { 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() } });
     const d = await r.json();
     if (!d.ok || !d.grabaciones.length) {
       lista.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;">No hay grabaciones todavía.</p>';
@@ -6231,7 +6231,7 @@ function reproducirGrabacion(sesKey, nombre) {
 async function eliminarGrabacion(sesKey) {
   if (!confirm('¿Eliminar esta grabación del repositorio? El archivo en WorkDrive no se borrará.')) return;
   try {
-    const r = await fetch(PMAP_URL + '/api/grabacion/' + encodeURIComponent(sesKey), { method: 'DELETE' });
+    const r = await fetch(PMAP_URL + '/api/grabacion/' + encodeURIComponent(sesKey), { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() } });
     const d = await r.json();
     if (d.ok) {
       _grabacionesCache = _grabacionesCache.filter(g => g.sesKey !== sesKey);
@@ -9687,7 +9687,7 @@ async function crearCuestionarioAdmin() {
     const pdfBase64 = btoa(binary);
     const uploadRes = await fetch('/api/upload-pdf', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() },
       body: JSON.stringify({ filename: pdfNombre, content: pdfBase64 })
     });
     const uploadData = await uploadRes.json();
@@ -33397,7 +33397,7 @@ async function subirChunkGrabacion(blob, sesKey, idx) {
       form.append('chunk', blob, 'chunk_' + idx + '.webm');
       form.append('sesKey', sesKey);
       form.append('chunkIndex', idx);
-      const r = await fetch(PMAP_URL + '/api/grabar-chunk', { method: 'POST', body: form });
+      const r = await fetch(PMAP_URL + '/api/grabar-chunk', { method: 'POST', body: form, headers: { 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() } });
       if (r.ok) return true;
       const txt = await r.text().catch(() => '');
       console.warn('chunk ' + idx + ' HTTP ' + r.status + ' (intento ' + intento + ')', txt.substring(0, 200));
@@ -33489,7 +33489,7 @@ async function finalizarGrabacion(sesKey) {
     
         const r = await fetch(PMAP_URL + '/api/finalizar-grabacion', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() },
                   body: JSON.stringify({ sesKey, totalChunks, docenteNombre, sessionPath: localStorage.getItem('alau_teacher_session_path') || '' })
     });
     const texto = await r.text();
@@ -33502,7 +33502,7 @@ async function finalizarGrabacion(sesKey) {
     const intervalo = setInterval(async () => {
       intentos++;
       try {
-        const rg = await fetch(PMAP_URL + '/api/grabacion/' + encodeURIComponent(sesKey));
+        const rg = await fetch(PMAP_URL + '/api/grabacion/' + encodeURIComponent(sesKey), { headers: { 'Authorization': 'Bearer ' + await auth.currentUser.getIdToken() } });
         const dg = await rg.json();
         if (dg.ok && dg.grabacion && dg.grabacion.workdriveResourceId) {
           clearInterval(intervalo);
