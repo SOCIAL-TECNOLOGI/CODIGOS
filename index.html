@@ -14146,6 +14146,7 @@ function listenSessionEnded() {
   sessionRef.child('sessionEnded').on('value', snap => {
     if (snap.val() === true) {
       console.log("📢 Docente finalizó la clase");
+      document.getElementById('modalGrabsEst')?.remove();
       localStorage.removeItem('alau_last_class_code');
       localStorage.removeItem('alau_session_path');
       localStorage.removeItem('alau_student_name');
