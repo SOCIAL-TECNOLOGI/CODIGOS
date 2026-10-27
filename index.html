@@ -6283,71 +6283,78 @@ function cerrarModalGrabaciones() {
 <script id="presenterLupaScript">
 (function(){
   const ZOOM=2.5, W=340, H=220;
-  let activa=false, lupaDlg=null, lupaVentana=null;
+  let activa=false, dlg=null, cv=null, ctx=null;
 
   function crear(){
-    if(lupaDlg)return;
-    lupaDlg=document.createElement('div');
-    lupaDlg.id='presenterLupaDlg';
-    Object.assign(lupaDlg.style,{
-      position:'fixed',top:'70px',right:'12px',
-      width:W+'px',height:H+'px',
-      overflow:'hidden',
-      border:'2px solid rgba(255,255,255,0.6)',
-      borderRadius:'10px',
-      boxShadow:'0 6px 32px rgba(0,0,0,0.85)',
-      background:'#111',
-      zIndex:'99999',
-      display:'none',
-      pointerEvents:'none'
+    if(dlg) return;
+    dlg=document.createElement('div');
+    dlg.id='presenterLupaDlg';
+    Object.assign(dlg.style,{
+      position:'fixed',width:W+'px',height:H+'px',overflow:'hidden',
+      border:'2px solid rgba(255,255,255,0.6)',borderRadius:'10px',
+      boxShadow:'0 6px 32px rgba(0,0,0,0.85)',background:'#111',
+      zIndex:'99999',display:'none',pointerEvents:'none'
     });
-    const lbl=document.createElement('div');
-    Object.assign(lbl.style,{position:'absolute',top:'4px',left:'8px',fontSize:'10px',color:'rgba(255,255,255,0.5)',zIndex:'1'});
-    lbl.textContent='🔍 ×'+ZOOM;
-    lupaDlg.appendChild(lbl);
-    const cruz=document.createElement('div');
-    cruz.id='lupaCruz';
-    Object.assign(cruz.style,{position:'absolute',width:'12px',height:'12px',border:'1px solid rgba(255,80,80,0.8)',borderRadius:'50%',zIndex:'2',pointerEvents:'none',transform:'translate(-50%,-50%)'});
-    lupaDlg.appendChild(cruz);
-    lupaVentana=document.createElement('div');
-    lupaVentana.id='lupaVentana';
-    Object.assign(lupaVentana.style,{position:'absolute',transformOrigin:'0 0',pointerEvents:'none'});
-    lupaDlg.appendChild(lupaVentana);
-    document.body.appendChild(lupaDlg);
+    cv=document.createElement('canvas');
+    cv.width=W; cv.height=H;
+    dlg.appendChild(cv);
+    ctx=cv.getContext('2d');
   }
 
   function tick(cx,cy){
     const ov=document.getElementById('presenterOverlay');
-    if(!ov||!lupaDlg||!lupaVentana)return;
-    const r=ov.getBoundingClientRect();
-    if(r.width===0)return;
-    const rx=cx-r.left, ry=cy-r.top;
-    const tx=W/2-rx*ZOOM, ty=H/2-ry*ZOOM;
-    lupaVentana.style.width=r.width+'px';
-    lupaVentana.style.height=r.height+'px';
-    lupaVentana.style.transform='scale('+ZOOM+') translate('+(tx/ZOOM)+'px,'+(ty/ZOOM)+'px)';
-    const snap=ov.cloneNode(true);
-    snap.querySelectorAll('script').forEach(s=>s.remove());
-    lupaVentana.innerHTML=snap.innerHTML;
-    const cruz=document.getElementById('lupaCruz');
-    if(cruz){cruz.style.left=(W/2)+'px';cruz.style.top=(H/2)+'px';}
+    if(!ov||ov.style.display==='none'){ desactivar(); return; }
+    const img=document.getElementById('presenterOverlayImg');
+    const dc=document.getElementById('presenterDrawCanvas');
+    if(!img||!img.naturalWidth) return;
+    const r=img.getBoundingClientRect();
+    if(cx<r.left||cx>r.right||cy<r.top||cy>r.bottom){ dlg.style.display='none'; return; }
+    dlg.style.display='block';
+
+    let lx=cx+24, ly=cy+24;
+    if(lx+W>window.innerWidth)  lx=cx-W-24;
+    if(ly+H>window.innerHeight) ly=cy-H-24;
+    dlg.style.left=lx+'px'; dlg.style.top=ly+'px';
+
+    const fx=(cx-r.left)/r.width, fy=(cy-r.top)/r.height;
+    const sw=(W/ZOOM)*(img.naturalWidth/r.width);
+    const sh=(H/ZOOM)*(img.naturalHeight/r.height);
+    const sx=fx*img.naturalWidth-sw/2;
+    const sy=fy*img.naturalHeight-sh/2;
+
+    ctx.fillStyle='#111'; ctx.fillRect(0,0,W,H);
+    ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+    if(dc&&dc.width&&dc.height){
+      const kx=dc.width/img.naturalWidth, ky=dc.height/img.naturalHeight;
+      ctx.drawImage(dc,sx*kx,sy*ky,sw*kx,sh*ky,0,0,W,H);
+    }
+    ctx.strokeStyle='rgba(255,80,80,0.8)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(W/2,H/2,6,0,2*Math.PI); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='10px system-ui';
+    ctx.fillText('🔍 ×'+ZOOM,8,14);
   }
 
   function activar(){
-    crear();activa=true;lupaDlg.style.display='block';
+    crear();
+    const host=document.getElementById('presenterOverlay')||document.body;
+    host.appendChild(dlg);
+    activa=true;
     const btn=document.getElementById('presenterLupaBtn');
-    if(btn)btn.style.opacity='1';
+    if(btn){ btn.style.background='rgba(44,125,160,0.7)'; btn.style.borderColor='#5ab4d4'; }
   }
   function desactivar(){
     activa=false;
-    if(lupaDlg)lupaDlg.style.display='none';
+    if(dlg) dlg.style.display='none';
     const btn=document.getElementById('presenterLupaBtn');
-    if(btn)btn.style.opacity='0.5';
+    if(btn){ btn.style.background='rgba(255,255,255,0.10)'; btn.style.borderColor='rgba(255,255,255,0.25)'; }
   }
 
-  window._togglePresenterLupa=function(){crear();if(activa)desactivar();else activar();};
+  window._togglePresenterLupa=function(){ activa?desactivar():activar(); };
 
-  document.addEventListener('mousemove',function(e){if(!activa)return;tick(e.clientX,e.clientY);});
+  document.addEventListener('mousemove',e=>{ if(activa) tick(e.clientX,e.clientY); });
+  document.addEventListener('touchmove',e=>{
+    if(activa&&e.touches.length===1) tick(e.touches[0].clientX,e.touches[0].clientY);
+  },{passive:true});
 })();
 </script>
 </body>
@@ -23291,6 +23298,8 @@ function abrirModoPresentador() {
     const btn = document.getElementById('pvpCloseBtn');
     if (btn) btn.click();
   };
+
+  document.getElementById('presenterLupaBtn').onclick = () => window._togglePresenterLupa();
 
   // Sincronizar badge de estado con el del panel docente
   const srcBadge = document.getElementById('pvpStatusBadge');
