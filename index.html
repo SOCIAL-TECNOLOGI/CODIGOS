@@ -6569,6 +6569,7 @@ function initFirebaseRefs(sessionId) {
 let currentRole      = null;
 
 let studentName      = localStorage.getItem('alau_student_name') || '';
+let studentDocumento = localStorage.getItem('alau_student_documento') || '';
 
 let questionOpenedAt = null;
 
@@ -8409,6 +8410,7 @@ async function unirseAClase() {
   const municipio = document.getElementById('studentAccessMunicipio').value.trim();
   const institucion = document.getElementById('studentAccessInstitucion').value.trim();
   const documento = document.getElementById('studentDocumento')?.value.trim() || '';
+  if (documento) { studentDocumento = documento; localStorage.setItem('alau_student_documento', documento); }
   const err = document.getElementById('studentAccessError');
   const btn = document.getElementById('studentAccessBtn');
 
@@ -18200,7 +18202,8 @@ if (!sessionRef || !studentName) return;
 
       timestamp: Date.now(),
 
-       uid: auth.currentUser?.uid || ''
+       uid: auth.currentUser?.uid || '',
+      documento: studentDocumento || ''
 
     });
 
@@ -20597,12 +20600,13 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
             }
             await fetch('http://34.148.249.153:3001/bbb-api/pmap-sesion', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-alau-token': ALAU_API_TOKEN },
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await auth.currentUser.getIdToken()) },
               body: JSON.stringify({
                 uid:        datos.uid,
                 estudiante: datos.nombre || datos.uid,
                 sesionId:   sesionPath || SESSION_ID || '',
                 area:       meta.cuestionarioNombre || meta.cuestionarioId || '',
+                documento:  datos.documento || '',
                 respuestas
               })
             });
