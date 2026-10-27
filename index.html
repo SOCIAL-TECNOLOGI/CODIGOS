@@ -6103,8 +6103,7 @@ María López"></textarea>
 
 
 async function verGrabacionesEstudiante() {
-    const sesPath = (localStorage.getItem('alau_session_path') || '').replace(/\//g, '_');
-  const grupo = _extraerGrupo(sesPath + '_0') || sesPath;
+      const sesPath = localStorage.getItem('alau_session_path') || '';
   const modal = document.createElement('div');
   modal.id = 'modalGrabsEst';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999999;display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px;overflow-y:auto;';
