@@ -6282,79 +6282,72 @@ function cerrarModalGrabaciones() {
 
 <script id="presenterLupaScript">
 (function(){
-  // Lupa CSS: amplía una región del presenterOverlay via transform:scale
-  const ZOOM=2.5, W=320, H=200;
-  let activa=false, lupaBox=null, lupaInner=null;
+  const ZOOM=2.5, W=340, H=220;
+  let activa=false, lupaDlg=null, lupaVentana=null;
 
   function crear(){
-    if(lupaBox)return;
-    lupaBox=document.createElement('div');
-    lupaBox.id='presenterLupaBox';
-    Object.assign(lupaBox.style,{
-      position:'fixed',display:'none',width:W+'px',height:H+'px',
-      overflow:'hidden',border:'2px solid rgba(255,255,255,0.7)',
-      borderRadius:'8px',boxShadow:'0 4px 24px rgba(0,0,0,0.8)',
-      pointerEvents:'none',zIndex:'99999',background:'#000'
-    });
-    lupaInner=document.createElement('div');
-    lupaInner.id='presenterLupaInner';
-    Object.assign(lupaInner.style,{
-      position:'absolute',transformOrigin:'top left',
+    if(lupaDlg)return;
+    lupaDlg=document.createElement('div');
+    lupaDlg.id='presenterLupaDlg';
+    Object.assign(lupaDlg.style,{
+      position:'fixed',top:'70px',right:'12px',
+      width:W+'px',height:H+'px',
+      overflow:'hidden',
+      border:'2px solid rgba(255,255,255,0.6)',
+      borderRadius:'10px',
+      boxShadow:'0 6px 32px rgba(0,0,0,0.85)',
+      background:'#111',
+      zIndex:'99999',
+      display:'none',
       pointerEvents:'none'
     });
-    lupaBox.appendChild(lupaInner);
-    document.body.appendChild(lupaBox);
+    const lbl=document.createElement('div');
+    Object.assign(lbl.style,{position:'absolute',top:'4px',left:'8px',fontSize:'10px',color:'rgba(255,255,255,0.5)',zIndex:'1'});
+    lbl.textContent='🔍 ×'+ZOOM;
+    lupaDlg.appendChild(lbl);
+    const cruz=document.createElement('div');
+    cruz.id='lupaCruz';
+    Object.assign(cruz.style,{position:'absolute',width:'12px',height:'12px',border:'1px solid rgba(255,80,80,0.8)',borderRadius:'50%',zIndex:'2',pointerEvents:'none',transform:'translate(-50%,-50%)'});
+    lupaDlg.appendChild(cruz);
+    lupaVentana=document.createElement('div');
+    lupaVentana.id='lupaVentana';
+    Object.assign(lupaVentana.style,{position:'absolute',transformOrigin:'0 0',pointerEvents:'none'});
+    lupaDlg.appendChild(lupaVentana);
+    document.body.appendChild(lupaDlg);
   }
 
-  function actualizar(cx,cy){
+  function tick(cx,cy){
     const ov=document.getElementById('presenterOverlay');
-    if(!ov||!lupaInner)return;
+    if(!ov||!lupaDlg||!lupaVentana)return;
     const r=ov.getBoundingClientRect();
-    // Región fuente centrada en cursor
-    const srcW=W/ZOOM, srcH=H/ZOOM;
-    const srcX=cx-r.left-srcW/2;
-    const srcY=cy-r.top-srcH/2;
-    // Clonar overlay escalado
-    lupaInner.style.width=r.width+'px';
-    lupaInner.style.height=r.height+'px';
-    lupaInner.style.transform='scale('+ZOOM+') translate('+(-srcX/r.width*100)+'%,'+(-srcY/r.height*100)+'%)';
-    // Sincronizar contenido
-    lupaInner.innerHTML=ov.innerHTML;
-  }
-
-  function posicionar(cx,cy){
-    if(!lupaBox)return;
-    const m=16;
-    let lx=cx+24,ly=cy+24;
-    if(lx+W+m>window.innerWidth)lx=cx-W-24;
-    if(ly+H+m>window.innerHeight)ly=cy-H-24;
-    if(lx<m)lx=m; if(ly<m)ly=m;
-    lupaBox.style.left=lx+'px';lupaBox.style.top=ly+'px';
+    if(r.width===0)return;
+    const rx=cx-r.left, ry=cy-r.top;
+    const tx=W/2-rx*ZOOM, ty=H/2-ry*ZOOM;
+    lupaVentana.style.width=r.width+'px';
+    lupaVentana.style.height=r.height+'px';
+    lupaVentana.style.transform='scale('+ZOOM+') translate('+(tx/ZOOM)+'px,'+(ty/ZOOM)+'px)';
+    const snap=ov.cloneNode(true);
+    snap.querySelectorAll('script').forEach(s=>s.remove());
+    lupaVentana.innerHTML=snap.innerHTML;
+    const cruz=document.getElementById('lupaCruz');
+    if(cruz){cruz.style.left=(W/2)+'px';cruz.style.top=(H/2)+'px';}
   }
 
   function activar(){
-    crear();activa=true;lupaBox.style.display='block';
+    crear();activa=true;lupaDlg.style.display='block';
     const btn=document.getElementById('presenterLupaBtn');
-    if(btn){btn.style.background='rgba(100,180,255,0.25)';btn.style.borderColor='rgba(100,180,255,0.6)';}
+    if(btn)btn.style.opacity='1';
   }
-
   function desactivar(){
     activa=false;
-    if(lupaBox)lupaBox.style.display='none';
+    if(lupaDlg)lupaDlg.style.display='none';
     const btn=document.getElementById('presenterLupaBtn');
-    if(btn){btn.style.background='';btn.style.borderColor='';}
+    if(btn)btn.style.opacity='0.5';
   }
 
-  window._togglePresenterLupa=function(){
-    crear();
-    if(activa)desactivar();else activar();
-  };
+  window._togglePresenterLupa=function(){crear();if(activa)desactivar();else activar();};
 
-  document.addEventListener('mousemove',function(e){
-    if(!activa)return;
-    actualizar(e.clientX,e.clientY);
-    posicionar(e.clientX,e.clientY);
-  });
+  document.addEventListener('mousemove',function(e){if(!activa)return;tick(e.clientX,e.clientY);});
 })();
 </script>
 </body>
