@@ -6256,61 +6256,34 @@ function cerrarModalGrabaciones() {
 
 <script id="votosBadgeScript">
 (function(){
-  const IDS_BADGE_VOTOS=['presenterVotosBadge','spfVotosBadge','pvpVotosBadge','votosBadgeVivo'];
+  const IDS=['presenterVotosBadge','spfVotosBadge','pvpVotosBadge','pvpHeaderVotosBadge','pvpMobileVotosBadge','votosBadgeVivo'];
+  const BS='display:none;font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:40px;white-space:nowrap;background:linear-gradient(135deg,#14532d,#16a34a);color:#bbf7d0;border:1px solid #22c55e;margin:0 6px;';
+  let label='';
+  function inyectar(){
+    const hdr=document.getElementById('pvpPcHeader');
+    if(hdr&&!document.getElementById('pvpHeaderVotosBadge')){const s=document.createElement('span');s.id='pvpHeaderVotosBadge';s.style.cssText=BS;hdr.insertBefore(s,document.getElementById('pvpPcArrow'));}
+    const mob=document.getElementById('pvpMobileToggle');
+    if(mob&&!document.getElementById('pvpMobileVotosBadge')){const s=document.createElement('span');s.id='pvpMobileVotosBadge';s.style.cssText=BS;mob.insertBefore(s,document.getElementById('pvpMobileToggleArrow'));}
+  }
+  function pintar(){IDS.forEach(id=>{const el=document.getElementById(id);if(!el)return;if(label){el.textContent=label;el.style.display='inline-block';}else el.style.display='none';});}
+  function sonido(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[[880,0,0.12],[1100,0.13,0.1],[1320,0.24,0.14]].forEach(([freq,start,dur])=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(0,ctx.currentTime+start);gain.gain.linearRampToValueAtTime(0.18,ctx.currentTime+start+0.02);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+dur+0.05);});}catch(e){}}
   window._notificarTodosVotaron=function(total){
-    const qId=window.activeQuestionId||window._activeQuestionId;
+    const qId=(typeof activeQuestionId!=='undefined')?activeQuestionId:null;
     if(!qId)return;
-    // Cancelar cualquier timer de ocultar pendiente
-    if(_ocultarTimer){clearTimeout(_ocultarTimer);_ocultarTimer=null;}
-    // Mostrar siempre que todos hayan votado; el sonido solo una vez por pregunta
-    const sonarYa = window._lastQVotos===qId;
+    const nuevo=(window._lastQVotos!==qId);
     window._lastQVotos=qId;
-    if(!sonarYa){try{
-      const ctx=new(window.AudioContext||window.webkitAudioContext)();
-      [[880,0,0.12],[1100,0.13,0.1],[1320,0.24,0.14]].forEach(([freq,start,dur])=>{
-        const osc=ctx.createOscillator();const gain=ctx.createGain();
-        osc.type='sine';osc.frequency.value=freq;
-        gain.gain.setValueAtTime(0,ctx.currentTime+start);
-        gain.gain.linearRampToValueAtTime(0.18,ctx.currentTime+start+0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
-        osc.connect(gain);gain.connect(ctx.destination);
-        osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+dur+0.05);
-      });
-    }catch(e){}}
-    const label='🗳️ Votos 100% ('+total+')';
-    IDS_BADGE_VOTOS.forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el)return;
-      el.textContent=label;el.style.display='inline-block';
-      el.style.animation='none';void el.offsetWidth;
-      el.style.animation='todosVotaronPulse 1s ease-out 3';
-    });
+    label='🗳️ Votos 100% ('+total+')';
+    pintar();
+    if(nuevo){sonido();IDS.forEach(id=>{const el=document.getElementById(id);if(!el||el.style.display==='none')return;el.style.animation='none';void el.offsetWidth;el.style.animation='todosVotaronPulse 1s ease-out 3';});}
   };
-  let _ocultarTimer=null;
-  window._ocultarBadgeVotos=function(){
-    // NO resetear _lastQVotos aqui — solo programar el ocultado visual
-    if(_ocultarTimer)clearTimeout(_ocultarTimer);
-    _ocultarTimer=setTimeout(function(){
-      IDS_BADGE_VOTOS.forEach(id=>{
-        const el=document.getElementById(id);if(el)el.style.display='none';
-      });
-      _ocultarTimer=null;
-    },8000);
-  };
-  window._ocultarBadgeVotosInmediato=function(){
-    if(_ocultarTimer){clearTimeout(_ocultarTimer);_ocultarTimer=null;}
-    window._lastQVotos=null;
-    IDS_BADGE_VOTOS.forEach(id=>{
-      const el=document.getElementById(id);if(el)el.style.display='none';
-    });
-  };
+  window._ocultarBadgeVotosInmediato=function(mantenerSonido){label='';if(!mantenerSonido)window._lastQVotos=null;pintar();};
+  window._ocultarBadgeVotos=function(){};
+  window._reaplicarBadgeVotos=pintar;
+  inyectar();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inyectar);
+  new MutationObserver(()=>{const ov=document.getElementById('presenterOverlay');if(ov&&!ov._vbObs){ov._vbObs=true;pintar();new MutationObserver(pintar).observe(ov,{attributes:true,attributeFilter:['style']});}}).observe(document.body,{childList:true});
 })();
-(function(){
-  if(document.getElementById('todosVotaronStyle'))return;
-  const s=document.createElement('style');s.id='todosVotaronStyle';
-  s.textContent='@keyframes todosVotaronPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7);transform:scale(1);}50%{box-shadow:0 0 0 10px rgba(34,197,94,0);transform:scale(1.06);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);transform:scale(1);}}';
-  document.head.appendChild(s);
-})();
+(function(){if(document.getElementById('todosVotaronStyle'))return;const s=document.createElement('style');s.id='todosVotaronStyle';s.textContent='@keyframes todosVotaronPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7);transform:scale(1);}50%{box-shadow:0 0 0 10px rgba(34,197,94,0);transform:scale(1.06);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);transform:scale(1);}}';document.head.appendChild(s);})();
 </script>
 
 <script id="presenterLupaScript">
