@@ -10921,7 +10921,16 @@ if (totalVivo) totalVivo.textContent = voteTotal;
 
     const q = snap.val();
 
-    if (!q) return;
+    if (!q) { window._preguntaAbierta = false; return; }
+
+    window._preguntaAbierta = (q.open === true);
+
+    if (q.id && q.id !== window._ultimaPreguntaVista) {
+      window._ultimaPreguntaVista = q.id;
+      if (q.open === true && typeof window._ocultarBadgeVotosInmediato === 'function') {
+        window._ocultarBadgeVotosInmediato();
+      }
+    }
 
     setQStatusBadge(q.open, q.text || '');
 
@@ -25097,45 +25106,40 @@ function actualizarBadgeFaltantes() {
   const badge = document.getElementById('faltanBadge');
   const badgeVivo = document.getElementById('faltanBadgeVivo');
   const copiarBtn = document.getElementById('copiarNoVotantesBtn');
-
   if (!activeQuestionId || window._preguntaAbierta !== true) {
     if (badge) badge.style.display = 'none';
     if (badgeVivo) badgeVivo.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
-    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
     refrescarModalNoVotantes();
     return;
   }
-
-  const todos = obtenerListaCompletaEstudiantesLocal();
   const votantes = new Set(responsesCache
     .filter(r => r.questionId === activeQuestionId && r.student)
     .map(r => r.student.trim()));
+  let todos;
+  const pres = window._lastPresenciaSnapshot;
+  if (pres && Object.keys(pres).length) {
+    const s = new Set(Object.values(pres).map(p => (p.nombre || '').trim()).filter(Boolean));
+    votantes.forEach(v => s.add(v));
+    todos = Array.from(s).sort((a, b) => a.localeCompare(b));
+  } else {
+    todos = obtenerListaCompletaEstudiantesLocal();
+  }
   const noVotantes = todos.filter(n => !votantes.has(n));
   const faltan = noVotantes.length;
-
   const textoFaltan = `⏳ ${faltan} falta${faltan !== 1 ? 'n' : ''}`;
   [badge, badgeVivo].forEach(b => {
     if (!b) return;
-    if (faltan > 0) {
-      b.textContent = textoFaltan;
-      b.style.display = 'inline-block';
-    } else {
-      b.style.display = 'none';
-    }
+    if (faltan > 0) { b.textContent = textoFaltan; b.style.display = 'inline-block'; }
+    else b.style.display = 'none';
   });
-
   if (faltan > 0) {
-    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
+    if (typeof window._ocultarBadgeVotosInmediato === 'function') window._ocultarBadgeVotosInmediato(true);
   } else if (todos.length > 0 && votantes.size > 0) {
     if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
   }
-
   const panel = document.getElementById('noVotantesPanel');
-  if (panel?.style.display === 'block') {
-    renderListaNoVotantes(todos, Array.from(votantes));
-  }
-
+  if (panel?.style.display === 'block') { renderListaNoVotantes(todos, Array.from(votantes)); }
   refrescarModalNoVotantes();
 }
 
@@ -25375,17 +25379,12 @@ window.appendToRespTable = function(r) {
 // Iniciar actualización periódica del badge (cada 5 segundos)
 
 function iniciarActualizacionBadgeFaltantes() {
-
-  setInterval(() => {
-
-    if (currentRole === 'teacher' && activeQuestionId && currentLiveQuestion?.open) {
-
+  if (window._badgeFaltantesInterval) clearInterval(window._badgeFaltantesInterval);
+  window._badgeFaltantesInterval = setInterval(() => {
+    if (currentRole === 'teacher' && window._preguntaAbierta === true) {
       actualizarBadgeFaltantes();
-
     }
-
   }, 5000);
-
 }
 
 //BOTÓN NEXT TARJETA PREGUNTA EN VIVO
