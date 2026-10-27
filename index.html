@@ -6296,6 +6296,146 @@ function cerrarModalGrabaciones() {
   document.head.appendChild(s);
 })();
 </script>
+
+<script id="presenterLupaScript">
+(function(){
+  // ── Lupa rectangular para modo presentador ──
+  let lupaActiva = false;
+  let lupaEl = null;
+  let lupaCtx = null;
+  const LUPA_W = 320;
+  const LUPA_H = 200;
+  const ZOOM   = 2.5;
+
+  function crearLupa() {
+    if (lupaEl) return;
+    lupaEl = document.createElement('canvas');
+    lupaEl.id = 'presenterLupaCanvas';
+    lupaEl.width  = LUPA_W;
+    lupaEl.height = LUPA_H;
+    Object.assign(lupaEl.style, {
+      position: 'fixed',
+      display:  'none',
+      border:   '2px solid rgba(255,255,255,0.6)',
+      borderRadius: '6px',
+      boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+      pointerEvents: 'none',
+      zIndex:   '99999',
+      cursor:   'none'
+    });
+    document.body.appendChild(lupaEl);
+    lupaCtx = lupaEl.getContext('2d');
+  }
+
+  function dibujarLupa(cx, cy) {
+    if (!lupaCtx) return;
+    // Capturar región alrededor del cursor desde el overlay del presentador
+    const overlay = document.getElementById('presenterOverlay');
+    if (!overlay) return;
+    const rect = overlay.getBoundingClientRect();
+    // Región fuente centrada en cursor, de tamaño LUPA_W/ZOOM × LUPA_H/ZOOM
+    const srcW = LUPA_W / ZOOM;
+    const srcH = LUPA_H / ZOOM;
+    const srcX = cx - rect.left - srcW / 2;
+    const srcY = cy - rect.top  - srcH / 2;
+
+    lupaCtx.clearRect(0, 0, LUPA_W, LUPA_H);
+    lupaCtx.save();
+    lupaCtx.scale(ZOOM, ZOOM);
+    // Dibujar el overlay escalado
+    try {
+      // html2canvas no disponible — usamos drawWindow si Firefox, si no fallback visual
+      // Fallback: clonar el nodo a un canvas via foreignObject SVG
+      const svgData = '<svg xmlns="http://www.w3.org/2000/svg" width="' + srcW + '" height="' + srcH + '">' +
+        '<foreignObject width="' + rect.width + '" height="' + rect.height + '" x="' + (-srcX) + '" y="' + (-srcY) + '">' +
+        '<body xmlns="http://www.w3.org/1999/xhtml" style="margin:0;overflow:hidden;background:#000;width:' + rect.width + 'px;height:' + rect.height + 'px">' +
+        overlay.outerHTML +
+        '</body></foreignObject></svg>';
+      const img = new Image();
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
+      const url  = URL.createObjectURL(blob);
+      img.onload = () => {
+        lupaCtx.clearRect(0, 0, srcW, srcH);
+        lupaCtx.drawImage(img, 0, 0, srcW, srcH);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } catch(e) {}
+    lupaCtx.restore();
+  }
+
+  function posicionarLupa(cx, cy) {
+    if (!lupaEl) return;
+    const margin = 16;
+    let lx = cx + 20;
+    let ly = cy + 20;
+    if (lx + LUPA_W + margin > window.innerWidth)  lx = cx - LUPA_W - 20;
+    if (ly + LUPA_H + margin > window.innerHeight) ly = cy - LUPA_H - 20;
+    if (lx < margin) lx = margin;
+    if (ly < margin) ly = margin;
+    lupaEl.style.left = lx + 'px';
+    lupaEl.style.top  = ly + 'px';
+  }
+
+  function activarLupa() {
+    crearLupa();
+    lupaActiva = true;
+    lupaEl.style.display = 'block';
+    const btn = document.getElementById('presenterLupaBtn');
+    if (btn) { btn.style.background = 'rgba(100,180,255,0.25)'; btn.style.borderColor = 'rgba(100,180,255,0.6)'; }
+  }
+
+  function desactivarLupa() {
+    lupaActiva = false;
+    if (lupaEl) lupaEl.style.display = 'none';
+    const btn = document.getElementById('presenterLupaBtn');
+    if (btn) { btn.style.background = 'rgba(255,255,255,0.10)'; btn.style.borderColor = 'rgba(255,255,255,0.25)'; }
+  }
+
+  function toggleLupa() {
+    lupaActiva ? desactivarLupa() : activarLupa();
+  }
+
+  // Seguir cursor
+  document.addEventListener('mousemove', function(e) {
+    if (!lupaActiva) return;
+    posicionarLupa(e.clientX, e.clientY);
+    dibujarLupa(e.clientX, e.clientY);
+  });
+
+  // Botón
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'presenterLupaBtn') toggleLupa();
+  });
+
+  // Atajo Z
+  document.addEventListener('keydown', function(e) {
+    const overlay = document.getElementById('presenterOverlay');
+    if (!overlay || overlay.style.display === 'none') return;
+    if (e.key === 'z' || e.key === 'Z') {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      e.preventDefault();
+      toggleLupa();
+    }
+  });
+
+  // Desactivar al cerrar presentador — hook sobre cerrarPresentador
+  const _origCerrar = window.cerrarPresentador;
+  if (typeof _origCerrar === 'function') {
+    window.cerrarPresentador = function() {
+      desactivarLupa();
+      return _origCerrar.apply(this, arguments);
+    };
+  }
+  // Fallback: observar display del overlay
+  const overlayEl = document.getElementById('presenterOverlay');
+  if (overlayEl) {
+    new MutationObserver(() => {
+      if (overlayEl.style.display === 'none') desactivarLupa();
+    }).observe(overlayEl, { attributes: true, attributeFilter: ['style'] });
+  }
+})();
+</script>
 </body>
 
 
@@ -22324,6 +22464,14 @@ function abrirModoPresentador() {
       <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
 
       
+      <button id="presenterLupaBtn" style="
+        background:rgba(255,255,255,0.10);color:white;
+        border:1px solid rgba(255,255,255,0.25);border-radius:40px;
+        padding:5px 12px;font-size:0.78rem;cursor:pointer;
+        white-space:nowrap;">🔍 Lupa</button>
+
+      <div style="width:1px;height:28px;background:rgba(255,255,255,0.2);margin:0 4px;"></div>
+
   <button id="presenterCloseOverlay" style="
         background:#c0392b;color:white;border:none;
         border-radius:40px;padding:6px 16px;font-weight:700;
