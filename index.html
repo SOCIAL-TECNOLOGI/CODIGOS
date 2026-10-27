@@ -23357,6 +23357,29 @@ function abrirModoPresentador() {
 
   document.getElementById('presenterCloseOverlay').onclick = cerrarPresentador;
 
+  document.getElementById('presenterLaunchVotacion').onclick = () => {
+    const btn = document.getElementById('pvpLaunchBtn');
+    if (btn) btn.click();
+  };
+
+  document.getElementById('presenterCerrarVotacion').onclick = () => {
+    const btn = document.getElementById('pvpCloseBtn');
+    if (btn) btn.click();
+  };
+
+  // Sincronizar badge de estado con el del panel docente
+  const srcBadge = document.getElementById('pvpStatusBadge');
+  const dstBadge = document.getElementById('presenterStatusBadge');
+  if (srcBadge && dstBadge) {
+    const syncBadge = () => {
+      dstBadge.textContent = srcBadge.textContent;
+      dstBadge.style.background = srcBadge.classList.contains('pvp-open') ? '#0d2818' : '#2d1117';
+      dstBadge.style.color      = srcBadge.classList.contains('pvp-open') ? '#2ecc71' : '#e74c3c';
+    };
+    syncBadge();
+    new MutationObserver(syncBadge).observe(srcBadge, { childList: true, characterData: true, subtree: true, attributes: true });
+  }
+
   // ════════════════════════════════════════════
   // TECLADO
   // ════════════════════════════════════════════
@@ -25085,7 +25108,14 @@ function actualizarBadgeFaltantes() {
     renderListaNoVotantes(todos, Array.from(votantes));
   }
 
-  // ✅ NUEVO: también refrescar el modal flotante si está abierto
+  // ✅ Badges "Votos 100%"
+  if (faltan > 0) {
+    if (typeof window._ocultarBadgeVotos === 'function') window._ocultarBadgeVotos();
+  } else if (todos.length > 0 && votantes.size > 0) {
+    if (typeof window._notificarTodosVotaron === 'function') window._notificarTodosVotaron(todos.length);
+  }
+
+    // ✅ NUEVO: también refrescar el modal flotante si está abierto
   refrescarModalNoVotantes();
 }
 
