@@ -25097,7 +25097,7 @@ function actualizarBadgeFaltantes() {
   const badgeVivo = document.getElementById('faltanBadgeVivo');
   const copiarBtn = document.getElementById('copiarNoVotantesBtn');
 
-  if (!activeQuestionId || !currentLiveQuestion?.open) {
+  if (!activeQuestionId || window._preguntaAbierta !== true) {
     if (badge) badge.style.display = 'none';
     if (badgeVivo) badgeVivo.style.display = 'none';
     if (copiarBtn) copiarBtn.style.display = 'none';
