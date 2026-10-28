@@ -20722,7 +20722,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
             }
             await fetch((typeof PMAP_URL!=='undefined'?PMAP_URL:'https://motor1.alau.fedusocial.org')+'/bbb-api/pmap-sesion', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-alau-token': (await auth.currentUser.getIdToken()) },
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await auth.currentUser.getIdToken()) },
               body: JSON.stringify({
                 uid:        datos.uid,
                 estudiante: datos.nombre || datos.uid,
