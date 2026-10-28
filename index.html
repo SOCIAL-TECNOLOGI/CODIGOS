@@ -8300,7 +8300,7 @@ const TABLA_CUARTILES = {
 async function calcularNivelPMAP(velocidad, nivelItem) {
     try {
         const resp = await fetch(
-            `http://34.148.249.153:3001/bbb-api/pmap?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
+            `${typeof PMAP_URL!=='undefined'?PMAP_URL:'https://motor1.alau.fedusocial.org'}/bbb-api/pmap-sesion?velocidad=${encodeURIComponent(velocidad)}&nivelItem=${encodeURIComponent(nivelItem)}`
         );
         const data = await resp.json();
         if (data.ok) return { nivelPMAP: data.nivelPMAP, cuartil: data.cuartil };
@@ -20716,9 +20716,9 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
               console.log(`⚠️ Sin respuestas en Firebase para ${datos.uid} — omitiendo PMAP`);
               continue;
             }
-            await fetch('http://34.148.249.153:3001/bbb-api/pmap-sesion', {
+            await fetch((typeof PMAP_URL!=='undefined'?PMAP_URL:'https://motor1.alau.fedusocial.org')+'/bbb-api/pmap-sesion', {
               method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (await auth.currentUser.getIdToken()) },
+              headers: { 'Content-Type': 'application/json', 'x-alau-token': (await auth.currentUser.getIdToken()) },
               body: JSON.stringify({
                 uid:        datos.uid,
                 estudiante: datos.nombre || datos.uid,
