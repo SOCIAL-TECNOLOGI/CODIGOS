@@ -20674,8 +20674,12 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
       // 🧠 PMAP — procesar sesión al finalizar
       try {
         const uidDocente = auth.currentUser?.uid;
-        let sesionPath = '';
-        try { sesionPath = sessionRef.toString().split('/sessions/')[1]; } catch(_){}
+        let sesionPath = SESSION_ID || '';
+        try {
+          const fromRef = sessionRef.toString().split('/sessions/')[1];
+          if (fromRef) sesionPath = fromRef;
+          console.log('🧠 PMAP sesionPath:', sesionPath, '| SESSION_ID:', SESSION_ID, '| ref:', sessionRef.toString());
+        } catch(_){}
         
         // Obtener lista de estudiantes de la sesión
         const presenciaSnap = await sessionRef.child('presencia').once('value');
@@ -20722,7 +20726,7 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
               body: JSON.stringify({
                 uid:        datos.uid,
                 estudiante: datos.nombre || datos.uid,
-                sesionId:   sesionPath || SESSION_ID || '',
+                sesionId:   SESSION_ID || '',
                 area:       meta.cuestionarioNombre || meta.cuestionarioId || '',
                 documento:  datos.documento || '',
                 respuestas
