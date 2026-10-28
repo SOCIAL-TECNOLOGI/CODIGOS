@@ -20696,10 +20696,10 @@ document.getElementById('closeSessionForAllBtn')?.addEventListener('click', asyn
           const sesionesSnap = await db.ref(`estudiantes/${datos.uid}/sesiones`).once('value');
           const sesionesExistentes = sesionesSnap.val() || {};
           const yaExiste = Object.values(sesionesExistentes).some(
-            s => s.cuestionarioId === (meta.cuestionarioId || '')
+            s => s.sesionId === sesionPath
           );
           if (yaExiste) {
-            console.log(`⚠️ PMAP ya procesado para ${datos.uid} en ${meta.cuestionarioId}`);
+            console.log(`⚠️ PMAP ya procesado para ${datos.uid} en ${sesionPath}`);
             continue;
           }
 
